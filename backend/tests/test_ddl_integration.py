@@ -1,0 +1,38 @@
+import pytest
+from sqlalchemy import text
+from app.db.mysql import get_db
+
+pytestmark = pytest.mark.integration
+
+EXPECTED_TABLES = {"jd_pool", "signal", "skill_dict", "job_skill", "emerging_job", "resume"}
+
+def _cols(db, table):
+    rows = db.execute(text(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_schema='talentmind' AND table_name=:t"), {"t": table})
+    return {r[0] for r in rows}
+
+def test_all_tables_created():
+    db = next(get_db())
+    try:
+        rows = db.execute(text("SHOW TABLES")).fetchall()
+        tables = {r[0] for r in rows}
+        assert EXPECTED_TABLES.issubset(tables)
+    finally:
+        db.close()
+
+def test_job_skill_has_frozen_columns():
+    db = next(get_db())
+    try:
+        cols = _cols(db, "job_skill")
+        assert {"jd_id", "job_name", "level", "skills", "duties", "extracted_at"}.issubset(cols)
+    finally:
+        db.close()
+
+def test_skill_dict_canonical_unique():
+    db = next(get_db())
+    try:
+        rows = db.execute(text("SHOW INDEX FROM skill_dict WHERE Column_name='canonical'"))
+        assert rows.fetchone() is not None   # canonical 有索引/唯一约束
+    finally:
+        db.close()
