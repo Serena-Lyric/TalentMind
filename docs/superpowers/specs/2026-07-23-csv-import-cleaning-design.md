@@ -3,7 +3,7 @@
 - **日期**: 2026-07-23
 - **关联计划**: Plan A — 数据采集（`docs/superpowers/plans/2026-07-20-planA-data-collection.md`）
 - **定位**: Plan A Task 1 + Task 3 的扩展实现设计，不改变 planA 任务结构
-- **决策依据**: 种子数据快速解锁下游（Q2-A），中洗深度（B），全量导入
+- **决策依据**: 种子数据快速解锁下游（Q2-A），中洗深度（B），采样 10 万行
 
 ## 1. 背景与约束
 
@@ -62,7 +62,7 @@ Work Location: In person"                                ← 地点行
 ## 2. 数据流设计
 
 ```
-postings.csv (338万行)
+postings.csv (采样 10 万行 / 全量 338 万行可选)
   + jobs/job_skills.csv
   + mappings/skills.csv
          │
@@ -302,7 +302,7 @@ cp -r /path/to/archive/* data/archive/
 # 2. 起 MySQL
 docker-compose up -d --wait
 
-# 3. 运行导入（全量 338 万行，预计 10-30 分钟）
+# 3. 运行导入（默认采样 10 万行，约 1-2 分钟）
 cd backend
 python -m app.collect.import_csv \
     --csv data/archive/postings.csv \
@@ -313,7 +313,7 @@ python -m app.collect.import_csv \
 docker exec -i $(docker-compose ps -q mysql) \
     mysql -uroot -ptalentmind talentmind \
     -e "SELECT COUNT(*) FROM jd_pool WHERE status='cleaned';"
-# Expected: > 3,000,000
+# Expected: ~100,000
 ```
 
 ### 8.3 C 不需要做的事
@@ -323,20 +323,19 @@ docker exec -i $(docker-compose ps -q mysql) \
 - ❌ 不需要了解 CSV 格式细节
 - ✅ 现有的 `SELECT * FROM jd_pool WHERE status='cleaned'` 直接可用
 
-## 9. 性能考量（全量 338 万行）
+## 9. 性能考量（采样 10 万行）
 
 | 阶段 | 预估耗时 | 内存峰值 | 备注 |
 |------|---------|---------|------|
-| `load_csv` | ~30s | ~50MB | csv.DictReader 是流式的 |
-| `clean` | ~3-5min | ~100MB | 纯 CPU 正则，逐行处理 |
-| `enrich_skills` | ~1min | ~200MB | job_skills 映射表需全量加载 |
-| `dedup + quality` | ~2-3min | ~300MB | 需在内存中建签名索引 |
-| `save_rows` | ~10-20min | ~50MB | 网络 IO 瓶颈，考虑 `executemany` 批量插入 |
+| `load_csv` | ~2s | ~20MB | csv.DictReader 流式，仅取前 10 万行 |
+| `clean` | ~10-15s | ~30MB | 纯 CPU 正则，逐行处理 |
+| `enrich_skills` | ~3s | ~50MB | job_skills 映射表全量加载但只查 10 万次 |
+| `dedup + quality` | ~5-10s | ~80MB | 内存中建签名索引 |
+| `save_rows` | ~30-60s | ~20MB | 1000 条/批，约 100 次批量 INSERT |
 
-优化措施：
-- `save_rows` 使用 1000 条/批次的批量 INSERT
-- 可选：全流程加 tqdm 进度条，避免"黑盒等待"感
-- 可选：增加 `--limit N` 参数支持采样模式
+**总计约 1-2 分钟**，对 C 的开发体验无感知负担。
+
+`import_csv.py` 默认 `--limit 100000`，可通过 `--limit 0` 切换为全量。
 
 ## 10. 与 planA 任务结构的对应关系
 
