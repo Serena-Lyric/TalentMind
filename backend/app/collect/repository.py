@@ -11,7 +11,7 @@ INSERT_STMT = text(
 def build_insert_params(row: dict) -> dict:
     return {
         "source": row.get("source", ""),
-        "job_title": row.get("job_title", ""),
+        "job_title": (row.get("job_title", "") or "")[:128],
         "raw_text": row.get("raw_text", ""),
         "duties": row.get("duties", ""),
         "experience": (row.get("experience", "") or "")[:32],
