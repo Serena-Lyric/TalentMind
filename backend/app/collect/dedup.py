@@ -3,7 +3,7 @@ import re
 
 
 def text_signature(text: str) -> str:
-    norm = re.sub(r"[\s,。.,、;;]+", "", text or "").lower()
+    norm = re.sub(r"[\s,。,、;;]+", "", text or "").lower()
     return hashlib.md5(norm.encode()).hexdigest()[:16]
 
 
