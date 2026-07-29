@@ -32,3 +32,11 @@ CREATE TABLE IF NOT EXISTS resume (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   raw_format VARCHAR(8), skills JSON, experience JSON, parsed_at DATETIME
 );
+CREATE TABLE IF NOT EXISTS talent_raw (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  source VARCHAR(32), identity_hint VARCHAR(128), raw_text TEXT,
+  skills_hint JSON, experience_hint TEXT,
+  quality FLOAT DEFAULT 0, dup_group VARCHAR(64),
+  crawled_at DATETIME, status VARCHAR(16) DEFAULT 'raw',
+  INDEX idx_status (status), INDEX idx_source (source)
+);

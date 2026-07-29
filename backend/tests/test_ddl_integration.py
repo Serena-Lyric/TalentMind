@@ -4,7 +4,7 @@ from app.db.mysql import get_db
 
 pytestmark = pytest.mark.integration
 
-EXPECTED_TABLES = {"jd_pool", "signal", "skill_dict", "job_skill", "emerging_job", "resume"}
+EXPECTED_TABLES = {"jd_pool", "signal", "skill_dict", "job_skill", "emerging_job", "resume", "talent_raw"}
 
 def _cols(db, table):
     rows = db.execute(text(
@@ -34,5 +34,14 @@ def test_skill_dict_canonical_unique():
     try:
         rows = db.execute(text("SHOW INDEX FROM skill_dict WHERE Column_name='canonical'"))
         assert rows.fetchone() is not None   # canonical 有索引/唯一约束
+    finally:
+        db.close()
+
+def test_talent_raw_has_frozen_columns():
+    db = next(get_db())
+    try:
+        cols = _cols(db, "talent_raw")
+        assert {"source", "identity_hint", "raw_text", "skills_hint",
+                "experience_hint", "quality", "dup_group", "crawled_at", "status"}.issubset(cols)
     finally:
         db.close()
