@@ -156,3 +156,113 @@ class TestFetchUserProfile:
         client.get.side_effect = [profile_resp, repos_resp]
         result = _fetch_user_profile(client, "octocat", "")
         assert result["bio"] == ""
+
+
+from unittest.mock import patch
+from app.collect.fetchers.github import GithubTrendingFetcher
+import app.collect.fetchers.github as github_module
+
+
+class TestGithubTrendingFetcherOrchestration:
+    def test_dedupes_repos_across_languages_and_caps_at_max(self):
+        def fake_trending(client, language):
+            return {"python": [("a", "r1"), ("b", "r2")], "java": [("a", "r1"), ("c", "r3")]}.get(language, [])
+
+        with patch.object(github_module, "_fetch_trending_repos", side_effect=fake_trending), \
+             patch.object(github_module, "_fetch_contributors", return_value=[]), \
+             patch.object(github_module, "_fetch_user_profile", return_value={}):
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            fetcher.fetch()
+            # 3 unique repos (a/r1, b/r2, c/r3) all under MAX_REPOS=25, so all requested for contributors
+            assert github_module._fetch_contributors.call_count == 3
+
+    def test_caps_total_repos_at_max_repos_constant(self):
+        many_repos = [(f"owner{i}", f"repo{i}") for i in range(50)]
+
+        with patch.object(github_module, "_fetch_trending_repos", side_effect=lambda c, lang: many_repos if lang == "python" else []), \
+             patch.object(github_module, "_fetch_contributors", return_value=[]) as mock_contrib, \
+             patch.object(github_module, "_fetch_user_profile", return_value={}):
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            fetcher.fetch()
+            assert mock_contrib.call_count == github_module.MAX_REPOS
+
+    def test_dedupes_usernames_across_repos(self):
+        with patch.object(github_module, "_fetch_trending_repos", side_effect=lambda c, lang: [("a", "r1"), ("b", "r2")] if lang == "python" else []), \
+             patch.object(github_module, "_fetch_contributors", side_effect=lambda c, o, r, t: ["alice", "bob"] if r == "r1" else ["bob", "carol"]), \
+             patch.object(github_module, "_fetch_user_profile", return_value={"bio": "", "repo_descriptions": [], "languages": []}) as mock_profile:
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            fetcher.fetch()
+            called_usernames = [call.args[1] for call in mock_profile.call_args_list]
+            assert called_usernames == ["alice", "bob", "carol"]
+
+    def test_stops_contributor_fetch_on_rate_limit_but_returns_partial_result(self):
+        from app.collect.fetchers.github import _GithubRateLimited
+
+        def fake_contributors(client, owner, repo, token):
+            if repo == "r1":
+                return ["alice"]
+            raise _GithubRateLimited()
+
+        with patch.object(github_module, "_fetch_trending_repos", side_effect=lambda c, lang: [("a", "r1"), ("b", "r2")] if lang == "python" else []), \
+             patch.object(github_module, "_fetch_contributors", side_effect=fake_contributors), \
+             patch.object(github_module, "_fetch_user_profile", return_value={"bio": "", "repo_descriptions": [], "languages": []}) as mock_profile:
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            result = fetcher.fetch()
+            assert len(result) == 1
+            mock_profile.assert_called_once()
+
+    def test_stops_profile_fetch_on_rate_limit_but_returns_partial_result(self):
+        from app.collect.fetchers.github import _GithubRateLimited
+
+        def fake_profile(client, username, token):
+            if username == "alice":
+                return {"bio": "hi", "repo_descriptions": [], "languages": ["Python"]}
+            raise _GithubRateLimited()
+
+        with patch.object(github_module, "_fetch_trending_repos", side_effect=lambda c, lang: [("a", "r1")] if lang == "python" else []), \
+             patch.object(github_module, "_fetch_contributors", return_value=["alice", "bob"]), \
+             patch.object(github_module, "_fetch_user_profile", side_effect=fake_profile):
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            result = fetcher.fetch()
+            assert len(result) == 1
+            assert result[0].identity_hint == "alice"
+
+    def test_produces_rawtalent_with_correct_fields(self):
+        def fake_profile(client, username, token):
+            return {"bio": "Pythonista", "repo_descriptions": ["A web app"], "languages": ["Python", "Go"]}
+
+        with patch.object(github_module, "_fetch_trending_repos", side_effect=lambda c, lang: [("a", "r1")] if lang == "python" else []), \
+             patch.object(github_module, "_fetch_contributors", return_value=["octocat"]), \
+             patch.object(github_module, "_fetch_user_profile", side_effect=fake_profile):
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            result = fetcher.fetch()
+            assert len(result) == 1
+            talent = result[0]
+            assert talent.source == "github"
+            assert talent.identity_hint == "octocat"
+            assert "Pythonista" in talent.raw_text
+            assert "A web app" in talent.raw_text
+            assert talent.skills_hint == ["Python", "Go"]
+            assert talent.experience_hint == ""
+
+    def test_returns_empty_list_when_no_repos_found(self):
+        with patch.object(github_module, "_fetch_trending_repos", return_value=[]), \
+             patch.object(github_module, "_fetch_contributors") as mock_contrib, \
+             patch.object(github_module, "_fetch_user_profile") as mock_profile:
+            fetcher = GithubTrendingFetcher(client=MagicMock(), token="")
+            result = fetcher.fetch()
+            assert result == []
+            mock_contrib.assert_not_called()
+            mock_profile.assert_not_called()
+
+
+class TestGithubTrendingFetcherTokenResolution:
+    def test_get_token_uses_explicit_token_when_provided(self):
+        fetcher = GithubTrendingFetcher(client=MagicMock(), token="explicit_token")
+        assert fetcher._get_token() == "explicit_token"
+
+    def test_get_token_reads_settings_when_not_provided(self, monkeypatch):
+        fake_settings = MagicMock(github_token="from_settings_token")
+        monkeypatch.setattr("app.config.get_settings", lambda: fake_settings)
+        fetcher = GithubTrendingFetcher(client=MagicMock())
+        assert fetcher._get_token() == "from_settings_token"

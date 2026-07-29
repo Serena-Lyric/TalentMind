@@ -91,9 +91,55 @@ def _fetch_user_profile(client: httpx.Client, username: str, token: str) -> dict
 
 
 class GithubTrendingFetcher(Fetcher):
-    """GitHub Trending 采集(反爬弱,优先)。真实实现按需补充解析逻辑。"""
-    def __init__(self, client: httpx.Client | None = None):
+    """GitHub Trending 采集：找热门仓库 → 贡献者 → profile/repos，产出 RawTalent。"""
+    def __init__(self, client: httpx.Client | None = None, token: str | None = None):
         self.client = client or httpx.Client(timeout=10)
+        self._token = token
+
+    def _get_token(self) -> str:
+        if self._token is not None:
+            return self._token
+        from app.config import get_settings
+        return get_settings().github_token
 
     def fetch(self) -> list[RawTalent]:
-        return []
+        token = self._get_token()
+
+        repos: list[tuple[str, str]] = []
+        seen_repos: set[tuple[str, str]] = set()
+        for language in LANGUAGES:
+            for repo in _fetch_trending_repos(self.client, language):
+                if repo not in seen_repos:
+                    seen_repos.add(repo)
+                    repos.append(repo)
+        repos = repos[:MAX_REPOS]
+
+        usernames: list[str] = []
+        seen_usernames: set[str] = set()
+        for owner, repo in repos:
+            try:
+                contributors = _fetch_contributors(self.client, owner, repo, token)
+            except _GithubRateLimited:
+                break
+            for username in contributors:
+                if username not in seen_usernames:
+                    seen_usernames.add(username)
+                    usernames.append(username)
+
+        talents: list[RawTalent] = []
+        for username in usernames:
+            try:
+                profile = _fetch_user_profile(self.client, username, token)
+            except _GithubRateLimited:
+                break
+            raw_text_parts = [profile.get("bio", "")] + profile.get("repo_descriptions", [])
+            raw_text = "\n".join(part for part in raw_text_parts if part)
+            talents.append(RawTalent(
+                source="github",
+                raw_text=raw_text,
+                identity_hint=username,
+                skills_hint=profile.get("languages", []),
+                experience_hint="",
+            ))
+
+        return talents
