@@ -502,9 +502,9 @@ def _fetch_user_profile(client: httpx.Client, username: str, token: str) -> dict
     if repos_resp.status_code == 200:
         for item in repos_resp.json():
             desc = item.get("description")
-            if desc:
-                repo_descriptions.append(desc)
             lang = item.get("language")
+            if desc and lang:
+                repo_descriptions.append(desc)
             if lang:
                 languages.append(lang)
 
