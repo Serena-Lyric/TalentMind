@@ -1,6 +1,8 @@
 from app.collect.cleaner import clean
+from app.collect.talent_cleaner import clean_talent
 from app.collect.dedup import assign_dup_groups, quality_score
-from app.collect.repository import save_rows
+from app.collect.repository import save_rows, save_talent_rows
+from app.collect.schema import RawJD, RawTalent
 
 
 def enrich_skills(
@@ -22,29 +24,55 @@ def enrich_skills(
     return rows
 
 
+def _assign_quality(rows: list[dict]) -> int:
+    """按 dup_group 统计分组大小并填充 quality 分数，返回分组数。两侧共用。"""
+    group_sizes: dict[str, int] = {}
+    for r in rows:
+        group_sizes[r["dup_group"]] = group_sizes.get(r["dup_group"], 0) + 1
+    for r in rows:
+        r["quality"] = quality_score(r, group_sizes[r["dup_group"]])
+    return len(group_sizes)
+
+
 def run_pipeline(
     db,
     raws,
     job_skill_map: dict[str, list[str]] | None = None,
     skill_map: dict[str, str] | None = None,
 ) -> dict:
-    rows = []
-    for r in raws:
-        row = clean(r)
-        if r.job_id:
-            row["_job_id"] = r.job_id  # 临时传递，enrich 后删除
-        rows.append(row)
+    """按元素类型分流：RawJD 走岗位链(jd_pool)，RawTalent 走人才链(talent_raw)。
+    raws 可混合两种类型；Fetcher.fetch() 的返回类型本身即路由依据。"""
+    jd_raws = [r for r in raws if isinstance(r, RawJD)]
+    talent_raws = [r for r in raws if isinstance(r, RawTalent)]
 
-    if job_skill_map and skill_map:
-        rows = enrich_skills(rows, job_skill_map, skill_map)
+    jd_saved = 0
+    talent_saved = 0
+    total_groups = 0
 
-    rows = assign_dup_groups(rows)
+    if jd_raws:
+        rows = []
+        for r in jd_raws:
+            row = clean(r)
+            if r.job_id:
+                row["_job_id"] = r.job_id  # 临时传递，enrich 后删除
+            rows.append(row)
 
-    group_sizes: dict[str, int] = {}
-    for r in rows:
-        group_sizes[r["dup_group"]] = group_sizes.get(r["dup_group"], 0) + 1
-    for r in rows:
-        r["quality"] = quality_score(r, group_sizes[r["dup_group"]])
+        if job_skill_map and skill_map:
+            rows = enrich_skills(rows, job_skill_map, skill_map)
 
-    saved = save_rows(db, rows)
-    return {"saved": saved, "groups": len(group_sizes)}
+        rows = assign_dup_groups(rows)
+        total_groups += _assign_quality(rows)
+        jd_saved = save_rows(db, rows)
+
+    if talent_raws:
+        rows = [clean_talent(r) for r in talent_raws]
+        rows = assign_dup_groups(rows)
+        total_groups += _assign_quality(rows)
+        talent_saved = save_talent_rows(db, rows)
+
+    return {
+        "saved": jd_saved + talent_saved,
+        "jd_saved": jd_saved,
+        "talent_saved": talent_saved,
+        "groups": total_groups,
+    }

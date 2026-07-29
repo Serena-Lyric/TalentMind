@@ -1,5 +1,5 @@
 from app.collect.pipeline import run_pipeline, enrich_skills
-from app.collect.schema import RawJD
+from app.collect.schema import RawJD, RawTalent
 
 
 class FakeDB:
@@ -71,3 +71,32 @@ class TestRunPipeline:
         stats = run_pipeline(db, raws, job_skill_map=job_skill_map, skill_map=skill_map)
         assert stats["saved"] == 1
         assert "Engineering" in db.saved[0]["raw_text"]
+
+
+class TestRunPipelineRouting:
+    def test_routes_talent_raws_to_talent_saved(self):
+        db = FakeDB()
+        raws = [
+            RawTalent(source="github", raw_text="Python developer with 5 repos"),
+            RawTalent(source="resume_dataset", raw_text="Python developer with five repos"),
+        ]
+        stats = run_pipeline(db, raws)
+        assert stats["talent_saved"] == 2
+        assert stats["jd_saved"] == 0
+        assert stats["saved"] == 2
+
+    def test_routes_mixed_raws_to_both_sides(self):
+        db = FakeDB()
+        raws = [
+            RawJD(source="dataset", job_title="AI Engineer", raw_html="Build AI systems."),
+            RawTalent(source="github", raw_text="Python developer with 5 repos"),
+        ]
+        stats = run_pipeline(db, raws)
+        assert stats["jd_saved"] == 1
+        assert stats["talent_saved"] == 1
+        assert stats["saved"] == 2
+
+    def test_empty_raws_returns_zero_stats(self):
+        db = FakeDB()
+        stats = run_pipeline(db, [])
+        assert stats == {"saved": 0, "jd_saved": 0, "talent_saved": 0, "groups": 0}
