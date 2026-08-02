@@ -1,1 +1,11 @@
 docs/submit/*.sql.gz
+
+# 大数据文件不入库（GitHub 单文件上限 100MB）
+docs/originalfile/archive.zip
+docs/originalfile/archive/postings.csv
+
+# 运行与缓存产物
+.pytest_cache/
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,655 @@
+确定采用 C：双中心模型（Talent Entity + Skill/Job Knowledge）。
+
+这一步非常关键，因为它基本确定了我们后续设计采集模块时，不会把目标局限在“找人才”，而是构建一个人才—能力—岗位之间可关联的数据基础层。
+
+我先整理目前形成的设计共识。
+
+一、最终的数据对象定位（当前版本）
+
+系统获取的不是单一对象：
+
+不是：
+
+简历
+ ↓
+人才表
+
+而是：
+
+              Talent Data Ecosystem
+
+        Talent Entity        Knowledge Entity
+
+             人才                 能力/岗位
+
+              │                    │
+              │ possesses           │ requires
+              ▼                    ▼
+
+             Skill  ──────────── Job
+二、为什么采用双中心模型
+1. 仅人才中心不足
+
+如果只采集人才：
+
+Person
+ ├── Skill
+ ├── Experience
+ └── Project
+
+可以回答：
+
+这个人会什么？
+
+但是无法充分回答：
+
+这个能力是否匹配某岗位？
+
+因为缺少外部标准。
+
+2. 仅能力中心不足
+
+如果只构建：
+
+Skill
+ ↓
+Job Requirement
+
+可以回答：
+
+岗位需要什么？
+
+但不知道：
+
+谁具备这些能力？
+
+3. 双中心可以形成匹配闭环
+
+最终：
+
+Talent
+
+拥有
+
+Skill
+
+满足
+
+Job Requirement
+
+形成：
+
+人才能力
+     ↓
+技能匹配
+     ↓
+岗位匹配
+     ↓
+差距分析
+
+这正好对应竞赛功能。
+
+三、对数据获取工作流的影响
+
+现在采集对象可以拆成两个方向。
+
+第一类：Talent Acquisition
+
+目标：
+
+获取人才实体相关数据。
+
+来源：
+
+简历数据
+公开个人资料
+开源平台信息
+项目记录
+
+形成：
+
+Talent
+
+{
+ education,
+ experience,
+ project,
+ skill,
+ source
+}
+第二类：Knowledge Acquisition
+
+目标：
+
+获取能力和岗位知识。
+
+来源：
+
+岗位描述
+技术要求
+技能关系数据
+行业知识
+
+形成：
+
+Skill
+
+{
+ name,
+ category,
+ relation
+}
+
+
+Job
+
+{
+ title,
+ requirement,
+ skill
+}
+四、这里出现一个重要结论
+
+前面讨论的“简历自动获取工作流”现在应该升级为：
+
+人才知识数据获取工作流（Talent Knowledge Acquisition Workflow）
+
+因为：
+
+简历只是 Talent Entity 的一个入口。
+
+而整个系统需要：
+
+Talent
++
+Skill
++
+Job
+
+三类数据共同支撑。
+
+五、当前整体架构进一步明确
+
+目前可以形成：
+
+                         数据源层
+
+       ┌─────────────────────────────┐
+       │                             │
+ Talent Sources                Knowledge Sources
+
+ Resume Dataset                Job Data
+ Resume File                   Skill Dataset
+ GitHub/Gitee                  Technical Docs
+ Public Profile                Industry Data
+       │                             │
+       └──────────────┬──────────────┘
+
+                      ↓
+
+              Acquisition Layer
+
+      ┌──────────┬──────────┬──────────┐
+      │ Dataset  │ API      │ Collector│
+      └──────────┴──────────┴──────────┘
+
+                      ↓
+
+              Raw Data Storage
+
+                      ↓
+
+              Processing Pipeline
+
+      Cleaning → Validation → Normalization
+
+                      ↓
+
+          ┌───────────┴───────────┐
+
+     Talent Entity            Knowledge Entity
+
+          │                         │
+
+          └──────── Skill Relation ─┘
+
+                      ↓
+
+              Database
+六、目前还有一个隐藏问题
+
+采用 C 后，需要处理一个问题：
+
+Skill 是什么？
+
+因为 Skill 是整个系统连接点。
+
+例如：
+
+人才：
+
+Python
+
+岗位：
+
+Python开发经验
+
+项目：
+
+PyTorch项目
+
+它们是否属于同一个技能？
+
+需要一个技能标准化体系。
+
+否则：
+
+Python
+python
+Python3
+Python语言
+
+会被认为是不同技能。
+
+这会影响后续：
+
+数据清洗
+去重
+匹配准确率
+数据库结构
+
+因此下一轮 Q&A 我建议进入：
+
+Q5：技能体系来源与构建方式
+
+目前有三个方向：
+
+A. 外部技能词典驱动
+
+使用已有技能分类体系作为标准。
+
+流程：
+
+外部Skill Taxonomy
+        ↓
+数据映射
+
+优点：
+标准化强。
+
+缺点：
+可能不完全适合项目。
+
+B. 数据驱动生成
+
+从采集数据中自动发现技能。
+
+流程：
+
+Raw Data
+ ↓
+Skill Extraction
+ ↓
+Skill Cluster
+
+优点：
+适应性强。
+
+缺点：
+质量控制难。
+
+C. 混合方式
+
+已有技能体系作为基础：
+
+已有Skill Taxonomy
+        +
+数据中新发现Skill
+        ↓
+动态扩展Skill库
+
+优点：
+兼顾稳定和扩展。
+
+结合当前“双中心 + 自动采集 + 持续更新”的设计，我倾向 C。
+
+但这一步需要你的确认，因为 Skill 体系会影响整个数据库设计。
+
+C. 混合方式
+
+确定采用 C：技能体系混合构建方式（基础 Taxonomy + 数据驱动扩展）。
+
+这一选择使得整个数据获取工作流的目标进一步明确：我们不是简单收集技能字段，而是在构建一个可持续演化的人才能力知识体系。
+
+一、技能体系定位
+
+最终技能体系：
+
+基础技能体系
+        +
+动态发现技能
+        ↓
+统一 Skill Knowledge Base
+
+其中：
+
+基础技能体系
+
+作用：
+
+提供初始标准。
+
+解决：
+
+技能命名混乱
+分类缺失
+初期没有参考的问题
+
+例如：
+
+采集到：
+
+Python
+python3
+Python Language
+
+需要映射到：
+
+Skill Entity:
+
+Python
+动态技能发现
+
+作用：
+
+解决现实数据变化。
+
+因为技术领域不断出现：
+
+新框架
+新工具
+新方法
+
+如果完全依赖固定词典：
+
+数据库会逐渐过时。
+
+因此需要：
+
+Raw Data
+ ↓
+Skill Extraction
+ ↓
+Candidate Skill
+ ↓
+Validation
+ ↓
+加入Skill库
+二、当前整体数据模型进一步稳定
+
+目前已经形成四类核心实体：
+
+Talent
+    |
+    | possesses
+    |
+Skill
+    |
+    | required by
+    |
+Job
+
+
+Skill
+    |
+    | belongs to
+    |
+Skill Category
+
+关系：
+
+Talent ──拥有── Skill
+
+Job ──需要── Skill
+
+Skill ──属于── Category
+
+这已经接近岗位能力图谱的数据基础。
+
+三、对自动化采集流程的影响
+
+现在采集模块不只是：
+
+“获取数据”。
+
+而是：
+
+             Data Acquisition
+
+                     ↓
+
+             Raw Data Layer
+
+                     ↓
+
+          Information Extraction
+
+                     ↓
+
+       ┌─────────────┴─────────────┐
+
+ Talent Entity                 Skill Entity
+
+       │                            │
+
+       └──────── Relation ──────────┘
+
+                     ↓
+
+             Knowledge Database
+四、技能体系带来的质量控制需求
+
+因为技能是连接人才和岗位的核心，所以后续清洗流程中必须包含：
+
+1. 技能标准化
+
+解决：
+
+Java
+JAVA
+Java语言
+
+统一问题。
+
+2. 技能层级化
+
+解决：
+
+技能之间的关系。
+
+例如：
+
+Programming Language
+        |
+        └── Python
+
+Backend Development
+        |
+        ├── Spring
+        └── Django
+3. 技能可信度
+
+因为不同来源可靠程度不同。
+
+例如：
+
+来源：
+
+简历：
+
+掌握Python
+
+GitHub：
+
+多个Python项目
+
+两者权重不同。
+
+因此未来可能需要：
+
+Skill Confidence Score
+五、目前形成的完整设计链
+
+经过多轮 Q&A，现在整体模型：
+
+                         数据源
+
+        ┌──────────┬──────────┬──────────┐
+        │          │          │          │
+     Resume     GitHub      Job       Dataset
+        │          │          │          │
+
+        └──────────┴──────────┴──────────┘
+
+                       ↓
+
+              Acquisition Framework
+
+                       ↓
+
+                 Raw Data Storage
+
+                       ↓
+
+              Cleaning & Validation
+
+                       ↓
+
+        ┌──────────────┴──────────────┐
+
+     Talent Entity              Knowledge Entity
+
+        │                           │
+
+        │                           │
+        └────────── Skill ──────────┘
+
+                       ↓
+
+              Talent Knowledge DB
+六、目前已经完成的 Q&A 阶段总结
+
+已经确定：
+
+问题	结论
+系统方向	人才驱动
+人才范围	通用模型 + 技术人才增强
+数据模式	混合模式
+人才模型	实体 + 事件结合
+自动化目标	自动采集 + 可扩展框架
+数据粒度	Talent + Skill/Job 双中心
+技能体系	基础体系 + 动态扩展
+
+目前已经不是“简历获取方案”，而是：
+
+面向人才能力分析的异构数据自动获取与知识库构建工作流。
+
+下一阶段 Q&A
+
+现在进入一个新的关键层面：
+
+前面确定了“获取什么”，接下来需要确定：
+
+如何组织数据获取模块。
+
+Q6：采集模块应该按照“数据源”组织，还是按照“数据类型”组织？
+
+这个会影响整个 Collector 架构。
+
+方案 A：数据源驱动
+
+结构：
+
+GitHub Collector
+      |
+      ↓
+Talent Data
+
+Resume Collector
+      |
+      ↓
+Talent Data
+
+Job Website Collector
+      |
+      ↓
+Job Data
+
+特点：
+
+符合现实采集方式。
+
+一个数据源负责完整处理。
+
+优点：
+
+实现简单
+易维护
+
+缺点：
+
+不同来源的数据逻辑容易重复。
+
+方案 B：数据类型驱动
+
+结构：
+
+Talent Collector
+
+Skill Collector
+
+Job Collector
+
+数据源只是插件。
+
+特点：
+
+先定义目标数据，再接入来源。
+
+优点：
+
+统一性强。
+
+缺点：
+
+初期设计复杂。
+
+方案 C：双层结构
+
+推荐架构：
+
+Data Source Connector
+
+        ↓
+
+Data Processing Pipeline
+
+        ↓
+
+Entity Extraction Module
+
+        ↓
+
+Database
+
+即：
+
+数据源负责“拿数据”。
+
+处理模块负责“理解数据”。
+
+结合目前 B+C 自动化目标，我倾向 C。
+
+但这里需要你确认：
+
+Q6：采集模块采用 A / B / C 哪种组织方式？
