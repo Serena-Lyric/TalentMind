@@ -17,3 +17,14 @@
 - 修复计划: `docs/superpowers/plans/`（按日期取最新）
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
+
+## 项目决策要点（2026-08-03 汇总）
+
+权威清单与最新状态见 `docs/superpowers/决策跟踪.md`；详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md`。
+
+- 协作模式：5 人 5 机；主库与 API 在 A；**文件交接 + A 唯一集成**；技术栈自选、效果优先
+- 模块：M1 采集 / M2 岗位分析 / M3 图谱 / M4 简历+匹配 / M5 前端；对接只走数据契约与 API
+- 规划顺序：需求 → 模块 → 产出-消费矩阵 → 数据契约 → API（v2 API 清单作废）
+- 数据契约：原始层 jd_pool/talent_raw/signal；分析层 skill_dict/job_definition/job_skill/job_change_log/resume（DDL 见 `backend/app/contracts/ddl.sql`）
+- 岗位定义字段：岗位名称/核心职责/必备技能/加分技能/典型行业应用场景 + source(仅平台)/quality/collected_at；无 status
+- 图谱：Neo4j；M3 只交 graph.json 由 A 导入

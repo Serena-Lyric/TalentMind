@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentMind 五人团队协作规划</title>
+<style>
+  :root { --primary:#2563eb; --bg:#f6f8fb; --card:#fff; --line:#e2e8f0; --text:#1e293b; --muted:#64748b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei", "PingFang SC", sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  .wrap { max-width:1080px; margin:0 auto; padding:24px 20px 60px; }
+  header { text-align:center; padding:28px 0 8px; }
+  header h1 { font-size:26px; color:var(--primary); }
+  header p { color:var(--muted); margin-top:6px; }
+  section { margin-top:34px; }
+  h2 { font-size:19px; border-left:4px solid var(--primary); padding-left:10px; margin-bottom:14px; }
+  .flow { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; }
+  .flow .step { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 16px; font-size:14px; text-align:center; min-width:110px; }
+  .flow .step b { display:block; color:var(--primary); font-size:15px; }
+  .flow .arrow { color:var(--muted); font-weight:bold; }
+  .roles { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:12px; }
+  .role { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .role h3 { font-size:15px; color:var(--primary); margin-bottom:6px; }
+  .role p { font-size:13px; color:var(--muted); margin-bottom:6px; }
+  .role ul { list-style:none; font-size:13px; }
+  .role li::before { content:"· "; color:var(--primary); }
+  table { width:100%; border-collapse:collapse; background:var(--card); font-size:13px; }
+  th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:#eef2f7; white-space:nowrap; }
+  code { background:#eef2f7; border-radius:4px; padding:1px 5px; font-size:12px; }
+  pre { background:#0f172a; color:#e2e8f0; border-radius:8px; padding:12px; font-size:12px; overflow-x:auto; }
+  .tag { display:inline-block; background:#dbeafe; color:var(--primary); border-radius:20px; padding:1px 10px; font-size:12px; margin-left:6px; }
+  footer { margin-top:44px; text-align:center; color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>TalentMind · 五人团队协作规划</h1>
+    <p>XH-202621 多源异构数据驱动岗位和能力图谱构建与动态演化分析研究｜2026-08-03</p>
+  </header>
+
+  <section>
+    <h2>总体数据流</h2>
+    <div class="flow">
+      <div class="step"><b>数据源</b>招聘/简历/GitHub</div><span class="arrow">→</span>
+      <div class="step"><b>M1 采集</b>原始库 jd_pool/talent_raw</div><span class="arrow">→</span>
+      <div class="step"><b>M2 岗位分析</b>job_definition 等</div><span class="arrow">→</span>
+      <div class="step"><b>M3 图谱</b>graph.json</div><span class="arrow">→</span>
+      <div class="step"><b>A 集成</b>Neo4j + API</div><span class="arrow">→</span>
+      <div class="step"><b>M5 前端</b>三页面</div>
+    </div>
+    <div class="flow" style="margin-top:10px">
+      <div class="step"><b>用户简历</b>PDF/Word</div><span class="arrow">→</span>
+      <div class="step"><b>M4 匹配</b>解析+差距分析</div><span class="arrow">→</span>
+      <div class="step"><b>A API</b>/match</div><span class="arrow">→</span>
+      <div class="step"><b>M5 匹配页</b></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>五人分工</h2>
+    <div class="roles">
+      <div class="role"><h3>M1 数据采集（A）</h3><p>爬取岗位 JD 与简历/人才原始数据，清洗去重交叉验证，建原始库；兼主库/API/集成</p><ul><li>产出：jd_pool、talent_raw、signal</li><li>对接：向 M2 交 jd.json</li></ul></div>
+      <div class="role"><h3>M2 岗位分析</h3><p>原始 JD → 结构化岗位定义（五要素），技能归一，新岗位发现，动态演化</p><ul><li>产出：skill_dict/job_definition/job_skill/job_change_log</li><li>对接：交文件给 M3/A</li></ul></div>
+      <div class="role"><h3>M3 图谱</h3><p>岗位关系解析成点和线，产出图谱数据</p><ul><li>产出：graph.json（nodes/edges）</li><li>对接：交文件给 A 导入 Neo4j</li></ul></div>
+      <div class="role"><h3>M4 简历+匹配</h3><p>解析用户上传简历，匹配库内岗位，输出差距分析与路径建议</p><ul><li>产出：可运行模块 + 测试集</li><li>对接：代码交给 A 集成进 API</li></ul></div>
+      <div class="role"><h3>M5 前端</h3><p>所有岗位 / 图谱 / 岗位匹配三个页面</p><ul><li>产出：三页代码（Mock→真 API）</li><li>对接：消费 A 的 API</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>数据契约（MySQL）</h2>
+    <table>
+      <tr><th>层</th><th>表</th><th>产出</th><th>说明</th></tr>
+      <tr><td rowspan="3">原始层</td><td>jd_pool</td><td>M1</td><td>岗位原始 JD（含清洗、质量分、去重分组）</td></tr>
+      <tr><td>talent_raw</td><td>M1</td><td>简历/GitHub 人才原始线索</td></tr>
+      <tr><td>signal</td><td>M1（P1）</td><td>技术/社区热度信号</td></tr>
+      <tr><td rowspan="5">分析层</td><td>skill_dict</td><td>M2</td><td>技能归一词典（全队共用）</td></tr>
+      <tr><td>job_definition</td><td>M2</td><td>岗位定义五要素 + source/quality/collected_at/is_emerging/evolution</td></tr>
+      <tr><td>job_skill</td><td>M2</td><td>岗位技能证据链（weight/confidence/evidence/is_required）</td></tr>
+      <tr><td>job_change_log</td><td>M2</td><td>能力变更审计（增/删/改 + 数据源 + 说明）</td></tr>
+      <tr><td>resume</td><td>M4</td><td>简历解析结果</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>交接文件格式</h2>
+    <p>统一 UTF-8、JSON 数组、snake_case，目录 <code>exchange/&lt;模块&gt;/</code>，字段冻结于 <code>backend/app/contracts/ddl.sql</code>。</p>
+    <pre>[
+  {
+    "job_name": "RAG工程师",
+    "core_duties": "负责检索增强生成系统的搭建与优化",
+    "required_skills": ["langchain", "rag", "embedding"],
+    "bonus_skills": ["faiss", "fine-tuning"],
+    "scenarios": ["智能客服", "企业知识库问答"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.9,
+    "collected_at": "2026-08-03T10:00:00",
+    "is_emerging": true
+  }
+]</pre>
+  </section>
+
+  <section>
+    <h2>API（A 维护，M5 消费）</h2>
+    <table>
+      <tr><th>页面</th><th>API</th><th>说明</th></tr>
+      <tr><td>所有岗位</td><td>GET /jobs</td><td>列表 / 搜索 / 筛选 / 分页</td></tr>
+      <tr><td rowspan="2">图谱</td><td>GET /graph/overview</td><td>全景图谱</td></tr>
+      <tr><td>GET /graph/job/{id}</td><td>岗位技能子图</td></tr>
+      <tr><td rowspan="2">岗位匹配</td><td>POST /resume/analyze</td><td>简历上传解析</td></tr>
+      <tr><td>POST /match</td><td>匹配 + 差距分析 + 路径</td></tr>
+    </table>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">统一响应 <code>{code, message, data}</code>；开发期 M5 使用 Mock。</p>
+  </section>
+
+  <section>
+    <h2>里程碑（4 周）</h2>
+    <table>
+      <tr><th>阶段</th><th>关键动作</th></tr>
+      <tr><td>第 0 天</td><td>冻结数据契约</td></tr>
+      <tr><td>第 1 周</td><td>M1 ≥100 条 JD；M2 skill_dict 初版；M3 格式样例；M4 简历解析；M5 Mock 三页</td></tr>
+      <tr><td>第 2 周</td><td>M2 交岗位定义/技能明细/变更日志；M3 交 graph.json；M4 交匹配模块；M5 联调</td></tr>
+      <tr><td>第 3 周</td><td>A 集成；测试集与三项准确率 ≥90% 验证</td></tr>
+      <tr><td>第 4 周</td><td>部署、文档、演示视频</td></tr>
+    </table>
+  </section>
+
+  <footer>决策与未决事项以 <a href="superpowers/决策跟踪.md">docs/superpowers/决策跟踪.md</a> 为准</footer>
+</div>
+</body>
+</html>

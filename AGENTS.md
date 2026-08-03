@@ -81,6 +81,10 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 
 已有陷阱:
 
+## 项目决策要点（2026-08-03）
+
+与 CLAUDE.md 同源，权威清单与最新状态见 `docs/superpowers/决策跟踪.md`，详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md`。核心：5 机协作、文件交接 + A 唯一集成、技术栈自选；数据契约冻结于 `backend/app/contracts/ddl.sql`（加表/加字段自由，改/删字段须全队通知）；岗位定义不含 status，source 仅记录来源平台。
+
 
 ## 维护约定
 
