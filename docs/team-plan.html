@@ -103,7 +103,7 @@
   </section>
 
   <section>
-    <h2>API（A 维护，M5 消费）</h2>
+    <h2>接口与 API（模块自定 → A 统一 → MVP 定稿）</h2>
     <table>
       <tr><th>页面</th><th>API</th><th>说明</th></tr>
       <tr><td>所有岗位</td><td>GET /jobs</td><td>列表 / 搜索 / 筛选 / 分页</td></tr>
@@ -112,7 +112,7 @@
       <tr><td rowspan="2">岗位匹配</td><td>POST /resume/analyze</td><td>简历上传解析</td></tr>
       <tr><td>POST /match</td><td>匹配 + 差距分析 + 路径</td></tr>
     </table>
-    <p style="margin-top:8px;font-size:13px;color:var(--muted)">统一响应 <code>{code, message, data}</code>；开发期 M5 使用 Mock。</p>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">接口由各模块自行定义、A 集成时统一（D19）；轻量惯例：统一响应 <code>{code, message, data}</code>、snake_case、Mock 先行（D20）；开发期 M5 使用 Mock。</p>
   </section>
 
   <section>

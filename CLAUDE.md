@@ -12,9 +12,11 @@
 
 ## 参考文档
 
-- 架构设计: `docs/superpowers/specs/`（按日期取最新文件）
-- 历史 handoff: `docs/superpowers/handoff/`（按日期取最新）
-- 修复计划: `docs/superpowers/plans/`（按日期取最新）
+- 现行设计: `docs/superpowers/specs/2026-08-03-team-plan-design.md`（唯一当前依据）
+- 决策与未决: `docs/superpowers/决策跟踪.md`
+- 历史版本: `docs/superpowers/specs/archive/`、`docs/superpowers/plans/archive/`（仅供参考溯源，不作为当前依据）
+- 有效信息汇总: `docs/superpowers/旧文档有效信息汇总.md`
+- 项目需求: `docs/superpowers/项目需求.txt`
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
 
