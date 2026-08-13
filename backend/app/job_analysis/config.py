@@ -2,6 +2,12 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# 读取 backend/.env（gitignore 保护，含 LLM_API_KEY/LLM_BASE_URL 等，安装即用）
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+load_dotenv(_REPO_ROOT / "backend" / ".env")
+
 # ── API ──
 # 支持 OpenAI-compatible API（DeepSeek / 其他供应商）
 # 设置环境变量后运行，也可直接修改下方默认值

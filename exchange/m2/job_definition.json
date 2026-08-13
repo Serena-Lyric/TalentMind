@@ -1,21 +1,171 @@
 [
   {
-    "job_name": "Cloud Platform/Big Data Engineer",
-    "core_duties": "Develops cloud-based data solutions, back-end services, and performs big data analysis for connected vehicle systems; conducts PoC for next-gen infotainment and cockpit systems.",
+    "job_name": "IT/AV Helpdesk Support",
+    "core_duties": "Provide on-site and remote IT/AV support for 40-100 end users, including Zoom room AV, event support, phone system diagnosis, and desktop support.",
     "required_skills": [
-      "cloud platforms",
-      "automotive engineering experience",
-      "communication skills"
+      "jira",
+      "问题解决",
+      "saas"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "视频会议系统维护",
+      "现场事件技术支持",
+      "企业IT运维",
+      "远程办公支持"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Transfer Office Sourcing Program Manager",
+    "core_duties": "Measure and report on the execution of the material transfer process between suppliers; collect and analyze data, develop KPIs, prepare dashboards, and provide insights to optimize transfer operations and supplier performance.",
+    "required_skills": [
+      "分析能力",
+      "沟通",
+      "团队协作",
+      "问题解决",
+      "项目管理",
+      "演讲",
+      "文档编写",
+      "时间管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "采购分析",
+      "医疗制造物料转移",
+      "跨工厂物料转移跟踪",
+      "高管仪表盘报告",
+      "供应链管理"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.7,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "系统管理员",
+    "core_duties": "负责安装、维护、升级和保护公司软件、硬件及网络，管理IT基础设施并为内部用户提供硬件和软件支持；同时负责局域网/广域网、网络安全、服务器、备份、域账户、M365/Azure、SQL Server和Dynamics NAV等系统的日常运维。",
+    "required_skills": [
+      "vmware",
+      "azure",
+      "sql server",
+      "网络安全",
+      "tcp",
+      "沟通",
+      "问题解决",
+      "windows server"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "企业IT基础设施管理",
+      "数据库与云服务管理",
+      "网络与安全管理",
+      "内部用户技术支持与运维"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Manager Issue Management",
+    "core_duties": "Manage lifecycle of assigned problems, perform root cause analysis, coordinate corrective actions, ensure service level agreements are met, maintain problem inventory in ServiceNow, identify trends and process improvements, and oversee team risk management.",
+    "required_skills": [
+      "agile",
+      "领导力",
+      "风控",
+      "分析能力"
     ],
     "bonus_skills": [
-      "programming languages",
-      "big data analysis"
+      "文档编写"
     ],
     "scenarios": [
-      "Connected vehicle data platforms",
-      "Big data analysis for vehicle development",
-      "Automotive telematics",
-      "In-vehicle infotainment systems"
+      "支付",
+      "金融服务",
+      "数字银行"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Android逆向工程师",
+    "core_duties": "负责对Android应用和SDK进行逆向工程和安全评估，通过静态与动态分析检测恶意行为，开发检测签名并撰写报告。",
+    "required_skills": [
+      "java",
+      "kotlin",
+      "javascript",
+      "安全",
+      "团队协作"
+    ],
+    "bonus_skills": [
+      "网络安全"
+    ],
+    "scenarios": [
+      "APT威胁研究与开源情报分析",
+      "移动应用安全审核",
+      "恶意软件检测与家族识别",
+      "Google Play应用商店威胁监测"
     ],
     "source": [
       "dataset"
@@ -24,6 +174,617 @@
     "is_emerging": true,
     "evolution": {
       "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "UX设计师",
+    "core_duties": "Responsible for creating user interaction task flows, mock-ups, wireframes, and prototypes, applying usability and human factors principles, and collaborating with development teams and product managers to ensure intuitive user experiences and design quality.",
+    "required_skills": [
+      "agile"
+    ],
+    "bonus_skills": [
+      "团队协作",
+      "沟通"
+    ],
+    "scenarios": [
+      "Agricultural and construction machinery in-vehicle information system UX design",
+      "Responsive tablet/phone interface design for enterprise applications",
+      "Intelligent solutions group electronic system interface design"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.75,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Microsoft 365 Lead Architect",
+    "core_duties": "Lead architecture, deployment, administration, and optimization of the enterprise Microsoft 365 platform, including identity and access management, device management, automation, and security; provide technical leadership, escalation support, and drive continuous improvement across IT and business teams.",
+    "required_skills": [
+      "azure",
+      "powershell",
+      "文档编写",
+      "问题解决",
+      "信息安全"
+    ],
+    "bonus_skills": [
+      "项目管理",
+      "团队协作",
+      "沟通"
+    ],
+    "scenarios": [
+      "企业协作与生产力平台",
+      "IT自动化与运维",
+      "身份与访问管理",
+      "云基础设施与设备管理"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.65,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Salesforce Engineering Manager",
+    "core_duties": "Manage full lifecycle of Salesforce development projects, lead design and implementation of complex solutions, oversee code reviews, testing, deployment, and maintenance; collaborate with cross-functional teams and ensure security, governance, and performance compliance.",
+    "required_skills": [
+      "agile",
+      "git",
+      "ci/cd",
+      "api",
+      "rest",
+      "领导力",
+      "scrum",
+      "kanban",
+      "安全"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "企业级 CRM 系统架构与团队管理",
+      "Salesforce 生态工具链与 CI/CD 实践",
+      "金融科技企业 Salesforce 平台定制开发与集成"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:24",
+    "collected_at": "2026-07-24 07:15:24",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Senior Reporting Analyst",
+    "core_duties": "Design, develop, and implement advanced PowerBI solutions including dashboards, reports, and data models; collaborate with stakeholders to gather requirements and deliver actionable insights for data-driven decision-making.",
+    "required_skills": [
+      "sql",
+      "分析能力",
+      "沟通",
+      "azure"
+    ],
+    "bonus_skills": [
+      "scrum"
+    ],
+    "scenarios": [
+      "高层管理驾驶舱",
+      "企业IT治理与战略规划",
+      "金融行业数据报表与决策支持"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:24",
+    "collected_at": "2026-07-24 07:15:24",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Senior Cloud Solutions Architect",
+    "core_duties": "Design and architect scalable, secure, and cost-effective cloud solutions, lead technical discussions, and mentor junior architects.",
+    "required_skills": [
+      "aws",
+      "kubernetes",
+      "docker",
+      "微服务",
+      "安全",
+      "agile",
+      "沟通",
+      "问题解决",
+      "系统设计",
+      "分析能力"
+    ],
+    "bonus_skills": [
+      "python",
+      "java",
+      "javascript"
+    ],
+    "scenarios": [
+      "安全合规的云解决方案架构设计",
+      "跨职能团队技术领导与敏捷交付",
+      "微服务与容器化应用部署",
+      "联邦政府云基础设施建设（IL5-IL6+ 多分类域）"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.85,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "SRE Manager",
+    "core_duties": "Lead a team of SREs to design, implement, and maintain highly scalable, secure, and reliable cloud-based systems; optimize database performance and automate operations while ensuring high availability and alignment with business goals.",
+    "required_skills": [
+      "sre",
+      "devops",
+      "agile",
+      "prometheus",
+      "grafana",
+      "aws",
+      "azure",
+      "gcp",
+      "kubernetes",
+      "ansible",
+      "terraform",
+      "chef",
+      "puppet",
+      "mysql",
+      "cassandra",
+      "mongodb",
+      "redis",
+      "领导力",
+      "性能优化",
+      "scrum",
+      "kanban",
+      "elk"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "多数据库性能调优与自动化运维",
+      "云基础设施与SaaS平台高可用运维",
+      "安全与合规的云原生架构",
+      "跨区域团队协作与监控告警"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Performance Tester",
+    "core_duties": "负责Guidewire云应用及遗留系统的性能测试策略制定、工具配置、脚本开发、负载/压力/耐久性测试执行、性能监控与缺陷管理，并与架构、业务团队协作定义非功能需求。",
+    "required_skills": [
+      "负载均衡",
+      "splunk",
+      "性能优化",
+      "团队协作"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "保险行业Guidewire云平台性能测试",
+      "负载/压力/耐久性测试与性能监控",
+      "云应用性能工程与容量规划"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Systems Engineer II (Okta)",
+    "core_duties": "Design, administer, install, and support systems, software, and security with a focus on Okta. Secure user applications, manage identity and access governance, implement advanced authentication, and maintain Microsoft 365 and Windows Server environments.",
+    "required_skills": [
+      "sso",
+      "oauth",
+      "windows server",
+      "项目管理",
+      "azure",
+      "sql server",
+      "沟通",
+      "问题解决"
+    ],
+    "bonus_skills": [
+      "agile",
+      "时间管理"
+    ],
+    "scenarios": [
+      "企业身份认证与访问管理",
+      "微软365与Windows服务器环境运维",
+      "零信任安全架构与多因素认证"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "IT Manager",
+    "core_duties": "负责管理IT基础设施，包括Okta、Jamf、Intune、Zoom、Google Workspace和Atlassian套件的管理与支持；处理支持工单，配置和撤销应用访问，提供Windows、Mac、iOS、Android平台的问题解决，并管理内外部支持人员及供应商。",
+    "required_skills": [
+      "问题解决",
+      "沟通",
+      "分析能力",
+      "团队协作",
+      "项目管理",
+      "领导力"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "跨平台设备支持（Windows/Mac/iOS/Android）",
+      "企业IT基础设施与办公系统管理",
+      "内部支持工单处理与供应商协调",
+      "广告技术公司内部IT运维"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Web Editor & Digital Accessibility Specialist",
+    "core_duties": "Manage and enhance university public websites and intranet, ensuring digital accessibility compliance, optimizing site performance, SEO, and UX, while leading web-related projects and providing training to content contributors.",
+    "required_skills": [
+      "项目管理",
+      "沟通",
+      "团队协作",
+      "性能优化",
+      "安全",
+      "分析能力",
+      "api",
+      "领导力",
+      "问题解决",
+      "时间管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "内网门户项目",
+      "高等教育网站管理",
+      "搜索引擎优化",
+      "内容管理系统维护",
+      "数字无障碍合规"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "ETL Engineer",
+    "core_duties": "Design, develop, and deploy scalable ETL/ELT pipelines and data platforms to process and organize structured and unstructured data; work in an agile environment with cross-functional teams to support data-driven missions such as fraud detection and cancer research.",
+    "required_skills": [
+      "java",
+      "python",
+      "spark",
+      "hadoop",
+      "hive",
+      "kafka",
+      "aws"
+    ],
+    "bonus_skills": [
+      "mysql",
+      "agile",
+      "rest",
+      "api"
+    ],
+    "scenarios": [
+      "Cancer research",
+      "Fraud detection",
+      "National intelligence"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.75,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Senior Software Engineer, Back End",
+    "core_duties": "Collaborate with Agile teams to design, develop, test, implement, and support technical solutions. Utilize programming languages and cloud technologies to deliver robust cloud-based solutions.",
+    "required_skills": [
+      "java",
+      "python",
+      "node.js",
+      "go",
+      "scala",
+      "docker",
+      "kubernetes",
+      "sql",
+      "aws",
+      "agile"
+    ],
+    "bonus_skills": [
+      "gcp",
+      "azure"
+    ],
+    "scenarios": [
+      "High-scale back-end services",
+      "Cloud migration and modernization",
+      "FinTech - personalized marketing offers"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.87,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "System Analyst",
+    "core_duties": "Work with attorneys and KM team to identify, implement, manage, and support knowledge management technology solutions; administer KM systems and databases, develop AI-driven knowledge capture, provide training and documentation, and evaluate effectiveness.",
+    "required_skills": [
+      "ai",
+      "uml",
+      "文档编写",
+      "沟通",
+      "项目管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "Legal knowledge management",
+      "Document management system integration",
+      "AI-assisted legal research",
+      "Training attorneys on AI tools"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.5,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Software Development Engineer",
+    "core_duties": "Design and implement software features and components in a team-oriented agile environment, primarily using Java and GraphQL, while partnering with product management to deliver customer features.",
+    "required_skills": [
+      "java",
+      "graphql",
+      "oracle",
+      "postgresql",
+      "react",
+      "typescript",
+      "html",
+      "css",
+      "rest"
+    ],
+    "bonus_skills": [
+      "微服务",
+      "aws",
+      "scrum",
+      "uml",
+      "沟通",
+      "团队协作",
+      "agile"
+    ],
+    "scenarios": [
+      "企业服务",
+      "SaaS",
+      "人力资源管理",
+      "财务管理"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Manufacturing Technical Applications Specialist",
+    "core_duties": "Apply IS manufacturing knowledge to select, deploy, and support manufacturing solutions across production sites; manage projects and integrations to enhance operations efficiency.",
+    "required_skills": [
+      "agile",
+      "项目管理",
+      "沟通",
+      "问题解决",
+      "领导力",
+      "团队协作",
+      "分析能力",
+      "时间管理"
+    ],
+    "bonus_skills": [
+      "sql"
+    ],
+    "scenarios": [
+      "制造业生产系统实施与支持",
+      "ERP与MES系统对接",
+      "工厂运营数据分析与报表",
+      "多站点制造系统集成"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
       "stage_confidence": 0.7,
       "indicators": {
         "jd_count_in_batch": 1,
@@ -31,175 +792,30 @@
         "skill_novelty": "medium"
       }
     },
-    "first_seen": "2026-07-24 07:14:31",
-    "collected_at": "2026-07-24 07:14:31",
-    "updated_at": "2026-08-12T09:30:16",
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
     "source_jd_count": 1
   },
   {
-    "job_name": "SOC Security Analyst",
-    "core_duties": "Act as first line of defense in a 24/7 SOC, responsible for monitoring, detecting, and responding to security incidents using SIEM and automation tools, and continuously improving detection signals.",
+    "job_name": "Biomedical Technician",
+    "core_duties": "Respond to service calls to evaluate, diagnose, perform repair and planned maintenance on biomedical equipment, and ensure customer satisfaction through service excellence.",
     "required_skills": [
-      "soc monitoring and incident response",
-      "network security concepts",
-      "attack response knowledge",
-      "siem"
-    ],
-    "bonus_skills": [
-      "security automation (soar)",
-      "scripting",
-      "security certifications"
-    ],
-    "scenarios": [
-      "Security monitoring of corporate, manufacturing, and production environments",
-      "Collaboration with cross-functional teams for signal tuning and process improvement",
-      "Threat hunting during active incidents",
-      "Incident response for phishing, malware, DDoS, and credential stuffing attacks"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 0.73,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:21",
-    "collected_at": "2026-07-24 07:15:21",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "Backend Software Engineering Manager",
-    "core_duties": "Lead a team of developers to design and deliver cloud-based, distributed microservices solutions, driving transformation and regulatory compliance.",
-    "required_skills": [
-      "cloud computing",
-      "people management"
-    ],
-    "bonus_skills": [
-      "java",
-      "python",
-      "go",
-      "scala",
-      "node.js",
-      "sql",
-      "docker",
-      "kubernetes",
-      "nosql databases",
-      "sql databases",
-      "agile methodologies",
-      "open source frameworks",
-      "microservices",
-      "full stack development"
-    ],
-    "scenarios": [
-      "Regulatory Compliance",
-      "Cloud-based Microservices",
-      "Financial Services"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 1.0,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:21",
-    "collected_at": "2026-07-24 07:15:21",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "ERP Strategy and Selection Consultant",
-    "core_duties": "Guide clients in evaluating and selecting Cloud ERP systems by assessing business processes, defining requirements, developing strategic roadmaps, and overseeing vendor selection and implementation.",
-    "required_skills": [
-      "erp strategy consulting",
-      "erp system evaluation and selection",
-      "erp implementation",
-      "business process assessment",
-      "requirements analysis",
-      "project management",
-      "analytical skills",
-      "communication and interpersonal skills",
-      "erp modules knowledge",
-      "cloud erp knowledge",
-      "strategic planning",
-      "stakeholder management",
-      "presentation skills",
-      "vendor management",
-      "change management",
-      "data migration",
-      "system integration",
-      "self-management and teamwork"
+      "医疗",
+      "沟通",
+      "文档编写",
+      "安全",
+      "团队协作",
+      "分析能力",
+      "问题解决",
+      "领导力",
+      "学习能力"
     ],
     "bonus_skills": [],
     "scenarios": [
-      "ERP implementation in healthcare organizations",
-      "Healthcare ERP strategy consulting",
-      "Cloud ERP selection for healthcare providers"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 0.73,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:21",
-    "collected_at": "2026-07-24 07:15:21",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "System Administrator",
-    "core_duties": "Install, maintain, and secure IT infrastructure including networks, servers, and software; provide hardware and software support to internal users and manage vendor relationships.",
-    "required_skills": [
-      "windows operating systems",
-      "vmware virtualization",
-      "microsoft 365",
-      "azure cloud management",
-      "tcp/ip networking",
-      "cybersecurity",
-      "sql databases",
-      "programming/scripting",
-      "active directory administration",
-      "hardware/software troubleshooting",
-      "user support",
-      "communication skills",
-      "network security (firewalls, routers, switches)",
-      "backup and disaster recovery",
-      "server maintenance",
-      "antivirus management",
-      "phone system administration",
-      "ms dynamics nav (business central)",
-      "software licensing",
-      "vendor management"
-    ],
-    "bonus_skills": [],
-    "scenarios": [
-      "IT infrastructure management for energy measurement instruments company",
-      "Internal IT service desk supporting engineering and lab systems",
-      "Network security and data protection for utility metrology data"
+      "Hospital biomedical equipment service",
+      "Medical device field service",
+      "Healthcare equipment maintenance and repair"
     ],
     "source": [
       "dataset"
@@ -215,79 +831,33 @@
         "skill_novelty": "medium"
       }
     },
-    "first_seen": "2026-07-24 07:15:22",
-    "collected_at": "2026-07-24 07:15:22",
-    "updated_at": "2026-08-12T09:30:16",
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
     "source_jd_count": 1
   },
   {
-    "job_name": "Senior Software Engineer, Back End (Python)",
-    "core_duties": "Design, develop, and maintain backend systems and tools to enhance developer experience, pipeline reliability, and automation at Capital One.",
+    "job_name": "Information System Security Officer",
+    "core_duties": "Manage information security systems for classified and unclassified systems, ensuring RMF/NIST compliance, supporting ATO/ATO efforts, conducting risk analysis, and maintaining security posture across on-prem, cloud, and hybrid environments. Participate in Agile planning events and create security documentation.",
     "required_skills": [
-      "python",
-      "docker",
-      "kubernetes"
-    ],
-    "bonus_skills": [
+      "信息安全",
       "aws",
-      "agile methodologies",
-      "ci/cd",
-      "sql",
-      "java"
-    ],
-    "scenarios": [
-      "Developer tooling and automation",
-      "Microservices deployment with containers",
-      "Cloud-native application development",
-      "Financial services"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 1.0,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.8,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:22",
-    "collected_at": "2026-07-24 07:15:22",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "Senior Backend Engineer",
-    "core_duties": "Lead the technical strategy and development of a mortgage technology platform, building and scaling backend systems using TypeScript, Node.js, AWS, Kubernetes, and blockchain, while integrating with partner APIs and ensuring system reliability.",
-    "required_skills": [
-      "cloud infrastructure (aws/gcp/azure)",
-      "ci/cd and automated testing",
-      "data modeling",
-      "communication skills",
-      "problem-solving"
+      "azure",
+      "风控",
+      "文档编写",
+      "沟通",
+      "agile",
+      "团队协作"
     ],
     "bonus_skills": [
-      "typescript",
-      "node.js",
-      "openapi",
-      "fintech",
-      "backend system scaling",
-      "xml",
-      "kubernetes",
-      "nestjs",
-      "bullmq",
-      "redis",
-      "postgresql",
-      "blockchain (canton)"
+      "vmware"
     ],
     "scenarios": [
-      "Financial technology integrations",
-      "Mortgage lending platforms",
-      "API-driven loan management systems"
+      "Hybrid environment security posture management",
+      "Government cybersecurity compliance and authorization",
+      "Risk management and vulnerability analysis",
+      "Cloud security assessment and continuous monitoring",
+      "Defense and federal IT systems security"
     ],
     "source": [
       "dataset"
@@ -296,59 +866,16 @@
     "is_emerging": true,
     "evolution": {
       "stage": "mature",
-      "stage_confidence": 0.8,
+      "stage_confidence": 0.75,
       "indicators": {
         "jd_count_in_batch": 1,
         "source_diversity": 1,
         "skill_novelty": "medium"
       }
     },
-    "first_seen": "2026-07-24 07:15:22",
-    "collected_at": "2026-07-24 07:15:22",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "User Experience Designer",
-    "core_duties": "Create user interaction task flows, wireframes, and prototypes to communicate designs; collaborate with product managers and developers, conduct usability testing, and provide design reviews to ensure intuitive user experiences.",
-    "required_skills": [
-      "design tools (figma, sketch, invision)",
-      "agriculture/construction/electronics domain knowledge",
-      "software development and testing knowledge",
-      "agile methodologies",
-      "responsive and mobile design",
-      "data analytics tools (contentsquare, adobe analytics, google analytics)",
-      "interaction design",
-      "wireframing and prototyping",
-      "usability testing",
-      "user research"
-    ],
-    "bonus_skills": [
-      "design workshop facilitation",
-      "design quality assurance"
-    ],
-    "scenarios": [
-      "Designing user interfaces for agricultural and construction vehicle systems",
-      "Creating intuitive dashboards for heavy machinery",
-      "Developing mobile and responsive interfaces for field technicians"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 0.73,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:23",
-    "collected_at": "2026-07-24 07:15:23",
-    "updated_at": "2026-08-12T09:30:16",
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
     "source_jd_count": 1
   }
 ]

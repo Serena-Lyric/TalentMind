@@ -2,9 +2,6 @@
  * 岗位管理模块 API
  */
 
-import { get, post, put, del, USE_MOCK } from '../utils/request'
-import { jobs } from '../data/mock'
-
 // ============================================================
 // 类型定义
 // ============================================================
@@ -68,23 +65,7 @@ export interface JobListResult {
  * }
  */
 export async function getJobList(query: JobQuery = {}): Promise<JobListResult> {
-  if (USE_MOCK) {
-    let filtered = [...jobs] as Job[]
-    if (query.keyword) {
-      const kw = query.keyword.toLowerCase()
-      filtered = filtered.filter(j => j.title.toLowerCase().includes(kw) || j.company.toLowerCase().includes(kw))
-    }
-    if (query.city) filtered = filtered.filter(j => j.city === query.city)
-    if (query.track) filtered = filtered.filter(j => j.track === query.track)
-    const page = query.page || 1
-    const pageSize = query.pageSize || 10
-    return {
-      list: filtered.slice((page - 1) * pageSize, page * pageSize),
-      total: filtered.length,
-      page,
-      pageSize
-    }
-  }
+  
   return get<JobListResult>('/jobs', query)
 }
 
@@ -96,9 +77,7 @@ export async function getJobList(query: JobQuery = {}): Promise<JobListResult> {
  * 响应：Job 完整对象
  */
 export async function getJobDetail(id: string): Promise<Job> {
-  if (USE_MOCK) {
-    return (jobs as Job[]).find(j => j.id === id) || ({} as Job)
-  }
+  
   return get<Job>(`/jobs/${id}`)
 }
 
@@ -110,9 +89,7 @@ export async function getJobDetail(id: string): Promise<Job> {
  * 响应：{ id: string }
  */
 export async function createJob(data: Partial<Job>) {
-  if (USE_MOCK) {
-    return { id: 'JD-MOCK-' + Date.now() }
-  }
+  
   return post('/jobs', data)
 }
 
@@ -124,9 +101,7 @@ export async function createJob(data: Partial<Job>) {
  * 响应：{ success: boolean }
  */
 export async function updateJob(id: string, data: Partial<Job>) {
-  if (USE_MOCK) {
-    return { success: true }
-  }
+  
   return put(`/jobs/${id}`, data)
 }
 
@@ -138,9 +113,7 @@ export async function updateJob(id: string, data: Partial<Job>) {
  * 响应：{ success: boolean }
  */
 export async function deleteJob(id: string) {
-  if (USE_MOCK) {
-    return { success: true }
-  }
+  
   return del(`/jobs/${id}`)
 }
 
@@ -152,9 +125,7 @@ export async function deleteJob(id: string) {
  * 响应：{ deleted: number }
  */
 export async function batchDeleteJobs(ids: string[]) {
-  if (USE_MOCK) {
-    return { deleted: ids.length }
-  }
+  
   return post('/jobs/batch-delete', { ids })
 }
 
@@ -166,9 +137,7 @@ export async function batchDeleteJobs(ids: string[]) {
  * 响应：{ imported: number, jobs: Job[] }
  */
 export async function importJobs(file: File) {
-  if (USE_MOCK) {
-    return { imported: 3, jobs: [] as Job[] }
-  }
+  
   const formData = new FormData()
   formData.append('file', file)
   return post('/jobs/import', formData, {
@@ -184,8 +153,6 @@ export async function importJobs(file: File) {
  * 响应：Blob (Excel 文件)
  */
 export async function exportJobs(ids?: string[]) {
-  if (USE_MOCK) {
-    return null // mock 模式下不实际导出
-  }
+  
   return get('/jobs/export', { ids: ids?.join(',') }, { responseType: 'blob' })
 }

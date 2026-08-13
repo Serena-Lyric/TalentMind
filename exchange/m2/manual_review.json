@@ -1,221 +1,357 @@
 [
   {
-    "jd_id": 17183,
+    "jd_id": 26454,
     "is_relevant": false,
     "confidence": 0.0,
     "evidence": "",
-    "reasoning": "API error: Server disconnected without sending a response.",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": false,\n  \"confidence\": 0.9,\n  \"evidence\": \"implement radiation protection requirements\", \"radiation monitoring, contamination control, emergency response\", \"advanced-level and techn",
     "verdict": "manual",
     "model": "deepseek-v4-flash"
   },
   {
-    "jd_id": 17396,
+    "jd_id": 46642,
     "is_relevant": false,
     "confidence": 0.0,
     "evidence": "",
-    "reasoning": "API error: Server disconnected without sending a response.",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": false,\n  \"confidence\": 0.98,\n  \"evidence\": \"Conducting sales presentations, recommending products, closing sales... Collecting premiums from policyholders... visit customers and pro",
     "verdict": "manual",
     "model": "deepseek-v4-flash"
   },
   {
-    "jd_id": 17626,
+    "jd_id": 56089,
     "is_relevant": false,
     "confidence": 0.0,
     "evidence": "",
-    "reasoning": "API error: Server disconnected without sending a response.",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": true,\n  \"confidence\": 0.98,\n  \"evidence\": \"supporting hyper scale distributed infrastructure for the cloud\", \"building and supporting our cloud data centers\", \"strong knowledge of c",
     "verdict": "manual",
     "model": "deepseek-v4-flash"
   },
   {
-    "jd_id": 17859,
+    "jd_id": 59826,
     "is_relevant": false,
     "confidence": 0.0,
     "evidence": "",
-    "reasoning": "API error: Server disconnected without sending a response.",
-    "verdict": "manual",
-    "model": "deepseek-v4-flash"
-  },
-  {
-    "jd_id": 18051,
-    "is_relevant": false,
-    "confidence": 0.0,
-    "evidence": "",
-    "reasoning": "API error: Server disconnected without sending a response.",
-    "verdict": "manual",
-    "model": "deepseek-v4-flash"
-  },
-  {
-    "jd_id": 29856,
-    "is_relevant": false,
-    "confidence": 0.65,
-    "evidence": "primary responsibility will be to measure and report on the execution of the material transfer process; Develop key performance indicators (KPIs); Prepare reports and develop dashboards; Proficiency in data visualization tools and reporting software",
-    "reasoning": "This is a supply chain/procurement program manager role that uses data analytics as a supporting tool, not a role where the core work is building or maintaining technology/IT systems.",
-    "verdict": "manual",
-    "model": "deepseek-v4-flash"
-  },
-  {
-    "jd_id": 35685,
-    "is_relevant": false,
-    "confidence": 0.0,
-    "evidence": "",
-    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": false,\n  \"confidence\": 0.98,\n  \"evidence\": \"As a Branch Sales and Service Associate I [in a Universal Branch, you will strengthen customer relationships with a defined sales process",
-    "verdict": "manual",
-    "model": "deepseek-v4-flash"
-  },
-  {
-    "jd_id": 39825,
-    "is_relevant": false,
-    "confidence": 0.65,
-    "evidence": "This position supports the planning, organizing, and support directing activity for design, development, fabrication and delivery of the Integrated Logistics Support (ILS) Statement of Work elements... populating multiple databases with technical information and producing reports.",
-    "reasoning": "The role is focused on integrated logistics support and technical data management for aerospace products, not on building, maintaining, or deeply applying technology/IT systems, so it is not a core technology/IT role.",
-    "verdict": "manual",
-    "model": "deepseek-v4-flash"
-  },
-  {
-    "jd_id": 61725,
-    "is_relevant": false,
-    "confidence": 0.0,
-    "evidence": "",
-    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": true,\n  \"confidence\": 0.98,\n  \"evidence\": \"proficient in at least one programming language (Python, JavaScript, HTML, C++, C# and SQL)\", \"train our AI chatbots to code\", \"Write high",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": false,\n  \"confidence\": 0.97,\n  \"evidence\": \"critical role in maintaining all rebate agreements\", \"financial aspects of customer rebates, vendor rebates\", \"Provide necessary document",
     "verdict": "manual",
     "model": "deepseek-v4-flash"
   },
   {
     "jd_id": 82826,
     "is_relevant": false,
-    "confidence": 0.6,
-    "evidence": "Work with the leadership team to define a sound business growth strategy for designated strategic account(s). Solutions: Identifying & defining differentiated services and solutions for various process areas... Technology knowhow – Have a good understanding of the IT and digital technology",
-    "reasoning": "The core responsibilities are business consulting and growth strategy for a strategic account, with technology understanding only as a supporting capability, not the primary technical work.",
+    "confidence": 0.65,
+    "evidence": "Provide industry expertise and business solutions to our clients... Technology knowhow – Have a good understanding of the IT and digital technology...",
+    "reasoning": "The role is primarily a business/management consultant for the energy industry, with technology understanding as a supporting capability rather than the core work of building or maintaining systems.",
     "verdict": "manual",
     "model": "deepseek-v4-flash"
   },
   {
-    "jd_id": 86971,
-    "is_relevant": false,
-    "confidence": 0.0,
-    "evidence": "",
-    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": true,\n  \"confidence\": 1.0,\n  \"evidence\": \"developing scalable ETL/ELT workflows for reporting and analytics\", \"distributed data and computing tools, including Spark, Databricks, Had",
-    "verdict": "manual",
-    "model": "deepseek-v4-flash"
-  },
-  {
-    "jd_id": 8710,
-    "quality": 0.6,
+    "jd_id": 1382,
+    "quality": 0.56,
     "dimensions": {
-      "completeness": 0.55,
-      "clarity": 0.55,
-      "tech_depth": 0.4,
+      "completeness": 0.5,
+      "clarity": 0.45,
+      "tech_depth": 0.5,
       "freshness": 0.8,
-      "originality": 0.85
+      "originality": 0.65
     },
     "flags": {
       "stale_tech": null,
       "copied_pattern": null,
       "skill_inflation": null
     },
-    "weak_points": "The JD is incomplete (cuts off in the required skills section). Lacks specific years of experience, and does not mention concrete release engineering tools (e.g., Docker, Kubernetes, Jenkins) or monitoring tools. Duties are described generically without specifying the tech stack for release pipelines.",
+    "weak_points": "Missing complete qualifications and requirements section (text ends abruptly). Technical requirements are vague: no specific languages, frameworks, databases, or cloud services mentioned. Responsibilities are generic and lack measurable technical depth or scale. Cloud platforms listed as alternatives without concrete usage. No clear experience level beyond '1-2 years automotive engineering experience'.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 21837,
-    "quality": 0.62,
+    "jd_id": 7484,
+    "quality": 0.58,
+    "dimensions": {
+      "completeness": 0.7,
+      "clarity": 0.6,
+      "tech_depth": 0.68,
+      "freshness": 0.75,
+      "originality": 0.3
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Missing years of experience and certifications; inconsistent anonymization (references 'Tesla' while using 'Client'), indicating copied template; Phantom/Demisto are outdated product names (now Splunk SOAR/Cortex XSOAR); requirements section appears truncated.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 8710,
+    "quality": 0.64,
+    "dimensions": {
+      "completeness": 0.6,
+      "clarity": 0.6,
+      "tech_depth": 0.6,
+      "freshness": 0.7,
+      "originality": 0.75
+    },
+    "flags": null,
+    "weak_points": "Required skills section appears truncated; lacks explicit years of experience and specific release/DevOps tooling (e.g., CI/CD platforms, Docker, Kubernetes); terms like 'distributed systems' and 'large scale products' are vague; no framework versions specified.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 16702,
+    "quality": 0.57,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.55,
+      "tech_depth": 0.5,
+      "freshness": 0.8,
+      "originality": 0.45
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "JD has typo 'Work You’ll DonnAs'; requirements section truncated at 'facilitate discu'; no specific ERP platforms named (e.g., SAP, Oracle, Workday); skills are generic ('strong analytical skills', 'deep understanding') lacking specific technical/functional depth or certifications; duties process-oriented but without measurable outcomes or concrete methodologies.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 22334,
+    "quality": 0.53,
+    "dimensions": {
+      "completeness": 0.7,
+      "clarity": 0.5,
+      "tech_depth": 0.4,
+      "freshness": 0.6,
+      "originality": 0.4
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Job duties are extensive but generic; technical requirements are vague (only 'Communication Network, Network Architecture, Network Design' and CCNA). No specific network technologies, protocols, or modern solutions (SD-WAN, cloud, automation). Required skills section is truncated and mixes management tasks with engineering. Boilerplate company language suggests template copy.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 31673,
+    "quality": 0.57,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.6,
+      "tech_depth": 0.55,
+      "freshness": 0.5,
+      "originality": 0.5
+    },
+    "flags": {
+      "stale_tech": "['AngularJS (deprecated)']",
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Vague duties; deprecated AngularJS specified; boilerplate HR language; missing framework versions; mix of legacy (JSP/Servlets, WebSphere) and modern stack.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 49579,
+    "quality": 0.5,
+    "dimensions": {
+      "completeness": 0.45,
+      "clarity": 0.45,
+      "tech_depth": 0.35,
+      "freshness": 0.75,
+      "originality": 0.65
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": null,
+      "skill_inflation": null
+    },
+    "weak_points": "Requirements section appears truncated/incomplete; no specific years of experience or concrete domain expertise listed; technical expectations are vague (e.g., 'API payloads' without context); responsibilities lack measurable outcomes; heavy use of generic company values phrasing.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 51616,
+    "quality": 0.58,
+    "dimensions": {
+      "completeness": 0.7,
+      "clarity": 0.55,
+      "tech_depth": 0.6,
+      "freshness": 0.55,
+      "originality": 0.4
+    },
+    "flags": {
+      "stale_tech": "['Ant']",
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "The JD contains generic template phrasing and duplicated corporate text, reducing originality. Technical requirements are partially vague ('Familiar with Cloud Concepts and Cloud technologies', 'proficient in a wide variety of languages') without version specifics. The role is titled 'Principal Software Developer' but duties are primarily build/release infrastructure support. 'Ant' is mentioned as a desired tool despite being outdated. Overall clarity and freshness suffer from boilerplate and legacy tooling.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 57409,
+    "quality": 0.5,
+    "dimensions": {
+      "completeness": 0.55,
+      "clarity": 0.5,
+      "tech_depth": 0.45,
+      "freshness": 0.65,
+      "originality": 0.35
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Generic boilerplate language (e.g., comply with policies, attendance, other duties as assigned) suggests template copy; no specific tools/frameworks (Jira, Scrum/Kanban, analytics platforms); vague competencies ('excellent analytical skills', 'self-starter') without measurable criteria; education/experience wording is informal and contains typo ('n Education and/or Experience'); skills section too broad and shallow.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 61725,
+    "quality": 0.53,
     "dimensions": {
       "completeness": 0.65,
       "clarity": 0.45,
-      "tech_depth": 0.5,
-      "freshness": 0.9,
-      "originality": 0.7
+      "tech_depth": 0.45,
+      "freshness": 0.7,
+      "originality": 0.4
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Vague technical requirements; HTML incorrectly listed as programming language; no years of experience or specific frameworks; generic template phrasing suggests copied posting.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 62313,
+    "quality": 0.58,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.6,
+      "tech_depth": 0.6,
+      "freshness": 0.8,
+      "originality": 0.5
     },
     "flags": {
       "stale_tech": null,
       "copied_pattern": "True",
       "skill_inflation": "True"
     },
-    "weak_points": "Unstructured requirements, vague qualifications, formatting artifacts, redundant skill mentions.",
+    "weak_points": "Job title is Python Developer but responsibilities and skills demand full-stack development, causing role confusion. Many bullet points are generic boilerplate (e.g., 'write clean, maintainable code', 'troubleshoot, debug and upgrade software'). No specific years of experience, no specific NoSQL database, and some vague phrasing ('multiple programming languages', 'experience with cloud services'). The 'nnSkills: Other' and empty 'duties' field indicate a template or scraping artifact. Skill list exceeds 15 distinct technologies, spanning frontend, backend, DevOps, and LLM, which is unrealistic for one role.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 25015,
-    "quality": 0.53,
+    "jd_id": 73744,
+    "quality": 0.63,
     "dimensions": {
-      "completeness": 0.45,
-      "clarity": 0.4,
-      "tech_depth": 0.35,
+      "completeness": 0.55,
+      "clarity": 0.5,
+      "tech_depth": 0.6,
       "freshness": 0.85,
-      "originality": 0.8
-    },
-    "flags": null,
-    "weak_points": "JD is truncated and missing explicit requirements; duties are vaguely described; lacks specific technical skills or certifications.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
-  },
-  {
-    "jd_id": 26908,
-    "quality": 0.55,
-    "dimensions": {
-      "completeness": 0.7,
-      "clarity": 0.6,
-      "tech_depth": 0.3,
-      "freshness": 0.7,
-      "originality": 0.6
+      "originality": 0.75
     },
     "flags": {
       "stale_tech": null,
       "copied_pattern": "True",
       "skill_inflation": null
     },
-    "weak_points": "Qualifications section truncated; missing specific specialized experience domain; generic federal boilerplate language detracts from originality; lacks technical depth for a test coordinator role; no mention of systems, standards, or tools.",
+    "weak_points": "Missing explicit experience requirements and detailed technical skill list; qualifications truncated after bachelor's degree; company overview is generic boilerplate; no specific simulation software or programming languages mentioned.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 33349,
-    "quality": 0.54,
+    "jd_id": 76337,
+    "quality": 0.63,
     "dimensions": {
       "completeness": 0.65,
-      "clarity": 0.55,
-      "tech_depth": 0.2,
-      "freshness": 0.8,
+      "clarity": 0.6,
+      "tech_depth": 0.5,
+      "freshness": 0.75,
+      "originality": 0.75
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": null,
+      "skill_inflation": null
+    },
+    "weak_points": "Duties are high-level and lack concrete day-to-day tasks; no specific .NET version or front-end stack; generic requirements like 'Continuous Learning' dilute clarity; no measurable project outcomes or scale.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 81116,
+    "quality": 0.57,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.5,
+      "tech_depth": 0.4,
+      "freshness": 0.75,
       "originality": 0.65
     },
     "flags": {
       "stale_tech": null,
-      "copied_pattern": "Text contains formatting artifacts ('nn'), boilerplate company pitch, and truncated preferred qualifications, indicating copy-paste from a source.",
+      "copied_pattern": null,
       "skill_inflation": null
     },
-    "weak_points": "Preferred qualifications section is cut off. Requirements are broad and lack specificity (e.g., no mention of ITIL, ServiceNow proficiency levels, or relevant certifications). Managerial role limits technology depth, but JD misses opportunity to detail tooling or process maturity expectations.",
+    "weak_points": "Lacks specific years of experience, named CCaaS platforms (e.g., Genesys, Amazon Connect, NICE CXone), and concrete tools for workforce management; duties are generic consulting activities with no measurable deliverables.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 51616,
-    "quality": 0.57,
+    "jd_id": 89992,
+    "quality": 0.6,
     "dimensions": {
       "completeness": 0.6,
       "clarity": 0.55,
-      "tech_depth": 0.6,
-      "freshness": 0.5,
+      "tech_depth": 0.65,
+      "freshness": 0.7,
       "originality": 0.55
     },
     "flags": {
-      "stale_tech": "['Ant', 'Perforce']",
+      "stale_tech": null,
       "copied_pattern": "True",
-      "skill_inflation": null
+      "skill_inflation": "True"
     },
-    "weak_points": "Vague requirements like 'wide variety of languages' and 'familiar with Cloud Concepts'; deprecated technologies (Ant, Perforce); lack of specific versions and tools; template language suggests copying.",
+    "weak_points": "Unstructured text mixes duties and requirements; no company/location/education details; overlong list of 20+ responsibilities/requirements; repetition (spec writing mentioned twice); vague soft skills; no SAP version specifics besides S4 HANA.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 56089,
-    "quality": 0.55,
+    "jd_id": 97776,
+    "quality": 0.6,
+    "dimensions": {
+      "completeness": 0.6,
+      "clarity": 0.55,
+      "tech_depth": 0.5,
+      "freshness": 0.75,
+      "originality": 0.7
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Vague references to 'variety of tools' and 'systems' without naming specific campaign platforms. Generic skills section (Project Management, Marketing, Information Technology) adds little specificity. No database or version detail for SQL requirement. HR boilerplate (remote/overtime/physical) and formatting artifacts suggest template copy.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 100724,
+    "quality": 0.53,
     "dimensions": {
       "completeness": 0.55,
-      "clarity": 0.45,
-      "tech_depth": 0.5,
-      "freshness": 0.85,
+      "clarity": 0.5,
+      "tech_depth": 0.45,
+      "freshness": 0.7,
       "originality": 0.5
     },
     "flags": {
@@ -223,396 +359,137 @@
       "copied_pattern": "True",
       "skill_inflation": null
     },
-    "weak_points": "Job description is vague with no specific technical requirements. Repeated introductory text suggests template copying. Duties section is truncated, reducing completeness. Lacks clear differentiation of required vs preferred skills.",
+    "weak_points": "Requirements lack years of experience and specific technical depth. Duties are generic support tasks without measurable outcomes. No tools, versions, or platforms specified beyond domain terms. Boilerplate staffing agency phrasing suggests template copying. Senior-level responsibilities not clearly differentiated from junior support.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 62313,
-    "quality": 0.61,
+    "jd_id": 102745,
+    "quality": 0.0,
     "dimensions": {
-      "completeness": 0.7,
-      "clarity": 0.6,
-      "tech_depth": 0.65,
-      "freshness": 0.75,
-      "originality": 0.6
+      "completeness": 0.0,
+      "clarity": 0.0,
+      "tech_depth": 0.0,
+      "freshness": 0.0,
+      "originality": 0.0
     },
-    "flags": {
-      "stale_tech": "['jQuery', 'XML']",
-      "copied_pattern": "True",
-      "skill_inflation": "True"
-    },
-    "weak_points": "Typos and formatting artifacts ('nWrite', 'Locations: ... nWrite'); no years of experience specified; redundant and duplicated skill listings; inclusion of outdated technologies (jQuery, XML); excessively long skill list (>15 items) indicating skill inflation; vague requirements like 'strong understanding of databases NoSQL' and generic full-stack duties; mixes full-stack and LLM roles without clear focus.",
+    "flags": null,
+    "weak_points": "API error: JSON parse failed: {\n  \"quality\": 0.68,",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 70212,
-    "quality": 0.52,
+    "jd_id": 104310,
+    "quality": 0.55,
     "dimensions": {
       "completeness": 0.55,
-      "clarity": 0.55,
-      "tech_depth": 0.7,
-      "freshness": 0.35,
-      "originality": 0.45
-    },
-    "flags": {
-      "stale_tech": "['COBOL', 'Mainframe legacy technologies']",
-      "copied_pattern": "True",
-      "skill_inflation": null
-    },
-    "weak_points": "Lacks experience requirements and specific duties; relies on generic soft-skill templates; includes recruiter contact and informal phrasing; no version or scale details for technologies.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
-  },
-  {
-    "jd_id": 70475,
-    "quality": 0.63,
-    "dimensions": {
-      "completeness": 0.65,
-      "clarity": 0.65,
-      "tech_depth": 0.6,
-      "freshness": 0.55,
+      "clarity": 0.45,
+      "tech_depth": 0.5,
+      "freshness": 0.7,
       "originality": 0.7
     },
     "flags": {
-      "stale_tech": "['ERWIN/All Fusion (legacy modeling tools)']",
-      "copied_pattern": "Template structure with generic company and role descriptions",
+      "stale_tech": null,
+      "copied_pattern": null,
       "skill_inflation": null
     },
-    "weak_points": "Duties are vague; no modern data stack or cloud technologies mentioned; lacks specific tools for ETL; overemphasis on legacy modeling tools.",
+    "weak_points": "Duties are somewhat described but lack specific technical protocols/tools; qualifications are vague ('Basic understanding of IT technology'); no explicit experience level beyond enrolled degree; the 'duties' field is empty; generic EEO/clearance text adds little to technical evaluation.",
     "verdict": "manual",
     "model": "deepseek-v4-pro"
   },
   {
-    "jd_id": 73744,
-    "quality": 0.59,
-    "dimensions": {
-      "completeness": 0.5,
-      "clarity": 0.3,
-      "tech_depth": 0.6,
-      "freshness": 0.9,
-      "originality": 0.8
-    },
-    "flags": null,
-    "weak_points": "The qualifications section is incomplete and only lists a Bachelor's degree in mechatronics. No technical skills, years of experience, or specific tools are mentioned. The JD lacks differentiation between Engineer I and II levels.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
+    "jd_id": 21837,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
   },
   {
-    "jd_id": 76337,
-    "quality": 0.6,
-    "dimensions": {
-      "completeness": 0.6,
-      "clarity": 0.5,
-      "tech_depth": 0.55,
-      "freshness": 0.75,
-      "originality": 0.9
-    },
-    "flags": null,
-    "weak_points": "Duties section is missing; responsibilities are vague and not itemized. Technical requirements lack specificity (e.g., ASP.NET version, front-end frameworks). No mention of cloud or modern .NET (Core/5+).",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
+    "jd_id": 37392,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
   },
   {
-    "jd_id": 81116,
-    "quality": 0.61,
-    "dimensions": {
-      "completeness": 0.65,
-      "clarity": 0.55,
-      "tech_depth": 0.35,
-      "freshness": 0.85,
-      "originality": 0.8
-    },
-    "flags": null,
-    "weak_points": "Duties and requirements are high-level and vague, lacking concrete specifics (no years of experience, no named CCaaS platforms or tools), resulting in limited technical depth.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
+    "jd_id": 44742,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 12279,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Manager, Software Engineering, Back End\",\n  \"core_duties\": \"Lead a team of developers to build distributed microservices and full stack systems, delivering cloud-based solutions that "
+  },
+  {
+    "jd_id": 12279,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Manager, Software Engineering, Back End\",\n  \"core_duties\": \"Lead a team of developers to build distributed microservices and full stack systems for cloud-based solutions, collaboratin"
+  },
+  {
+    "jd_id": 35866,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Senior Backend Engineer\",\n  \"core_duties\": \"Design, develop, test and support cloud-based full-stack backend solutions, including developer experience improvements such as testing aut"
+  },
+  {
+    "jd_id": 37392,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Senior Backend Engineer\",\n  \"core_duties\": \"Lead backend engineering efforts for a mortgage technology platform, including designing and implementing cloud-based APIs, integrations,"
+  },
+  {
+    "jd_id": 66275,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 76843,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 80856,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Systems Engineer\",\n  \"core_duties\": \"Coordinate and perform system/server, software, and security administration; provide Okta SSO and identity/access management support, user lifecyc"
+  },
+  {
+    "jd_id": 86971,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"ETL工程师\",\n  \"core_duties\": \"Implement data engineering activities, develop and deploy ETL/ELT pipelines and platforms to organize disparate structured and unstructured data for reporti"
+  },
+  {
+    "jd_id": 87825,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 76843,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"SRE Manager\",\n  \"core_duties\": \"Lead SRE team to design, implement, and maintain highly scalable and secure systems; optimize cloud-based databases, ensure high availability, automate"
+  },
+  {
+    "jd_id": 80856,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
   },
   {
     "jd_id": 81381,
-    "quality": 0.64,
-    "dimensions": {
-      "completeness": 0.65,
-      "clarity": 0.6,
-      "tech_depth": 0.5,
-      "freshness": 0.85,
-      "originality": 0.7
-    },
-    "flags": {
-      "stale_tech": null,
-      "copied_pattern": "True",
-      "skill_inflation": null
-    },
-    "weak_points": "Vague experience requirements, no years specified; duties are generic and lack depth; about section appears template-copied.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"IT Manager\",\n  \"core_duties\": \"Manage corporate IT infrastructure, including Okta, Jamf, Intune, Zoom, Google Workspace, and Atlassian Suite; oversee workstation setup, provisioning, "
   },
   {
-    "jd_id": 84146,
-    "quality": 0.5,
-    "dimensions": {
-      "completeness": 0.6,
-      "clarity": 0.45,
-      "tech_depth": 0.3,
-      "freshness": 0.7,
-      "originality": 0.55
-    },
-    "flags": {
-      "stale_tech": null,
-      "copied_pattern": "True",
-      "skill_inflation": null
-    },
-    "weak_points": "Duties and qualifications are generic; missing concrete product management tools, specific domain details, or measurable requirements; skills listed as vague categories like 'Business Insight' and 'Operational Excellence' without tangible examples.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
+    "jd_id": 86971,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"ETL Engineer\",\n  \"core_duties\": \"Develop and deploy scalable ETL/ELT data pipelines and platforms to organize and process structured and unstructured data from disparate sources, supp"
   },
   {
-    "jd_id": 93894,
-    "quality": 0.64,
-    "dimensions": {
-      "completeness": 0.68,
-      "clarity": 0.65,
-      "tech_depth": 0.6,
-      "freshness": 0.85,
-      "originality": 0.55
-    },
-    "flags": {
-      "stale_tech": null,
-      "copied_pattern": "['overly generic culture boilerplate', \"truncated text ('Micros') and empty duties section suggest incomplete template\"]",
-      "skill_inflation": null
-    },
-    "weak_points": "Duties section is empty, role responsibilities are vague. Text cuts off abruptly ('Micros'), indicating incomplete template copying. Generic descriptions lack product domain or technical challenges. Technologies listed without versions or frameworks, and 'or' in requirements creates ambiguity.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
+    "jd_id": 87825,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 87825,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
   },
   {
     "jd_id": 105229,
-    "quality": 0.6,
-    "dimensions": {
-      "completeness": 0.4,
-      "clarity": 0.6,
-      "tech_depth": 0.6,
-      "freshness": 0.85,
-      "originality": 0.65
-    },
-    "flags": {
-      "stale_tech": null,
-      "copied_pattern": "True",
-      "skill_inflation": null
-    },
-    "weak_points": "Incomplete posting: requirements section cuts off mid-sentence. Missing clearance requirement, tools, and many typical job details. Overemphasis on soft skills with limited technical specificity.",
-    "verdict": "manual",
-    "model": "deepseek-v4-pro"
-  },
-  {
-    "jd_id": 1382,
     "stage": "model3",
-    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Cloud Data Engineer\",\n  \"core_duties\": \"Develop cloud-based software solutions for data analysis and enable back-end services for connected vehicle systems, including data modeling, t"
-  },
-  {
-    "jd_id": 37392,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Senior Backend Engineer\",\n  \"core_duties\": \"Design and develop scalable backend systems using TypeScript, Node.js, cloud services, and blockchain technology for a mortgage platform. L"
-  },
-  {
-    "jd_id": 37392,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Senior Backend Engineer\",\n  \"core_duties\": \"Lead technical strategy and engineering team to build scalable mortgage platform, integrate with partners, and ensure infrastructure optima"
-  },
-  {
-    "jd_id": 44742,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: "
-  },
-  {
-    "jd_id": 47290,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: "
-  },
-  {
-    "jd_id": 44742,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Android Reverse Engineer\",\n  \"core_duties\": \"Conduct reverse engineering and security assessments of Android applications and SDKs to detect malware, PUPs, and advanced persistent thr"
-  },
-  {
-    "jd_id": 53686,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Microsoft 365 and Digital Workplace Lead Architect\",\n  \"core_duties\": \"Lead the design, implementation, and management of enterprise Microsoft 365 solutions, ensuring secure, scalable"
-  },
-  {
-    "jd_id": 66275,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Salesforce Engineering Manager\",\n  \"core_duties\": \"Manages Salesforce development teams and full project lifecycle, leading design, development, deployment, and maintenance of complex"
-  },
-  {
-    "jd_id": 87825,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: "
-  },
-  {
-    "jd_id": 89666,
-    "stage": "model3",
-    "reason": "API error: JSON parse failed: "
-  },
-  {
-    "jd_id": 63136,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 66275,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 71302,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 74841,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 76843,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 78207,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 80856,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 87825,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 88701,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 89666,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 63136,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 66275,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 71302,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 74841,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 76843,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 78207,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 80856,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 87825,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 88701,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 89666,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 89992,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 97776,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 98006,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 102745,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 89992,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 97776,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 98006,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 102745,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 89992,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 97776,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 98006,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
-  },
-  {
-    "jd_id": 102745,
-    "stage": "model3",
-    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Information System Security Officer\",\n  \"core_duties\": \"Manage information security for classified and unclassified systems, including risk management framework, ATO/ATP, vulnerabilit"
   }
 ]

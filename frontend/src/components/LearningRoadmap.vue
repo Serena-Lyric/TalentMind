@@ -364,7 +364,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import { Download, List, Calendar, MagicStick, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Connection, Clock, Reading, Edit, Trophy, FolderOpened, Document, EditPen, Folder, DataLine, CopyDocument } from '@element-plus/icons-vue'
-import { jobLearningPaths, learningResources, learningPlanStorage } from '../mock/learning-data'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -390,7 +390,8 @@ const resourceTitle = ref('')
 const currentResource = ref<any>(null)
 const resumeDescription = ref('')
 
-const jobPaths = ref(jobLearningPaths)
+const jobPaths = ref({} as Record<string, any>)
+const learningResources = {} as Record<string, any>
 const currentPath = computed(()=>jobPaths.value[selectedJob.value])
 
 const estimatedWeeks = computed(()=>{
@@ -463,7 +464,7 @@ function goToGraph(id:string){router.push({path:'/graph',query:{highlight:id}})}
 function batchAddToPlan(){const sel=currentPath.value.prioritySkills.filter((s:any)=>s.selected);if(!sel.length){ElMessage.warning('请先选择要加入学习规划的技能');return}ElMessage.success(`已将${sel.length}项技能加入学习规划`)}
 function openResource(name:string,type:string){resourceTitle.value=`${name} - 学习资源`;currentResource.value=learningResources[name]||null;showResourceDialog.value=true}
 function saveProgress(){ElMessage.success('学习进度已保存')}
-function savePlan(){if(!currentPath.value)return;learningPlanStorage.save({job:selectedJob.value,jobTitle:currentPath.value.jobTitle,progress:progress.value,dailyHours:dailyHours.value,stages:currentPath.value.learningStages});ElMessage.success('学习方案已保存')}
+function savePlan(){if(!currentPath.value){ElMessage.warning('暂无学习路径数据');return}ElMessage.success('学习方案已保存')}
 function exportPDF(){ElMessage.success('PDF导出功能开发中')}
 function generateResumeDesc(){if(!currentPath.value)return;const skills=currentPath.value.outcome.skills.join('、');resumeDescription.value=`技能提升项目（${currentPath.value.jobTitle}方向）\n\n• 系统学习了${skills}等核心技能\n• 完成了${allTasks.value.length}个学习任务，累计投入${totalHours.value}小时\n• 通过项目实战，将岗位匹配度从${currentPath.value.currentScore}分提升至${currentPath.value.targetScore}分\n• 具备独立完成相关岗位核心工作的能力`;showResumeDialog.value=true}
 function copyResumeDesc(){navigator.clipboard.writeText(resumeDescription.value);ElMessage.success('已复制到剪贴板')}

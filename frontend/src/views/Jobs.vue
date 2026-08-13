@@ -316,13 +316,17 @@
   </section>
 </template>
 <script setup lang="ts">
-import { ref, computed, nextTick, reactive } from 'vue'
+import { ref, computed, nextTick, reactive, onMounted } from 'vue'
 import { Upload, Plus, Search, UploadFilled, Delete, Download, RefreshLeft, Close, Document, User, Collection, DataAnalysis, TrendCharts, Warning } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { jobs, industryTracks } from '../data/mock'
+import { getJobList } from '../api/jobs'
+import { getIndustryTracks } from '../api/dashboard'
 
 interface Evolution { added: string[]; removed: string[]; changed: string[] }
 interface Job { id: string; title: string; company: string; city: string; type: string; track: string; salary: string; updated: string; skills: string[]; responsibilities?: string[]; requirements?: string[]; evolution: Evolution }
+
+const jobs = ref<any[]>([])
+const industryTracks = ref<any[]>([])
 
 const keyword = ref('')
 const city = ref('')
@@ -348,30 +352,30 @@ const addingType = ref('')
 const newEvolution = ref('')
 const form = ref({ title: '', company: '', city: '', salary: '', skills: [] as string[], evolution: { added: [] as string[], removed: [] as string[], changed: [] as string[] } })
 
-const cities = computed(() => Array.from(new Set(jobs.map((j: any) => j.city))))
-const trackOptions = computed(() => industryTracks)
+const cities = computed(() => Array.from(new Set(jobs.value.map((j: any) => j.city))))
+const trackOptions = computed(() => industryTracks.value)
 const salaryRanges = ['10-18K','15-25K','18-30K','20-35K','25-40K','30-45K','35-55K','40-60K']
 
 const statCards = computed(() => {
   let addedCount = 0, removedCount = 0
-  jobs.forEach((j: any) => { addedCount += j.evolution.added.length; removedCount += j.evolution.removed.length })
+  jobs.value.forEach((j: any) => { addedCount += (j.evolution?.added?.length || 0); removedCount += (j.evolution?.removed?.length || 0) })
   return [
-    { label: '总岗位数量', value: jobs.length, iconBg: '#E8EFF5' },
+    { label: '总岗位数量', value: jobs.value.length, iconBg: '#E8EFF5' },
     { label: '新增技能次数', value: addedCount, iconBg: '#E8F5E9' },
     { label: '淘汰技能次数', value: removedCount, iconBg: '#FFF3E0' }
   ]
 })
 
 const filteredJobs = computed(() => {
-  return jobs.filter((job: any) => {
+  return jobs.value.filter((job: any) => {
     const kw = keyword.value.trim().toLowerCase()
     const keywordMatch = !kw || job.title.toLowerCase().includes(kw) || job.company.toLowerCase().includes(kw)
     const cityMatch = !city.value || job.city === city.value
     const trackMatch = !trackFilter.value || job.track === trackFilter.value
     const statusMatch = !skillStatus.value || (
-      (skillStatus.value === '新增' && job.evolution.added.length > 0) ||
-      (skillStatus.value === '淘汰' && job.evolution.removed.length > 0) ||
-      (skillStatus.value === '变更' && job.evolution.changed.length > 0)
+      (skillStatus.value === '新增' && (job.evolution?.added?.length || 0) > 0) ||
+      (skillStatus.value === '淘汰' && (job.evolution?.removed?.length || 0) > 0) ||
+      (skillStatus.value === '变更' && (job.evolution?.changed?.length || 0) > 0)
     )
     const salaryMatch = !salaryRange.value || job.salary === salaryRange.value
     let timeMatch = true
@@ -442,6 +446,20 @@ function openEditor(job?: Job) {
 function addCurrent() { if (newCurrent.value.trim()) { form.value.skills.push(newCurrent.value.trim()); newCurrent.value = '' }; addingCurrent.value = false }
 function addEvolution(type: string) { if (newEvolution.value.trim()) { (form.value.evolution as any)[type].push(newEvolution.value.trim()); newEvolution.value = '' }; addingType.value = '' }
 function saveJob() { ElMessage.success('岗位保存成功'); editorDialog.value = false }
+
+onMounted(async () => {
+  tableLoading.value = true
+  try {
+    const data = await getJobList({ page: 1, page_size: 100 })
+    if (data?.list) jobs.value = data.list
+    const tracks = await getIndustryTracks()
+    if (Array.isArray(tracks)) industryTracks.value = tracks
+  } catch (e) {
+    ElMessage.error('岗位数据加载失败')
+  } finally {
+    tableLoading.value = false
+  }
+})
 </script>
 <style scoped>
 .job-page {max-width: 1440px;

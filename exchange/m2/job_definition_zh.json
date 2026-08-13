@@ -1,21 +1,171 @@
 [
   {
-    "job_name": "云平台/大数据工程师",
-    "core_duties": "为车联网系统开发基于云的数据解决方案、后端服务，并进行大数据分析；为下一代信息娱乐系统和座舱系统进行PoC（概念验证）。",
+    "job_name": "IT/AV 服务台支持",
+    "core_duties": "为40-100名终端用户提供现场和远程IT/AV支持，包括Zoom会议室音视频、活动支持、电话系统诊断和桌面支持。",
     "required_skills": [
-      "云平台",
-      "汽车工程经验",
-      "沟通能力"
+      "jira",
+      "问题解决",
+      "saas"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "视频会议系统维护",
+      "现场事件技术支持",
+      "企业IT运维",
+      "远程办公支持"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "调拨办公室采购项目经理",
+    "core_duties": "度量并报告供应商之间物料转移流程的执行情况；收集和分析数据，制定KPI，制作数据看板，并提供洞察以优化转移运营和供应商绩效。",
+    "required_skills": [
+      "分析能力",
+      "沟通",
+      "团队协作",
+      "问题解决",
+      "项目管理",
+      "演讲",
+      "文档编写",
+      "时间管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "采购分析",
+      "医疗制造物料转移",
+      "跨工厂物料转移跟踪",
+      "高管仪表盘报告",
+      "供应链管理"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.7,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "系统管理员",
+    "core_duties": "负责安装、维护、升级和保护公司软件、硬件及网络，管理IT基础设施并为内部用户提供硬件和软件支持；同时负责局域网/广域网、网络安全、服务器、备份、域账户、M365/Azure、SQL Server和Dynamics NAV等系统的日常运维。",
+    "required_skills": [
+      "vmware",
+      "azure",
+      "sql server",
+      "网络安全",
+      "tcp",
+      "沟通",
+      "问题解决",
+      "windows server"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "企业IT基础设施管理",
+      "数据库与云服务管理",
+      "网络与安全管理",
+      "内部用户技术支持与运维"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "问题管理经理",
+    "core_duties": "管理所分配问题的生命周期，执行根本原因分析，协调纠正措施，确保满足服务水平协议，维护ServiceNow中的问题清单，识别趋势并改进流程，以及监督团队风险管理。",
+    "required_skills": [
+      "敏捷",
+      "领导力",
+      "风控",
+      "分析能力"
     ],
     "bonus_skills": [
-      "编程语言",
-      "大数据分析"
+      "文档编写"
     ],
     "scenarios": [
-      "车联网数据平台",
-      "车辆开发大数据分析",
-      "汽车远程信息处理",
-      "车载信息娱乐系统"
+      "支付",
+      "金融服务",
+      "数字银行"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Android逆向工程师",
+    "core_duties": "负责对Android应用和SDK进行逆向工程和安全评估，通过静态与动态分析检测恶意行为，开发检测签名并撰写报告。",
+    "required_skills": [
+      "java",
+      "kotlin",
+      "javascript",
+      "安全",
+      "团队协作"
+    ],
+    "bonus_skills": [
+      "网络安全"
+    ],
+    "scenarios": [
+      "APT威胁研究与开源情报分析",
+      "移动应用安全审核",
+      "恶意软件检测与家族识别",
+      "Google Play应用商店威胁监测"
     ],
     "source": [
       "dataset"
@@ -24,6 +174,617 @@
     "is_emerging": true,
     "evolution": {
       "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "UX设计师",
+    "core_duties": "负责创建用户交互任务流程、模型、线框图和原型，应用可用性和人因工程原则，并与开发团队和产品经理协作，确保直观的用户体验和设计质量。",
+    "required_skills": [
+      "agile"
+    ],
+    "bonus_skills": [
+      "团队协作",
+      "沟通"
+    ],
+    "scenarios": [
+      "农业和工程机械车载信息系统UX设计",
+      "面向企业应用的自适应平板/手机界面设计",
+      "智能解决方案组电子系统界面设计"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.75,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Microsoft 365 首席架构师",
+    "core_duties": "领导企业 Microsoft 365 平台的架构设计、部署、管理和优化，包括身份与访问管理、设备管理、自动化和安全；提供技术领导与升级支持，并推动 IT 及业务团队的持续改进。",
+    "required_skills": [
+      "azure",
+      "powershell",
+      "文档编写",
+      "问题解决能力",
+      "信息安全"
+    ],
+    "bonus_skills": [
+      "项目管理",
+      "团队协作",
+      "沟通能力"
+    ],
+    "scenarios": [
+      "企业协作与生产力平台",
+      "IT自动化与运维",
+      "身份与访问管理",
+      "云基础设施与设备管理"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.65,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Salesforce 工程经理",
+    "core_duties": "管理 Salesforce 开发项目的完整生命周期，领导复杂解决方案的设计与实施，监督代码审查、测试、部署和维护；与跨职能团队协作，确保安全、治理和性能合规。",
+    "required_skills": [
+      "敏捷",
+      "git",
+      "ci/cd",
+      "api",
+      "rest",
+      "领导力",
+      "Scrum",
+      "看板",
+      "安全"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "企业级 CRM 系统架构与团队管理",
+      "Salesforce 生态工具链与 CI/CD 实践",
+      "金融科技企业 Salesforce 平台定制开发与集成"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:24",
+    "collected_at": "2026-07-24 07:15:24",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "高级报表分析师",
+    "core_duties": "设计、开发和实施高级 PowerBI 解决方案，包括仪表板、报表和数据模型；与利益相关方协作收集需求，并提供可操作的见解以支持数据驱动的决策。",
+    "required_skills": [
+      "SQL",
+      "分析能力",
+      "沟通能力",
+      "Azure"
+    ],
+    "bonus_skills": [
+      "Scrum"
+    ],
+    "scenarios": [
+      "高层管理驾驶舱",
+      "企业IT治理与战略规划",
+      "金融行业数据报表与决策支持"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:24",
+    "collected_at": "2026-07-24 07:15:24",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "高级云解决方案架构师",
+    "core_duties": "设计并架构可扩展、安全且经济高效的云解决方案，主导技术讨论，并指导初级架构师。",
+    "required_skills": [
+      "AWS",
+      "Kubernetes",
+      "Docker",
+      "微服务",
+      "安全",
+      "敏捷",
+      "沟通",
+      "问题解决",
+      "系统设计",
+      "分析能力"
+    ],
+    "bonus_skills": [
+      "Python",
+      "Java",
+      "JavaScript"
+    ],
+    "scenarios": [
+      "安全合规的云解决方案架构设计",
+      "跨职能团队技术领导与敏捷交付",
+      "微服务与容器化应用部署",
+      "联邦政府云基础设施建设（IL5-IL6+ 多分类域）"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.85,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "SRE经理",
+    "core_duties": "领导SRE团队设计、实施和维护高度可扩展、安全且可靠的云基础系统；优化数据库性能并实现运维自动化，同时确保高可用性和与业务目标的一致性。",
+    "required_skills": [
+      "sre",
+      "devops",
+      "agile",
+      "prometheus",
+      "grafana",
+      "aws",
+      "azure",
+      "gcp",
+      "kubernetes",
+      "ansible",
+      "terraform",
+      "chef",
+      "puppet",
+      "mysql",
+      "cassandra",
+      "mongodb",
+      "redis",
+      "领导力",
+      "性能优化",
+      "scrum",
+      "kanban",
+      "elk"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "多数据库性能调优与自动化运维",
+      "云基础设施与SaaS平台高可用运维",
+      "安全与合规的云原生架构",
+      "跨区域团队协作与监控告警"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "性能测试工程师",
+    "core_duties": "负责Guidewire云应用及遗留系统的性能测试策略制定、工具配置、脚本开发、负载/压力/耐久性测试执行、性能监控与缺陷管理，并与架构、业务团队协作定义非功能需求。",
+    "required_skills": [
+      "负载均衡",
+      "splunk",
+      "性能优化",
+      "团队协作"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "保险行业Guidewire云平台性能测试",
+      "负载/压力/耐久性测试与性能监控",
+      "云应用性能工程与容量规划"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "系统工程师 II (Okta)",
+    "core_duties": "负责以 Okta 为重点的系统、软件和安全的设计、管理、安装与支持。保护用户应用程序安全，管理身份与访问治理，实施高级身份验证，并维护 Microsoft 365 和 Windows Server 环境。",
+    "required_skills": [
+      "SSO",
+      "OAuth",
+      "Windows Server",
+      "项目管理",
+      "Azure",
+      "SQL Server",
+      "沟通",
+      "问题解决"
+    ],
+    "bonus_skills": [
+      "Agile",
+      "时间管理"
+    ],
+    "scenarios": [
+      "企业身份认证与访问管理",
+      "微软365与Windows服务器环境运维",
+      "零信任安全架构与多因素认证"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.6,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "IT经理",
+    "core_duties": "负责管理IT基础设施，包括Okta、Jamf、Intune、Zoom、Google Workspace和Atlassian套件的管理与支持；处理支持工单，配置和撤销应用访问，提供Windows、Mac、iOS、Android平台的问题解决，并管理内外部支持人员及供应商。",
+    "required_skills": [
+      "问题解决",
+      "沟通",
+      "分析能力",
+      "团队协作",
+      "项目管理",
+      "领导力"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "跨平台设备支持（Windows/Mac/iOS/Android）",
+      "企业IT基础设施与办公系统管理",
+      "内部支持工单处理与供应商协调",
+      "广告技术公司内部IT运维"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "网站编辑与数字无障碍专员",
+    "core_duties": "负责管理和优化大学公共网站与内网，确保符合数字无障碍标准，优化网站性能、SEO 和用户体验，同时领导网站相关项目，并为内容贡献者提供培训。",
+    "required_skills": [
+      "项目管理",
+      "沟通",
+      "团队协作",
+      "性能优化",
+      "安全",
+      "分析能力",
+      "API",
+      "领导力",
+      "问题解决",
+      "时间管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "内网门户项目",
+      "高等教育网站管理",
+      "搜索引擎优化",
+      "内容管理系统维护",
+      "数字无障碍合规"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "ETL工程师",
+    "core_duties": "设计、开发并部署可扩展的ETL/ELT管道和数据平台，以处理和组织结构化和非结构化数据；与跨职能团队在敏捷环境中协作，支持欺诈检测和癌症研究等数据驱动任务。",
+    "required_skills": [
+      "Java",
+      "Python",
+      "Spark",
+      "Hadoop",
+      "Hive",
+      "Kafka",
+      "AWS"
+    ],
+    "bonus_skills": [
+      "MySQL",
+      "Agile",
+      "REST",
+      "API"
+    ],
+    "scenarios": [
+      "癌症研究",
+      "欺诈检测",
+      "国家情报"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.75,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "高级后端工程师",
+    "core_duties": "与敏捷团队协作，设计、开发、测试、实施和支持技术解决方案。利用编程语言和云技术交付健壮的云解决方案。",
+    "required_skills": [
+      "java",
+      "python",
+      "node.js",
+      "go",
+      "scala",
+      "docker",
+      "kubernetes",
+      "sql",
+      "aws",
+      "agile"
+    ],
+    "bonus_skills": [
+      "gcp",
+      "azure"
+    ],
+    "scenarios": [
+      "大规模后端服务",
+      "云迁移与现代化改造",
+      "FinTech - 个性化营销优惠"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.87,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "系统分析师",
+    "core_duties": "与律师及知识管理团队合作，识别、实施、管理和支持知识管理技术解决方案；管理知识管理系统和数据库，开发AI驱动的知识捕获功能，提供培训和文档，并评估效果。",
+    "required_skills": [
+      "AI",
+      "UML",
+      "文档编写",
+      "沟通",
+      "项目管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "法律知识管理",
+      "文档管理系统集成",
+      "AI辅助法律研究",
+      "为律师提供AI工具培训"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.5,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:25",
+    "collected_at": "2026-07-24 07:15:25",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "软件开发工程师",
+    "core_duties": "在团队协作的敏捷环境中设计和实现软件功能与组件，主要使用 Java 和 GraphQL，并与产品管理团队合作交付客户功能。",
+    "required_skills": [
+      "java",
+      "graphql",
+      "oracle",
+      "postgresql",
+      "react",
+      "typescript",
+      "html",
+      "css",
+      "rest"
+    ],
+    "bonus_skills": [
+      "微服务",
+      "aws",
+      "scrum",
+      "uml",
+      "沟通",
+      "团队协作",
+      "敏捷"
+    ],
+    "scenarios": [
+      "企业服务",
+      "SaaS",
+      "人力资源管理",
+      "财务管理"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "制造技术应用专员",
+    "core_duties": "应用IS制造知识，在各生产现场选择、部署和支持制造解决方案；管理项目和集成，以提高运营效率。",
+    "required_skills": [
+      "敏捷",
+      "项目管理",
+      "沟通",
+      "问题解决",
+      "领导力",
+      "团队协作",
+      "分析能力",
+      "时间管理"
+    ],
+    "bonus_skills": [
+      "sql"
+    ],
+    "scenarios": [
+      "制造业生产系统实施与支持",
+      "ERP与MES系统对接",
+      "工厂运营数据分析与报表",
+      "多站点制造系统集成"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
       "stage_confidence": 0.7,
       "indicators": {
         "jd_count_in_batch": 1,
@@ -31,175 +792,30 @@
         "skill_novelty": "medium"
       }
     },
-    "first_seen": "2026-07-24 07:14:31",
-    "collected_at": "2026-07-24 07:14:31",
-    "updated_at": "2026-08-12T09:30:16",
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
     "source_jd_count": 1
   },
   {
-    "job_name": "SOC安全分析师",
-    "core_duties": "在7x24小时SOC中担任第一道防线，负责使用SIEM和自动化工具监控、检测和响应安全事件，并持续改进检测信号。",
+    "job_name": "生物医学设备技师",
+    "core_duties": "响应服务请求，对生物医学设备进行评估、诊断、维修和计划性维护，通过卓越服务确保客户满意度。",
     "required_skills": [
-      "SOC监控和事件响应",
-      "网络安全概念",
-      "攻击响应知识",
-      "SIEM"
-    ],
-    "bonus_skills": [
-      "安全自动化（SOAR）",
-      "脚本编写",
-      "安全认证"
-    ],
-    "scenarios": [
-      "对公司、制造和生产环境进行安全监控",
-      "与跨职能团队协作进行信号调优和流程改进",
-      "在活跃事件期间进行威胁狩猎",
-      "针对网络钓鱼、恶意软件、DDoS和撞库攻击的事件响应"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 0.73,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:21",
-    "collected_at": "2026-07-24 07:15:21",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "后端软件工程经理",
-    "core_duties": "领导开发团队设计和交付基于云的分布式微服务解决方案，推动转型和法规合规。",
-    "required_skills": [
-      "云计算",
-      "人员管理"
-    ],
-    "bonus_skills": [
-      "java",
-      "python",
-      "go",
-      "scala",
-      "node.js",
-      "sql",
-      "docker",
-      "kubernetes",
-      "NoSQL 数据库",
-      "SQL 数据库",
-      "敏捷方法论",
-      "开源框架",
-      "微服务",
-      "全栈开发"
-    ],
-    "scenarios": [
-      "法规合规",
-      "基于云的微服务",
-      "金融服务"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 1.0,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:21",
-    "collected_at": "2026-07-24 07:15:21",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "ERP战略与选型顾问",
-    "core_duties": "指导客户评估和选择Cloud ERP系统，包括评估业务流程、定义需求、制定战略路线图，以及监督供应商选择和实施。",
-    "required_skills": [
-      "ERP战略咨询",
-      "ERP系统评估与选择",
-      "ERP实施",
-      "业务流程评估",
-      "需求分析",
-      "项目管理",
-      "分析能力",
-      "沟通与人际交往能力",
-      "ERP模块知识",
-      "Cloud ERP知识",
-      "战略规划",
-      "利益相关者管理",
-      "演讲能力",
-      "供应商管理",
-      "变更管理",
-      "数据迁移",
-      "系统集成",
-      "自我管理与团队协作"
-    ],
-    "bonus_skills": [],
-    "scenarios": [
-      "医疗机构中的ERP实施",
-      "医疗ERP战略咨询",
-      "为医疗机构选择Cloud ERP"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 0.73,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:21",
-    "collected_at": "2026-07-24 07:15:21",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "系统管理员",
-    "core_duties": "安装、维护并保障IT基础设施（包括网络、服务器和软件）的安全；为内部用户提供硬件和软件支持，并管理供应商关系。",
-    "required_skills": [
-      "Windows 操作系统",
-      "VMware 虚拟化",
-      "Microsoft 365",
-      "Azure 云管理",
-      "TCP/IP 网络",
-      "网络安全",
-      "SQL 数据库",
-      "编程/脚本",
-      "Active Directory 管理",
-      "硬件/软件故障排查",
-      "用户支持",
+      "医疗知识",
       "沟通能力",
-      "网络安全（防火墙、路由器、交换机）",
-      "备份和灾难恢复",
-      "服务器维护",
-      "防病毒管理",
-      "电话系统管理",
-      "MS Dynamics NAV (Business Central)",
-      "软件许可",
-      "供应商管理"
+      "文档编写",
+      "安全意识",
+      "团队协作",
+      "分析能力",
+      "问题解决能力",
+      "领导力",
+      "学习能力"
     ],
     "bonus_skills": [],
     "scenarios": [
-      "能源测量仪器公司的IT基础设施管理",
-      "支持工程和实验室系统的内部IT服务台",
-      "公用事业计量数据的网络安全和数据保护"
+      "医院生物医学设备服务",
+      "医疗设备现场服务",
+      "医疗保健设备维护与维修"
     ],
     "source": [
       "dataset"
@@ -215,79 +831,33 @@
         "skill_novelty": "medium"
       }
     },
-    "first_seen": "2026-07-24 07:15:22",
-    "collected_at": "2026-07-24 07:15:22",
-    "updated_at": "2026-08-12T09:30:16",
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
     "source_jd_count": 1
   },
   {
-    "job_name": "高级后端软件工程师（Python）",
-    "core_duties": "设计、开发和维护后端系统及工具，以提升 Capital One 的开发者体验、流水线可靠性和自动化水平。",
+    "job_name": "信息系统安全官",
+    "core_duties": "管理机密和非机密系统的信息安全系统，确保符合RMF/NIST标准，支持ATO/ATO工作，进行风险分析，并在本地部署、云和混合环境中维护安全态势。参与敏捷规划活动并创建安全文档。",
     "required_skills": [
-      "Python",
-      "Docker",
-      "Kubernetes"
-    ],
-    "bonus_skills": [
+      "信息安全",
       "AWS",
-      "敏捷方法论",
-      "CI/CD",
-      "SQL",
-      "Java"
-    ],
-    "scenarios": [
-      "开发者工具与自动化",
-      "基于容器的微服务部署",
-      "云原生应用开发",
-      "金融服务"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 1.0,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.8,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:22",
-    "collected_at": "2026-07-24 07:15:22",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "高级后端工程师",
-    "core_duties": "领导抵押贷款技术平台的技术战略和开发，使用TypeScript、Node.js、AWS、Kubernetes和区块链构建和扩展后端系统，同时集成合作伙伴API并确保系统可靠性。",
-    "required_skills": [
-      "云基础设施（AWS/GCP/Azure）",
-      "CI/CD与自动化测试",
-      "数据建模",
-      "沟通能力",
-      "问题解决能力"
+      "Azure",
+      "风控",
+      "文档编写",
+      "沟通",
+      "敏捷",
+      "团队协作"
     ],
     "bonus_skills": [
-      "TypeScript",
-      "Node.js",
-      "OpenAPI",
-      "金融科技",
-      "后端系统扩展",
-      "XML",
-      "Kubernetes",
-      "NestJS",
-      "BullMQ",
-      "Redis",
-      "PostgreSQL",
-      "区块链（Canton）"
+      "VMware"
     ],
     "scenarios": [
-      "金融科技集成",
-      "抵押贷款平台",
-      "API驱动的贷款管理系统"
+      "混合环境安全态势管理",
+      "政府网络安全合规与授权",
+      "风险管理与漏洞分析",
+      "云安全评估与持续监控",
+      "国防与联邦IT系统安全"
     ],
     "source": [
       "dataset"
@@ -296,59 +866,16 @@
     "is_emerging": true,
     "evolution": {
       "stage": "mature",
-      "stage_confidence": 0.8,
+      "stage_confidence": 0.75,
       "indicators": {
         "jd_count_in_batch": 1,
         "source_diversity": 1,
         "skill_novelty": "medium"
       }
     },
-    "first_seen": "2026-07-24 07:15:22",
-    "collected_at": "2026-07-24 07:15:22",
-    "updated_at": "2026-08-12T09:30:16",
-    "source_jd_count": 1
-  },
-  {
-    "job_name": "用户体验设计师",
-    "core_duties": "创建用户交互任务流程、线框图和原型以传达设计；与产品经理和开发人员协作，进行可用性测试，并提供设计评审，以确保直观的用户体验。",
-    "required_skills": [
-      "设计工具 (figma, sketch, invision)",
-      "农业/工程/电子领域知识",
-      "软件开发和测试知识",
-      "敏捷方法论",
-      "响应式和移动端设计",
-      "数据分析工具 (contentsquare, adobe analytics, google analytics)",
-      "交互设计",
-      "线框图和原型设计",
-      "可用性测试",
-      "用户研究"
-    ],
-    "bonus_skills": [
-      "设计工作坊引导",
-      "设计质量保证"
-    ],
-    "scenarios": [
-      "为农业和工程车辆系统设计用户界面",
-      "为重型机械创建直观的仪表盘",
-      "为现场技术人员开发移动端和响应式界面"
-    ],
-    "source": [
-      "dataset"
-    ],
-    "quality": 0.73,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "mature",
-      "stage_confidence": 0.9,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "medium"
-      }
-    },
-    "first_seen": "2026-07-24 07:15:23",
-    "collected_at": "2026-07-24 07:15:23",
-    "updated_at": "2026-08-12T09:30:16",
+    "first_seen": "2026-07-24 07:15:26",
+    "collected_at": "2026-07-24 07:15:26",
+    "updated_at": "2026-08-13T11:22:48",
     "source_jd_count": 1
   }
 ]

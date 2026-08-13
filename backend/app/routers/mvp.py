@@ -5,6 +5,8 @@
 """
 import json
 
+import io
+
 from fastapi import APIRouter, Body, File, Form, Query, UploadFile
 from fastapi.responses import Response as FastResponse
 from pydantic import BaseModel
@@ -142,14 +144,38 @@ def graph_data(year: str = "", focus_job: str = ""):
     })
 
 
+
+def _extract_file_text(filename: str, data: bytes) -> str:
+    """按扩展名解析简历文件（PDF/DOCX/DOC/TXT），返回文本。"""
+    name = (filename or "").lower()
+    if name.endswith(".pdf"):
+        import pdfplumber
+        with pdfplumber.open(io.BytesIO(data)) as pdf:
+            return "\n".join((page.extract_text() or "") for page in pdf.pages)
+    if name.endswith(".docx"):
+        import docx
+        doc = docx.Document(io.BytesIO(data))
+        return "\n".join(para.text for para in doc.paragraphs)
+    if name.endswith(".doc"):
+        import mammoth
+        result = mammoth.extract_raw_text(io.BytesIO(data))
+        return result.value
+    # txt / json / 其他按文本
+    return data.decode("utf-8", errors="replace")
+
+
 @router.post("/resume/upload")
 async def resume_upload(
     file: UploadFile | None = File(None),
     content: str = Form(""),
 ):
     if file is not None:
-        raw = (await file.read()).decode("utf-8", errors="replace")
-        content = (content + "\n" + raw).strip()
+        raw = await file.read()
+        try:
+            parsed_text = _extract_file_text(file.filename or "", raw)
+        except Exception as exc:
+            raise BizError(4002, f"文件解析失败: {exc}") from exc
+        content = (content + "\n" + parsed_text).strip()
     if not content.strip():
         raise BizError(4001, "简历内容为空")
 

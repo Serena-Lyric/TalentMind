@@ -2,8 +2,6 @@
  * 简历上传模块 API
  */
 
-import { get, post, USE_MOCK } from '../utils/request'
-
 // ============================================================
 // 类型定义
 // ============================================================
@@ -50,28 +48,7 @@ export interface SkillDimension {
  * }
  */
 export async function uploadResume(file: File) {
-  if (USE_MOCK) {
-    return {
-      profile: {
-        name: '林苑琪',
-        role: '前端开发工程师',
-        experience: '2026届应届生',
-        education: '本科 · 软件工程',
-        company: '广州应用科技学院',
-        skills: ['HTML', 'CSS', 'JavaScript', 'Vue3', 'TypeScript', 'ECharts', 'Git'],
-        summary: 'Vue3 项目开发、数据可视化、组件化设计与跨团队协作。'
-      } as ResumeProfile,
-      matchResult: {
-        score: 82,
-        matched: ['Vue3', 'TypeScript', 'ECharts', 'Vite', 'Git'],
-        missing: [
-          { name: '微前端架构', level: 'high', tip: '大型项目常见的应用拆分与集成方案' },
-          { name: 'Node.js 服务端', level: 'medium', tip: '提升全栈协作与 BFF 开发能力' }
-        ],
-        strengths: ['具备完整的 Vue3 项目经验', '熟悉数据可视化与组件化开发']
-      } as MatchResult
-    }
-  }
+  
   const formData = new FormData()
   formData.append('file', file)
   return post('/resume/upload', formData, {
@@ -95,13 +72,7 @@ export async function uploadResume(file: File) {
  * }
  */
 export async function getSkillDimensions(targetJob: string) {
-  if (USE_MOCK) {
-    return {
-      dimensions: ['基础技能', '前端开发框架', '组件与工具', '跨端开发', '全栈开发', '技术扩展', 'AI应用开发能力', '综合素养'],
-      jobStandard: [80, 85, 82, 65, 70, 75, 60, 80],
-      personalAbility: [85, 90, 88, 60, 55, 70, 65, 82]
-    }
-  }
+  
   return get('/resume/skill-dimensions', { targetJob })
 }
 
@@ -119,11 +90,6 @@ export async function getSkillDimensions(targetJob: string) {
  * }
  */
 export async function getTargetJobs() {
-  if (USE_MOCK) {
-    return [
-      { value: 'frontend', label: '高级前端工程师', score: 87 },
-      { value: 'data', label: '数据分析师', score: 72 }
-    ]
-  }
+  
   return get('/resume/target-jobs')
 }

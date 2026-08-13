@@ -52,12 +52,11 @@ def import_job_definitions(path: Path | None = None, session=None) -> int:
     defs = _load_json(path or EXCHANGE_M2 / "job_definition.json")
     db = session or SessionLocal()
     try:
+        db.execute(text("DELETE FROM job_definition"))
         for d in defs:
             job_name = d.get("job_name", "")
             if not job_name:
                 continue
-            db.execute(text("DELETE FROM job_definition WHERE job_name = :n"),
-                       {"n": job_name})
             db.execute(
                 text("INSERT INTO job_definition "
                      "(job_name, core_duties, required_skills, bonus_skills, "
@@ -97,12 +96,11 @@ def import_job_skills(path: Path | None = None, session=None) -> int:
     db = session or SessionLocal()
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     try:
+        db.execute(text("DELETE FROM job_skill"))
         for item in items:
             job_name = item.get("job_name", "")
             if not job_name:
                 continue
-            db.execute(text("DELETE FROM job_skill WHERE job_name = :n"),
-                       {"n": job_name})
             db.execute(
                 text("INSERT INTO job_skill (job_name, skills, duties, extracted_at) "
                      "VALUES (:job_name, :skills, :duties, :extracted_at)"),

@@ -6,9 +6,10 @@
         <p>智能提取个人能力，并与目标岗位能力图谱进行匹配分析</p>
       </div>
       <div class="title-actions">
-        <el-button @click="importMockResume">
-          <el-icon><Document /></el-icon>导入模拟简历
+        <el-button @click="fileInput?.click()">
+          <el-icon><UploadFilled /></el-icon>上传简历
         </el-button>
+        <input ref="fileInput" type="file" accept=".pdf,.doc,.docx,.txt" style="display:none" @change="onFileChange" />
         <el-button @click="goToPreview">
           <el-icon><View /></el-icon>预览简历
         </el-button>
@@ -164,18 +165,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Aim, UploadFilled, Document, View, MagicStick } from '@element-plus/icons-vue'
+import { Aim, UploadFilled, View } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { resume } from '../data/mock'
-import { mockResume, mockResumeSkills, mockMatchResult } from '../mock/resume-data'
+import { uploadResume, getTargetJobs } from '../api/resume'
 import AbilityRadar from './AbilityRadar.vue'
-
-interface Dimension {
-  name: string
-  value: number
-}
 
 interface MissingSkill {
   name: string
@@ -187,184 +182,68 @@ interface JobOption {
   value: string
   label: string
   score: number
-  dimensions: Dimension[]
-  matched: string[]
-  missing: MissingSkill[]
+  dimensions?: { name: string; value: number }[]
+  matched?: string[]
+  missing?: MissingSkill[]
 }
 
 const router = useRouter()
 const parsed = ref(false)
-
 const fileName = ref('')
-const targetJob = ref('frontend')
+const targetJob = ref('')
+const fileInput = ref<HTMLInputElement | null>(null)
 
-const profile = ref({
-  ...resume,
-  education: '本科 · 软件工程',
-  company: '智云科技',
-  summary: 'Vue3 项目开发、数据可视化、组件化设计与跨团队协作。'
+const profile = ref<any>({
+  name: '', role: '', experience: '', education: '', company: '',
+  skills: [] as string[], summary: '',
 })
+const matchResult = ref<any>(null)
+const targetJobs = ref<JobOption[]>([])
 
-const targetJobs = computed<JobOption[]>(() => {
-  if (fileName.value.includes('模拟')) {
-    return [
-      {
-        value: 'frontend',
-        label: '高级前端工程师',
-        score: mockMatchResult.score,
-        dimensions: mockResume.skills.dimensions.map((dim, i) => ({
-          name: dim,
-          value: mockResume.skills.radarData.personalAbility[i]
-        })),
-        matched: mockMatchResult.matched,
-        missing: mockMatchResult.missing
-      }
-    ]
+const currentJob = computed<JobOption | undefined>(() => {
+  const base = targetJobs.value.find((item: any) => String(item.value) === String(targetJob.value))
+  if (!base) return undefined
+  const mr = matchResult.value
+  if (mr && mr.target_job && (base.label === mr.target_job || String(base.value) === String(mr.target_job))) {
+    return { ...base, score: mr.score ?? base.score, matched: mr.matched || [], missing: mr.missing || [] }
   }
-  
-  return [
-    {
-      value: 'frontend',
-      label: '高级前端工程师',
-      score: 87,
-      dimensions: [
-        { name: '全栈开发', value: 65 },
-        { name: '组件与工具', value: 92 },
-        { name: '跨端开发', value: 58 },
-        { name: '基础技能', value: 88 },
-        { name: '前端开发框架', value: 95 },
-        { name: '技术扩展', value: 72 },
-        { name: '综合素养', value: 85 },
-        { name: 'AI应用开发能力', value: 45 }
-      ],
-      matched: ['Vue3', 'TypeScript', 'ECharts', 'Vite', 'Git', '组件化开发'],
-      missing: [
-        { name: '性能优化实战', level: 'high', tip: '建议补充首屏加载、缓存策略与性能监控经验' },
-        { name: '微前端架构', level: 'medium', tip: '大型项目常见的应用拆分与集成方案' },
-        { name: 'Node.js 服务端', level: 'medium', tip: '提升全栈协作与 BFF 开发能力' }
-      ]
-    },
-    {
-      value: 'data',
-      label: '数据分析师',
-      score: 72,
-      dimensions: [
-        { name: '全栈开发', value: 35 },
-        { name: '组件与工具', value: 68 },
-        { name: '跨端开发', value: 30 },
-        { name: '基础技能', value: 75 },
-        { name: '前端开发框架', value: 45 },
-        { name: '技术扩展', value: 55 },
-        { name: '综合素养', value: 80 },
-        { name: 'AI应用开发能力', value: 40 }
-      ],
-      matched: ['ECharts', '数据可视化', '沟通协作'],
-      missing: [
-        { name: 'SQL 查询与调优', level: 'high', tip: '数据岗位的通用基础能力' },
-        { name: 'Python 数据分析', level: 'high', tip: '建议掌握 Pandas 与常用分析方法' },
-        { name: '指标体系设计', level: 'medium', tip: '提升业务分析的系统性' }
-      ]
-    },
-    {
-      value: 'ai',
-      label: 'AI 算法工程师',
-      score: 65,
-      dimensions: [
-        { name: '算法基础', value: 55 },
-        { name: '深度学习', value: 48 },
-        { name: '工程实践', value: 62 },
-        { name: '数学基础', value: 70 },
-        { name: '数据处理', value: 68 },
-        { name: '模型部署', value: 45 },
-        { name: '综合素养', value: 75 },
-        { name: '前沿追踪', value: 58 }
-      ],
-      matched: ['Python', '数据处理', '逻辑思维'],
-      missing: [
-        { name: '深度学习框架', level: 'high', tip: 'PyTorch/TensorFlow 核心能力' },
-        { name: '大模型应用开发', level: 'high', tip: 'RAG、Agent、Prompt Engineering' },
-        { name: '数学基础强化', level: 'medium', tip: '线性代数、概率论、优化方法' }
-      ]
-    },
-    {
-      value: 'backend',
-      label: 'Java 后端工程师',
-      score: 58,
-      dimensions: [
-        { name: 'Java 核心', value: 50 },
-        { name: '框架能力', value: 45 },
-        { name: '数据库', value: 55 },
-        { name: '分布式', value: 40 },
-        { name: '系统设计', value: 48 },
-        { name: '运维部署', value: 42 },
-        { name: '综合素养', value: 70 },
-        { name: '安全意识', value: 38 }
-      ],
-      matched: ['SQL', '基础编程', '逻辑思维'],
-      missing: [
-        { name: 'Spring Boot 深入', level: 'high', tip: '自动配置、Starter 开发、性能调优' },
-        { name: '分布式系统设计', level: 'high', tip: '微服务架构、消息队列、分布式事务' },
-        { name: '高并发编程', level: 'medium', tip: 'JUC 并发包、线程池优化、锁机制' }
-      ]
-    },
-    {
-      value: 'product',
-      label: '产品经理',
-      score: 68,
-      dimensions: [
-        { name: '需求分析', value: 72 },
-        { name: '用户研究', value: 65 },
-        { name: '数据分析', value: 58 },
-        { name: '项目管理', value: 70 },
-        { name: '商业思维', value: 55 },
-        { name: '技术理解', value: 60 },
-        { name: '综合素养', value: 78 },
-        { name: '行业洞察', value: 62 }
-      ],
-      matched: ['沟通协作', '需求分析', '逻辑思维'],
-      missing: [
-        { name: '数据驱动决策', level: 'high', tip: 'SQL 基础、指标体系、A/B 测试' },
-        { name: '用户研究方法', level: 'medium', tip: '用户访谈、可用性测试、问卷设计' },
-        { name: '技术理解能力', level: 'medium', tip: '前后端基础、API 概念、系统架构' }
-      ]
-    }
-  ]
+  return base
 })
-
-const currentJob = computed(() => targetJobs.value.find(item => item.value === targetJob.value)!)
 
 const radarData = computed(() => ({
-  dimensions: mockResume.skills.dimensions,
-  jobStandard: mockResume.skills.radarData.jobStandard,
-  personalAbility: mockResume.skills.radarData.personalAbility
+  dimensions: [] as string[],
+  jobStandard: [] as number[],
+  personalAbility: [] as number[],
 }))
 
 const scoreText = computed(() => {
-  const score = currentJob.value.score
+  const score = currentJob.value?.score ?? 0
   return score >= 85 ? '匹配表现优异' : score >= 70 ? '具备较好潜力' : '建议重点提升'
 })
 
-function handleFile(file: any) {
-  fileName.value = file.name
-  parsed.value = true
-  ElMessage.success('简历解析成功，正在生成诊断报告')
+function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files?.length) handleFile(input.files[0])
+  input.value = ''
 }
 
-function importMockResume() {
-  fileName.value = '林苑琪_模拟简历_前端开发.pdf'
-  
-  profile.value = {
-    name: mockResume.basic.name,
-    role: mockResume.basic.jobIntention,
-    experience: '2026届应届生',
-    education: mockResume.education.degree + ' · ' + mockResume.education.major,
-    company: '广州应用科技学院',
-    skills: mockResumeSkills,
-    summary: mockResume.selfEvaluation
+async function handleFile(file: any) {
+  fileName.value = file.name
+  try {
+    const data = await uploadResume(file)
+    if (data?.profile) profile.value = data.profile
+    if (data?.matchResult) {
+      matchResult.value = data.matchResult
+      if (data.matchResult.target_job) {
+        const found = targetJobs.value.find((j: any) => j.label === data.matchResult.target_job)
+        if (found) targetJob.value = String(found.value)
+      }
+    }
+    parsed.value = true
+    ElMessage.success('简历解析成功，正在生成诊断报告')
+  } catch (e: any) {
+    ElMessage.error(e?.message || '简历解析失败')
   }
-  
-  parsed.value = true
-  ElMessage.success('模拟简历导入成功！')
 }
 
 function goToPreview() {
@@ -375,6 +254,18 @@ function goToLearning() {
   ElMessage.success('正在生成个性化学习路径...')
   router.push({ path: '/learning', query: { job: targetJob.value } })
 }
+
+onMounted(async () => {
+  try {
+    const list = await getTargetJobs()
+    if (Array.isArray(list) && list.length) {
+      targetJobs.value = list.map((j: any) => ({
+        value: String(j.value), label: j.label, score: j.score || 0,
+      }))
+      targetJob.value = String(list[0].value)
+    }
+  } catch (e) { /* 忽略 */ }
+})
 </script>
 
 <style scoped>

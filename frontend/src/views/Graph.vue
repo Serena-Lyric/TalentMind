@@ -156,7 +156,7 @@ import { Search, Download, FolderChecked } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { Graph } from '@antv/g6'
 import * as echarts from 'echarts'
-import { graphJobs, graphYears, graphSnapshots, skillRadar8D } from '../data/mock'
+import { getGraphData, getGraphJobs, getGraphYears } from '../api/graph'
 
 const router = useRouter()
 const loading = ref(true)
@@ -177,9 +177,13 @@ const sideRadarRef = ref<HTMLElement | null>(null)
 let graph: Graph | null = null
 let sideRadar: echarts.ECharts | null = null
 
+const graphData = ref<any>({ nodes: [], edges: [], stats: { totalNodes: 0, totalEdges: 0, added: 0, removed: 0, changed: 0 } })
+const graphJobs = ref<any[]>([])
+const graphYears = ref<string[]>(['2026'])
+
 const currentYear = computed(() => compareMode.value ? yearA.value : '2026')
 const currentData = computed(() => {
-  const snap = graphSnapshots[currentYear.value] || graphSnapshots['2026']
+  const snap = graphData.value
   let nodes = snap.nodes.filter((n: any) => !hiddenKinds.value.includes(n.kind))
   let edges = snap.edges.filter((e: any) => {
     const sn = nodes.find((n: any) => n.id === e.source)
@@ -198,7 +202,7 @@ const currentData = computed(() => {
   }
   return { nodes, edges }
 })
-const focusJobLabel = computed(() => (graphJobs as any[]).find(j => j.value === focusJob.value)?.label || '')
+const focusJobLabel = computed(() => (graphJobs.value as any[]).find(j => j.value === focusJob.value)?.label || '')
 const selNode = computed(() => selectedNodes.value[0] || {})
 
 // Morandi color palette for legends
@@ -372,11 +376,13 @@ function exportAs(cmd: string) {
   else if (cmd === 'excel') { ElMessage.success('Excel 已导出') }
 }
 
+const RADAR_DIMS = ['市场需求', '技术热度', '岗位覆盖', '增长趋势', '学习难度', '生态成熟', '薪资水平', '就业广度']
+
 function updateSideRadar() {
   if (!sideRadarRef.value) return
   if (sideRadar) sideRadar.dispose()
   sideRadar = echarts.init(sideRadarRef.value)
-  const dims = skillRadar8D.dimensions
+  const dims = RADAR_DIMS
   const nodes = selectedNodes.value.filter((n: any) => n.kind === 'skill')
   if (!nodes.length) {
     sideRadar.setOption({ radar: { indicator: dims.map(d => ({ name: d, max: 100 })), shape: 'polygon' }, series: [{ type: 'radar', data: [] }] })
@@ -390,7 +396,7 @@ function updateSideRadar() {
       type: 'radar',
       data: nodes.map((n: any, i: number) => ({
         name: n.label,
-        value: (skillRadar8D.data as any)[n.label] || dims.map(() => Math.round(Math.random() * 60 + 30)),
+        value: dims.map(() => 50), // 技能画像数据待接入（当前占位）
         lineStyle: { color: colors[i % colors.length], width: 2 },
         itemStyle: { color: colors[i % colors.length] },
         areaStyle: { color: colors[i % colors.length] + '20' }
@@ -402,6 +408,16 @@ function updateSideRadar() {
 function handleResize() { graph?.resize(); sideRadar?.resize() }
 
 onMounted(async () => {
+  try {
+    const [gd, gj, gy] = await Promise.all([
+      getGraphData('2026', 'all'), getGraphJobs(), getGraphYears(),
+    ])
+    if (gd) graphData.value = gd
+    if (gj) graphJobs.value = gj
+    if (gy) graphYears.value = gy
+  } catch (e) {
+    ElMessage.error('图谱数据加载失败')
+  }
   setTimeout(async () => { loading.value = false; await nextTick(); await initGraph() }, 400)
   window.addEventListener('resize', handleResize)
 })

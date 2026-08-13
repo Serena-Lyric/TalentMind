@@ -127,11 +127,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Download, Phone, Message, Location, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { mockResume } from '../mock/resume-data'
+
 
 const router = useRouter()
 const resumeRef = ref<HTMLElement | null>(null)
-const resume = mockResume
+const resume = ref<any>({})
 
 function goBack() {
   router.push('/resume')

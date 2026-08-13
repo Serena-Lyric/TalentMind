@@ -20,9 +20,6 @@ import { ElMessage } from 'element-plus'
 /** 后端 API 基础地址 —— 对接真实后端时改为实际地址 */
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
-/** 是否使用 mock 数据（VITE_USE_MOCK=true 启用；默认真实接口） */
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
-
 // ============================================================
 // 创建 axios 实例
 // ============================================================
@@ -62,13 +59,16 @@ service.interceptors.response.use(
   (response: AxiosResponse) => {
     const { data, status } = response
 
-    // 后端约定的统一响应格式：{ code, data, message }（D29：code=0 成功）
-    if (data.code !== 0) {
-      ElMessage.error(data.message || '请求失败')
-      return Promise.reject(new Error(data.message))
-    }
-
     if (status >= 200 && status < 300) {
+      // 统一响应体 {code, message, data}（D29：code=0 成功）→ 解包返回 data
+      if (data && typeof data === 'object' && 'code' in data) {
+        if (data.code !== 0) {
+          ElMessage.error(data.message || '请求失败')
+          return Promise.reject(new Error(data.message))
+        }
+        return data.data
+      }
+      // 文件流等无统一响应体的内容原样返回
       return data
     }
 
