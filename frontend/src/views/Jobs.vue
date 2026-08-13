@@ -161,14 +161,14 @@
         <el-table-column label="演进概览" width="170">
           <template #default="{ row }">
             <div class="tiny-status">
-              <el-tooltip :content="'新增：' + row.evolution.added.join('、') || '无'" placement="top">
-                <span class="evolution-badge skill-add">+{{ row.evolution.added.length }}</span>
+              <el-tooltip :content="'新增：' + ((row.evolution?.added || []).join('、') || '无')" placement="top">
+                <span class="evolution-badge skill-add">+{{ row.evolution?.added?.length || 0 }}</span>
               </el-tooltip>
-              <el-tooltip :content="'淘汰：' + row.evolution.removed.join('、') || '无'" placement="top">
-                <span class="evolution-badge skill-remove">-{{ row.evolution.removed.length }}</span>
+              <el-tooltip :content="'淘汰：' + ((row.evolution?.removed || []).join('、') || '无')" placement="top">
+                <span class="evolution-badge skill-remove">-{{ row.evolution?.removed?.length || 0 }}</span>
               </el-tooltip>
-              <el-tooltip :content="'变更：' + row.evolution.changed.join('、') || '无'" placement="top">
-                <span class="evolution-badge skill-change">~{{ row.evolution.changed.length }}</span>
+              <el-tooltip :content="'变更：' + ((row.evolution?.changed || []).join('、') || '无')" placement="top">
+                <span class="evolution-badge skill-change">~{{ row.evolution?.changed?.length || 0 }}</span>
               </el-tooltip>
             </div>
           </template>
@@ -418,9 +418,9 @@ function openJdDetail(job: Job) { jdDetailJob.value = job; jdDetailDialog.value 
 
 const oldSkills = computed(() => selectedJob.value ? selectedJob.value.skills.slice(0, 4).concat(['jQuery', '传统特征工程']) : [])
 const evolutionGroups = computed(() => selectedJob.value ? [
-  { key: 'added', symbol: '+', label: '新增技能', items: selectedJob.value.evolution.added },
-  { key: 'removed', symbol: '-', label: '淘汰技能', items: selectedJob.value.evolution.removed },
-  { key: 'changed', symbol: '~', label: '变更技能', items: selectedJob.value.evolution.changed }
+  { key: 'added', symbol: '+', label: '新增技能', items: selectedJob.value?.evolution?.added || [] },
+  { key: 'removed', symbol: '-', label: '淘汰技能', items: selectedJob.value?.evolution?.removed || [] },
+  { key: 'changed', symbol: '~', label: '变更技能', items: selectedJob.value?.evolution?.changed || [] }
 ] : [])
 const editableGroups = [
   { key: 'added', symbol: '+', label: '新增技能' },
