@@ -20,8 +20,8 @@ import { ElMessage } from 'element-plus'
 /** 后端 API 基础地址 —— 对接真实后端时改为实际地址 */
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
-/** 是否使用 mock 数据（本地调试时设为 true，对接后端时设为 false） */
-export const USE_MOCK = true
+/** 是否使用 mock 数据（VITE_USE_MOCK=true 启用；默认真实接口） */
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
 // ============================================================
 // 创建 axios 实例

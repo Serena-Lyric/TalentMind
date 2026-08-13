@@ -5,7 +5,9 @@
 """
 import json
 
-from fastapi import APIRouter, File, Form, Query, UploadFile
+from fastapi import APIRouter, Body, File, Form, Query, UploadFile
+from fastapi.responses import Response as FastResponse
+from pydantic import BaseModel
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
@@ -221,3 +223,243 @@ def resume_target_jobs():
 def resume_skill_dimensions(target_job: str = Query("")):
     # MVP：无维度画像数据，返回空结构（前端按空处理）
     return ok({"dimensions": [], "jobStandard": [], "personalAbility": []})
+
+# ==================== 岗位 CRUD / 导入导出 / 图谱雷达（MVP 补全） ====================
+
+class JobPayload(BaseModel):
+    job_name: str
+    core_duties: str = ""
+    required_skills: list = []
+    bonus_skills: list = []
+    scenarios: list = []
+    source: list = []
+    quality: float = 0.0
+    is_emerging: bool = False
+    evolution: dict = {}
+    first_seen: str = ""
+    collected_at: str = ""
+    updated_at: str = ""
+
+
+def _job_definition_to_item(r) -> dict:
+    return {
+        "id": str(r[0]),
+        "title": r[1],
+        "company": "",
+        "city": "",
+        "type": "",
+        "salary": "",
+        "status": "open",
+        "skills": _parse_json_list(r[2]) + _parse_json_list(r[3]),
+        "updated": str(r[7] or r[6] or ""),
+        "track": "",
+        "kind": "job",
+    }
+
+
+@router.get("/jobs/export")
+def export_jobs():
+    """导出岗位为 CSV（文件流，不走统一响应体）。"""
+    db = SessionLocal()
+    try:
+        rows = db.execute(
+            text("SELECT job_name, core_duties, required_skills, bonus_skills "
+                 "FROM job_definition ORDER BY id")
+        ).all()
+    finally:
+        db.close()
+    import csv as _csv
+    import io as _io
+    buf = _io.StringIO()
+    writer = _csv.writer(buf)
+    writer.writerow(["job_name", "core_duties", "required_skills", "bonus_skills"])
+    for r in rows:
+        writer.writerow([
+            r[0],
+            r[1] or "",
+            " | ".join(_parse_json_list(r[2])),
+            " | ".join(_parse_json_list(r[3])),
+        ])
+    csv_text = "﻿" + buf.getvalue()  # BOM 兼容 Excel
+    return FastResponse(content=csv_text, media_type="text/csv",
+                        headers={"Content-Disposition": "attachment; filename=jobs.csv"})
+
+
+
+
+@router.get("/jobs/{job_id}")
+def job_detail(job_id: int):
+    db = SessionLocal()
+    try:
+        r = db.execute(
+            text("SELECT id, job_name, required_skills, bonus_skills, core_duties, "
+                 "scenarios, collected_at, updated_at FROM job_definition WHERE id = :i"),
+            {"i": job_id},
+        ).first()
+        if not r:
+            raise BizError(4041, "岗位不存在")
+        return ok({
+            "id": str(r[0]), "title": r[1],
+            "skills": _parse_json_list(r[2]) + _parse_json_list(r[3]),
+            "responsibilities": [r[4]] if r[4] else [],
+            "scenarios": _parse_json_list(r[5]),
+            "updated": str(r[7] or r[6] or ""),
+            "status": "open",
+        })
+    finally:
+        db.close()
+
+
+@router.post("/jobs")
+def create_job(payload: JobPayload):
+    if not payload.job_name.strip():
+        raise BizError(4001, "job_name 不能为空")
+    db = SessionLocal()
+    try:
+        db.execute(
+            text("INSERT INTO job_definition "
+                 "(job_name, core_duties, required_skills, bonus_skills, scenarios, "
+                 " source, quality, is_emerging, evolution, collected_at, updated_at) "
+                 "VALUES (:job_name, :core_duties, :required_skills, :bonus_skills, :scenarios, "
+                 " :source, :quality, :is_emerging, :evolution, :collected_at, :updated_at)"),
+            {
+                "job_name": payload.job_name.strip(),
+                "core_duties": payload.core_duties,
+                "required_skills": json.dumps(payload.required_skills, ensure_ascii=False),
+                "bonus_skills": json.dumps(payload.bonus_skills, ensure_ascii=False),
+                "scenarios": json.dumps(payload.scenarios, ensure_ascii=False),
+                "source": json.dumps(payload.source, ensure_ascii=False),
+                "quality": payload.quality,
+                "is_emerging": int(payload.is_emerging),
+                "evolution": json.dumps(payload.evolution, ensure_ascii=False),
+                "collected_at": payload.collected_at or None,
+                "updated_at": payload.updated_at or None,
+            },
+        )
+        db.commit()
+        new_id = db.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+        return ok({"id": str(new_id)})
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@router.put("/jobs/{job_id}")
+def update_job(job_id: int, payload: JobPayload):
+    if not payload.job_name.strip():
+        raise BizError(4001, "job_name 不能为空")
+    db = SessionLocal()
+    try:
+        cur = db.execute(
+            text("UPDATE job_definition SET job_name=:job_name, core_duties=:core_duties, "
+                 "required_skills=:required_skills, bonus_skills=:bonus_skills, "
+                 "scenarios=:scenarios, source=:source, quality=:quality, "
+                 "is_emerging=:is_emerging, evolution=:evolution, "
+                 "collected_at=:collected_at, updated_at=:updated_at WHERE id=:i"),
+            {
+                "i": job_id,
+                "job_name": payload.job_name.strip(),
+                "core_duties": payload.core_duties,
+                "required_skills": json.dumps(payload.required_skills, ensure_ascii=False),
+                "bonus_skills": json.dumps(payload.bonus_skills, ensure_ascii=False),
+                "scenarios": json.dumps(payload.scenarios, ensure_ascii=False),
+                "source": json.dumps(payload.source, ensure_ascii=False),
+                "quality": payload.quality,
+                "is_emerging": int(payload.is_emerging),
+                "evolution": json.dumps(payload.evolution, ensure_ascii=False),
+                "collected_at": payload.collected_at or None,
+                "updated_at": payload.updated_at or None,
+            },
+        )
+        db.commit()
+        if cur.rowcount == 0:
+            raise BizError(4041, "岗位不存在")
+        return ok({"success": True})
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@router.delete("/jobs/{job_id}")
+def delete_job(job_id: int):
+    db = SessionLocal()
+    try:
+        cur = db.execute(text("DELETE FROM job_definition WHERE id = :i"), {"i": job_id})
+        db.commit()
+        if cur.rowcount == 0:
+            raise BizError(4041, "岗位不存在")
+        return ok({"success": True})
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@router.post("/jobs/batch-delete")
+def batch_delete_jobs(ids: list[int] = Body(...)):
+    if not ids:
+        raise BizError(4001, "ids 不能为空")
+    db = SessionLocal()
+    try:
+        for i in ids:
+            db.execute(text("DELETE FROM job_definition WHERE id = :i"), {"i": i})
+        db.commit()
+        return ok({"deleted": len(ids)})
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@router.post("/jobs/import")
+async def import_jobs(file: UploadFile = File(...)):
+    """批量导入岗位：支持 JSON 数组（job_definition 结构）或 CSV（首行标题）。"""
+    raw = (await file.read()).decode("utf-8", errors="replace")
+    name = (file.filename or "").lower()
+    imported = 0
+    if name.endswith(".json") or raw.lstrip().startswith("["):
+        data = json.loads(raw)
+        for d in data:
+            payload = JobPayload(
+                job_name=str(d.get("job_name", "")).strip(),
+                core_duties=d.get("core_duties", "") or "",
+                required_skills=d.get("required_skills", []) or [],
+                bonus_skills=d.get("bonus_skills", []) or [],
+                scenarios=d.get("scenarios", []) or [],
+                source=d.get("source", []) or [],
+                quality=float(d.get("quality", 0) or 0),
+                is_emerging=bool(d.get("is_emerging", False)),
+                evolution=d.get("evolution", {}) or {},
+                collected_at=str(d.get("collected_at", "") or ""),
+                updated_at=str(d.get("updated_at", "") or ""),
+            )
+            if payload.job_name:
+                create_job(payload)
+                imported += 1
+    else:
+        # CSV：首行标题；支持 job_name,core_duties,required_skills(分号分隔)
+        import csv as _csv
+        import io as _io
+        reader = _csv.DictReader(_io.StringIO(raw))
+        for row in reader:
+            job_name = (row.get("job_name") or row.get("title") or "").strip()
+            if not job_name:
+                continue
+            skills = [s.strip() for s in (row.get("required_skills") or "").split(";") if s.strip()]
+            payload = JobPayload(job_name=job_name, required_skills=skills)
+            create_job(payload)
+            imported += 1
+    return ok({"imported": imported})
+
+
+
+@router.get("/graph/skill-radar")
+def graph_skill_radar(node_name: str = Query("")):
+    # MVP：无节点画像数据，返回空结构（前端按空处理）
+    return ok({"dimensions": [], "values": []})

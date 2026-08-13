@@ -70,3 +70,71 @@ def test_mvp_resume_upload():
     assert body["code"] == 0
     assert body["data"]["profile"]["skills"]
     assert "score" in body["data"]["matchResult"]
+
+# ==================== MVP 补全接口（dashboard + jobs CRUD + import/export） ====================
+
+def test_mvp_dashboard_overview():
+    resp = client.get("/api/dashboard/overview")
+    body = resp.json()
+    assert body["code"] == 0
+    assert body["data"]["totalJobs"] > 0
+
+
+def test_mvp_dashboard_skill_distribution():
+    resp = client.get("/api/dashboard/skill-distribution")
+    body = resp.json()
+    assert body["code"] == 0
+    assert isinstance(body["data"], list)
+
+
+def test_mvp_jobs_crud():
+    resp = client.post("/api/jobs", json={
+        "job_name": "MVP测试岗位", "required_skills": ["python"], "quality": 0.5,
+    })
+    assert resp.json()["code"] == 0
+    new_id = resp.json()["data"]["id"]
+
+    resp = client.get(f"/api/jobs/{new_id}")
+    assert resp.json()["code"] == 0
+    assert resp.json()["data"]["title"] == "MVP测试岗位"
+
+    resp = client.put(f"/api/jobs/{new_id}", json={
+        "job_name": "MVP测试岗位改", "required_skills": ["python", "docker"],
+    })
+    assert resp.json()["code"] == 0
+
+    resp = client.delete(f"/api/jobs/{new_id}")
+    assert resp.json()["code"] == 0
+    resp = client.get(f"/api/jobs/{new_id}")
+    assert resp.json()["code"] == 4041
+
+
+def test_mvp_jobs_import_export():
+    import io
+    resp = client.post(
+        "/api/jobs/import",
+        files={"file": ("jobs.json", io.BytesIO(
+            '[{"job_name": "导入岗位A", "required_skills": ["python"]}]'.encode("utf-8")
+        ), "application/json")},
+    )
+    body = resp.json()
+    assert body["code"] == 0
+    assert body["data"]["imported"] == 1
+
+    resp = client.get("/api/jobs/export")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/csv")
+    assert "job_name" in resp.text
+
+    # 清理导入数据，避免影响幂等断言
+    db = SessionLocal()
+    try:
+        db.execute(text("DELETE FROM job_definition WHERE job_name = '导入岗位A'"))
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_mvp_graph_skill_radar():
+    resp = client.get("/api/graph/skill-radar", params={"node_name": "Python"})
+    assert resp.json()["code"] == 0

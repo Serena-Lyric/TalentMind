@@ -53,7 +53,8 @@
 2. [x] `import_graph.py`：graph.json → Neo4j（Job/Skill MERGE + REQUIRES/RELATED_TO），幂等；当前 53 节点 / 81 边。
 3. [x] `routers/mvp.py` **MVP 5 接口**：GET /api/jobs、GET /api/graph/data、GET /api/graph/jobs、GET /api/graph/years、POST /api/resume/upload、GET /api/resume/target-jobs、GET /api/resume/skill-dimensions（7 个端点）；统一 `{code:0,message,data}`、snake_case；main.py 挂载 `/api`。
 4. [x] 测试：`tests/test_integration_mvp.py` 5 项通过（导入幂等 + API 冒烟）；全量 185 通过；HTTP 冒烟：/health、/api/jobs（total=8）、/api/graph/data（53/81）、/api/resume/upload（score=12, target=...）。
-5. [ ] 剩余 14 个接口（jobs CRUD/import/export、dashboard 5、graph skill-radar、learning 等）→ MVP 联调后按需补全；前端 `USE_MOCK=false` 联调待后端 CORS/部署配置。
+5. [x] **13 个接口已补全**（jobs detail/create/update/delete/batch-delete/import/export、dashboard 5、graph skill-radar）→ 20 接口全部实现；新增 `routers/dashboard.py`、main.py CORS；前端 `request.ts` 支持 `VITE_USE_MOCK`/`VITE_API_BASE_URL`。
+6. [x] 完整系统可运行：后端 :8000 + 前端 :5173（真实数据模式）；全量测试 190 通过。learning 页使用前端本地 mock（无后端接口）。
 
 ## 阶段 7：端到端验证与清理
 1. 全量测试：backend 94+12 + 各迁移模块测试 + 新增集成检查。
