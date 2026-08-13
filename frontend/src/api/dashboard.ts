@@ -1,3 +1,5 @@
+import { get } from '../utils/request'
+
 ﻿/**
  * 统计看板模块 API
  *

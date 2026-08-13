@@ -1,3 +1,5 @@
+import { get, post, put, del } from '../utils/request'
+
 ﻿/**
  * 岗位管理模块 API
  */

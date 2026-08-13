@@ -1,3 +1,5 @@
+import { get, post } from '../utils/request'
+
 ﻿/**
  * 简历上传模块 API
  */

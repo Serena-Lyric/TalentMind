@@ -1,3 +1,5 @@
+import { get } from '../utils/request'
+
 ﻿/**
  * 数据图谱模块 API
  */
