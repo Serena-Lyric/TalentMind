@@ -1,128 +1,242 @@
 {
   "nodes": [
     {
-      "id": "Java后端开发工程师",
+      "id": "IT/AV Helpdesk Support",
       "type": "job",
-      "name": "Java后端开发工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责业务系统后端接口开发、数据库设计与优化、高并发系统架构设计"
-    },
-    {
-      "id": "Python后端开发工程师",
-      "type": "job",
-      "name": "Python后端开发工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责Web后端服务开发、API接口设计、数据处理与自动化脚本编写"
-    },
-    {
-      "id": "Go开发工程师",
-      "type": "job",
-      "name": "Go开发工程师",
+      "name": "IT/AV Helpdesk Support",
       "industry": "",
       "is_emerging": true,
-      "core_duties": "负责高并发服务端开发、微服务架构实现、云原生应用开发"
+      "core_duties": "Provide on-site and remote IT/AV support for 40-100 end users, including Zoom room AV, event support, phone system diagnosis, and desktop support."
     },
     {
-      "id": "前端开发工程师",
+      "id": "Transfer Office Sourcing Program Manager",
       "type": "job",
-      "name": "前端开发工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责Web前端页面开发、用户交互实现、多端适配与性能优化"
-    },
-    {
-      "id": "全栈开发工程师",
-      "type": "job",
-      "name": "全栈开发工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责前后端全流程开发、系统架构设计、技术选型与团队协作"
-    },
-    {
-      "id": "大数据开发工程师",
-      "type": "job",
-      "name": "大数据开发工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责数据仓库建设、离线/实时计算开发、ETL流程设计与实现"
-    },
-    {
-      "id": "数据分析师",
-      "type": "job",
-      "name": "数据分析师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责业务数据分析、报表制作、数据可视化与决策支持"
-    },
-    {
-      "id": "AI工程师",
-      "type": "job",
-      "name": "AI工程师",
+      "name": "Transfer Office Sourcing Program Manager",
       "industry": "",
       "is_emerging": true,
-      "core_duties": "负责机器学习模型开发、深度学习算法实现、模型部署与优化"
+      "core_duties": "Measure and report on the execution of the material transfer process between suppliers; collect and analyze data, develop KPIs, prepare dashboards, and provide insights to optimize transfer operations and supplier performance."
     },
     {
-      "id": "软件测试工程师",
+      "id": "系统管理员",
       "type": "job",
-      "name": "软件测试工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责软件功能测试、缺陷管理与跟踪、测试用例设计与执行"
-    },
-    {
-      "id": "运维工程师",
-      "type": "job",
-      "name": "运维工程师",
-      "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责服务器运维、系统监控、自动化部署与故障处理"
-    },
-    {
-      "id": "安全工程师",
-      "type": "job",
-      "name": "安全工程师",
+      "name": "系统管理员",
       "industry": "",
       "is_emerging": true,
-      "core_duties": "负责系统安全加固、漏洞扫描与修复、安全策略制定与实施"
+      "core_duties": "负责安装、维护、升级和保护公司软件、硬件及网络，管理IT基础设施并为内部用户提供硬件和软件支持；同时负责局域网/广域网、网络安全、服务器、备份、域账户、M365/Azure、SQL Server和Dynamics NAV等系统的日常运维。"
     },
     {
-      "id": "产品经理",
+      "id": "Manager Issue Management",
       "type": "job",
-      "name": "产品经理",
+      "name": "Manager Issue Management",
       "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责产品规划与设计、需求分析与文档编写、跨部门协调与推进"
+      "is_emerging": true,
+      "core_duties": "Manage lifecycle of assigned problems, perform root cause analysis, coordinate corrective actions, ensure service level agreements are met, maintain problem inventory in ServiceNow, identify trends and process improvements, and oversee team risk management."
     },
     {
-      "id": "UI设计师",
+      "id": "Android逆向工程师",
       "type": "job",
-      "name": "UI设计师",
+      "name": "Android逆向工程师",
       "industry": "",
-      "is_emerging": false,
-      "core_duties": "负责产品界面设计、交互设计、视觉规范制定与设计交付"
+      "is_emerging": true,
+      "core_duties": "负责对Android应用和SDK进行逆向工程和安全评估，通过静态与动态分析检测恶意行为，开发检测签名并撰写报告。"
+    },
+    {
+      "id": "UX设计师",
+      "type": "job",
+      "name": "UX设计师",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Responsible for creating user interaction task flows, mock-ups, wireframes, and prototypes, applying usability and human factors principles, and collaborating with development teams and product managers to ensure intuitive user experiences and design quality."
+    },
+    {
+      "id": "Microsoft 365 Lead Architect",
+      "type": "job",
+      "name": "Microsoft 365 Lead Architect",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Lead architecture, deployment, administration, and optimization of the enterprise Microsoft 365 platform, including identity and access management, device management, automation, and security; provide technical leadership, escalation support, and drive continuous improvement across IT and business teams."
+    },
+    {
+      "id": "Salesforce Engineering Manager",
+      "type": "job",
+      "name": "Salesforce Engineering Manager",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Manage full lifecycle of Salesforce development projects, lead design and implementation of complex solutions, oversee code reviews, testing, deployment, and maintenance; collaborate with cross-functional teams and ensure security, governance, and performance compliance."
+    },
+    {
+      "id": "Senior Reporting Analyst",
+      "type": "job",
+      "name": "Senior Reporting Analyst",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Design, develop, and implement advanced PowerBI solutions including dashboards, reports, and data models; collaborate with stakeholders to gather requirements and deliver actionable insights for data-driven decision-making."
+    },
+    {
+      "id": "Senior Cloud Solutions Architect",
+      "type": "job",
+      "name": "Senior Cloud Solutions Architect",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Design and architect scalable, secure, and cost-effective cloud solutions, lead technical discussions, and mentor junior architects."
+    },
+    {
+      "id": "SRE Manager",
+      "type": "job",
+      "name": "SRE Manager",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Lead a team of SREs to design, implement, and maintain highly scalable, secure, and reliable cloud-based systems; optimize database performance and automate operations while ensuring high availability and alignment with business goals."
+    },
+    {
+      "id": "Performance Tester",
+      "type": "job",
+      "name": "Performance Tester",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "负责Guidewire云应用及遗留系统的性能测试策略制定、工具配置、脚本开发、负载/压力/耐久性测试执行、性能监控与缺陷管理，并与架构、业务团队协作定义非功能需求。"
+    },
+    {
+      "id": "Systems Engineer II (Okta)",
+      "type": "job",
+      "name": "Systems Engineer II (Okta)",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Design, administer, install, and support systems, software, and security with a focus on Okta. Secure user applications, manage identity and access governance, implement advanced authentication, and maintain Microsoft 365 and Windows Server environments."
+    },
+    {
+      "id": "IT Manager",
+      "type": "job",
+      "name": "IT Manager",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "负责管理IT基础设施，包括Okta、Jamf、Intune、Zoom、Google Workspace和Atlassian套件的管理与支持；处理支持工单，配置和撤销应用访问，提供Windows、Mac、iOS、Android平台的问题解决，并管理内外部支持人员及供应商。"
+    },
+    {
+      "id": "Web Editor & Digital Accessibility Specialist",
+      "type": "job",
+      "name": "Web Editor & Digital Accessibility Specialist",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Manage and enhance university public websites and intranet, ensuring digital accessibility compliance, optimizing site performance, SEO, and UX, while leading web-related projects and providing training to content contributors."
+    },
+    {
+      "id": "ETL Engineer",
+      "type": "job",
+      "name": "ETL Engineer",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Design, develop, and deploy scalable ETL/ELT pipelines and data platforms to process and organize structured and unstructured data; work in an agile environment with cross-functional teams to support data-driven missions such as fraud detection and cancer research."
+    },
+    {
+      "id": "Senior Software Engineer, Back End",
+      "type": "job",
+      "name": "Senior Software Engineer, Back End",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Collaborate with Agile teams to design, develop, test, implement, and support technical solutions. Utilize programming languages and cloud technologies to deliver robust cloud-based solutions."
+    },
+    {
+      "id": "System Analyst",
+      "type": "job",
+      "name": "System Analyst",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Work with attorneys and KM team to identify, implement, manage, and support knowledge management technology solutions; administer KM systems and databases, develop AI-driven knowledge capture, provide training and documentation, and evaluate effectiveness."
+    },
+    {
+      "id": "Software Development Engineer",
+      "type": "job",
+      "name": "Software Development Engineer",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Design and implement software features and components in a team-oriented agile environment, primarily using Java and GraphQL, while partnering with product management to deliver customer features."
+    },
+    {
+      "id": "Manufacturing Technical Applications Specialist",
+      "type": "job",
+      "name": "Manufacturing Technical Applications Specialist",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Apply IS manufacturing knowledge to select, deploy, and support manufacturing solutions across production sites; manage projects and integrations to enhance operations efficiency."
+    },
+    {
+      "id": "Biomedical Technician",
+      "type": "job",
+      "name": "Biomedical Technician",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Respond to service calls to evaluate, diagnose, perform repair and planned maintenance on biomedical equipment, and ensure customer satisfaction through service excellence."
+    },
+    {
+      "id": "Information System Security Officer",
+      "type": "job",
+      "name": "Information System Security Officer",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "Manage information security systems for classified and unclassified systems, ensuring RMF/NIST compliance, supporting ATO/ATO efforts, conducting risk analysis, and maintaining security posture across on-prem, cloud, and hybrid environments. Participate in Agile planning events and create security documentation."
+    },
+    {
+      "id": "agile",
+      "type": "skill",
+      "name": "agile",
+      "category": "required",
+      "job_count": 11
+    },
+    {
+      "id": "ai",
+      "type": "skill",
+      "name": "ai",
+      "category": "required",
+      "job_count": 1
     },
     {
       "id": "ansible",
       "type": "skill",
       "name": "ansible",
-      "category": "bonus",
+      "category": "required",
       "job_count": 1
     },
     {
-      "id": "c++",
+      "id": "api",
       "type": "skill",
-      "name": "c++",
-      "category": "bonus",
+      "name": "api",
+      "category": "required",
+      "job_count": 3
+    },
+    {
+      "id": "aws",
+      "type": "skill",
+      "name": "aws",
+      "category": "required",
+      "job_count": 6
+    },
+    {
+      "id": "azure",
+      "type": "skill",
+      "name": "azure",
+      "category": "required",
+      "job_count": 7
+    },
+    {
+      "id": "cassandra",
+      "type": "skill",
+      "name": "cassandra",
+      "category": "required",
       "job_count": 1
     },
     {
-      "id": "clickhouse",
+      "id": "chef",
       "type": "skill",
-      "name": "clickhouse",
-      "category": "bonus",
+      "name": "chef",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "ci/cd",
+      "type": "skill",
+      "name": "ci/cd",
+      "category": "required",
       "job_count": 1
     },
     {
@@ -133,9 +247,9 @@
       "job_count": 1
     },
     {
-      "id": "django",
+      "id": "devops",
       "type": "skill",
-      "name": "django",
+      "name": "devops",
       "category": "required",
       "job_count": 1
     },
@@ -143,27 +257,27 @@
       "id": "docker",
       "type": "skill",
       "name": "docker",
-      "category": "bonus",
-      "job_count": 6
+      "category": "required",
+      "job_count": 2
     },
     {
-      "id": "fastapi",
+      "id": "elk",
       "type": "skill",
-      "name": "fastapi",
-      "category": "bonus",
+      "name": "elk",
+      "category": "required",
       "job_count": 1
     },
     {
-      "id": "flink",
+      "id": "gcp",
       "type": "skill",
-      "name": "flink",
-      "category": "bonus",
-      "job_count": 1
+      "name": "gcp",
+      "category": "required",
+      "job_count": 2
     },
     {
-      "id": "gin",
+      "id": "git",
       "type": "skill",
-      "name": "gin",
+      "name": "git",
       "category": "required",
       "job_count": 1
     },
@@ -178,7 +292,14 @@
       "id": "grafana",
       "type": "skill",
       "name": "grafana",
-      "category": "bonus",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "graphql",
+      "type": "skill",
+      "name": "graphql",
+      "category": "required",
       "job_count": 1
     },
     {
@@ -192,7 +313,7 @@
       "id": "hive",
       "type": "skill",
       "name": "hive",
-      "category": "bonus",
+      "category": "required",
       "job_count": 1
     },
     {
@@ -207,7 +328,7 @@
       "type": "skill",
       "name": "java",
       "category": "required",
-      "job_count": 2
+      "job_count": 5
     },
     {
       "id": "javascript",
@@ -217,30 +338,37 @@
       "job_count": 2
     },
     {
-      "id": "jenkins",
+      "id": "jira",
       "type": "skill",
-      "name": "jenkins",
-      "category": "bonus",
+      "name": "jira",
+      "category": "required",
       "job_count": 1
     },
     {
       "id": "kafka",
       "type": "skill",
       "name": "kafka",
-      "category": "bonus",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "kanban",
+      "type": "skill",
+      "name": "kanban",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "kotlin",
+      "type": "skill",
+      "name": "kotlin",
+      "category": "required",
       "job_count": 1
     },
     {
       "id": "kubernetes",
       "type": "skill",
       "name": "kubernetes",
-      "category": "bonus",
-      "job_count": 4
-    },
-    {
-      "id": "linux",
-      "type": "skill",
-      "name": "linux",
       "category": "required",
       "job_count": 3
     },
@@ -248,22 +376,15 @@
       "id": "mongodb",
       "type": "skill",
       "name": "mongodb",
-      "category": "bonus",
-      "job_count": 2
+      "category": "required",
+      "job_count": 1
     },
     {
       "id": "mysql",
       "type": "skill",
       "name": "mysql",
       "category": "required",
-      "job_count": 8
-    },
-    {
-      "id": "nginx",
-      "type": "skill",
-      "name": "nginx",
-      "category": "required",
-      "job_count": 1
+      "job_count": 2
     },
     {
       "id": "node.js",
@@ -273,9 +394,30 @@
       "job_count": 1
     },
     {
-      "id": "numpy",
+      "id": "oauth",
       "type": "skill",
-      "name": "numpy",
+      "name": "oauth",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "oracle",
+      "type": "skill",
+      "name": "oracle",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "postgresql",
+      "type": "skill",
+      "name": "postgresql",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "powershell",
+      "type": "skill",
+      "name": "powershell",
       "category": "required",
       "job_count": 1
     },
@@ -283,41 +425,62 @@
       "id": "prometheus",
       "type": "skill",
       "name": "prometheus",
-      "category": "bonus",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "puppet",
+      "type": "skill",
+      "name": "puppet",
+      "category": "required",
       "job_count": 1
     },
     {
       "id": "python",
       "type": "skill",
       "name": "python",
-      "category": "required",
-      "job_count": 7
-    },
-    {
-      "id": "pytorch",
-      "type": "skill",
-      "name": "pytorch",
-      "category": "required",
-      "job_count": 1
-    },
-    {
-      "id": "rabbitmq",
-      "type": "skill",
-      "name": "rabbitmq",
       "category": "bonus",
-      "job_count": 1
+      "job_count": 3
     },
     {
       "id": "react",
       "type": "skill",
       "name": "react",
-      "category": "bonus",
+      "category": "required",
       "job_count": 1
     },
     {
       "id": "redis",
       "type": "skill",
       "name": "redis",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "rest",
+      "type": "skill",
+      "name": "rest",
+      "category": "required",
+      "job_count": 3
+    },
+    {
+      "id": "saas",
+      "type": "skill",
+      "name": "saas",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "scala",
+      "type": "skill",
+      "name": "scala",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "scrum",
+      "type": "skill",
+      "name": "scrum",
       "category": "required",
       "job_count": 4
     },
@@ -326,48 +489,174 @@
       "type": "skill",
       "name": "spark",
       "category": "required",
-      "job_count": 2
-    },
-    {
-      "id": "spring boot",
-      "type": "skill",
-      "name": "spring boot",
-      "category": "required",
       "job_count": 1
     },
     {
-      "id": "spring cloud",
+      "id": "splunk",
       "type": "skill",
-      "name": "spring cloud",
-      "category": "bonus",
+      "name": "splunk",
+      "category": "required",
       "job_count": 1
     },
     {
       "id": "sql",
       "type": "skill",
       "name": "sql",
-      "category": "bonus",
-      "job_count": 1
+      "category": "required",
+      "job_count": 3
     },
     {
-      "id": "tensorflow",
+      "id": "sql server",
       "type": "skill",
-      "name": "tensorflow",
+      "name": "sql server",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "sre",
+      "type": "skill",
+      "name": "sre",
       "category": "required",
       "job_count": 1
     },
     {
-      "id": "three.js",
+      "id": "sso",
       "type": "skill",
-      "name": "three.js",
-      "category": "bonus",
+      "name": "sso",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "tcp",
+      "type": "skill",
+      "name": "tcp",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "terraform",
+      "type": "skill",
+      "name": "terraform",
+      "category": "required",
       "job_count": 1
     },
     {
       "id": "typescript",
       "type": "skill",
       "name": "typescript",
-      "category": "bonus",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "uml",
+      "type": "skill",
+      "name": "uml",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "vmware",
+      "type": "skill",
+      "name": "vmware",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "windows server",
+      "type": "skill",
+      "name": "windows server",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "信息安全",
+      "type": "skill",
+      "name": "信息安全",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "分析能力",
+      "type": "skill",
+      "name": "分析能力",
+      "category": "required",
+      "job_count": 8
+    },
+    {
+      "id": "医疗",
+      "type": "skill",
+      "name": "医疗",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "团队协作",
+      "type": "skill",
+      "name": "团队协作",
+      "category": "required",
+      "job_count": 11
+    },
+    {
+      "id": "学习能力",
+      "type": "skill",
+      "name": "学习能力",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "安全",
+      "type": "skill",
+      "name": "安全",
+      "category": "required",
+      "job_count": 5
+    },
+    {
+      "id": "微服务",
+      "type": "skill",
+      "name": "微服务",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "性能优化",
+      "type": "skill",
+      "name": "性能优化",
+      "category": "required",
+      "job_count": 3
+    },
+    {
+      "id": "文档编写",
+      "type": "skill",
+      "name": "文档编写",
+      "category": "required",
+      "job_count": 6
+    },
+    {
+      "id": "时间管理",
+      "type": "skill",
+      "name": "时间管理",
+      "category": "required",
+      "job_count": 4
+    },
+    {
+      "id": "沟通",
+      "type": "skill",
+      "name": "沟通",
+      "category": "required",
+      "job_count": 14
+    },
+    {
+      "id": "演讲",
+      "type": "skill",
+      "name": "演讲",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "系统设计",
+      "type": "skill",
+      "name": "系统设计",
+      "category": "required",
       "job_count": 1
     },
     {
@@ -375,578 +664,1573 @@
       "type": "skill",
       "name": "网络安全",
       "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "负载均衡",
+      "type": "skill",
+      "name": "负载均衡",
+      "category": "required",
       "job_count": 1
+    },
+    {
+      "id": "问题解决",
+      "type": "skill",
+      "name": "问题解决",
+      "category": "required",
+      "job_count": 10
     },
     {
       "id": "项目管理",
       "type": "skill",
       "name": "项目管理",
-      "category": "bonus",
-      "job_count": 1
+      "category": "required",
+      "job_count": 7
+    },
+    {
+      "id": "领导力",
+      "type": "skill",
+      "name": "领导力",
+      "category": "required",
+      "job_count": 7
+    },
+    {
+      "id": "风控",
+      "type": "skill",
+      "name": "风控",
+      "category": "required",
+      "job_count": 2
     }
   ],
   "edges": [
     {
-      "source": "Java后端开发工程师",
-      "target": "java",
+      "source": "IT/AV Helpdesk Support",
+      "target": "jira",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "spring boot",
+      "source": "IT/AV Helpdesk Support",
+      "target": "问题解决",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "mysql",
+      "source": "IT/AV Helpdesk Support",
+      "target": "saas",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "redis",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "分析能力",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "spring cloud",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Java后端开发工程师",
-      "target": "rabbitmq",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Java后端开发工程师",
-      "target": "docker",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Java后端开发工程师",
-      "target": "kubernetes",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Python后端开发工程师",
-      "target": "python",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "沟通",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "django",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "团队协作",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "mysql",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "问题解决",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "redis",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "项目管理",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "fastapi",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Python后端开发工程师",
-      "target": "docker",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Python后端开发工程师",
-      "target": "mongodb",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Go开发工程师",
-      "target": "go",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "演讲",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Go开发工程师",
-      "target": "gin",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "文档编写",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Go开发工程师",
-      "target": "mysql",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "时间管理",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Go开发工程师",
-      "target": "redis",
+      "source": "系统管理员",
+      "target": "vmware",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "Go开发工程师",
-      "target": "kubernetes",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "Go开发工程师",
-      "target": "docker",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "前端开发工程师",
-      "target": "html",
+      "source": "系统管理员",
+      "target": "azure",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "前端开发工程师",
-      "target": "css",
+      "source": "系统管理员",
+      "target": "sql server",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "前端开发工程师",
-      "target": "javascript",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "前端开发工程师",
-      "target": "typescript",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "前端开发工程师",
-      "target": "react",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "前端开发工程师",
-      "target": "three.js",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "javascript",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "node.js",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "mysql",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "python",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "docker",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "redis",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "全栈开发工程师",
-      "target": "mongodb",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "java",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "hadoop",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "spark",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "mysql",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "flink",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "hive",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "kafka",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "大数据开发工程师",
-      "target": "clickhouse",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "数据分析师",
-      "target": "python",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "数据分析师",
-      "target": "mysql",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "数据分析师",
-      "target": "spark",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "AI工程师",
-      "target": "python",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "AI工程师",
-      "target": "tensorflow",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "AI工程师",
-      "target": "pytorch",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "AI工程师",
-      "target": "numpy",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "AI工程师",
-      "target": "docker",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "AI工程师",
-      "target": "kubernetes",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "软件测试工程师",
-      "target": "linux",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "软件测试工程师",
-      "target": "mysql",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "软件测试工程师",
-      "target": "python",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "软件测试工程师",
-      "target": "jenkins",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "运维工程师",
-      "target": "linux",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "运维工程师",
-      "target": "docker",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "运维工程师",
-      "target": "nginx",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "运维工程师",
-      "target": "mysql",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "运维工程师",
-      "target": "kubernetes",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "运维工程师",
-      "target": "ansible",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "运维工程师",
-      "target": "prometheus",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "运维工程师",
-      "target": "grafana",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "安全工程师",
+      "source": "系统管理员",
       "target": "网络安全",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "安全工程师",
-      "target": "linux",
+      "source": "系统管理员",
+      "target": "tcp",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "安全工程师",
-      "target": "python",
+      "source": "系统管理员",
+      "target": "沟通",
       "type": "REQUIRES",
       "weight": 1.0,
       "is_required": true
     },
     {
-      "source": "安全工程师",
-      "target": "c++",
+      "source": "系统管理员",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "系统管理员",
+      "target": "windows server",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manager Issue Management",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manager Issue Management",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manager Issue Management",
+      "target": "风控",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manager Issue Management",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manager Issue Management",
+      "target": "文档编写",
       "type": "REQUIRES",
       "weight": 0.6,
       "is_required": false
     },
     {
-      "source": "产品经理",
-      "target": "sql",
+      "source": "Android逆向工程师",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Android逆向工程师",
+      "target": "kotlin",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Android逆向工程师",
+      "target": "javascript",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Android逆向工程师",
+      "target": "安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Android逆向工程师",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Android逆向工程师",
+      "target": "网络安全",
       "type": "REQUIRES",
       "weight": 0.6,
       "is_required": false
     },
     {
-      "source": "产品经理",
-      "target": "python",
+      "source": "UX设计师",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "UX设计师",
+      "target": "团队协作",
       "type": "REQUIRES",
       "weight": 0.6,
       "is_required": false
     },
     {
-      "source": "产品经理",
+      "source": "UX设计师",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "azure",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "powershell",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "文档编写",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "信息安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
       "target": "项目管理",
       "type": "REQUIRES",
       "weight": 0.6,
       "is_required": false
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "Python后端开发工程师",
-      "type": "RELATED_TO",
-      "similar": 0.25
+      "source": "Microsoft 365 Lead Architect",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "Go开发工程师",
-      "type": "RELATED_TO",
-      "similar": 0.4
+      "source": "Microsoft 365 Lead Architect",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
     },
     {
-      "source": "Java后端开发工程师",
-      "target": "全栈开发工程师",
-      "type": "RELATED_TO",
-      "similar": 0.25
+      "source": "Salesforce Engineering Manager",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "Go开发工程师",
-      "type": "RELATED_TO",
-      "similar": 0.3
+      "source": "Salesforce Engineering Manager",
+      "target": "git",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "全栈开发工程师",
+      "source": "Salesforce Engineering Manager",
+      "target": "ci/cd",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Salesforce Engineering Manager",
+      "target": "api",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Salesforce Engineering Manager",
+      "target": "rest",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Salesforce Engineering Manager",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Salesforce Engineering Manager",
+      "target": "scrum",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Salesforce Engineering Manager",
+      "target": "kanban",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Salesforce Engineering Manager",
+      "target": "安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Reporting Analyst",
+      "target": "sql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Reporting Analyst",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Reporting Analyst",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Reporting Analyst",
+      "target": "azure",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Reporting Analyst",
+      "target": "scrum",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "aws",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "微服务",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "系统设计",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "javascript",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "SRE Manager",
+      "target": "sre",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "devops",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "prometheus",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "grafana",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "aws",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "azure",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "gcp",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "ansible",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "terraform",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "chef",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "puppet",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "cassandra",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "mongodb",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "redis",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "性能优化",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "scrum",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "kanban",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "SRE Manager",
+      "target": "elk",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Performance Tester",
+      "target": "负载均衡",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Performance Tester",
+      "target": "splunk",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Performance Tester",
+      "target": "性能优化",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Performance Tester",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "sso",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "oauth",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "windows server",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "项目管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "azure",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "sql server",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "时间管理",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "IT Manager",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "IT Manager",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "IT Manager",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "IT Manager",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "IT Manager",
+      "target": "项目管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "IT Manager",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "项目管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "性能优化",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "api",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "时间管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "spark",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "hadoop",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "hive",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "kafka",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "aws",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "rest",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "ETL Engineer",
+      "target": "api",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "node.js",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "go",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "scala",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "sql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "aws",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "gcp",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Senior Software Engineer, Back End",
+      "target": "azure",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "System Analyst",
+      "target": "ai",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "System Analyst",
+      "target": "uml",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "System Analyst",
+      "target": "文档编写",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "System Analyst",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "System Analyst",
+      "target": "项目管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "graphql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "oracle",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "postgresql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "react",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "typescript",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "html",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "css",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "rest",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "微服务",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "aws",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "scrum",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "uml",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Software Development Engineer",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "项目管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "时间管理",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "sql",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "医疗",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "文档编写",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "分析能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "问题解决",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "领导力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Biomedical Technician",
+      "target": "学习能力",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "信息安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "aws",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "azure",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "风控",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "文档编写",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "沟通",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "agile",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "团队协作",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Information System Security Officer",
+      "target": "vmware",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "Microsoft 365 Lead Architect",
+      "type": "RELATED_TO",
+      "similar": 0.4545
+    },
+    {
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "Systems Engineer II (Okta)",
+      "type": "RELATED_TO",
+      "similar": 0.2857
+    },
+    {
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "IT Manager",
       "type": "RELATED_TO",
       "similar": 0.5556
     },
     {
-      "source": "Python后端开发工程师",
-      "target": "数据分析师",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "Web Editor & Digital Accessibility Specialist",
       "type": "RELATED_TO",
-      "similar": 0.25
+      "similar": 0.5
     },
     {
-      "source": "Go开发工程师",
-      "target": "全栈开发工程师",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "System Analyst",
       "type": "RELATED_TO",
       "similar": 0.3
     },
     {
-      "source": "Go开发工程师",
-      "target": "运维工程师",
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.5455
+    },
+    {
+      "source": "Transfer Office Sourcing Program Manager",
+      "target": "Biomedical Technician",
+      "type": "RELATED_TO",
+      "similar": 0.4167
+    },
+    {
+      "source": "系统管理员",
+      "target": "Systems Engineer II (Okta)",
+      "type": "RELATED_TO",
+      "similar": 0.3846
+    },
+    {
+      "source": "Manager Issue Management",
+      "target": "Manufacturing Technical Applications Specialist",
       "type": "RELATED_TO",
       "similar": 0.2727
     },
     {
-      "source": "全栈开发工程师",
-      "target": "数据分析师",
+      "source": "Manager Issue Management",
+      "target": "Biomedical Technician",
       "type": "RELATED_TO",
-      "similar": 0.25
+      "similar": 0.2727
     },
     {
-      "source": "数据分析师",
-      "target": "软件测试工程师",
+      "source": "Manager Issue Management",
+      "target": "Information System Security Officer",
+      "type": "RELATED_TO",
+      "similar": 0.2727
+    },
+    {
+      "source": "UX设计师",
+      "target": "IT Manager",
+      "type": "RELATED_TO",
+      "similar": 0.2857
+    },
+    {
+      "source": "UX设计师",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.3333
+    },
+    {
+      "source": "UX设计师",
+      "target": "Information System Security Officer",
+      "type": "RELATED_TO",
+      "similar": 0.3333
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "Systems Engineer II (Okta)",
+      "type": "RELATED_TO",
+      "similar": 0.2857
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "IT Manager",
       "type": "RELATED_TO",
       "similar": 0.4
     },
     {
-      "source": "软件测试工程师",
-      "target": "安全工程师",
+      "source": "Microsoft 365 Lead Architect",
+      "target": "Web Editor & Digital Accessibility Specialist",
       "type": "RELATED_TO",
-      "similar": 0.3333
+      "similar": 0.2857
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "System Analyst",
+      "type": "RELATED_TO",
+      "similar": 0.3
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.3077
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "Biomedical Technician",
+      "type": "RELATED_TO",
+      "similar": 0.3077
+    },
+    {
+      "source": "Microsoft 365 Lead Architect",
+      "target": "Information System Security Officer",
+      "type": "RELATED_TO",
+      "similar": 0.4167
+    },
+    {
+      "source": "Senior Reporting Analyst",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.2727
+    },
+    {
+      "source": "Senior Cloud Solutions Architect",
+      "target": "Senior Software Engineer, Back End",
+      "type": "RELATED_TO",
+      "similar": 0.3158
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "Web Editor & Digital Accessibility Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.25
+    },
+    {
+      "source": "Systems Engineer II (Okta)",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.3571
+    },
+    {
+      "source": "IT Manager",
+      "target": "Web Editor & Digital Accessibility Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.6
+    },
+    {
+      "source": "IT Manager",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.6667
+    },
+    {
+      "source": "IT Manager",
+      "target": "Biomedical Technician",
+      "type": "RELATED_TO",
+      "similar": 0.5
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "Manufacturing Technical Applications Specialist",
+      "type": "RELATED_TO",
+      "similar": 0.5833
+    },
+    {
+      "source": "Web Editor & Digital Accessibility Specialist",
+      "target": "Biomedical Technician",
+      "type": "RELATED_TO",
+      "similar": 0.4615
+    },
+    {
+      "source": "Manufacturing Technical Applications Specialist",
+      "target": "Biomedical Technician",
+      "type": "RELATED_TO",
+      "similar": 0.3846
     }
   ],
   "metadata": {
-    "node_count": 53,
-    "edge_count": 81,
-    "exported_at": "2026-08-13T11:27:42",
+    "node_count": 97,
+    "edge_count": 222,
+    "exported_at": "2026-08-13T11:29:25",
     "version": "1.0"
   }
 }

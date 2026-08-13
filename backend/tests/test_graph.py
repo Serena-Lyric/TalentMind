@@ -1,10 +1,21 @@
-"""M3 图谱模块测试：graph.json 契约校验（D26/D31）。"""
+"""M3 图谱模块测试：graph.json 契约校验（D26/D31）。
+
+注意：测试输出写入临时目录（monkeypatch OUTPUT_PATH），避免覆盖正式 exchange/m3/graph.json。
+"""
 import json
+
+import pytest
 
 from app.graph import builder
 
 # 使用 mock 数据源（M2 产出为旧版未约束技能，无法通过归一校验；mock 回退用于测试）
 builder.DATA_SOURCE_PRIORITY = ["mock"]
+
+
+@pytest.fixture(autouse=True)
+def _tmp_output(tmp_path, monkeypatch):
+    """所有测试的 graph.json 输出重定向到临时目录，防止污染正式产出。"""
+    monkeypatch.setattr(builder, "OUTPUT_PATH", tmp_path / "graph.json")
 
 
 def _load_graph():
