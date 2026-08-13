@@ -13,6 +13,7 @@
 ## 参考文档
 
 - 现行设计: `docs/superpowers/specs/2026-08-03-team-plan-design.md`（唯一当前依据）
+- 仓库整理设计: `docs/superpowers/specs/2026-08-11-repository-organization-design.md`
 - 实施计划: `docs/superpowers/plans/`（按日期取最新；旧版见 archive/）
 - 决策与未决: `docs/superpowers/决策跟踪.md`
 - 历史版本: `docs/superpowers/specs/archive/`、`docs/superpowers/plans/archive/`（仅供参考溯源，不作为当前依据）
@@ -20,6 +21,16 @@
 - 项目需求: `docs/superpowers/项目需求.txt`
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
+- **资产清单与已知限制: `docs/superpowers/资产与状态.md`（工作前必读，变更后必更新）**
+
+## 资产与当前状态（工作前必读）
+
+权威清单与维护规则见 `docs/superpowers/资产与状态.md`。摘要：
+
+- 已交付、整合中模块（D26 定稿）：`jd-filter-package/`（M2 → `backend/app/job_analysis/`；已预跑 8 个岗位定义）、`图谱模块/`（M3 → `backend/app/graph/`）、`岗位能力图谱-前端源码/`（M5 → `frontend/`，保留 6 页、20 接口为基线）、`人岗匹配/`（M4 → `backend/app/matching/`，脱敏入库暂缓 D36）
+- 关键裁决（2026-08-13，详见决策跟踪 D26–D36）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 扩容为后续整理项、执行前提醒用户通知全队（D33）；421MB seed SQL 已删除（D27）
+- 整合实施按 `docs/superpowers/plans/2026-08-13-system-integration-plan.md` 分阶段执行
+- 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示）；禁止 `git add -A`（`人岗匹配/` 含真实简历，D36 暂缓）
 
 ## 项目决策要点（2026-08-03 汇总）
 
@@ -31,3 +42,7 @@
 - 数据契约：原始层 jd_pool/talent_raw/signal；分析层 skill_dict/job_definition/job_skill/job_change_log/resume（DDL 见 `backend/app/contracts/ddl.sql`）
 - 岗位定义字段：岗位名称/核心职责/必备技能/加分技能/典型行业应用场景 + source(仅平台)/quality/collected_at；无 status
 - 图谱：Neo4j；M3 只交 graph.json 由 A 导入
+- 仓库双重角色：本仓库既是 A 的 M1 数据采集开发仓，也是 M1–M5 集成后的完整系统唯一主仓
+- 目录边界：后端正式源码只放 `backend/app/`，前端只放 `frontend/`；交接文件和小型 Mock 放 `exchange/`；大型本地数据放 Git 忽略的 `data/local/`
+- 旧代码策略：不整体删除现有 `backend`；M1 采集管道继续复用。重复目录必须在迁移、测试和集成验证通过后才清理，Git 历史负责追溯
+- M4 原型迁移：根目录 `人岗匹配/` 当前暂缓迁移，保持原状，待用户另行确认后处理

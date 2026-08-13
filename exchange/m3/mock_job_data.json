@@ -1,0 +1,145 @@
+[
+  {
+    "job_name": "Java后端开发工程师",
+    "core_duties": "负责业务系统后端接口开发、数据库设计与优化、高并发系统架构设计",
+    "required_skills": ["Java", "SpringBoot", "MySQL", "Redis"],
+    "bonus_skills": ["SpringCloud", "RabbitMQ", "Docker", "Kubernetes"],
+    "scenarios": ["电商系统", "金融支付平台", "企业级应用"],
+    "source": ["Boss直聘", "猎聘", "拉勾网"],
+    "quality": 0.92,
+    "collected_at": "2026-08-01T10:00:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "Python后端开发工程师",
+    "core_duties": "负责Web后端服务开发、API接口设计、数据处理与自动化脚本编写",
+    "required_skills": ["Python", "Django", "MySQL", "Redis"],
+    "bonus_skills": ["FastAPI", "Celery", "Docker", "MongoDB"],
+    "scenarios": ["数据平台", "自动化系统", "AI服务平台"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.88,
+    "collected_at": "2026-08-02T14:30:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "Go开发工程师",
+    "core_duties": "负责高并发服务端开发、微服务架构实现、云原生应用开发",
+    "required_skills": ["Go", "Gin", "MySQL", "Redis"],
+    "bonus_skills": ["gRPC", "Kubernetes", "Docker", "Etcd"],
+    "scenarios": ["即时通讯系统", "游戏服务器", "微服务平台"],
+    "source": ["Boss直聘"],
+    "quality": 0.85,
+    "collected_at": "2026-08-03T09:15:00",
+    "is_emerging": true
+  },
+  {
+    "job_name": "前端开发工程师",
+    "core_duties": "负责Web前端页面开发、用户交互实现、多端适配与性能优化",
+    "required_skills": ["HTML", "CSS", "JavaScript", "Vue3"],
+    "bonus_skills": ["TypeScript", "React", "Three.js", "WebGL"],
+    "scenarios": ["企业官网", "管理后台", "移动端H5"],
+    "source": ["Boss直聘", "猎聘", "拉勾网"],
+    "quality": 0.90,
+    "collected_at": "2026-08-01T16:00:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "全栈开发工程师",
+    "core_duties": "负责前后端全流程开发、系统架构设计、技术选型与团队协作",
+    "required_skills": ["JavaScript", "Vue3", "Node.js", "MySQL"],
+    "bonus_skills": ["Python", "Docker", "Redis", "MongoDB"],
+    "scenarios": ["创业项目", "中小企业系统", "快速迭代产品"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.87,
+    "collected_at": "2026-08-02T11:20:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "大数据开发工程师",
+    "core_duties": "负责数据仓库建设、离线/实时计算开发、ETL流程设计与实现",
+    "required_skills": ["Java", "Hadoop", "Spark", "MySQL"],
+    "bonus_skills": ["Flink", "Hive", "Kafka", "ClickHouse"],
+    "scenarios": ["用户行为分析", "推荐系统", "数据中台"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.89,
+    "collected_at": "2026-08-01T13:45:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "数据分析师",
+    "core_duties": "负责业务数据分析、报表制作、数据可视化与决策支持",
+    "required_skills": ["Python", "MySQL", "Excel", "Tableau"],
+    "bonus_skills": ["Spark", "Airflow", "PowerBI", "统计学"],
+    "scenarios": ["电商运营分析", "用户增长分析", "财务数据分析"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.86,
+    "collected_at": "2026-08-03T10:30:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "AI工程师",
+    "core_duties": "负责机器学习模型开发、深度学习算法实现、模型部署与优化",
+    "required_skills": ["Python", "TensorFlow", "PyTorch", "NumPy"],
+    "bonus_skills": ["CUDA", "Docker", "Kubernetes", "MLOps"],
+    "scenarios": ["图像识别", "自然语言处理", "推荐算法"],
+    "source": ["Boss直聘", "猎聘", "拉勾网"],
+    "quality": 0.91,
+    "collected_at": "2026-08-02T15:00:00",
+    "is_emerging": true
+  },
+  {
+    "job_name": "软件测试工程师",
+    "core_duties": "负责软件功能测试、缺陷管理与跟踪、测试用例设计与执行",
+    "required_skills": ["测试理论", "Postman", "Linux", "MySQL"],
+    "bonus_skills": ["Python", "Selenium", "JMeter", "Jenkins"],
+    "scenarios": ["Web应用测试", "移动端测试", "接口测试"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.83,
+    "collected_at": "2026-08-01T17:30:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "运维工程师",
+    "core_duties": "负责服务器运维、系统监控、自动化部署与故障处理",
+    "required_skills": ["Linux", "Docker", "Nginx", "MySQL"],
+    "bonus_skills": ["Kubernetes", "Ansible", "Prometheus", "Grafana"],
+    "scenarios": ["服务器集群管理", "容器化部署", "监控系统搭建"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.84,
+    "collected_at": "2026-08-02T09:00:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "安全工程师",
+    "core_duties": "负责系统安全加固、漏洞扫描与修复、安全策略制定与实施",
+    "required_skills": ["网络安全", "Linux", "Python", "渗透测试"],
+    "bonus_skills": ["C++", "逆向工程", "防火墙", "WAF"],
+    "scenarios": ["企业安全防护", "渗透测试", "安全审计"],
+    "source": ["Boss直聘"],
+    "quality": 0.88,
+    "collected_at": "2026-08-03T14:00:00",
+    "is_emerging": true
+  },
+  {
+    "job_name": "产品经理",
+    "core_duties": "负责产品规划与设计、需求分析与文档编写、跨部门协调与推进",
+    "required_skills": ["需求分析", "原型设计", "Axure", "数据分析"],
+    "bonus_skills": ["SQL", "Python", "用户研究", "项目管理"],
+    "scenarios": ["互联网产品", "企业级产品", "移动应用"],
+    "source": ["Boss直聘", "猎聘", "拉勾网"],
+    "quality": 0.85,
+    "collected_at": "2026-08-01T11:00:00",
+    "is_emerging": false
+  },
+  {
+    "job_name": "UI设计师",
+    "core_duties": "负责产品界面设计、交互设计、视觉规范制定与设计交付",
+    "required_skills": ["Figma", "Photoshop", "Illustrator", "设计规范"],
+    "bonus_skills": ["After Effects", "3D建模", "动效设计", "用户研究"],
+    "scenarios": ["移动应用设计", "Web设计", "品牌设计"],
+    "source": ["Boss直聘", "猎聘"],
+    "quality": 0.82,
+    "collected_at": "2026-08-02T16:30:00",
+    "is_emerging": false
+  }
+]

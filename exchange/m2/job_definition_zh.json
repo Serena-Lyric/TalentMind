@@ -1,0 +1,354 @@
+[
+  {
+    "job_name": "云平台/大数据工程师",
+    "core_duties": "为车联网系统开发基于云的数据解决方案、后端服务，并进行大数据分析；为下一代信息娱乐系统和座舱系统进行PoC（概念验证）。",
+    "required_skills": [
+      "云平台",
+      "汽车工程经验",
+      "沟通能力"
+    ],
+    "bonus_skills": [
+      "编程语言",
+      "大数据分析"
+    ],
+    "scenarios": [
+      "车联网数据平台",
+      "车辆开发大数据分析",
+      "汽车远程信息处理",
+      "车载信息娱乐系统"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.7,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:14:31",
+    "collected_at": "2026-07-24 07:14:31",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "SOC安全分析师",
+    "core_duties": "在7x24小时SOC中担任第一道防线，负责使用SIEM和自动化工具监控、检测和响应安全事件，并持续改进检测信号。",
+    "required_skills": [
+      "SOC监控和事件响应",
+      "网络安全概念",
+      "攻击响应知识",
+      "SIEM"
+    ],
+    "bonus_skills": [
+      "安全自动化（SOAR）",
+      "脚本编写",
+      "安全认证"
+    ],
+    "scenarios": [
+      "对公司、制造和生产环境进行安全监控",
+      "与跨职能团队协作进行信号调优和流程改进",
+      "在活跃事件期间进行威胁狩猎",
+      "针对网络钓鱼、恶意软件、DDoS和撞库攻击的事件响应"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "后端软件工程经理",
+    "core_duties": "领导开发团队设计和交付基于云的分布式微服务解决方案，推动转型和法规合规。",
+    "required_skills": [
+      "云计算",
+      "人员管理"
+    ],
+    "bonus_skills": [
+      "java",
+      "python",
+      "go",
+      "scala",
+      "node.js",
+      "sql",
+      "docker",
+      "kubernetes",
+      "NoSQL 数据库",
+      "SQL 数据库",
+      "敏捷方法论",
+      "开源框架",
+      "微服务",
+      "全栈开发"
+    ],
+    "scenarios": [
+      "法规合规",
+      "基于云的微服务",
+      "金融服务"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 1.0,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "ERP战略与选型顾问",
+    "core_duties": "指导客户评估和选择Cloud ERP系统，包括评估业务流程、定义需求、制定战略路线图，以及监督供应商选择和实施。",
+    "required_skills": [
+      "ERP战略咨询",
+      "ERP系统评估与选择",
+      "ERP实施",
+      "业务流程评估",
+      "需求分析",
+      "项目管理",
+      "分析能力",
+      "沟通与人际交往能力",
+      "ERP模块知识",
+      "Cloud ERP知识",
+      "战略规划",
+      "利益相关者管理",
+      "演讲能力",
+      "供应商管理",
+      "变更管理",
+      "数据迁移",
+      "系统集成",
+      "自我管理与团队协作"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "医疗机构中的ERP实施",
+      "医疗ERP战略咨询",
+      "为医疗机构选择Cloud ERP"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "系统管理员",
+    "core_duties": "安装、维护并保障IT基础设施（包括网络、服务器和软件）的安全；为内部用户提供硬件和软件支持，并管理供应商关系。",
+    "required_skills": [
+      "Windows 操作系统",
+      "VMware 虚拟化",
+      "Microsoft 365",
+      "Azure 云管理",
+      "TCP/IP 网络",
+      "网络安全",
+      "SQL 数据库",
+      "编程/脚本",
+      "Active Directory 管理",
+      "硬件/软件故障排查",
+      "用户支持",
+      "沟通能力",
+      "网络安全（防火墙、路由器、交换机）",
+      "备份和灾难恢复",
+      "服务器维护",
+      "防病毒管理",
+      "电话系统管理",
+      "MS Dynamics NAV (Business Central)",
+      "软件许可",
+      "供应商管理"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "能源测量仪器公司的IT基础设施管理",
+      "支持工程和实验室系统的内部IT服务台",
+      "公用事业计量数据的网络安全和数据保护"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.95,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "高级后端软件工程师（Python）",
+    "core_duties": "设计、开发和维护后端系统及工具，以提升 Capital One 的开发者体验、流水线可靠性和自动化水平。",
+    "required_skills": [
+      "Python",
+      "Docker",
+      "Kubernetes"
+    ],
+    "bonus_skills": [
+      "AWS",
+      "敏捷方法论",
+      "CI/CD",
+      "SQL",
+      "Java"
+    ],
+    "scenarios": [
+      "开发者工具与自动化",
+      "基于容器的微服务部署",
+      "云原生应用开发",
+      "金融服务"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 1.0,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "高级后端工程师",
+    "core_duties": "领导抵押贷款技术平台的技术战略和开发，使用TypeScript、Node.js、AWS、Kubernetes和区块链构建和扩展后端系统，同时集成合作伙伴API并确保系统可靠性。",
+    "required_skills": [
+      "云基础设施（AWS/GCP/Azure）",
+      "CI/CD与自动化测试",
+      "数据建模",
+      "沟通能力",
+      "问题解决能力"
+    ],
+    "bonus_skills": [
+      "TypeScript",
+      "Node.js",
+      "OpenAPI",
+      "金融科技",
+      "后端系统扩展",
+      "XML",
+      "Kubernetes",
+      "NestJS",
+      "BullMQ",
+      "Redis",
+      "PostgreSQL",
+      "区块链（Canton）"
+    ],
+    "scenarios": [
+      "金融科技集成",
+      "抵押贷款平台",
+      "API驱动的贷款管理系统"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "用户体验设计师",
+    "core_duties": "创建用户交互任务流程、线框图和原型以传达设计；与产品经理和开发人员协作，进行可用性测试，并提供设计评审，以确保直观的用户体验。",
+    "required_skills": [
+      "设计工具 (figma, sketch, invision)",
+      "农业/工程/电子领域知识",
+      "软件开发和测试知识",
+      "敏捷方法论",
+      "响应式和移动端设计",
+      "数据分析工具 (contentsquare, adobe analytics, google analytics)",
+      "交互设计",
+      "线框图和原型设计",
+      "可用性测试",
+      "用户研究"
+    ],
+    "bonus_skills": [
+      "设计工作坊引导",
+      "设计质量保证"
+    ],
+    "scenarios": [
+      "为农业和工程车辆系统设计用户界面",
+      "为重型机械创建直观的仪表盘",
+      "为现场技术人员开发移动端和响应式界面"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  }
+]

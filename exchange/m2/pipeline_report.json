@@ -1,0 +1,24 @@
+[
+  {
+    "total": 450,
+    "rules_rejected": 2,
+    "stage1_passed": 0,
+    "stage1_rejected": 0,
+    "stage1_manual": 0,
+    "stage2_passed": 0,
+    "stage2_rejected": 0,
+    "stage2_manual": 0,
+    "stage3_passed": 0,
+    "stage3_manual": 0,
+    "final_job_definitions": 8,
+    "change_logs": 0,
+    "accuracy": null,
+    "cost": {
+      "total_tokens": 938030,
+      "prompt_tokens": 602841,
+      "completion_tokens": 335189,
+      "estimated_cost_usd": 0.757,
+      "api_calls": 522
+    }
+  }
+]

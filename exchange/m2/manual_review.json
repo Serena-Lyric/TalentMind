@@ -1,0 +1,618 @@
+[
+  {
+    "jd_id": 17183,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: Server disconnected without sending a response.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 17396,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: Server disconnected without sending a response.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 17626,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: Server disconnected without sending a response.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 17859,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: Server disconnected without sending a response.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 18051,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: Server disconnected without sending a response.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 29856,
+    "is_relevant": false,
+    "confidence": 0.65,
+    "evidence": "primary responsibility will be to measure and report on the execution of the material transfer process; Develop key performance indicators (KPIs); Prepare reports and develop dashboards; Proficiency in data visualization tools and reporting software",
+    "reasoning": "This is a supply chain/procurement program manager role that uses data analytics as a supporting tool, not a role where the core work is building or maintaining technology/IT systems.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 35685,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": false,\n  \"confidence\": 0.98,\n  \"evidence\": \"As a Branch Sales and Service Associate I [in a Universal Branch, you will strengthen customer relationships with a defined sales process",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 39825,
+    "is_relevant": false,
+    "confidence": 0.65,
+    "evidence": "This position supports the planning, organizing, and support directing activity for design, development, fabrication and delivery of the Integrated Logistics Support (ILS) Statement of Work elements... populating multiple databases with technical information and producing reports.",
+    "reasoning": "The role is focused on integrated logistics support and technical data management for aerospace products, not on building, maintaining, or deeply applying technology/IT systems, so it is not a core technology/IT role.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 61725,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": true,\n  \"confidence\": 0.98,\n  \"evidence\": \"proficient in at least one programming language (Python, JavaScript, HTML, C++, C# and SQL)\", \"train our AI chatbots to code\", \"Write high",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 82826,
+    "is_relevant": false,
+    "confidence": 0.6,
+    "evidence": "Work with the leadership team to define a sound business growth strategy for designated strategic account(s). Solutions: Identifying & defining differentiated services and solutions for various process areas... Technology knowhow – Have a good understanding of the IT and digital technology",
+    "reasoning": "The core responsibilities are business consulting and growth strategy for a strategic account, with technology understanding only as a supporting capability, not the primary technical work.",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 86971,
+    "is_relevant": false,
+    "confidence": 0.0,
+    "evidence": "",
+    "reasoning": "API error: JSON parse failed: {\n  \"is_relevant\": true,\n  \"confidence\": 1.0,\n  \"evidence\": \"developing scalable ETL/ELT workflows for reporting and analytics\", \"distributed data and computing tools, including Spark, Databricks, Had",
+    "verdict": "manual",
+    "model": "deepseek-v4-flash"
+  },
+  {
+    "jd_id": 8710,
+    "quality": 0.6,
+    "dimensions": {
+      "completeness": 0.55,
+      "clarity": 0.55,
+      "tech_depth": 0.4,
+      "freshness": 0.8,
+      "originality": 0.85
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": null,
+      "skill_inflation": null
+    },
+    "weak_points": "The JD is incomplete (cuts off in the required skills section). Lacks specific years of experience, and does not mention concrete release engineering tools (e.g., Docker, Kubernetes, Jenkins) or monitoring tools. Duties are described generically without specifying the tech stack for release pipelines.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 21837,
+    "quality": 0.62,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.45,
+      "tech_depth": 0.5,
+      "freshness": 0.9,
+      "originality": 0.7
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": "True"
+    },
+    "weak_points": "Unstructured requirements, vague qualifications, formatting artifacts, redundant skill mentions.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 25015,
+    "quality": 0.53,
+    "dimensions": {
+      "completeness": 0.45,
+      "clarity": 0.4,
+      "tech_depth": 0.35,
+      "freshness": 0.85,
+      "originality": 0.8
+    },
+    "flags": null,
+    "weak_points": "JD is truncated and missing explicit requirements; duties are vaguely described; lacks specific technical skills or certifications.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 26908,
+    "quality": 0.55,
+    "dimensions": {
+      "completeness": 0.7,
+      "clarity": 0.6,
+      "tech_depth": 0.3,
+      "freshness": 0.7,
+      "originality": 0.6
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Qualifications section truncated; missing specific specialized experience domain; generic federal boilerplate language detracts from originality; lacks technical depth for a test coordinator role; no mention of systems, standards, or tools.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 33349,
+    "quality": 0.54,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.55,
+      "tech_depth": 0.2,
+      "freshness": 0.8,
+      "originality": 0.65
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "Text contains formatting artifacts ('nn'), boilerplate company pitch, and truncated preferred qualifications, indicating copy-paste from a source.",
+      "skill_inflation": null
+    },
+    "weak_points": "Preferred qualifications section is cut off. Requirements are broad and lack specificity (e.g., no mention of ITIL, ServiceNow proficiency levels, or relevant certifications). Managerial role limits technology depth, but JD misses opportunity to detail tooling or process maturity expectations.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 51616,
+    "quality": 0.57,
+    "dimensions": {
+      "completeness": 0.6,
+      "clarity": 0.55,
+      "tech_depth": 0.6,
+      "freshness": 0.5,
+      "originality": 0.55
+    },
+    "flags": {
+      "stale_tech": "['Ant', 'Perforce']",
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Vague requirements like 'wide variety of languages' and 'familiar with Cloud Concepts'; deprecated technologies (Ant, Perforce); lack of specific versions and tools; template language suggests copying.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 56089,
+    "quality": 0.55,
+    "dimensions": {
+      "completeness": 0.55,
+      "clarity": 0.45,
+      "tech_depth": 0.5,
+      "freshness": 0.85,
+      "originality": 0.5
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Job description is vague with no specific technical requirements. Repeated introductory text suggests template copying. Duties section is truncated, reducing completeness. Lacks clear differentiation of required vs preferred skills.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 62313,
+    "quality": 0.61,
+    "dimensions": {
+      "completeness": 0.7,
+      "clarity": 0.6,
+      "tech_depth": 0.65,
+      "freshness": 0.75,
+      "originality": 0.6
+    },
+    "flags": {
+      "stale_tech": "['jQuery', 'XML']",
+      "copied_pattern": "True",
+      "skill_inflation": "True"
+    },
+    "weak_points": "Typos and formatting artifacts ('nWrite', 'Locations: ... nWrite'); no years of experience specified; redundant and duplicated skill listings; inclusion of outdated technologies (jQuery, XML); excessively long skill list (>15 items) indicating skill inflation; vague requirements like 'strong understanding of databases NoSQL' and generic full-stack duties; mixes full-stack and LLM roles without clear focus.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 70212,
+    "quality": 0.52,
+    "dimensions": {
+      "completeness": 0.55,
+      "clarity": 0.55,
+      "tech_depth": 0.7,
+      "freshness": 0.35,
+      "originality": 0.45
+    },
+    "flags": {
+      "stale_tech": "['COBOL', 'Mainframe legacy technologies']",
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Lacks experience requirements and specific duties; relies on generic soft-skill templates; includes recruiter contact and informal phrasing; no version or scale details for technologies.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 70475,
+    "quality": 0.63,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.65,
+      "tech_depth": 0.6,
+      "freshness": 0.55,
+      "originality": 0.7
+    },
+    "flags": {
+      "stale_tech": "['ERWIN/All Fusion (legacy modeling tools)']",
+      "copied_pattern": "Template structure with generic company and role descriptions",
+      "skill_inflation": null
+    },
+    "weak_points": "Duties are vague; no modern data stack or cloud technologies mentioned; lacks specific tools for ETL; overemphasis on legacy modeling tools.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 73744,
+    "quality": 0.59,
+    "dimensions": {
+      "completeness": 0.5,
+      "clarity": 0.3,
+      "tech_depth": 0.6,
+      "freshness": 0.9,
+      "originality": 0.8
+    },
+    "flags": null,
+    "weak_points": "The qualifications section is incomplete and only lists a Bachelor's degree in mechatronics. No technical skills, years of experience, or specific tools are mentioned. The JD lacks differentiation between Engineer I and II levels.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 76337,
+    "quality": 0.6,
+    "dimensions": {
+      "completeness": 0.6,
+      "clarity": 0.5,
+      "tech_depth": 0.55,
+      "freshness": 0.75,
+      "originality": 0.9
+    },
+    "flags": null,
+    "weak_points": "Duties section is missing; responsibilities are vague and not itemized. Technical requirements lack specificity (e.g., ASP.NET version, front-end frameworks). No mention of cloud or modern .NET (Core/5+).",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 81116,
+    "quality": 0.61,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.55,
+      "tech_depth": 0.35,
+      "freshness": 0.85,
+      "originality": 0.8
+    },
+    "flags": null,
+    "weak_points": "Duties and requirements are high-level and vague, lacking concrete specifics (no years of experience, no named CCaaS platforms or tools), resulting in limited technical depth.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 81381,
+    "quality": 0.64,
+    "dimensions": {
+      "completeness": 0.65,
+      "clarity": 0.6,
+      "tech_depth": 0.5,
+      "freshness": 0.85,
+      "originality": 0.7
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Vague experience requirements, no years specified; duties are generic and lack depth; about section appears template-copied.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 84146,
+    "quality": 0.5,
+    "dimensions": {
+      "completeness": 0.6,
+      "clarity": 0.45,
+      "tech_depth": 0.3,
+      "freshness": 0.7,
+      "originality": 0.55
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Duties and qualifications are generic; missing concrete product management tools, specific domain details, or measurable requirements; skills listed as vague categories like 'Business Insight' and 'Operational Excellence' without tangible examples.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 93894,
+    "quality": 0.64,
+    "dimensions": {
+      "completeness": 0.68,
+      "clarity": 0.65,
+      "tech_depth": 0.6,
+      "freshness": 0.85,
+      "originality": 0.55
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "['overly generic culture boilerplate', \"truncated text ('Micros') and empty duties section suggest incomplete template\"]",
+      "skill_inflation": null
+    },
+    "weak_points": "Duties section is empty, role responsibilities are vague. Text cuts off abruptly ('Micros'), indicating incomplete template copying. Generic descriptions lack product domain or technical challenges. Technologies listed without versions or frameworks, and 'or' in requirements creates ambiguity.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 105229,
+    "quality": 0.6,
+    "dimensions": {
+      "completeness": 0.4,
+      "clarity": 0.6,
+      "tech_depth": 0.6,
+      "freshness": 0.85,
+      "originality": 0.65
+    },
+    "flags": {
+      "stale_tech": null,
+      "copied_pattern": "True",
+      "skill_inflation": null
+    },
+    "weak_points": "Incomplete posting: requirements section cuts off mid-sentence. Missing clearance requirement, tools, and many typical job details. Overemphasis on soft skills with limited technical specificity.",
+    "verdict": "manual",
+    "model": "deepseek-v4-pro"
+  },
+  {
+    "jd_id": 1382,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Cloud Data Engineer\",\n  \"core_duties\": \"Develop cloud-based software solutions for data analysis and enable back-end services for connected vehicle systems, including data modeling, t"
+  },
+  {
+    "jd_id": 37392,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Senior Backend Engineer\",\n  \"core_duties\": \"Design and develop scalable backend systems using TypeScript, Node.js, cloud services, and blockchain technology for a mortgage platform. L"
+  },
+  {
+    "jd_id": 37392,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Senior Backend Engineer\",\n  \"core_duties\": \"Lead technical strategy and engineering team to build scalable mortgage platform, integrate with partners, and ensure infrastructure optima"
+  },
+  {
+    "jd_id": 44742,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 47290,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 44742,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Android Reverse Engineer\",\n  \"core_duties\": \"Conduct reverse engineering and security assessments of Android applications and SDKs to detect malware, PUPs, and advanced persistent thr"
+  },
+  {
+    "jd_id": 53686,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Microsoft 365 and Digital Workplace Lead Architect\",\n  \"core_duties\": \"Lead the design, implementation, and management of enterprise Microsoft 365 solutions, ensuring secure, scalable"
+  },
+  {
+    "jd_id": 66275,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: {\n  \"job_name\": \"Salesforce Engineering Manager\",\n  \"core_duties\": \"Manages Salesforce development teams and full project lifecycle, leading design, development, deployment, and maintenance of complex"
+  },
+  {
+    "jd_id": 87825,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 89666,
+    "stage": "model3",
+    "reason": "API error: JSON parse failed: "
+  },
+  {
+    "jd_id": 63136,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 66275,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 71302,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 74841,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 76843,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 78207,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 80856,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 87825,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 88701,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 89666,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 63136,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 66275,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 71302,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 74841,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 76843,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 78207,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 80856,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 87825,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 88701,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 89666,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 89992,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 97776,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 98006,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 102745,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 89992,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 97776,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 98006,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 102745,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 89992,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 97776,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 98006,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  },
+  {
+    "jd_id": 102745,
+    "stage": "model3",
+    "reason": "API error: HTTP 402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}"
+  }
+]

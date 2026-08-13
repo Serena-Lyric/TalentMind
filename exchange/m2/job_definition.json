@@ -1,0 +1,354 @@
+[
+  {
+    "job_name": "Cloud Platform/Big Data Engineer",
+    "core_duties": "Develops cloud-based data solutions, back-end services, and performs big data analysis for connected vehicle systems; conducts PoC for next-gen infotainment and cockpit systems.",
+    "required_skills": [
+      "cloud platforms",
+      "automotive engineering experience",
+      "communication skills"
+    ],
+    "bonus_skills": [
+      "programming languages",
+      "big data analysis"
+    ],
+    "scenarios": [
+      "Connected vehicle data platforms",
+      "Big data analysis for vehicle development",
+      "Automotive telematics",
+      "In-vehicle infotainment systems"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "growth",
+      "stage_confidence": 0.7,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:14:31",
+    "collected_at": "2026-07-24 07:14:31",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "SOC Security Analyst",
+    "core_duties": "Act as first line of defense in a 24/7 SOC, responsible for monitoring, detecting, and responding to security incidents using SIEM and automation tools, and continuously improving detection signals.",
+    "required_skills": [
+      "soc monitoring and incident response",
+      "network security concepts",
+      "attack response knowledge",
+      "siem"
+    ],
+    "bonus_skills": [
+      "security automation (soar)",
+      "scripting",
+      "security certifications"
+    ],
+    "scenarios": [
+      "Security monitoring of corporate, manufacturing, and production environments",
+      "Collaboration with cross-functional teams for signal tuning and process improvement",
+      "Threat hunting during active incidents",
+      "Incident response for phishing, malware, DDoS, and credential stuffing attacks"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Backend Software Engineering Manager",
+    "core_duties": "Lead a team of developers to design and deliver cloud-based, distributed microservices solutions, driving transformation and regulatory compliance.",
+    "required_skills": [
+      "cloud computing",
+      "people management"
+    ],
+    "bonus_skills": [
+      "java",
+      "python",
+      "go",
+      "scala",
+      "node.js",
+      "sql",
+      "docker",
+      "kubernetes",
+      "nosql databases",
+      "sql databases",
+      "agile methodologies",
+      "open source frameworks",
+      "microservices",
+      "full stack development"
+    ],
+    "scenarios": [
+      "Regulatory Compliance",
+      "Cloud-based Microservices",
+      "Financial Services"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 1.0,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "ERP Strategy and Selection Consultant",
+    "core_duties": "Guide clients in evaluating and selecting Cloud ERP systems by assessing business processes, defining requirements, developing strategic roadmaps, and overseeing vendor selection and implementation.",
+    "required_skills": [
+      "erp strategy consulting",
+      "erp system evaluation and selection",
+      "erp implementation",
+      "business process assessment",
+      "requirements analysis",
+      "project management",
+      "analytical skills",
+      "communication and interpersonal skills",
+      "erp modules knowledge",
+      "cloud erp knowledge",
+      "strategic planning",
+      "stakeholder management",
+      "presentation skills",
+      "vendor management",
+      "change management",
+      "data migration",
+      "system integration",
+      "self-management and teamwork"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "ERP implementation in healthcare organizations",
+      "Healthcare ERP strategy consulting",
+      "Cloud ERP selection for healthcare providers"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:21",
+    "collected_at": "2026-07-24 07:15:21",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "System Administrator",
+    "core_duties": "Install, maintain, and secure IT infrastructure including networks, servers, and software; provide hardware and software support to internal users and manage vendor relationships.",
+    "required_skills": [
+      "windows operating systems",
+      "vmware virtualization",
+      "microsoft 365",
+      "azure cloud management",
+      "tcp/ip networking",
+      "cybersecurity",
+      "sql databases",
+      "programming/scripting",
+      "active directory administration",
+      "hardware/software troubleshooting",
+      "user support",
+      "communication skills",
+      "network security (firewalls, routers, switches)",
+      "backup and disaster recovery",
+      "server maintenance",
+      "antivirus management",
+      "phone system administration",
+      "ms dynamics nav (business central)",
+      "software licensing",
+      "vendor management"
+    ],
+    "bonus_skills": [],
+    "scenarios": [
+      "IT infrastructure management for energy measurement instruments company",
+      "Internal IT service desk supporting engineering and lab systems",
+      "Network security and data protection for utility metrology data"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.95,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Senior Software Engineer, Back End (Python)",
+    "core_duties": "Design, develop, and maintain backend systems and tools to enhance developer experience, pipeline reliability, and automation at Capital One.",
+    "required_skills": [
+      "python",
+      "docker",
+      "kubernetes"
+    ],
+    "bonus_skills": [
+      "aws",
+      "agile methodologies",
+      "ci/cd",
+      "sql",
+      "java"
+    ],
+    "scenarios": [
+      "Developer tooling and automation",
+      "Microservices deployment with containers",
+      "Cloud-native application development",
+      "Financial services"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 1.0,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "Senior Backend Engineer",
+    "core_duties": "Lead the technical strategy and development of a mortgage technology platform, building and scaling backend systems using TypeScript, Node.js, AWS, Kubernetes, and blockchain, while integrating with partner APIs and ensuring system reliability.",
+    "required_skills": [
+      "cloud infrastructure (aws/gcp/azure)",
+      "ci/cd and automated testing",
+      "data modeling",
+      "communication skills",
+      "problem-solving"
+    ],
+    "bonus_skills": [
+      "typescript",
+      "node.js",
+      "openapi",
+      "fintech",
+      "backend system scaling",
+      "xml",
+      "kubernetes",
+      "nestjs",
+      "bullmq",
+      "redis",
+      "postgresql",
+      "blockchain (canton)"
+    ],
+    "scenarios": [
+      "Financial technology integrations",
+      "Mortgage lending platforms",
+      "API-driven loan management systems"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.8,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:22",
+    "collected_at": "2026-07-24 07:15:22",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  },
+  {
+    "job_name": "User Experience Designer",
+    "core_duties": "Create user interaction task flows, wireframes, and prototypes to communicate designs; collaborate with product managers and developers, conduct usability testing, and provide design reviews to ensure intuitive user experiences.",
+    "required_skills": [
+      "design tools (figma, sketch, invision)",
+      "agriculture/construction/electronics domain knowledge",
+      "software development and testing knowledge",
+      "agile methodologies",
+      "responsive and mobile design",
+      "data analytics tools (contentsquare, adobe analytics, google analytics)",
+      "interaction design",
+      "wireframing and prototyping",
+      "usability testing",
+      "user research"
+    ],
+    "bonus_skills": [
+      "design workshop facilitation",
+      "design quality assurance"
+    ],
+    "scenarios": [
+      "Designing user interfaces for agricultural and construction vehicle systems",
+      "Creating intuitive dashboards for heavy machinery",
+      "Developing mobile and responsive interfaces for field technicians"
+    ],
+    "source": [
+      "dataset"
+    ],
+    "quality": 0.73,
+    "is_emerging": true,
+    "evolution": {
+      "stage": "mature",
+      "stage_confidence": 0.9,
+      "indicators": {
+        "jd_count_in_batch": 1,
+        "source_diversity": 1,
+        "skill_novelty": "medium"
+      }
+    },
+    "first_seen": "2026-07-24 07:15:23",
+    "collected_at": "2026-07-24 07:15:23",
+    "updated_at": "2026-08-12T09:30:16",
+    "source_jd_count": 1
+  }
+]

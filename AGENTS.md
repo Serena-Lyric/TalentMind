@@ -73,6 +73,12 @@ language: 简体中文
 - 每次回复前检查是否有用户已确认但未执行的协议
 - 大方向切换前，显式确认上一个需求的未完成子项
 
+### 工作前状态同步（强制）
+- 开始任何任务前，先读 `docs/superpowers/资产与状态.md`（资产清单 / 整合状态 / 已知限制）和 `docs/superpowers/决策跟踪.md`（已决策 + 未决项），确认当前资产位置、契约与未决事项后再动手。
+- 新增、移动、删除、迁移资产，修改契约 / 目录 / 交接文件后，必须**及时更新** `docs/superpowers/资产与状态.md`；涉及决策时同步更新 `决策跟踪.md`。
+- 未入库模块（`人岗匹配/`、`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`）的迁移 / 清理，先确认未决项状态；未裁决前不擅自动作，禁止 `git add -A`（未忽略目录内含 421MB 数据与真实简历）。
+- 处理已知限制前先查证 `docs/superpowers/资产与状态.md` 中的记录，不臆测、不重复踩坑。
+
 ## 陷阱记录
 
 AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
@@ -83,7 +89,13 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 
 ## 项目决策要点（2026-08-03）
 
-与 CLAUDE.md 同源，权威清单与最新状态见 `docs/superpowers/决策跟踪.md`，详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md`。核心：5 机协作、文件交接 + A 唯一集成、技术栈自选；数据契约冻结于 `backend/app/contracts/ddl.sql`（加表/加字段自由，改/删字段须全队通知）；岗位定义不含 status，source 仅记录来源平台。
+与 CLAUDE.md 同源，权威清单与最新状态见 `docs/superpowers/决策跟踪.md`，详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md` 和 `docs/superpowers/specs/2026-08-11-repository-organization-design.md`。核心：5 机协作、文件交接 + A 唯一集成、技术栈自选；数据契约冻结于 `backend/app/contracts/ddl.sql`（加表/加字段自由，改/删字段须全队通知）；岗位定义不含 status，source 仅记录来源平台。
+
+仓库边界：`TalentMind` 同时是 A 的 M1 数据采集开发仓和 M1–M5 完整系统唯一主仓。正式后端源码只放 `backend/app/`，前端只放 `frontend/`；`exchange/` 只存交接文件、接口自述和小型 Mock；大型本地数据放 Git 忽略的 `data/local/`。旧 `backend` 不整体删除，重复代码只有在迁移、测试和集成验证通过后才清理，Git 历史负责追溯。
+
+当前例外：根目录 `人岗匹配/` 的 M4 原型迁移暂缓，未经用户再次确认不得移动或删除其中内容。
+
+完整资产清单与已知限制（按轻重分类）见 `docs/superpowers/资产与状态.md`，**工作前必读**。
 
 
 ## 维护约定
@@ -91,3 +103,4 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 1. 发现新陷阱 → 新建 `docs/superpowers/traps/<日期>-<描述>.md` → 更新上方"已有陷阱"索引
 2. 修改项目约束 → 同步更新 CLAUDE.md 对应章节
 3. 遇到编码/平台/脚本不确定 → 先查阅本文件和 `docs/superpowers/traps/`
+4. 资产 / 目录 / 交接文件变更 → 及时更新 `docs/superpowers/资产与状态.md`，并同步 README / CLAUDE.md 相关章节

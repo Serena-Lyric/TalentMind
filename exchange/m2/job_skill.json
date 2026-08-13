@@ -1,0 +1,969 @@
+[
+  {
+    "job_name": "云平台/大数据工程师",
+    "skills": [
+      {
+        "skill_id": "s_cloud platforms",
+        "name": "云平台",
+        "weight": 0.229,
+        "confidence": 0.95,
+        "evidence": "JD #1382: Knowledge and/or certificate around AWS, GCP, or Azure is mandatory.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_automotive engineering experience",
+        "name": "汽车工程经验",
+        "weight": 0.217,
+        "confidence": 0.9,
+        "evidence": "JD #1382: 1-2 years previous automotive engineering experience including internship.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_communication skills",
+        "name": "沟通能力",
+        "weight": 0.217,
+        "confidence": 0.9,
+        "evidence": "JD #1382: Communication skills across cultural and language barriers.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_programming languages",
+        "name": "编程语言",
+        "weight": 0.169,
+        "confidence": 0.7,
+        "evidence": "JD #1382: Knowledge and experience in Python, C++, or JAVA is a plus.",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_big data analysis",
+        "name": "大数据分析",
+        "weight": 0.169,
+        "confidence": 0.7,
+        "evidence": "JD #1382: Knowledge and experience of big data analysis or statistical data processing is a plus.",
+        "evidence_jd_count": 1,
+        "is_required": false
+      }
+    ]
+  },
+  {
+    "job_name": "SOC安全分析师",
+    "skills": [
+      {
+        "skill_id": "s_soc monitoring and incident response",
+        "name": "SOC监控和事件响应",
+        "weight": 0.173,
+        "confidence": 0.95,
+        "evidence": "JD #7484: Experience performing security monitoring and incident response duties in a SOC environment",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_network security concepts",
+        "name": "网络安全概念",
+        "weight": 0.173,
+        "confidence": 0.95,
+        "evidence": "JD #7484: Good understanding of the common network security concepts including TCP/IP protocol stack, HTTP/HTTPS, TLS, WAF, VPN",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_attack response knowledge",
+        "name": "攻击响应知识",
+        "weight": 0.173,
+        "confidence": 0.95,
+        "evidence": "JD #7484: Good understanding and real-life experience responding to the common types of attacks such as DDoS, credentials stuffing, phishing/spam, adware/malware, attacks against Windows/Active directory environments, attacks against public cloud infrastructure (AWS)",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_siem",
+        "name": "SIEM",
+        "weight": 0.173,
+        "confidence": 0.95,
+        "evidence": "JD #7484: Real-world experience using at least one major SIEM system. Experience with Splunk and Splunk ES is a bonus",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_security automation (soar)",
+        "name": "安全自动化（SOAR）",
+        "weight": 0.127,
+        "confidence": 0.7,
+        "evidence": "JD #7484: Security automation experience using tools such as Phantom or Demisto (SOAR, runbooks) is desirable.",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_scripting",
+        "name": "脚本编写",
+        "weight": 0.091,
+        "confidence": 0.5,
+        "evidence": "JD #7484: Experience using scripting languages (Python or similar, PowerShell scripts, bash) is a plus",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_security certifications",
+        "name": "安全认证",
+        "weight": 0.091,
+        "confidence": 0.5,
+        "evidence": "JD #7484: Security Certifications (i.e. Security+, CISSP, CEH, SANS, etc.) is also a plus",
+        "evidence_jd_count": 1,
+        "is_required": false
+      }
+    ]
+  },
+  {
+    "job_name": "后端软件工程经理",
+    "skills": [
+      {
+        "skill_id": "s_cloud computing",
+        "name": "云计算",
+        "weight": 0.082,
+        "confidence": 0.95,
+        "evidence": "JD #12279: At least 1 year experience with cloud computing (AWS, Microsoft Azure, Google Cloud)",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_people management",
+        "name": "人员管理",
+        "weight": 0.082,
+        "confidence": 0.95,
+        "evidence": "JD #12279: At least 2 years of people management experience",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_java",
+        "name": "Java",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_python",
+        "name": "python",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_go",
+        "name": "Go",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_scala",
+        "name": "Scala",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_node.js",
+        "name": "Node.js",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_sql",
+        "name": "SQL",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_docker",
+        "name": "docker",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Container Orchestration services including Docker and Kubernetes",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_kubernetes",
+        "name": "kubernetes",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Container Orchestration services including Docker and Kubernetes",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_nosql databases",
+        "name": "NoSQL数据库",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Open Source RDBMS and NoSQL databases",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_sql databases",
+        "name": "SQL数据库",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: Open Source RDBMS and NoSQL databases",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_agile methodologies",
+        "name": "敏捷方法论",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: 2+ years of experience in Agile practices",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_open source frameworks",
+        "name": "开源框架",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: 4+ years of experience in open source frameworks",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_microservices",
+        "name": "微服务",
+        "weight": 0.06,
+        "confidence": 0.7,
+        "evidence": "JD #12279: deep experience in distributed microservices",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_full stack development",
+        "name": "全栈开发",
+        "weight": 0.052,
+        "confidence": 0.6,
+        "evidence": "JD #12279: full stack systems",
+        "evidence_jd_count": 1,
+        "is_required": false
+      }
+    ]
+  },
+  {
+    "job_name": "ERP战略与选型顾问",
+    "skills": [
+      {
+        "skill_id": "s_erp strategy consulting",
+        "name": "ERP战略咨询",
+        "weight": 0.061,
+        "confidence": 0.95,
+        "evidence": "JD #16702: 5+ Years proven experience in ERP strategy consulting",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_erp system evaluation and selection",
+        "name": "ERP系统评估与选择",
+        "weight": 0.061,
+        "confidence": 0.95,
+        "evidence": "JD #16702: including ERP system evaluation, selection, and implementation projects",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_erp implementation",
+        "name": "ERP 实施",
+        "weight": 0.061,
+        "confidence": 0.95,
+        "evidence": "JD #16702: ERP implementation projects and ERP implementation methodologies",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_business process assessment",
+        "name": "业务流程评估",
+        "weight": 0.058,
+        "confidence": 0.9,
+        "evidence": "JD #16702: Conduct comprehensive assessments of clients' existing systems, business processes",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_requirements analysis",
+        "name": "需求分析",
+        "weight": 0.058,
+        "confidence": 0.9,
+        "evidence": "JD #16702: Collaborate with clients to define their ERP objectives, functional requirements",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_project management",
+        "name": "项目管理",
+        "weight": 0.058,
+        "confidence": 0.9,
+        "evidence": "JD #16702: Solid project management skills",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_analytical skills",
+        "name": "分析能力",
+        "weight": 0.058,
+        "confidence": 0.9,
+        "evidence": "JD #16702: Strong analytical skills",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_communication and interpersonal skills",
+        "name": "沟通与人际交往能力",
+        "weight": 0.058,
+        "confidence": 0.9,
+        "evidence": "JD #16702: Excellent communication and interpersonal skills",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_erp modules knowledge",
+        "name": "ERP模块知识",
+        "weight": 0.058,
+        "confidence": 0.9,
+        "evidence": "JD #16702: Deep understanding of ERP systems and modules across finance, supply chain, and human resources",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_cloud erp knowledge",
+        "name": "云ERP知识",
+        "weight": 0.054,
+        "confidence": 0.85,
+        "evidence": "JD #16702: Cloud ERP systems in title and duties",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_strategic planning",
+        "name": "战略规划",
+        "weight": 0.054,
+        "confidence": 0.85,
+        "evidence": "JD #16702: Develop and execute a strategic roadmap",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_stakeholder management",
+        "name": "利益相关者管理",
+        "weight": 0.054,
+        "confidence": 0.85,
+        "evidence": "JD #16702: Facilitate workshops, stakeholder meetings... build rapport",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_presentation skills",
+        "name": "演讲能力",
+        "weight": 0.054,
+        "confidence": 0.85,
+        "evidence": "JD #16702: Develop and deliver high-quality presentations",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_vendor management",
+        "name": "供应商管理",
+        "weight": 0.051,
+        "confidence": 0.8,
+        "evidence": "JD #16702: vendor selection",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_change management",
+        "name": "变更管理",
+        "weight": 0.051,
+        "confidence": 0.8,
+        "evidence": "JD #16702: change management",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_data migration",
+        "name": "数据迁移",
+        "weight": 0.051,
+        "confidence": 0.8,
+        "evidence": "JD #16702: data migration",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_system integration",
+        "name": "系统集成",
+        "weight": 0.051,
+        "confidence": 0.8,
+        "evidence": "JD #16702: system integration",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_self-management and teamwork",
+        "name": "自我管理与团队协作",
+        "weight": 0.051,
+        "confidence": 0.8,
+        "evidence": "JD #16702: Demonstrated ability to work independently and collaboratively",
+        "evidence_jd_count": 1,
+        "is_required": true
+      }
+    ]
+  },
+  {
+    "job_name": "系统管理员",
+    "skills": [
+      {
+        "skill_id": "s_windows operating systems",
+        "name": "Windows 操作系统",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Knowledge of: Windows operating systems and applications",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_vmware virtualization",
+        "name": "VMware 虚拟化",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Vmware virtualization",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_microsoft 365",
+        "name": "Microsoft 365",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: M365 Office productivity software",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_azure cloud management",
+        "name": "Azure 云管理",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Azure or similar cloud management",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_tcp/ip networking",
+        "name": "TCP/IP 网络",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: TCP/IP Networking",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_cybersecurity",
+        "name": "网络安全",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Cyber Security",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_sql databases",
+        "name": "SQL数据库",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: SQL databases",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_programming/scripting",
+        "name": "编程/脚本编写",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Programming or scripting languages",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_active directory administration",
+        "name": "Active Directory 管理",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Active directory network administration",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_hardware/software troubleshooting",
+        "name": "硬件/软件故障排除",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: Computer troubleshooting and repair – hardware and software",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_user support",
+        "name": "用户支持",
+        "weight": 0.052,
+        "confidence": 0.95,
+        "evidence": "JD #30148: User computer support – hardware and software",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_communication skills",
+        "name": "沟通能力",
+        "weight": 0.05,
+        "confidence": 0.9,
+        "evidence": "JD #30148: Excellent communication skills",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_network security (firewalls, routers, switches)",
+        "name": "网络安全（防火墙、路由器、交换机）",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: Install, configure, support and secure local area network (LAN), wide area network (WAN), and Internet systems including support of firewalls, routers, and switches.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_backup and disaster recovery",
+        "name": "备份和灾难恢复",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: Perform data backups and disaster recovery operations.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_server maintenance",
+        "name": "服务器维护",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: Maintain and update server hardware, software, and printers.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_antivirus management",
+        "name": "杀毒软件管理",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: Antivirus software – maintain and keep software up to date.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_phone system administration",
+        "name": "电话系统管理",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: Phone system – administer and maintain phone hardware, software, and accounts.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_ms dynamics nav (business central)",
+        "name": "MS Dynamics NAV（Business Central）",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: MS Dynamics NAV (Business Central) – Maintain user accounts and permissions.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_software licensing",
+        "name": "软件许可",
+        "weight": 0.047,
+        "confidence": 0.85,
+        "evidence": "JD #30148: Track company software licensing.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_vendor management",
+        "name": "供应商管理",
+        "weight": 0.044,
+        "confidence": 0.8,
+        "evidence": "JD #30148: acts as the primary organizational interface with vendors for computer related services.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      }
+    ]
+  },
+  {
+    "job_name": "高级后端软件工程师（Python）",
+    "skills": [
+      {
+        "skill_id": "s_python",
+        "name": "python",
+        "weight": 0.162,
+        "confidence": 0.95,
+        "evidence": "JD #35866: Senior Software Engineer, Back End (Python)",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_docker",
+        "name": "docker",
+        "weight": 0.137,
+        "confidence": 0.8,
+        "evidence": "JD #35866: Container Orchestration services including Docker and Kubernetes",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_kubernetes",
+        "name": "kubernetes",
+        "weight": 0.137,
+        "confidence": 0.8,
+        "evidence": "JD #35866: Container Orchestration services including Docker and Kubernetes",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_aws",
+        "name": "AWS",
+        "weight": 0.12,
+        "confidence": 0.7,
+        "evidence": "JD #35866: 1+ years of experience with AWS, GCP, Azure, or another cloud service",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_agile methodologies",
+        "name": "敏捷方法论",
+        "weight": 0.12,
+        "confidence": 0.7,
+        "evidence": "JD #35866: 2+ years of experience in Agile practices",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_ci/cd",
+        "name": "CI/CD",
+        "weight": 0.12,
+        "confidence": 0.7,
+        "evidence": "JD #35866: enhance pipeline reliability and performance",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_sql",
+        "name": "SQL",
+        "weight": 0.103,
+        "confidence": 0.6,
+        "evidence": "JD #35866: Utilize programming languages like Java, Python, SQL, Node, Go, and Scala",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_java",
+        "name": "Java",
+        "weight": 0.103,
+        "confidence": 0.6,
+        "evidence": "JD #35866: 5+ years of experience in at least one of the following: Java, Scala, Python, Go, or Node.js",
+        "evidence_jd_count": 1,
+        "is_required": false
+      }
+    ]
+  },
+  {
+    "job_name": "高级后端工程师",
+    "skills": [
+      {
+        "skill_id": "s_cloud infrastructure (aws/gcp/azure)",
+        "name": "云基础设施（AWS/GCP/Azure）",
+        "weight": 0.08,
+        "confidence": 0.92,
+        "evidence": "JD #37392: Experience building and managing infrastructure in a cloud environment (GCP, AWS or Azure)",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_ci/cd and automated testing",
+        "name": "CI/CD 与自动化测试",
+        "weight": 0.08,
+        "confidence": 0.92,
+        "evidence": "JD #37392: Experience configuring and maintaining CI/CD pipelines and automated testing",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_data modeling",
+        "name": "数据建模",
+        "weight": 0.08,
+        "confidence": 0.92,
+        "evidence": "JD #37392: Experience designing production data models for a performant and scalable application",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_communication skills",
+        "name": "沟通能力",
+        "weight": 0.078,
+        "confidence": 0.9,
+        "evidence": "JD #37392: Written and verbal communication skills, sufficient for success in a remote and largely asynchronous work environment",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_problem-solving",
+        "name": "问题解决能力",
+        "weight": 0.078,
+        "confidence": 0.9,
+        "evidence": "JD #37392: Demonstrated capacity to clearly and concisely communicate about complex technical, architectural, and/or organizational problems and propose thorough iterative solutions. Positive and solution-oriented mindset.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_typescript",
+        "name": "TypeScript",
+        "weight": 0.061,
+        "confidence": 0.7,
+        "evidence": "JD #37392: Strong background in TypeScript + NodeJS",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_node.js",
+        "name": "Node.js",
+        "weight": 0.061,
+        "confidence": 0.7,
+        "evidence": "JD #37392: Strong background in TypeScript + NodeJS",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_openapi",
+        "name": "openapi",
+        "weight": 0.061,
+        "confidence": 0.7,
+        "evidence": "JD #37392: Previous experience working with OpenAPI standards",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_fintech",
+        "name": "金融科技",
+        "weight": 0.061,
+        "confidence": 0.7,
+        "evidence": "JD #37392: Experience with FinTech",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_backend system scaling",
+        "name": "后端系统扩展",
+        "weight": 0.061,
+        "confidence": 0.7,
+        "evidence": "JD #37392: Track record building and scaling backend systems to support growing enterprise services",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_xml",
+        "name": "XML",
+        "weight": 0.052,
+        "confidence": 0.6,
+        "evidence": "JD #37392: Previous experience working with XML",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_kubernetes",
+        "name": "kubernetes",
+        "weight": 0.043,
+        "confidence": 0.5,
+        "evidence": "JD #37392: leveraging cloud technologies like AWS and Kubernetes",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_nestjs",
+        "name": "nestjs",
+        "weight": 0.043,
+        "confidence": 0.5,
+        "evidence": "JD #37392: back-end technologies like OpenAPI, NestJS, BullMQ, Redis, and PostgreSQL",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_bullmq",
+        "name": "BullMQ",
+        "weight": 0.043,
+        "confidence": 0.5,
+        "evidence": "JD #37392: back-end technologies like OpenAPI, NestJS, BullMQ, Redis, and PostgreSQL",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_redis",
+        "name": "Redis",
+        "weight": 0.043,
+        "confidence": 0.5,
+        "evidence": "JD #37392: back-end technologies like OpenAPI, NestJS, BullMQ, Redis, and PostgreSQL",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_postgresql",
+        "name": "PostgreSQL",
+        "weight": 0.043,
+        "confidence": 0.5,
+        "evidence": "JD #37392: back-end technologies like OpenAPI, NestJS, BullMQ, Redis, and PostgreSQL",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_blockchain (canton)",
+        "name": "区块链（Canton）",
+        "weight": 0.035,
+        "confidence": 0.4,
+        "evidence": "JD #37392: and blockchain technology (specifically Canton by digitalasset.com)",
+        "evidence_jd_count": 1,
+        "is_required": false
+      }
+    ]
+  },
+  {
+    "job_name": "用户体验设计师",
+    "skills": [
+      {
+        "skill_id": "s_design tools (figma, sketch, invision)",
+        "name": "设计工具 (Figma, Sketch, InVision)",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: Experience with Figma, Sketch, or InVision.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_agriculture/construction/electronics domain knowledge",
+        "name": "农业/建筑/电子领域知识",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: Experience with agriculture, construction vehicles, electronics manufacturing, or similar industries.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_software development and testing knowledge",
+        "name": "软件开发和测试知识",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: Working knowledge of software development and testing practices.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_agile methodologies",
+        "name": "敏捷方法论",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: Experience with Agile development methodologies.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_responsive and mobile design",
+        "name": "响应式与移动端设计",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: Experience with responsive design and/or phone and tablet interface design.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_data analytics tools (contentsquare, adobe analytics, google analytics)",
+        "name": "数据分析工具 (Contentsquare, Adobe Analytics, Google Analytics)",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: Experience with data driven analytics tools such as ContentSquare, Adobe Analytics, or Google Analytics.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_interaction design",
+        "name": "交互设计",
+        "weight": 0.09,
+        "confidence": 0.95,
+        "evidence": "JD #47290: 3-5 years of UI/UX/Interaction Design",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_wireframing and prototyping",
+        "name": "线框设计与原型制作",
+        "weight": 0.086,
+        "confidence": 0.9,
+        "evidence": "JD #47290: developing mock-ups, wireframes, and prototypes",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_usability testing",
+        "name": "可用性测试",
+        "weight": 0.076,
+        "confidence": 0.8,
+        "evidence": "JD #47290: Assist team members in pre- and post-development usability testing.",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_user research",
+        "name": "用户研究",
+        "weight": 0.071,
+        "confidence": 0.75,
+        "evidence": "JD #47290: Leverage user experience research insights and recommendations",
+        "evidence_jd_count": 1,
+        "is_required": true
+      },
+      {
+        "skill_id": "s_design workshop facilitation",
+        "name": "设计工作坊引导",
+        "weight": 0.067,
+        "confidence": 0.7,
+        "evidence": "JD #47290: Conduct design workshops with a wide range of stakeholders",
+        "evidence_jd_count": 1,
+        "is_required": false
+      },
+      {
+        "skill_id": "s_design quality assurance",
+        "name": "设计质量保证",
+        "weight": 0.067,
+        "confidence": 0.7,
+        "evidence": "JD #47290: Conduct quality assurance on implemented designs with strong attention to detail.",
+        "evidence_jd_count": 1,
+        "is_required": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,952 @@
+{
+  "nodes": [
+    {
+      "id": "Java后端开发工程师",
+      "type": "job",
+      "name": "Java后端开发工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责业务系统后端接口开发、数据库设计与优化、高并发系统架构设计"
+    },
+    {
+      "id": "Python后端开发工程师",
+      "type": "job",
+      "name": "Python后端开发工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责Web后端服务开发、API接口设计、数据处理与自动化脚本编写"
+    },
+    {
+      "id": "Go开发工程师",
+      "type": "job",
+      "name": "Go开发工程师",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "负责高并发服务端开发、微服务架构实现、云原生应用开发"
+    },
+    {
+      "id": "前端开发工程师",
+      "type": "job",
+      "name": "前端开发工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责Web前端页面开发、用户交互实现、多端适配与性能优化"
+    },
+    {
+      "id": "全栈开发工程师",
+      "type": "job",
+      "name": "全栈开发工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责前后端全流程开发、系统架构设计、技术选型与团队协作"
+    },
+    {
+      "id": "大数据开发工程师",
+      "type": "job",
+      "name": "大数据开发工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责数据仓库建设、离线/实时计算开发、ETL流程设计与实现"
+    },
+    {
+      "id": "数据分析师",
+      "type": "job",
+      "name": "数据分析师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责业务数据分析、报表制作、数据可视化与决策支持"
+    },
+    {
+      "id": "AI工程师",
+      "type": "job",
+      "name": "AI工程师",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "负责机器学习模型开发、深度学习算法实现、模型部署与优化"
+    },
+    {
+      "id": "软件测试工程师",
+      "type": "job",
+      "name": "软件测试工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责软件功能测试、缺陷管理与跟踪、测试用例设计与执行"
+    },
+    {
+      "id": "运维工程师",
+      "type": "job",
+      "name": "运维工程师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责服务器运维、系统监控、自动化部署与故障处理"
+    },
+    {
+      "id": "安全工程师",
+      "type": "job",
+      "name": "安全工程师",
+      "industry": "",
+      "is_emerging": true,
+      "core_duties": "负责系统安全加固、漏洞扫描与修复、安全策略制定与实施"
+    },
+    {
+      "id": "产品经理",
+      "type": "job",
+      "name": "产品经理",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责产品规划与设计、需求分析与文档编写、跨部门协调与推进"
+    },
+    {
+      "id": "UI设计师",
+      "type": "job",
+      "name": "UI设计师",
+      "industry": "",
+      "is_emerging": false,
+      "core_duties": "负责产品界面设计、交互设计、视觉规范制定与设计交付"
+    },
+    {
+      "id": "ansible",
+      "type": "skill",
+      "name": "ansible",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "c++",
+      "type": "skill",
+      "name": "c++",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "clickhouse",
+      "type": "skill",
+      "name": "clickhouse",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "css",
+      "type": "skill",
+      "name": "css",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "django",
+      "type": "skill",
+      "name": "django",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "docker",
+      "type": "skill",
+      "name": "docker",
+      "category": "bonus",
+      "job_count": 6
+    },
+    {
+      "id": "fastapi",
+      "type": "skill",
+      "name": "fastapi",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "flink",
+      "type": "skill",
+      "name": "flink",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "gin",
+      "type": "skill",
+      "name": "gin",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "go",
+      "type": "skill",
+      "name": "go",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "grafana",
+      "type": "skill",
+      "name": "grafana",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "hadoop",
+      "type": "skill",
+      "name": "hadoop",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "hive",
+      "type": "skill",
+      "name": "hive",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "html",
+      "type": "skill",
+      "name": "html",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "java",
+      "type": "skill",
+      "name": "java",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "javascript",
+      "type": "skill",
+      "name": "javascript",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "jenkins",
+      "type": "skill",
+      "name": "jenkins",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "kafka",
+      "type": "skill",
+      "name": "kafka",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "kubernetes",
+      "type": "skill",
+      "name": "kubernetes",
+      "category": "bonus",
+      "job_count": 4
+    },
+    {
+      "id": "linux",
+      "type": "skill",
+      "name": "linux",
+      "category": "required",
+      "job_count": 3
+    },
+    {
+      "id": "mongodb",
+      "type": "skill",
+      "name": "mongodb",
+      "category": "bonus",
+      "job_count": 2
+    },
+    {
+      "id": "mysql",
+      "type": "skill",
+      "name": "mysql",
+      "category": "required",
+      "job_count": 8
+    },
+    {
+      "id": "nginx",
+      "type": "skill",
+      "name": "nginx",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "node.js",
+      "type": "skill",
+      "name": "node.js",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "numpy",
+      "type": "skill",
+      "name": "numpy",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "prometheus",
+      "type": "skill",
+      "name": "prometheus",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "python",
+      "type": "skill",
+      "name": "python",
+      "category": "required",
+      "job_count": 7
+    },
+    {
+      "id": "pytorch",
+      "type": "skill",
+      "name": "pytorch",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "rabbitmq",
+      "type": "skill",
+      "name": "rabbitmq",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "react",
+      "type": "skill",
+      "name": "react",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "redis",
+      "type": "skill",
+      "name": "redis",
+      "category": "required",
+      "job_count": 4
+    },
+    {
+      "id": "spark",
+      "type": "skill",
+      "name": "spark",
+      "category": "required",
+      "job_count": 2
+    },
+    {
+      "id": "spring boot",
+      "type": "skill",
+      "name": "spring boot",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "spring cloud",
+      "type": "skill",
+      "name": "spring cloud",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "sql",
+      "type": "skill",
+      "name": "sql",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "tensorflow",
+      "type": "skill",
+      "name": "tensorflow",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "three.js",
+      "type": "skill",
+      "name": "three.js",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "typescript",
+      "type": "skill",
+      "name": "typescript",
+      "category": "bonus",
+      "job_count": 1
+    },
+    {
+      "id": "网络安全",
+      "type": "skill",
+      "name": "网络安全",
+      "category": "required",
+      "job_count": 1
+    },
+    {
+      "id": "项目管理",
+      "type": "skill",
+      "name": "项目管理",
+      "category": "bonus",
+      "job_count": 1
+    }
+  ],
+  "edges": [
+    {
+      "source": "Java后端开发工程师",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "spring boot",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "redis",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "spring cloud",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "rabbitmq",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "django",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "redis",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "fastapi",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "mongodb",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "go",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "gin",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "redis",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "前端开发工程师",
+      "target": "html",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "前端开发工程师",
+      "target": "css",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "前端开发工程师",
+      "target": "javascript",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "前端开发工程师",
+      "target": "typescript",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "前端开发工程师",
+      "target": "react",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "前端开发工程师",
+      "target": "three.js",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "javascript",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "node.js",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "redis",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "mongodb",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "java",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "hadoop",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "spark",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "flink",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "hive",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "kafka",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "大数据开发工程师",
+      "target": "clickhouse",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "数据分析师",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "数据分析师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "数据分析师",
+      "target": "spark",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "AI工程师",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "AI工程师",
+      "target": "tensorflow",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "AI工程师",
+      "target": "pytorch",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "AI工程师",
+      "target": "numpy",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "AI工程师",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "AI工程师",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "软件测试工程师",
+      "target": "linux",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "软件测试工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "软件测试工程师",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "软件测试工程师",
+      "target": "jenkins",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "运维工程师",
+      "target": "linux",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "运维工程师",
+      "target": "docker",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "运维工程师",
+      "target": "nginx",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "运维工程师",
+      "target": "mysql",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "运维工程师",
+      "target": "kubernetes",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "运维工程师",
+      "target": "ansible",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "运维工程师",
+      "target": "prometheus",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "运维工程师",
+      "target": "grafana",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "安全工程师",
+      "target": "网络安全",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "安全工程师",
+      "target": "linux",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "安全工程师",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 1.0,
+      "is_required": true
+    },
+    {
+      "source": "安全工程师",
+      "target": "c++",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "产品经理",
+      "target": "sql",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "产品经理",
+      "target": "python",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "产品经理",
+      "target": "项目管理",
+      "type": "REQUIRES",
+      "weight": 0.6,
+      "is_required": false
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "Python后端开发工程师",
+      "type": "RELATED_TO",
+      "similar": 0.25
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "Go开发工程师",
+      "type": "RELATED_TO",
+      "similar": 0.4
+    },
+    {
+      "source": "Java后端开发工程师",
+      "target": "全栈开发工程师",
+      "type": "RELATED_TO",
+      "similar": 0.25
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "Go开发工程师",
+      "type": "RELATED_TO",
+      "similar": 0.3
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "全栈开发工程师",
+      "type": "RELATED_TO",
+      "similar": 0.5556
+    },
+    {
+      "source": "Python后端开发工程师",
+      "target": "数据分析师",
+      "type": "RELATED_TO",
+      "similar": 0.25
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "全栈开发工程师",
+      "type": "RELATED_TO",
+      "similar": 0.3
+    },
+    {
+      "source": "Go开发工程师",
+      "target": "运维工程师",
+      "type": "RELATED_TO",
+      "similar": 0.2727
+    },
+    {
+      "source": "全栈开发工程师",
+      "target": "数据分析师",
+      "type": "RELATED_TO",
+      "similar": 0.25
+    },
+    {
+      "source": "数据分析师",
+      "target": "软件测试工程师",
+      "type": "RELATED_TO",
+      "similar": 0.4
+    },
+    {
+      "source": "软件测试工程师",
+      "target": "安全工程师",
+      "type": "RELATED_TO",
+      "similar": 0.3333
+    }
+  ],
+  "metadata": {
+    "node_count": 53,
+    "edge_count": 81,
+    "exported_at": "2026-08-13T02:02:27",
+    "version": "1.0"
+  }
+}

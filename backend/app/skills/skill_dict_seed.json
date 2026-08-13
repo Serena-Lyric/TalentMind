@@ -1,0 +1,1641 @@
+[
+  {
+    "canonical": "5g",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "agile",
+    "aliases": [
+      "敏捷开发"
+    ],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "ai",
+    "aliases": [
+      "人工智能"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "angular",
+    "aliases": [
+      "angular.js",
+      "angularjs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "ansible",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "ant design",
+    "aliases": [
+      "antd"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "apache",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "api",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "ar",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "asp.net",
+    "aliases": [
+      "aspnet"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "asp.net core",
+    "aliases": [
+      "aspnetcore"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "aws",
+    "aliases": [
+      "amazon web services",
+      "amazonws"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "axios",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "azure",
+    "aliases": [
+      "microsoft azure"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "b2b",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "b2c",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "base",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "bash",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "beego",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "bert",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "bitbucket",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "bootstrap",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "c#",
+    "aliases": [
+      "csharp"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "c++",
+    "aliases": [
+      "cpp"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "c2c",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "caffe",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "cap",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "cassandra",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "catboost",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "chakra ui",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "chart.js",
+    "aliases": [
+      "chartjs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "chef",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "ci/cd",
+    "aliases": [
+      "ci cd",
+      "cicd",
+      "持续集成"
+    ],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "circleci",
+    "aliases": [
+      "circle ci"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "clickhouse",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "clojure",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "cnn",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "codeigniter",
+    "aliases": [
+      "ci"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "confluence",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "css",
+    "aliases": [
+      "sass",
+      "scss"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "d3.js",
+    "aliases": [
+      "d3",
+      "d3js"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "dart",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "devops",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "django",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "docker",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "dynamodb",
+    "aliases": [
+      "dynamo"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "echarts",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "echo",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "elasticsearch",
+    "aliases": [
+      "es"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "element ui",
+    "aliases": [
+      "element",
+      "elementui"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "elixir",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "elk",
+    "aliases": [
+      "elastic stack"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "embedding",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "erlang",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "express",
+    "aliases": [
+      "express.js",
+      "expressjs"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "f#",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "fastapi",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "fastify",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "fetch",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "fiber",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "flask",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "flink",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "gatsby",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "gcp",
+    "aliases": [
+      "google cloud",
+      "google cloud platform"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "gensim",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "gin",
+    "aliases": [
+      "gingo"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "git",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "github",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "github actions",
+    "aliases": [
+      "githubactions"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "gitlab",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "gitlab ci",
+    "aliases": [
+      "gitlabci"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "go",
+    "aliases": [
+      "golang"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "gpt",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "grafana",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "graphql",
+    "aliases": [
+      "gql"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "groovy",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "hadoop",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "haskell",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "hbase",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "hdfs",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "helm",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "hive",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "hono",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "html",
+    "aliases": [
+      "htm"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "http",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "https",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "ide",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "influxdb",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "iris",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "java",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "javascript",
+    "aliases": [
+      "es5",
+      "es6",
+      "js"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "jenkins",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "jieba",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "jira",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "jquery",
+    "aliases": [
+      "jq"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "js",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "julia",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "jwt",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "k-means",
+    "aliases": [
+      "kmeans"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "k8s",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "kafka",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "kanban",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "keras",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "koa",
+    "aliases": [
+      "koajs"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "kotlin",
+    "aliases": [
+      "kt"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "kubernetes",
+    "aliases": [
+      "k8s"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "laravel",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "less",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "lightgbm",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "linux",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "lstm",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "lua",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "mapreduce",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "matlab",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "matplotlib",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "memcached",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "mobx",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "mongodb",
+    "aliases": [
+      "mongo"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "mqtt",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "mui",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "mxnet",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "mysql",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "nagios",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "neo4j",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "nestjs",
+    "aliases": [
+      "nest",
+      "nest.js"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "next.js",
+    "aliases": [
+      "next",
+      "nextjs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "nginx",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "nlp",
+    "aliases": [
+      "自然语言处理"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "nltk",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "node.js",
+    "aliases": [
+      "node",
+      "nodejs"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "numpy",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "nuxt.js",
+    "aliases": [
+      "nuxt",
+      "nuxtjs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "o2o",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "oauth",
+    "aliases": [
+      "oauth2"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "objective-c",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "oop",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "opencv",
+    "aliases": [
+      "cv"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "openstack",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "oracle",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "pandas",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "parcel",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "pascal",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "perl",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "php",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "pillow",
+    "aliases": [
+      "pil"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "postgresql",
+    "aliases": [
+      "pg",
+      "postgres"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "powershell",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "presto",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "prometheus",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "puppet",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "python",
+    "aliases": [
+      "py",
+      "python3"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "pytorch",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "r",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "rabbitmq",
+    "aliases": [
+      "rabbit"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "random forest",
+    "aliases": [
+      "randomforest"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "react",
+    "aliases": [
+      "react.js",
+      "reactjs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "redis",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "redux",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "rest",
+    "aliases": [
+      "restful",
+      "restful api"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "rnn",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "ruby",
+    "aliases": [
+      "rb"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "ruby on rails",
+    "aliases": [
+      "rails",
+      "ror",
+      "rubyonrails"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "rust",
+    "aliases": [
+      "rs"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "rxjs",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "saas",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "saber",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "sass",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "scala",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "scikit-learn",
+    "aliases": [
+      "sklearn"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "scipy",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "scrum",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "sdk",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "seaborn",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "semantic ui",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "shell",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "spacy",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "spark",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "splunk",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "spring",
+    "aliases": [
+      "springframework"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "spring boot",
+    "aliases": [
+      "springboot"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "spring cloud",
+    "aliases": [
+      "springcloud"
+    ],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "sql",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "sql server",
+    "aliases": [
+      "mssql",
+      "sqlserver"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "sqlite",
+    "aliases": [],
+    "category": "数据库"
+  },
+  {
+    "canonical": "sre",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "sso",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "storm",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "svelte",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "svm",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "svn",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "swift",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "symfony",
+    "aliases": [],
+    "category": "后端框架"
+  },
+  {
+    "canonical": "tailwind",
+    "aliases": [
+      "tailwindcss"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "tcp",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "tdd",
+    "aliases": [
+      "测试驱动开发"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "tensorflow",
+    "aliases": [
+      "tf"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "terraform",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "three.js",
+    "aliases": [
+      "threejs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "tidb",
+    "aliases": [
+      "ti db"
+    ],
+    "category": "数据库"
+  },
+  {
+    "canonical": "tomcat",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "transformer",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "travis ci",
+    "aliases": [
+      "travisci"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "ts",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "typescript",
+    "aliases": [
+      "ts"
+    ],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "udp",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "uml",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "unix",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "vagrant",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "vb.net",
+    "aliases": [],
+    "category": "编程语言"
+  },
+  {
+    "canonical": "vite",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "vmware",
+    "aliases": [],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "vr",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "vue",
+    "aliases": [
+      "vue.js",
+      "vuejs"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "vuex",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "webpack",
+    "aliases": [],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "websocket",
+    "aliases": [
+      "ws"
+    ],
+    "category": "前端技术"
+  },
+  {
+    "canonical": "windows server",
+    "aliases": [
+      "windowsserver"
+    ],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "word2vec",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "xgboost",
+    "aliases": [],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "zabbix",
+    "aliases": [],
+    "category": "DevOps/运维"
+  },
+  {
+    "canonical": "企业服务",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "信息安全",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "元宇宙",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "内容",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "出行",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "分布式",
+    "aliases": [
+      "distributed"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "分析能力",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "创新能力",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "加密",
+    "aliases": [
+      "encryption"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "区块链",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "医疗",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "华为云",
+    "aliases": [
+      "huaweicloud"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "单元测试",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "反欺诈",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "团队协作",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "增长黑客",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "学习能力",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "安全",
+    "aliases": [
+      "security"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "并发",
+    "aliases": [
+      "concurrency"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "广告",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "异步",
+    "aliases": [
+      "async"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "微服务",
+    "aliases": [
+      "microservice",
+      "microservices"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "性能优化",
+    "aliases": [
+      "optimization"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "抗压能力",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "推荐系统",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "搜索",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "敏捷开发",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "教育",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "数据结构",
+    "aliases": [
+      "data structure"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "文档编写",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "日语",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "时间管理",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "机器学习",
+    "aliases": [
+      "machine learning",
+      "ml"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "沟通",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "消息队列",
+    "aliases": [
+      "message queue",
+      "mq"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "深度学习",
+    "aliases": [
+      "deep learning",
+      "dl"
+    ],
+    "category": "AI/机器学习"
+  },
+  {
+    "canonical": "游戏",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "源码",
+    "aliases": [
+      "source code"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "演讲",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "熔断",
+    "aliases": [
+      "circuit breaker"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "物联网",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "电商",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "社交",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "算法",
+    "aliases": [
+      "algorithm"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "系统设计",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "缓存",
+    "aliases": [
+      "cache"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "网络安全",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "腾讯云",
+    "aliases": [
+      "tencentcloud"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "英语",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "设计模式",
+    "aliases": [
+      "design pattern"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "负载均衡",
+    "aliases": [
+      "lb",
+      "load balance"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "适应能力",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "金山云",
+    "aliases": [
+      "ksyun"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "金融",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "问题解决",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "阿里云",
+    "aliases": [
+      "ali cloud",
+      "aliyun"
+    ],
+    "category": "大数据/云"
+  },
+  {
+    "canonical": "降级",
+    "aliases": [
+      "degradation"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "限流",
+    "aliases": [
+      "rate limit"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "集成测试",
+    "aliases": [],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "面向对象",
+    "aliases": [
+      "oop",
+      "面向对象编程"
+    ],
+    "category": "软件工程"
+  },
+  {
+    "canonical": "韩语",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "项目管理",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "领导力",
+    "aliases": [],
+    "category": "软技能"
+  },
+  {
+    "canonical": "风控",
+    "aliases": [],
+    "category": "专业领域"
+  },
+  {
+    "canonical": "高并发",
+    "aliases": [
+      "high concurrency"
+    ],
+    "category": "软件工程"
+  }
+]

@@ -9,3 +9,23 @@ docs/originalfile/archive/postings.csv
 __pycache__/
 *.pyc
 .venv/
+
+# 本地大型数据、网页快照和采集缓存
+data/local/*
+!data/local/README.md
+# 待整合模块：IDE / 大文件 / 生成物保护（迁移验证后随目录删除）
+图谱模块/.idea/
+图谱模块/lib/
+图谱模块/job.db
+图谱模块/output/
+jd-filter-package/.pytest_cache/
+jd-filter-package/data/
+jd-filter-package/result/
+# 前端构建产物与依赖
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/pnpm-debug.log*
+
+# M2 checkpoint 中间产物
+backend/app/job_analysis/data/

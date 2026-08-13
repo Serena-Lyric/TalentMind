@@ -1,0 +1,176 @@
+﻿/* ===== 全局样式 - 暖色系轻量仪表盘设计系统 ===== */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #FDFBF7;
+  color: #3D3D3D;
+  font-family: 'Noto Sans SC', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+/* ===== Element Plus 全局覆写 ===== */
+
+.el-button--primary {
+  --el-button-bg-color: #E07B6D;
+  --el-button-border-color: #E07B6D;
+  --el-button-hover-bg-color: #E8948A;
+  --el-button-hover-border-color: #E8948A;
+  --el-button-active-bg-color: #D96C63;
+  --el-button-active-border-color: #D96C63;
+  border-radius: 10px;
+}
+
+.el-button {
+  border-radius: 10px;
+  font-weight: 500;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.el-button:hover {
+  transform: translateY(-1px);
+}
+
+.el-tag {
+  border-radius: 8px;
+  font-weight: 400;
+}
+
+.el-input__wrapper {
+  border-radius: 10px !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+  background: #fff !important;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px rgba(224, 123, 109, 0.3) !important;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #E07B6D !important;
+}
+
+.el-dialog {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.el-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+  background: #FAF7F2 !important;
+  border-bottom: 1px solid #F0EBE3;
+  font-weight: 500;
+  color: #8C8C8C;
+  font-size: 12px;
+}
+
+.el-pagination {
+  --el-pagination-button-bg-color: #fff;
+  --el-pagination-hover-color: #E07B6D;
+}
+
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background-color: #E07B6D;
+  border-color: #E07B6D;
+}
+
+.el-loading-mask {
+  border-radius: 16px;
+  background: rgba(253, 251, 247, 0.9);
+}
+
+.el-loading-spinner .el-loading-text {
+  color: #E07B6D;
+  font-size: 13px;
+}
+
+/* ===== 暖色卡片基类 ===== */
+
+.warm-card {
+  background: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.warm-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== 面板通用样式（兼容旧模块） ===== */
+
+.panel {
+  background: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  padding: 20px;
+}
+
+.panel:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== 滚动条 ===== */
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* ===== 页面通用 ===== */
+
+.page {
+  max-width: 1440px;
+  margin: auto;
+}
+
+.page-title h1 {
+  font-size: 20px;
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: #3D3D3D;
+}
+
+.page-title p {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 760px) {
+  .header-right span {
+    display: none;
+  }
+}

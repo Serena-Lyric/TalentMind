@@ -1,0 +1,30 @@
+姓名：张三
+电话：13800138000
+邮箱：zhangsan@email.com
+年龄：30
+性别：男
+地点：北京
+工作年限：5年
+
+教育背景
+2015.09 - 2019.06 清华大学 计算机科学与技术 本科
+
+工作经历
+2021.07 - 至今 字节跳动 高级后端工程师
+负责推荐系统后端开发
+使用Go语言和Python进行微服务开发
+熟练使用MySQL、Redis、Elasticsearch
+熟悉Kubernetes和Docker
+
+项目经验
+智能推荐系统 2022.03 - 2023.06
+使用Go + Gin框架构建高性能API
+使用MySQL和Redis进行数据存储
+日均处理请求超100万
+
+技能专长
+编程语言: Python, Go, Java
+后端框架: Gin, Flask, Django
+数据库: MySQL, Redis, Elasticsearch
+工具: Docker, Kubernetes, Git
+云服务: AWS, 阿里云

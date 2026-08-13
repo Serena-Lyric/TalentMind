@@ -1,0 +1,33 @@
+﻿【前端交付说明】
+
+我的分工：仅负责前端 UI 页面开发，后端接口由其他组员独立负责。
+
+已交付内容：
+1. 完整前端项目源码（Vue3 + Element Plus + ECharts + AntV G6）
+2. 前后端接口对接文档（20个接口，含请求/响应格式、字段说明）
+3. 本地 Mock 模拟数据，前端可独立运行调试
+4. 项目说明文档（安装、启动、接口配置说明）
+
+项目文件结构：
+├── src/api/           - 接口定义层（按模块拆分）
+├── src/utils/request.ts - axios 统一封装
+├── src/views/         - 6个页面（Dashboard/Jobs/Graph/Resume/Learning/ResumeDemo）
+├── src/components/    - 公共组件
+├── src/data/mock.js   - 模拟数据
+├── readme.txt         - 项目说明文档
+└── 前后端接口对接文档.md - 接口规范文档
+
+注意事项：
+1. 前端所有接口已通过 mock 数据跑通，页面功能完整
+2. 对接真实后端只需改 src/utils/request.ts 中的 USE_MOCK=false 和 BASE_URL
+3. 后端需按接口文档实现，响应格式统一 { code, data, message }
+4. 文件上传接口（简历导入、JD导入）需支持 multipart/form-data
+5. Excel 导出接口需返回文件流
+
+联调方式：
+1. 后端按接口文档实现接口
+2. 前端修改 BASE_URL 指向后端地址
+3. 逐模块对接：先看板 → 岗位 → 简历 → 图谱
+4. 如有字段差异，以前端接口文档为准调整
+
+有问题随时沟通。
