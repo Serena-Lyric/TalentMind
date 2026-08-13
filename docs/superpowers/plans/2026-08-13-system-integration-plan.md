@@ -48,11 +48,12 @@
 4. [ ] `exchange/m4/` 运行说明与接口自述（/resume/analyze、/match）——阶段 6 与 API 一并补充。
 5. [x] 文本解析/匹配测试通过；PDF/DOCX 解析依赖（pdfplumber/python-docx/mammoth）**未安装**（文本模式可运行，文件解析为可选功能，见资产清单）。
 
-## 阶段 6：A 集成层（backend/app/integration + routers）
-1. `import_exchange.py`：M2 JSON → MySQL（jd_pool/skill_dict/job_definition/job_skill/job_change_log），字段白名单对齐 ddl.sql，幂等（先清同批次再写或 upsert）。
-2. `import_graph.py`：graph.json → Neo4j（Job/Skill 节点 + REQUIRES/RELATED_TO，Cypher MERGE）。
-3. `routers/`：按 D30 的 **20 接口**实现（jobs CRUD + import/export、graph data/jobs/years/skill-radar、resume upload/skill-dimensions/target-jobs、dashboard overview/trend/skill-distribution/skill-radar/industry-tracks、learning 相关按需）；统一响应 `{code:0,message,data}`、snake_case。
-4. 测试：导入幂等测试 + API 契约测试（code=0、字段 snake_case）；与前端联调（Mock→真实）。
+## 阶段 6：A 集成层（MVP 子集已完成）
+1. [x] `import_exchange.py`：skill_dict（285）/ job_definition（8）/ job_skill（8）/ job_change_log（0）导入 MySQL，按 job_name 先删后插，幂等。
+2. [x] `import_graph.py`：graph.json → Neo4j（Job/Skill MERGE + REQUIRES/RELATED_TO），幂等；当前 53 节点 / 81 边。
+3. [x] `routers/mvp.py` **MVP 5 接口**：GET /api/jobs、GET /api/graph/data、GET /api/graph/jobs、GET /api/graph/years、POST /api/resume/upload、GET /api/resume/target-jobs、GET /api/resume/skill-dimensions（7 个端点）；统一 `{code:0,message,data}`、snake_case；main.py 挂载 `/api`。
+4. [x] 测试：`tests/test_integration_mvp.py` 5 项通过（导入幂等 + API 冒烟）；全量 185 通过；HTTP 冒烟：/health、/api/jobs（total=8）、/api/graph/data（53/81）、/api/resume/upload（score=12, target=...）。
+5. [ ] 剩余 14 个接口（jobs CRUD/import/export、dashboard 5、graph skill-radar、learning 等）→ MVP 联调后按需补全；前端 `USE_MOCK=false` 联调待后端 CORS/部署配置。
 
 ## 阶段 7：端到端验证与清理
 1. 全量测试：backend 94+12 + 各迁移模块测试 + 新增集成检查。

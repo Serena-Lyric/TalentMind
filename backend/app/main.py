@@ -17,4 +17,7 @@ async def _test_bizerror():
 async def _test_crash():
     raise RuntimeError("unexpected")
 
-# 各人 router 挂载点(计划 A~E 在此 include_router)
+# 统一 API（A 集成层，阶段 6 MVP）
+from app.routers.mvp import router as mvp_router
+app.include_router(mvp_router, prefix="/api")
+
