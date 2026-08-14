@@ -46,7 +46,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const title = to.meta.title || '岗位能力图谱'
   document.title = title + ' - 岗位能力图谱'
   next()

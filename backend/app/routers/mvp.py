@@ -4,6 +4,7 @@
 统一响应 {code:0, message, data}（D29），字段 snake_case。
 """
 import json
+from pathlib import Path
 
 import io
 
@@ -59,6 +60,35 @@ def _parse_json_list(value) -> list:
         return []
 
 
+# ── 中英文展示过渡（2026-08-14，短期方案） ──
+# 契约 key = 英文 job_name；展示名取 job_definition_zh.json（与 en 同序，translate 保序）。
+# 长期：M2 输出 job_name_zh 字段后，此映射改为读该字段（见修正方案第三节）。
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_ZH_MAP: dict[str, str] | None = None
+
+
+def _load_zh_map() -> dict[str, str]:
+    global _ZH_MAP
+    if _ZH_MAP is None:
+        m: dict[str, str] = {}
+        path = _REPO_ROOT / "exchange" / "m2" / "job_definition_zh.json"
+        en_path = _REPO_ROOT / "exchange" / "m2" / "job_definition.json"
+        try:
+            en_list = json.loads(en_path.read_text(encoding="utf-8"))
+            zh_list = json.loads(path.read_text(encoding="utf-8"))
+            for e, z in zip(en_list, zh_list):
+                m[e.get("job_name", "")] = z.get("job_name", "") or e.get("job_name", "")
+        except Exception:
+            m = {}
+        _ZH_MAP = m
+    return _ZH_MAP
+
+
+def _display_title(en_name: str) -> str:
+    """英文 key → 中文展示名（找不到回退英文）。"""
+    return _load_zh_map().get(en_name, en_name)
+
+
 @router.get("/jobs")
 def list_jobs(
     keyword: str = Query(""),
@@ -71,7 +101,8 @@ def list_jobs(
         skills = _parse_json_list(r["required_skills"]) + _parse_json_list(r["bonus_skills"])
         items.append({
             "id": str(r["id"]),
-            "title": r["job_name"],
+            "title": _display_title(r["job_name"]),
+            "name_en": r["job_name"],
             "company": "",
             "city": "",
             "type": "",
@@ -90,7 +121,7 @@ def graph_jobs():
     db = SessionLocal()
     try:
         rows = db.execute(text("SELECT id, job_name FROM job_definition ORDER BY id")).all()
-        return ok([{"value": str(r[0]), "label": r[1]} for r in rows])
+        return ok([{"value": str(r[0]), "label": _display_title(r[1]), "name_en": r[1]} for r in rows])
     finally:
         db.close()
 
@@ -120,7 +151,8 @@ def graph_data(year: str = "", focus_job: str = ""):
             continue
         if "Job" in ls:
             nodes.append({
-                "id": name, "label": name, "kind": "job",
+                "id": name, "label": _display_title(name), "name_en": name,
+                "kind": "job",
                 "size": 30, "color": "#D98B6E", "status": "stable",
                 "jobs": 1,
             })
@@ -229,7 +261,8 @@ async def resume_upload(
                 for m in result.get("unmatched_job_skills", [])
             ],
             "strengths": result.get("resume_extra_skills", []),
-            "target_job": job_name,
+            "target_job": _display_title(job_name),
+            "target_job_en": job_name,
         }
 
     return ok({"profile": profile, "matchResult": match_result})
@@ -240,7 +273,7 @@ def resume_target_jobs():
     db = SessionLocal()
     try:
         rows = db.execute(text("SELECT id, job_name FROM job_definition ORDER BY id")).all()
-        return ok([{"value": str(r[0]), "label": r[1], "score": 0} for r in rows])
+        return ok([{"value": str(r[0]), "label": _display_title(r[1]), "name_en": r[1], "score": 0} for r in rows])
     finally:
         db.close()
 
@@ -325,7 +358,7 @@ def job_detail(job_id: int):
         if not r:
             raise BizError(4041, "岗位不存在")
         return ok({
-            "id": str(r[0]), "title": r[1],
+            "id": str(r[0]), "title": _display_title(r[1]), "name_en": r[1],
             "skills": _parse_json_list(r[2]) + _parse_json_list(r[3]),
             "responsibilities": [r[4]] if r[4] else [],
             "scenarios": _parse_json_list(r[5]),

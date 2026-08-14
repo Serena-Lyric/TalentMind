@@ -140,7 +140,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, reactive } from 'vue'
 import { Search, User, Document, DataAnalysis, Trophy, Plus } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { getDashboardOverview, getDashboardTrend, getSkillDistribution, getJobList } from '../api'
+import { getDashboardOverview } from '../api'
 
 const dashboardLoading = ref(true)
 const timeRange = ref('month')

@@ -316,8 +316,8 @@
   </section>
 </template>
 <script setup lang="ts">
-import { ref, computed, nextTick, reactive, onMounted } from 'vue'
-import { Upload, Plus, Search, UploadFilled, Delete, Download, RefreshLeft, Close, Document, User, Collection, DataAnalysis, TrendCharts, Warning } from '@element-plus/icons-vue'
+import { ref, computed, onMounted } from 'vue'
+import { Upload, Plus, Search, UploadFilled, Delete, Download, RefreshLeft, Document, User, Collection } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getJobList } from '../api/jobs'
 import { getIndustryTracks } from '../api/dashboard'
@@ -395,7 +395,7 @@ function onSkillTagClick(skill: string) { keyword.value = skill; currentPage.val
 function resetFilters() { keyword.value = ''; city.value = ''; trackFilter.value = ''; skillStatus.value = ''; salaryRange.value = ''; updateTimeRange.value = null; currentPage.value = 1 }
 function onSearchClear() { keyword.value = ''; currentPage.value = 1 }
 function onSelectionChange(rows: Job[]) { selectedRows.value = rows }
-function tableRowClassName({ row }: { row: Job }) { return 'hover-highlight-row' }
+function tableRowClassName() { return 'hover-highlight-row' }
 
 function batchDelete() {
   ElMessageBox.confirm(`确认删除选中的 ${selectedRows.value.length} 个岗位？`, '批量删除确认', { type: 'warning' })
@@ -422,7 +422,7 @@ const evolutionGroups = computed(() => selectedJob.value ? [
   { key: 'removed', symbol: '-', label: '淘汰技能', items: selectedJob.value?.evolution?.removed || [] },
   { key: 'changed', symbol: '~', label: '变更技能', items: selectedJob.value?.evolution?.changed || [] }
 ] : [])
-const editableGroups = [
+const editableGroups: { key: keyof Evolution; symbol: string; label: string }[] = [
   { key: 'added', symbol: '+', label: '新增技能' },
   { key: 'removed', symbol: '-', label: '淘汰技能' },
   { key: 'changed', symbol: '~', label: '变更技能' }

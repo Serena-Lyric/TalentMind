@@ -150,7 +150,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, Download, FolderChecked } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -166,7 +166,6 @@ const compareMode = ref(false)
 const yearA = ref('2026')
 const yearB = ref('2024')
 const searchSkill = ref('')
-const hoverLegend = ref('')
 const hiddenKinds = ref<string[]>([])
 const selectedNodes = ref<any[]>([])
 const sideTab = ref('metrics')
@@ -181,7 +180,6 @@ const graphData = ref<any>({ nodes: [], edges: [], stats: { totalNodes: 0, total
 const graphJobs = ref<any[]>([])
 const graphYears = ref<string[]>(['2026'])
 
-const currentYear = computed(() => compareMode.value ? yearA.value : '2026')
 const currentData = computed(() => {
   const snap = graphData.value
   let nodes = snap.nodes.filter((n: any) => !hiddenKinds.value.includes(n.kind))
@@ -338,12 +336,12 @@ async function initGraph() {
   })
 
   await graph.render()
-  try { await graph.fitView(20) } catch (e) { /* ignore */ }
+  try { await graph.fitView({ when: 'always' }) } catch (e) { /* ignore */ }
   graphStats.totalNodes = data.nodes.length
   graphStats.totalEdges = data.edges.length
-  graphStats.added = data.stats?.added || 0
-  graphStats.removed = data.stats?.removed || 0
-  graphStats.changed = data.stats?.changed || 0
+  graphStats.added = graphData.value.stats?.added || 0
+  graphStats.removed = graphData.value.stats?.removed || 0
+  graphStats.changed = graphData.value.stats?.changed || 0
 }
 
 function getLayoutConfig() {

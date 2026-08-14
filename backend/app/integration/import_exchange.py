@@ -122,26 +122,39 @@ def import_job_skills(path: Path | None = None, session=None) -> int:
 
 
 def import_change_logs(path: Path | None = None, session=None) -> int:
-    """job_change_log.json → job_change_log 表（按 job_id 先删后插）。"""
+    """job_change_log.json → job_change_log 表（全量重建）。
+
+    M2 产出的 job_id 是 job_name（字符串，见 differ.py）；DDL 中 job_change_log.job_id
+    关联 job_definition.id，故导入时先按 job_name 解析为真实 id，解析不到的记录跳过。
+    注意：DDL change_type VARCHAR(16) 无法容纳 scenarios_removed/evolution_changed（17
+    字符），需扩容后 M2 diff 才能产出这类日志（见笔记/决策跟踪，D33 同流程）。
+    """
     logs = _load_json(path or EXCHANGE_M2 / "job_change_log.json")
     db = session or SessionLocal()
     try:
+        rows = db.execute(text("SELECT id, job_name FROM job_definition")).all()
+        name_to_id = {str(r[1]).strip().lower(): r[0] for r in rows}
+        known_ids = set(name_to_id.values())
+        db.execute(text("DELETE FROM job_change_log"))
+        imported = 0
         for log in logs:
-            job_id = log.get("job_id", "")
-            if job_id == "":
+            job_ref = log.get("job_id", "")
+            if job_ref == "":
                 continue
-            db.execute(text("DELETE FROM job_change_log WHERE job_id = :j"),
-                       {"j": job_id})
+            if isinstance(job_ref, str):
+                job_id = name_to_id.get(job_ref.strip().lower())
+            else:
+                job_id = int(job_ref) if job_ref else None
+            if job_id is None or job_id not in known_ids:
+                continue  # 关联不到岗位定义（如已删除/改名），跳过
             db.execute(
                 text("INSERT INTO job_change_log "
-                     "(job_id, change_type, object_type, skill_name, detail, "
-                     " source, reason, created_at) "
-                     "VALUES (:job_id, :change_type, :object_type, :skill_name, "
-                     " :detail, :source, :reason, :created_at)"),
+                     "(job_id, change_type, skill_name, detail, source, reason, created_at) "
+                     "VALUES (:job_id, :change_type, :skill_name, :detail, "
+                     " :source, :reason, :created_at)"),
                 {
                     "job_id": job_id,
                     "change_type": log.get("change_type", ""),
-                    "object_type": log.get("object_type", "skill"),
                     "skill_name": log.get("skill_name", ""),
                     "detail": json.dumps(log.get("detail", {}), ensure_ascii=False),
                     "source": json.dumps(log.get("source", []), ensure_ascii=False),
@@ -149,8 +162,9 @@ def import_change_logs(path: Path | None = None, session=None) -> int:
                     "created_at": log.get("created_at", None) or None,
                 },
             )
+            imported += 1
         db.commit()
-        return len(logs)
+        return imported
     except Exception:
         db.rollback()
         raise

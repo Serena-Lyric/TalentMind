@@ -182,9 +182,9 @@ interface JobOption {
   value: string
   label: string
   score: number
-  dimensions?: { name: string; value: number }[]
-  matched?: string[]
-  missing?: MissingSkill[]
+  dimensions: { name: string; value: number }[]
+  matched: string[]
+  missing: MissingSkill[]
 }
 
 const router = useRouter()
@@ -200,14 +200,14 @@ const profile = ref<any>({
 const matchResult = ref<any>(null)
 const targetJobs = ref<JobOption[]>([])
 
-const currentJob = computed<JobOption | undefined>(() => {
+const currentJob = computed<JobOption>(() => {
   const base = targetJobs.value.find((item: any) => String(item.value) === String(targetJob.value))
-  if (!base) return undefined
+  if (!base) return { value: '', label: '未选择目标岗位', score: 0, matched: [], missing: [], dimensions: [] }
   const mr = matchResult.value
   if (mr && mr.target_job && (base.label === mr.target_job || String(base.value) === String(mr.target_job))) {
-    return { ...base, score: mr.score ?? base.score, matched: mr.matched || [], missing: mr.missing || [] }
+    return { ...base, score: mr.score ?? base.score, matched: mr.matched || [], missing: mr.missing || [], dimensions: base.dimensions || [] }
   }
-  return base
+  return { ...base, matched: base.matched || [], missing: base.missing || [], dimensions: base.dimensions || [] }
 })
 
 const radarData = computed(() => ({
@@ -261,6 +261,7 @@ onMounted(async () => {
     if (Array.isArray(list) && list.length) {
       targetJobs.value = list.map((j: any) => ({
         value: String(j.value), label: j.label, score: j.score || 0,
+        dimensions: [], matched: [], missing: [],
       }))
       targetJob.value = String(list[0].value)
     }

@@ -29,3 +29,9 @@ frontend/pnpm-debug.log*
 
 # M2 checkpoint 中间产物
 backend/app/job_analysis/data/
+
+# 队员提交原版模块（input/ 含真实简历，禁止入库；仅作对比参考）
+input/
+
+# 回发包（Roundtrip 输出，用户自行压缩发送，不入库）
+output/

@@ -138,3 +138,58 @@ def test_mvp_jobs_import_export():
 def test_mvp_graph_skill_radar():
     resp = client.get("/api/graph/skill-radar", params={"node_name": "Python"})
     assert resp.json()["code"] == 0
+
+
+def test_import_change_logs_job_name_resolution(tmp_path):
+    """job_change_log.json 的 job_id 为 job_name（M2 differ 产出），导入时应解析为
+    job_definition.id；object_type 列不存在于 DDL，不得再写入（曾潜伏于空日志）。"""
+    import json as _json
+    from app.integration.import_exchange import import_change_logs
+    from app.db.mysql import SessionLocal
+
+    db = SessionLocal()
+    try:
+        job = db.execute(
+            text("SELECT id, job_name FROM job_definition ORDER BY id LIMIT 1")
+        ).first()
+    finally:
+        db.close()
+    assert job, "需要至少一条 job_definition"
+
+    log_file = tmp_path / "job_change_log.json"
+    log_file.write_text(_json.dumps([
+        {
+            "job_id": job[1],  # job_name 字符串
+            "change_type": "added",
+            "object_type": "skill",  # M2 会输出该字段，导入层应忽略（DDL 无此列）
+            "skill_name": "python",
+            "detail": {"old_value": None, "new_value": {"confidence": 0.8}},
+            "source": ["dataset"],
+            "reason": "test",
+            "created_at": "2026-08-14T10:00:00",
+        },
+        {"job_id": "不存在的岗位名", "change_type": "added", "skill_name": "x"},
+    ], ensure_ascii=False), encoding="utf-8")
+
+    n = import_change_logs(path=log_file)
+    assert n == 1
+
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text("SELECT job_id, change_type, skill_name FROM job_change_log")
+        ).first()
+    finally:
+        db.close()
+    assert row is not None
+    assert row[0] == job[0]
+    assert row[1] == "added"
+    assert row[2] == "python"
+
+    # 清理测试数据，保持 job_change_log 为空（与线上状态一致）
+    db = SessionLocal()
+    try:
+        db.execute(text("DELETE FROM job_change_log WHERE job_id = :j"), {"j": job[0]})
+        db.commit()
+    finally:
+        db.close()

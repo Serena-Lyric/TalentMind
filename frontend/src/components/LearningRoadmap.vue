@@ -161,7 +161,7 @@
             <p>建议优先补齐 {{ currentPath.prioritySkills.length }} 项薄弱技能，预计用时 {{ estimatedWeeks }} 周</p>
             <div class="daily-hours-selector">
               <span>每日学习时长：</span>
-              <el-slider v-model="dailyHours" :min="1" :max="6" :step="0.5" :format-tooltip="v=>v+'h'" @change="updateEstimatedWeeks" />
+              <el-slider v-model="dailyHours" :min="1" :max="6" :step="0.5" :format-tooltip="tooltipHours" @change="updateEstimatedWeeks" />
               <span class="hours-value">{{ dailyHours }}h</span>
             </div>
           </div>
@@ -216,7 +216,7 @@
         </section>
         <section class="timeline">
           <article v-for="(stage,stageIndex) in filteredStages" :key="stage.title" class="stage">
-            <div class="stage-marker" :class="{done:stage.tasks.every(t=>t.done)}"><span>{{ stageIndex+1 }}</span><small>{{ stage.weeks }}</small></div>
+            <div class="stage-marker" :class="{done:allTasksDone(stage.tasks)}"><span>{{ stageIndex+1 }}</span><small>{{ stage.weeks }}</small></div>
             <div class="panel stage-card" :class="{collapsed:stage.collapsed}">
               <div class="stage-card-head" @click="stage.collapsed=!stage.collapsed">
                 <div>
@@ -363,7 +363,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
-import { Download, List, Calendar, MagicStick, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Connection, Clock, Reading, Edit, Trophy, FolderOpened, Document, EditPen, Folder, DataLine, CopyDocument } from '@element-plus/icons-vue'
+import { Download, List, Calendar, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Connection, Clock, Reading, Edit, Trophy, FolderOpened, Document, EditPen, Folder, DataLine, CopyDocument } from '@element-plus/icons-vue'
 
 
 const router = useRouter()
@@ -384,7 +384,6 @@ const heroRadarRef = ref<HTMLElement>()
 const outcomeChartRef = ref<HTMLElement>()
 const drawerChartRef = ref<HTMLElement>()
 const trendRefs = ref<Record<string,HTMLElement>>({})
-const stageRadarRefs = ref<Record<string,HTMLElement>>({})
 
 const resourceTitle = ref('')
 const currentResource = ref<any>(null)
@@ -396,19 +395,19 @@ const currentPath = computed(()=>jobPaths.value[selectedJob.value])
 
 const estimatedWeeks = computed(()=>{
   if(!currentPath.value) return 0
-  const total = currentPath.value.learningStages.reduce((s,st)=>s+st.hours,0)
+  const total = currentPath.value.learningStages.reduce((s: number, st: any)=>s+st.hours,0)
   return Math.ceil(total/(dailyHours.value*7))
 })
 
 const allTasks = computed(()=>{
   if(!currentPath.value) return []
-  return currentPath.value.learningStages.flatMap(st=>st.tasks)
+  return currentPath.value.learningStages.flatMap((st: any)=>st.tasks)
 })
 
 const filteredPrioritySkills = computed(()=>{
   if(!currentPath.value) return []
   let skills = currentPath.value.prioritySkills
-  if(selectedTags.value.length>0) skills = skills.filter(s=>selectedTags.value.includes(s.name))
+  if(selectedTags.value.length>0) skills = skills.filter((s: any)=>selectedTags.value.includes(s.name))
   return skills
 })
 
@@ -416,7 +415,7 @@ const filteredStages = computed(()=>{
   if(!currentPath.value) return []
   let stages = currentPath.value.learningStages
   if(selectedTags.value.length>0){
-    stages = stages.map(s=>({...s,tasks:s.tasks.filter(t=>selectedTags.value.some(tag=>t.name.includes(tag)||t.desc.includes(tag)))})).filter(s=>s.tasks.length>0)
+    stages = stages.map((s: any)=>({...s,tasks:s.tasks.filter((t: any)=>selectedTags.value.some((tag: any)=>t.name.includes(tag)||t.desc.includes(tag)))})).filter((s: any)=>s.tasks.length>0)
   }
   return stages
 })
@@ -424,16 +423,16 @@ const filteredStages = computed(()=>{
 const allSkills = computed(()=>{
   if(!currentPath.value) return []
   const skills = new Set<string>()
-  currentPath.value.prioritySkills.forEach(s=>skills.add(s.name))
-  currentPath.value.learningStages.forEach(st=>st.skills.forEach(s=>skills.add(s)))
+  currentPath.value.prioritySkills.forEach((s: any)=>skills.add(s.name))
+  currentPath.value.learningStages.forEach((st: any)=>st.skills.forEach((s: any)=>skills.add(s)))
   return Array.from(skills)
 })
 
-const completedCount = computed(()=>allTasks.value.filter(t=>t.done).length)
-const inProgressCount = computed(()=>allTasks.value.filter(t=>t.status==='in-progress').length)
-const pendingCount = computed(()=>allTasks.value.filter(t=>t.status==='pending').length)
+const completedCount = computed(()=>allTasks.value.filter((t: any)=>t.done).length)
+const inProgressCount = computed(()=>allTasks.value.filter((t: any)=>t.status==='in-progress').length)
+const pendingCount = computed(()=>allTasks.value.filter((t: any)=>t.status==='pending').length)
 const progress = computed(()=>allTasks.value.length?Math.round(completedCount.value/allTasks.value.length*100):0)
-const totalHours = computed(()=>currentPath.value?.learningStages.reduce((s,st)=>s+st.hours,0)||0)
+const totalHours = computed(()=>currentPath.value?.learningStages.reduce((s: number, st: any)=>s+st.hours,0)||0)
 
 const weekDays = computed(()=>{
   const days:any[] = []
@@ -462,7 +461,7 @@ function getTaskStatusLabel(s:string){return{completed:'已完成','in-progress'
 function scrollToSkillTask(name:string){const el=document.querySelector(`[data-task="${name}"]`);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),2000)}}
 function goToGraph(id:string){router.push({path:'/graph',query:{highlight:id}})}
 function batchAddToPlan(){const sel=currentPath.value.prioritySkills.filter((s:any)=>s.selected);if(!sel.length){ElMessage.warning('请先选择要加入学习规划的技能');return}ElMessage.success(`已将${sel.length}项技能加入学习规划`)}
-function openResource(name:string,type:string){resourceTitle.value=`${name} - 学习资源`;currentResource.value=learningResources[name]||null;showResourceDialog.value=true}
+function openResource(name:string,_type:string){resourceTitle.value=`${name} - 学习资源`;currentResource.value=learningResources[name]||null;showResourceDialog.value=true}
 function saveProgress(){ElMessage.success('学习进度已保存')}
 function savePlan(){if(!currentPath.value){ElMessage.warning('暂无学习路径数据');return}ElMessage.success('学习方案已保存')}
 function exportPDF(){ElMessage.success('PDF导出功能开发中')}
@@ -472,15 +471,16 @@ function downloadPackage(){ElMessage.success('成果打包下载功能开发中'
 function prevWeek(){const d=new Date(currentWeekStart.value);d.setDate(d.getDate()-7);currentWeekStart.value=d}
 function nextWeek(){const d=new Date(currentWeekStart.value);d.setDate(d.getDate()+7);currentWeekStart.value=d}
 function isToday(d:Date){return d.toDateString()===new Date().toDateString()}
-function getTasksForDate(d:Date){if(!currentPath.value)return[];const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const tasks:any[]=[];currentPath.value.learningStages.forEach(st=>{st.tasks.forEach(t=>{if(t.dueDate===ds)tasks.push({...t,time:'09:00'})})});return tasks}
+function getTasksForDate(d:Date){if(!currentPath.value)return[];const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const tasks:any[]=[];currentPath.value.learningStages.forEach((st: any)=>{st.tasks.forEach((t: any)=>{if(t.dueDate===ds)tasks.push({...t,time:'09:00'})})});return tasks}
 function setTrendRef(el:any,name:string){if(el)trendRefs.value[name]=el}
-function setStageRadarRef(el:any,name:string){if(el)stageRadarRefs.value[name]=el}
+function tooltipHours(v: any){return v + 'h'}
+function allTasksDone(tasks: any[]){return tasks.every((t: any)=>t.done)}
 
 function initCharts(){initHeroRadar();initTrendCharts();initOutcomeChart();initDrawerChart()}
-function initHeroRadar(){if(!heroRadarRef.value||!currentPath.value)return;const c=echarts.init(heroRadarRef.value);const skills=currentPath.value.prioritySkills.slice(0,5);c.setOption({radar:{indicator:skills.map(s=>({name:s.name,max:100})),shape:'polygon',splitArea:{areaStyle:{color:['rgba(224,123,109,0.08)','rgba(224,123,109,0.03)']}}},series:[{type:'radar',data:[{value:skills.map(s=>s.impact),name:'能力缺口',areaStyle:{color:'rgba(224,123,109,0.25)'},lineStyle:{color:'#E07B6D'},itemStyle:{color:'#E07B6D'}}]}]})}
-function initTrendCharts(){if(!currentPath.value)return;currentPath.value.prioritySkills.forEach(skill=>{const el=trendRefs.value[skill.name];if(!el)return;const c=echarts.init(el);c.setOption({grid:{top:5,right:5,bottom:5,left:5},xAxis:{type:'category',show:false,data:['1月','2月','3月','4月','5月']},yAxis:{type:'value',show:false},series:[{type:'line',data:skill.trend,smooth:true,showSymbol:false,lineStyle:{color:skill.level==='high'?'#E07B6D':'#FFA726',width:2},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:skill.level==='high'?'rgba(224,123,109,0.3)':'rgba(255,167,38,0.3)'},{offset:1,color:'rgba(255,255,255,0)'}])}}]})})}
+function initHeroRadar(){if(!heroRadarRef.value||!currentPath.value)return;const c=echarts.init(heroRadarRef.value);const skills=currentPath.value.prioritySkills.slice(0,5);c.setOption({radar:{indicator:skills.map((s:any)=>({name:s.name,max:100})),shape:'polygon',splitArea:{areaStyle:{color:['rgba(224,123,109,0.08)','rgba(224,123,109,0.03)']}}},series:[{type:'radar',data:[{value:skills.map((s:any)=>s.impact),name:'能力缺口',areaStyle:{color:'rgba(224,123,109,0.25)'},lineStyle:{color:'#E07B6D'},itemStyle:{color:'#E07B6D'}}]}]})}
+function initTrendCharts(){if(!currentPath.value)return;currentPath.value.prioritySkills.forEach((skill:any)=>{const el=trendRefs.value[skill.name];if(!el)return;const c=echarts.init(el);c.setOption({grid:{top:5,right:5,bottom:5,left:5},xAxis:{type:'category',show:false,data:['1月','2月','3月','4月','5月']},yAxis:{type:'value',show:false},series:[{type:'line',data:skill.trend,smooth:true,showSymbol:false,lineStyle:{color:skill.level==='high'?'#E07B6D':'#FFA726',width:2},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:skill.level==='high'?'rgba(224,123,109,0.3)':'rgba(255,167,38,0.3)'},{offset:1,color:'rgba(255,255,255,0)'}])}}]})})}
 function initOutcomeChart(){if(!outcomeChartRef.value||!currentPath.value)return;const c=echarts.init(outcomeChartRef.value);c.setOption({grid:{top:30,right:30,bottom:30,left:80},xAxis:{type:'value',max:100},yAxis:{type:'category',data:['当前分数','目标分数'],axisLabel:{fontSize:14,color:'#3D3D3D'}},series:[{type:'bar',data:[{value:currentPath.value.currentScore,itemStyle:{color:'#E07B6D',borderRadius:[0,6,6,0]}},{value:currentPath.value.targetScore,itemStyle:{color:'#66BB6A',borderRadius:[0,6,6,0]}}],barWidth:30,label:{show:true,position:'right',formatter:'{c} 分',color:'#8C8C8C'}}]})}
-function initDrawerChart(){if(!drawerChartRef.value||!currentPath.value)return;const c=echarts.init(drawerChartRef.value);c.setOption({radar:{indicator:currentPath.value.prioritySkills.slice(0,5).map(s=>({name:s.name,max:100})),shape:'circle',splitNumber:4,axisName:{color:'#8C8C8C',fontSize:10}},series:[{type:'radar',data:[{value:currentPath.value.prioritySkills.slice(0,5).map(s=>s.impact),name:'能力缺口',areaStyle:{color:'rgba(224,123,109,0.15)'},lineStyle:{color:'#E07B6D'},itemStyle:{color:'#E07B6D'}}]}]})}
+function initDrawerChart(){if(!drawerChartRef.value||!currentPath.value)return;const c=echarts.init(drawerChartRef.value);c.setOption({radar:{indicator:currentPath.value.prioritySkills.slice(0,5).map((s:any)=>({name:s.name,max:100})),shape:'circle',splitNumber:4,axisName:{color:'#8C8C8C',fontSize:10}},series:[{type:'radar',data:[{value:currentPath.value.prioritySkills.slice(0,5).map((s:any)=>s.impact),name:'能力缺口',areaStyle:{color:'rgba(224,123,109,0.15)'},lineStyle:{color:'#E07B6D'},itemStyle:{color:'#E07B6D'}}]}]})}
 
 onMounted(()=>{
   const jobFromQuery = route.query.job as string

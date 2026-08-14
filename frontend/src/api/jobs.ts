@@ -40,7 +40,7 @@ export interface JobQuery {
   startTime?: string
   endTime?: string
   page?: number
-  pageSize?: number
+  page_size?: number
 }
 
 export interface JobListResult {

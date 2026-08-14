@@ -86,6 +86,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 内容: 症状 → 根因 → 修复 → 教训。
 
 已有陷阱:
+- 2026-08-14 job_change_log 导入字段与 DDL/M2 语义不一致（`docs/superpowers/traps/2026-08-14-import-change-log-mismatch.md`）
 
 ## 项目决策要点（2026-08-03）
 
