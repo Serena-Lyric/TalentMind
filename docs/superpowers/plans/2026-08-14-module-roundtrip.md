@@ -128,3 +128,27 @@
 2. 各模块版本号起点（建议 M2 v3 / M3 v2 / M4 v2 / M5 v2，以当前整合版为基线）；
 3. 会议时间与截止时间是否按第五节排；
 4. A 侧打通（Step 1）是否由本机立即开始执行。
+
+
+---
+
+## 七、审查补充（2026-08-15，已执行/已确认）
+
+1. **M1 纳入 A 侧打通（已执行）**：jd_pool 5003 条 cleaned（postings.csv 导入 5000 行）；`exchange/m1/jd.json`（200 条，quality 降序）+ `quality_check.md` + `接口自述.md` 已生成。
+2. **版本号统一 v3（已执行）**：output 四包统一为 `M2/M3/M4/M5-*-v3`；基线 `base_commit=bf60432`。
+3. **数据快照版本管理（已执行）**：每包 `依赖数据快照/快照说明.md`（snapshot_version=2026-08-15-1 / generated_at / 来源 / 内容白名单 / M2 回包后重生成约定）。
+4. **validate_exchange 规则补充（已执行）**：change_type 枚举**硬校验**（D32 7 个枚举）；版本头**软提示**（M2 P0 要求）；UTF-8/JSON 数组/字段白名单/snake_case/canonical 对齐/关联检查已有。
+5. **change_type 扩容（已执行）**：DDL `VARCHAR(32)` + MySQL ALTER 已执行（实测 32）；正式通知随全队会议（改字段记录 P4）。
+6. **M4 合成简历样本（已执行）**：5 份 DOCX+PDF（脱敏）已入 `backend/tests/fixtures/matching/samples` + output/M4 包；`file_parser` 实测可解析。
+7. **回包环境信息（已执行）**：各包 README 追加「运行环境与回包要求」（Python/Node/依赖/测试命令/LLM key 自配/Docker 说明）。
+8. **依赖矩阵（新增，指导并行顺序）**：
+   ```
+   M5 中文 API ← A 集成层 mvp.py（已完成中英文过渡，8/15 上线）
+   M3 name_zh ← M2 job_name_zh（M2 回包后由 A 重生成 graph.json 快照）
+   M4 pathfinder ← M2 岗位数据（快照已含 22 岗位）
+   M5 Learning ← M4 pathfinder（P1，不阻塞）
+   M2/M4 输入 ← M1 jd.json（已就绪 200 条）
+   ```
+   并行建议：**M2 8/16–17 先行（产出新契约字段）→ M3/M4 8/17–19 → M5 8/18–20**；M3/M4 可先用过渡快照开发结构，M2 回包后 A 再刷新快照。
+9. **验收时间表错峰（调整第五节）**：M2 8/19 先回包 → M3/M4 8/20 → M5 8/21；8/22–24 端到端+部署+演示，8/25 起 P1。
+10. **小项归位**：industry 前端映射降级 → M5 P0 明确；resume 落库 → P1；M2 is_emerging 复核 → P1（答辩前需人工确认记录）。

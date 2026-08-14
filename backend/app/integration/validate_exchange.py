@@ -59,6 +59,12 @@ class JobSkillFileModel(BaseModel):
     skills: list[SkillEntryModel] = []
 
 
+CHANGE_TYPES = {
+    "added", "removed", "modified",
+    "duties_changed", "scenarios_added", "scenarios_removed", "evolution_changed",
+}
+
+
 class JobChangeLogModel(BaseModel):
     job_id: str
     change_type: str
@@ -182,6 +188,13 @@ def validate_exchange(path: Path, kind: str) -> dict:
     except Exception as exc:
         errors.append(f"结构校验异常: {exc}")
 
+    # change_type 枚举硬校验（D32 扩展枚举）
+    if kind == "job_change_log" and isinstance(data, list):
+        for i, item in enumerate(data):
+            ct = item.get("change_type") if isinstance(item, dict) else None
+            if ct not in CHANGE_TYPES:
+                errors.append(f"[{i}] change_type 不在枚举内: {ct!r}")
+
     # 软校验：技能 canonical 对齐（不阻断，输出警告）
     if kind in ("job_definition", "job_skill"):
         canonicals = _load_skill_canonicals()
@@ -228,6 +241,21 @@ def validate_m2() -> dict:
             f"job_skill 有 {len(mismatch)} 条 job_name 不在 job_definition 中（中英文分裂，待 M2 修复 L1-L3）: {mismatch[:3]}"
         )
     result["_关联检查"] = {"ok": True, "errors": [], "warnings": warnings_extra}
+    # 版本头软提示（M2 P0：schema_version/contract_version/generated_at）
+    version_hint = []
+    for name in ("job_definition.json", "job_skill.json", "job_change_log.json"):
+        fpath = EXCHANGE_M2 / name
+        if fpath.exists():
+            try:
+                head = json.loads(fpath.read_text(encoding="utf-8"))
+                if isinstance(head, list) and head:
+                    first = head[0] if isinstance(head[0], dict) else {}
+                    if not any(k in first for k in ("schema_version", "contract_version", "generated_at")):
+                        version_hint.append(f"{name} 未带版本头（M2 P0 要求）")
+            except Exception:
+                pass
+    if version_hint:
+        result["_版本头"] = {"ok": True, "errors": [], "warnings": version_hint}
     # skill_dict 种子自校验
     result["skill_dict_seed.json"] = validate_exchange(SKILL_DICT_PATH, "skill_dict")
     return result

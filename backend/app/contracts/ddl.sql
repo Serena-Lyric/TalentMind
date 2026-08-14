@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS job_definition (
 CREATE TABLE IF NOT EXISTS job_change_log (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   job_id BIGINT,                   -- 关联 job_definition.id
-  change_type VARCHAR(16),         -- added/removed/modified/duties_changed/scenarios_added/scenarios_removed/evolution_changed (D32)
+  change_type VARCHAR(32),         -- added/removed/modified/duties_changed/scenarios_added/scenarios_removed/evolution_changed (D32; 2026-08-15 扩容 16->32 以容纳 17 字符枚举, 见 P4)
   skill_name VARCHAR(128),         -- 变更技能 (对齐 skill_dict.canonical)
   detail JSON,                     -- 变更内容 {before?, after?}
   source VARCHAR(128),             -- 数据源/依据
