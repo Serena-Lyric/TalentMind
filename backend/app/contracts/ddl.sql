@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS jd_pool (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   source VARCHAR(32), job_title VARCHAR(128), raw_text TEXT,
-  duties TEXT, experience VARCHAR(32), quality FLOAT DEFAULT 0,
+  duties TEXT, experience VARCHAR(255), quality FLOAT DEFAULT 0,  -- 2026-08-15 扩容 32->255 (D33, 真实数据最长约79字符)
   dup_group VARCHAR(64), crawled_at DATETIME, status VARCHAR(16) DEFAULT 'raw',
   INDEX idx_status (status), INDEX idx_source (source)
 );

@@ -17,16 +17,17 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
-## 模块交付与整合状态（2026-08-12）
+## 模块交付与整合状态（2026-08-15）
 
-| 模块 | 交付位置（根目录） | 目标正式目录 | 状态 |
-|---|---|---|---|
-| M2 岗位分析 | `jd-filter-package/` | `backend/app/job_analysis/` | 整合中（7 步 LLM 管道，已预跑 8 个岗位定义） |
-| M3 图谱 | `图谱模块/` | `backend/app/graph/` | 整合中（graph.json 构建器 + vis HTML 可视化） |
-| M5 前端 | `岗位能力图谱-前端源码/` | `frontend/` | 整合中（Vue3 + Element Plus + ECharts + G6，保留 6 页 / 20 接口为基线，USE_MOCK=true） |
-| M4 简历匹配 | `人岗匹配/` | `backend/app/matching/` | 待迁移（D25 已解除；真实简历不迁移，D36） |
+| 模块 | 正式位置 | 状态 |
+|---|---|---|
+| M1 数据采集 | `backend/app/collect/` | 可运行；jd_pool 5003 条 cleaned；`exchange/m1/jd.json`（200 条）已产出 |
+| M2 岗位分析 | `backend/app/job_analysis/` | 约束重跑 22 岗位定义；待回包修复 job_skill 关联（L1–L3） |
+| M3 图谱 | `backend/app/graph/` | 97 节点/222 边，已导入 Neo4j；待回包补充 name_zh |
+| M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |
+| M5 前端 | `frontend/` | 6 页全真实 API（中文过渡已生效）；待回包对接 name_en/隐藏空列 |
 
-整合未决项已于 2026-08-13 裁决（决策 D26–D36，含统一响应 code=0、M2 接入 skill_dict 约束、421MB seed SQL 删除等），实施按 `docs/superpowers/plans/2026-08-13-system-integration-plan.md` 分阶段执行；资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
+整合未决项已于 2026-08-13 裁决（决策 D26–D36），数据闭环与回发闭环就绪（2026-08-15）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**198 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
 
 ## 目录说明
 

@@ -15,7 +15,7 @@ def build_insert_params(row: dict) -> dict:
         "job_title": (row.get("job_title", "") or "")[:128],
         "raw_text": row.get("raw_text", ""),
         "duties": row.get("duties", ""),
-        "experience": (row.get("experience", "") or "")[:32],
+        "experience": row.get("experience", "") or "",
         "quality": row.get("quality", 0.0),
         "dup_group": row.get("dup_group", ""),
         "crawled_at": row.get("crawled_at"),
