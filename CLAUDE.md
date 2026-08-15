@@ -22,6 +22,7 @@
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
 - **资产清单与已知限制: `docs/superpowers/资产与状态.md`（工作前必读，变更后必更新）**
+- **Agent 新对话起始路线: `AGENT_START_HERE.md`（通用必读）；A 角色另读 `A_AGENT_HANDOVER.md`**
 
 ## 资产与当前状态（工作前必读）
 
