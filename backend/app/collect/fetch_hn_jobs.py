@@ -32,10 +32,12 @@ def run_fetch(limit: int = 0, months: int = 0) -> int:
 
     db = next(get_db())
     try:
-        # 当日同源先清后写（幂等；历史帖也会被重新抓取，不产生重复）
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        db.execute(text("DELETE FROM jd_pool WHERE source='hn' AND DATE(crawled_at)=:d"),
-                   {"d": today})
+        # 幂等：按帖清理（保留未抓取的历史帖；"当日先清后写"会误删历史月份数据）
+        for post in posts:
+            url = f"https://news.ycombinator.com/item?id={post}"
+            db.execute(text(
+                "DELETE FROM jd_pool WHERE source='hn' AND source_detail=:u"
+            ), {"u": url})
         db.commit()
         stats = run_pipeline(db, raws)
         print(f"[fetch_hn_jobs] 抓取 {len(raws)} 条评论（{len(posts)} 个帖），"
