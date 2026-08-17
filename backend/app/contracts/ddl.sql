@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS `signal` (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   skill_or_job VARCHAR(128), signal_type VARCHAR(16),
   metric VARCHAR(16), value FLOAT, captured_at DATETIME,
-  INDEX idx_soj (skill_or_job)
+  source VARCHAR(32),  -- 来源(github/blog/...，D39 多源采集 2026-08-17)
+  INDEX idx_soj (skill_or_job), INDEX idx_source (source)
 );
 CREATE TABLE IF NOT EXISTS skill_dict (
   id INT PRIMARY KEY AUTO_INCREMENT,
