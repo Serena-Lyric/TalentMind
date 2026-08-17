@@ -88,52 +88,62 @@ def test_mvp_dashboard_skill_distribution():
 
 
 def test_mvp_jobs_crud():
-    resp = client.post("/api/jobs", json={
-        "job_name": "MVP测试岗位", "required_skills": ["python"], "quality": 0.5,
-    })
-    assert resp.json()["code"] == 0
-    new_id = resp.json()["data"]["id"]
+    new_id = None
+    try:
+        resp = client.post("/api/jobs", json={
+            "job_name": "MVP测试岗位", "required_skills": ["python"], "quality": 0.5,
+        })
+        assert resp.json()["code"] == 0
+        new_id = resp.json()["data"]["id"]
 
-    resp = client.get(f"/api/jobs/{new_id}")
-    assert resp.json()["code"] == 0
-    assert resp.json()["data"]["title"] == "MVP测试岗位"
+        resp = client.get(f"/api/jobs/{new_id}")
+        assert resp.json()["code"] == 0
+        assert resp.json()["data"]["title"] == "MVP测试岗位"
 
-    resp = client.put(f"/api/jobs/{new_id}", json={
-        "job_name": "MVP测试岗位改", "required_skills": ["python", "docker"],
-    })
-    assert resp.json()["code"] == 0
+        resp = client.put(f"/api/jobs/{new_id}", json={
+            "job_name": "MVP测试岗位改", "required_skills": ["python", "docker"],
+        })
+        assert resp.json()["code"] == 0
 
-    resp = client.delete(f"/api/jobs/{new_id}")
-    assert resp.json()["code"] == 0
-    resp = client.get(f"/api/jobs/{new_id}")
-    assert resp.json()["code"] == 4041
-
+        resp = client.delete(f"/api/jobs/{new_id}")
+        assert resp.json()["code"] == 0
+        resp = client.get(f"/api/jobs/{new_id}")
+        assert resp.json()["code"] == 4041
+    finally:
+        # 测试数据清理规范（D37）：无论成败都删除本次创建的岗位
+        if new_id is not None:
+            db = SessionLocal()
+            try:
+                db.execute(text("DELETE FROM job_definition WHERE id = :i"), {"i": new_id})
+                db.commit()
+            finally:
+                db.close()
 
 def test_mvp_jobs_import_export():
     import io
-    resp = client.post(
-        "/api/jobs/import",
-        files={"file": ("jobs.json", io.BytesIO(
-            '[{"job_name": "导入岗位A", "required_skills": ["python"]}]'.encode("utf-8")
-        ), "application/json")},
-    )
-    body = resp.json()
-    assert body["code"] == 0
-    assert body["data"]["imported"] == 1
-
-    resp = client.get("/api/jobs/export")
-    assert resp.status_code == 200
-    assert resp.headers["content-type"].startswith("text/csv")
-    assert "job_name" in resp.text
-
-    # 清理导入数据，避免影响幂等断言
-    db = SessionLocal()
     try:
-        db.execute(text("DELETE FROM job_definition WHERE job_name = '导入岗位A'"))
-        db.commit()
-    finally:
-        db.close()
+        resp = client.post(
+            "/api/jobs/import",
+            files={"file": ("jobs.json", io.BytesIO(
+                '[{"job_name": "导入岗位A", "required_skills": ["python"]}]'.encode("utf-8")
+            ), "application/json")},
+        )
+        body = resp.json()
+        assert body["code"] == 0
+        assert body["data"]["imported"] == 1
 
+        resp = client.get("/api/jobs/export")
+        assert resp.status_code == 200
+        assert resp.headers["content-type"].startswith("text/csv")
+        assert "job_name" in resp.text
+    finally:
+        # 测试数据清理规范（D37）：无论成败都删除导入的岗位
+        db = SessionLocal()
+        try:
+            db.execute(text("DELETE FROM job_definition WHERE job_name = '导入岗位A'"))
+            db.commit()
+        finally:
+            db.close()
 
 def test_mvp_graph_skill_radar():
     resp = client.get("/api/graph/skill-radar", params={"node_name": "Python"})
@@ -142,10 +152,14 @@ def test_mvp_graph_skill_radar():
 
 def test_import_change_logs_job_name_resolution(tmp_path):
     """job_change_log.json 的 job_id 为 job_name（M2 differ 产出），导入时应解析为
-    job_definition.id；object_type 列不存在于 DDL，不得再写入（曾潜伏于空日志）。"""
+    job_definition.id；object_type 列不存在于 DDL，不得再写入（曾潜伏于空日志）。
+    测试数据清理规范（D37）：用唯一 reason 标记，finally 中按标记精确清理。
+    """
     import json as _json
     from app.integration.import_exchange import import_change_logs
     from app.db.mysql import SessionLocal
+
+    MARKER = "pytest-marker-change-log-resolution"
 
     db = SessionLocal()
     try:
@@ -164,32 +178,33 @@ def test_import_change_logs_job_name_resolution(tmp_path):
             "object_type": "skill",  # M2 会输出该字段，导入层应忽略（DDL 无此列）
             "skill_name": "python",
             "detail": {"old_value": None, "new_value": {"confidence": 0.8}},
-            "source": ["dataset"],
-            "reason": "test",
+            "source": ["linkedin"],
+            "reason": MARKER,
             "created_at": "2026-08-14T10:00:00",
         },
         {"job_id": "不存在的岗位名", "change_type": "added", "skill_name": "x"},
     ], ensure_ascii=False), encoding="utf-8")
 
-    n = import_change_logs(path=log_file)
-    assert n == 1
-
-    db = SessionLocal()
     try:
-        row = db.execute(
-            text("SELECT job_id, change_type, skill_name FROM job_change_log")
-        ).first()
-    finally:
-        db.close()
-    assert row is not None
-    assert row[0] == job[0]
-    assert row[1] == "added"
-    assert row[2] == "python"
+        n = import_change_logs(path=log_file)
+        assert n == 1
 
-    # 清理测试数据，保持 job_change_log 为空（与线上状态一致）
-    db = SessionLocal()
-    try:
-        db.execute(text("DELETE FROM job_change_log WHERE job_id = :j"), {"j": job[0]})
-        db.commit()
+        db = SessionLocal()
+        try:
+            row = db.execute(
+                text("SELECT job_id, change_type, skill_name FROM job_change_log")
+            ).first()
+        finally:
+            db.close()
+        assert row is not None
+        assert row[0] == job[0]
+        assert row[1] == "added"
+        assert row[2] == "python"
     finally:
-        db.close()
+        # 无论成败都按唯一标记清理，保持 job_change_log 为空（与线上状态一致）
+        db = SessionLocal()
+        try:
+            db.execute(text("DELETE FROM job_change_log WHERE reason = :m"), {"m": MARKER})
+            db.commit()
+        finally:
+            db.close()

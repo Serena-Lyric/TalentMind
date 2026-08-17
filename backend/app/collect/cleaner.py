@@ -89,16 +89,22 @@ def _extract_duties(text: str) -> str:
 
 # ── 经验提取 ────────────────────────────────────────────
 
-EXPERIENCE_LINE_RE = re.compile(r"(?im)^Experience\s*:\s*(.+)$")
+EXPERIENCE_LINE_RE = re.compile(
+    r"(?im)^Experience\s*:\s*(.{0,255})"  # 单行描述无换行时 (.+)$ 会捕获整段，超 VARCHAR(255) 列宽；提取层截断至契约上限
+)
 
 
 def _extract_experience(text: str, fallback: str) -> str:
-    """列优先，空时正则回退。"""
+    """列优先，空时正则回退。
+
+    jd_pool.experience 为 VARCHAR(255)（D33 扩容）；捕获长度限制在 255 内，
+    避免单行 JD 描述中 "Experience:" 后整段被捕获导致 DataError(1406)。
+    """
     if fallback and fallback.strip():
         return fallback.strip()
     match = EXPERIENCE_LINE_RE.search(text or "")
     if match:
-        return match.group(1).strip()
+        return match.group(1).strip()[:255]
     return ""
 
 
@@ -108,6 +114,7 @@ def clean(raw: RawJD) -> dict:
     text = raw.raw_html or ""
     return {
         "source": raw.source,
+        "source_detail": raw.source_detail or "",
         "job_title": raw.job_title.strip(),
         "raw_text": _strip_noise(text),
         "duties": _extract_duties(text),

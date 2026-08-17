@@ -9,7 +9,22 @@ pytestmark = pytest.mark.integration
 
 
 def test_csv_to_jd_pool_via_pipeline(tmp_path):
-    """端到端: CSV → RawJD → clean → dedup → jd_pool"""
+    """端到端: CSV -> RawJD -> clean -> dedup -> jd_pool
+
+    测试数据清理规范（D37）：只按测试夹具特征精确清理，禁止按 source 全量删除
+    （曾因 DELETE WHERE source='linkedin' 误删生产 jd_pool，见
+    docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md）。
+    测试前清旧残留保证可重复运行；finally 中必定清理本次产出，失败也不残留。
+    """
+    TEST_TITLES = ("AI应用工程师", "后端工程师")
+
+    def _cleanup_fixture(db):
+        db.execute(text(
+            "DELETE FROM jd_pool WHERE source='linkedin' "
+            "AND job_title IN (:t1, :t2)"
+        ), {"t1": TEST_TITLES[0], "t2": TEST_TITLES[1]})
+        db.commit()
+
     postings_csv = tmp_path / "postings.csv"
     with open(postings_csv, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
@@ -33,8 +48,7 @@ def test_csv_to_jd_pool_via_pipeline(tmp_path):
 
     db = next(get_db())
     try:
-        db.execute(text("DELETE FROM jd_pool WHERE source='dataset'"))
-        db.commit()
+        _cleanup_fixture(db)
 
         raws = load_csv_posting(str(postings_csv), limit=0)
         assert len(raws) == 2
@@ -45,9 +59,11 @@ def test_csv_to_jd_pool_via_pipeline(tmp_path):
         stats = run_pipeline(db, raws, job_skill_map=job_skill_map, skill_map=skill_map)
         assert stats["saved"] == 2
 
+        # 只统计本次夹具行，避免与生产 jd_pool（source 同样为 linkedin）混算
         cnt = db.execute(text(
-            "SELECT COUNT(*) FROM jd_pool WHERE source='dataset' AND status='cleaned'"
-        )).scalar()
+            "SELECT COUNT(*) FROM jd_pool WHERE source='linkedin' AND status='cleaned' "
+            "AND job_title IN (:t1, :t2)"
+        ), {"t1": TEST_TITLES[0], "t2": TEST_TITLES[1]}).scalar()
         assert cnt == 2
 
         text_with_skills = db.execute(text(
@@ -59,4 +75,5 @@ def test_csv_to_jd_pool_via_pipeline(tmp_path):
         assert "Job description" not in text_with_skills
         assert "负责 RAG" in text_with_skills
     finally:
+        _cleanup_fixture(db)
         db.close()
