@@ -59,11 +59,11 @@ CLI：python -m app.collect.fetch_signals --sources github,blog [--limit N]
 - [x] CLI `fetch_hn_jobs.py`（幂等：当日同源先清后写）
 - [x] 单测 3 个（mock API）；全量 205 测试通过
 - [x] **入库 239 条**（2026-08 帖 objectID=49156683，377 评论中 239 条岗位）→ jd_pool = linkedin 5000 + hn 239
-- [ ] 后续：中文平台若需落地，须先与用户确认合规方案（官方 API/合作数据/人工标注），不绕过反爬
+- [ ] 后续：中文平台若需落地，须先与用户确认合规方案（官方 API/合作数据/人工标注），不绕过反爬 —— **用户已确认：后续再议（2026-08-17，决策跟踪 P6）**
 
-### P2（后续）：交叉验证质量分
-- 跨平台同岗位（title 归一 + 技能 Jaccard）比对 → quality 融合多平台一致度
-- 多批次时间序列 → evolution 趋势真实化
+### P2（2026-08-17 已落地）：交叉验证质量分
+- [x] `cross_validate.py`：title 归一 + hn 段双向包含（长度比 ≥0.6）→ 命中 `cross_source=1` + quality 上浮 MAX(原,0.85)；首轮 55 对/74 行；报告 `exchange/m1/cross_validate_report.md`（D42）
+- [ ] 后续增强：技能 Jaccard 二次比对；多批次时间序列 → evolution 趋势真实化
 
 ## 五、验证门禁
 

@@ -43,6 +43,12 @@
 - `signal.source`：github / blog / …（D39 新增列）；
 - 技能匹配严格限定 `backend/app/skills/skill_dict_seed.json`（285 canonical + aliases），不自由命名（反幻觉）。
 
+## 四·五、多源交叉验证（D42）
+
+- `cross_validate.py`：跨来源（linkedin/hn）同岗位比对 → 命中行 `cross_source=1` + `quality=MAX(原, 0.85)`；报告输出 `exchange/m1/cross_validate_report.md`；
+- 运行：`python -m app.collect.cross_validate`（`--dry-run` 只分析）；
+- 规则：normalize_title + hn 段（≥2 词、≥6 字符）↔ linkedin 双向包含 + 长度比 ≥0.6；0.85 为多源一致置信下界（明确定义）。
+
 ## 五、测试
 
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
