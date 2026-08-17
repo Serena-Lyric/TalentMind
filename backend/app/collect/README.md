@@ -49,6 +49,12 @@
 - 运行：`python -m app.collect.cross_validate`（`--dry-run` 只分析）；
 - 规则：normalize_title + hn 段（≥2 词、≥6 字符）↔ linkedin 双向包含 + 长度比 ≥0.6；0.85 为多源一致置信下界（明确定义）。
 
+## 四·六、监控采集情况
+
+- **一键查看**：`powershell -ExecutionPolicy Bypass -File scripts\check_collect_status.ps1` —— 显示 ①定时任务状态 ②最近采集日志 ③数据库采集量（jd_pool/signal 按 source、cross_source、最近时间）；
+- **日志文件**：`data/local/logs/collect_daily-YYYYMMDD.log`（每日 02:00 定时任务自动落盘，gitignore）；
+- **定时任务**：`schtasks /Query /TN TalentMindCollect /V`（状态/上次运行/结果）。
+
 ## 五、测试
 
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
