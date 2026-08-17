@@ -20,21 +20,39 @@ def _month_start_ts() -> int:
     return int(datetime(now.year, now.month, 1, tzinfo=timezone.utc).timestamp())
 
 
-def find_current_hiring_post(client: httpx.Client,
-                             month_start: int | None = None) -> str | None:
-    """返回当月 'Ask HN: Who is hiring? (Month Year)' 帖 objectID。"""
-    month_start = month_start or _month_start_ts()
-    resp = client.get(ALGOLIA + "/search", params={
-        "tags": "story", "query": HIRING_QUERY,
-        "numericFilters": f"created_at_i>{month_start}", "hitsPerPage": 10,
-    })
-    if resp.status_code != 200:
-        return None
-    for h in resp.json().get("hits", []):
-        title = (h.get("title") or "").lower()
-        if "who is hiring" in title and "ask hn" in title:
-            return str(h["objectID"])
-    return None
+def _month_bounds(year: int, month: int) -> tuple[int, int]:
+    """返回指定年月的 [起始, 结束) 时间戳。"""
+    start = int(datetime(year, month, 1, tzinfo=timezone.utc).timestamp())
+    end_y, end_m = (year + 1, 1) if month == 12 else (year, month + 1)
+    end = int(datetime(end_y, end_m, 1, tzinfo=timezone.utc).timestamp())
+    return start, end
+
+
+def find_hiring_posts(client: httpx.Client, months_back: int = 0) -> list[str]:
+    """返回最近 months_back+1 个月的 'Ask HN: Who is hiring?' 帖 objectID（新→旧）。
+
+    按月区间搜索；某月搜不到则跳过（Algolia 索引限制）。"""
+    now = datetime.now(timezone.utc)
+    posts: list[str] = []
+    for offset in range(0, months_back + 1):
+        y, m = now.year, now.month - offset
+        while m <= 0:
+            m += 12
+            y -= 1
+        start, end = _month_bounds(y, m)
+        resp = client.get(ALGOLIA + "/search", params={
+            "tags": "story", "query": HIRING_QUERY,
+            "numericFilters": f"created_at_i>{start},created_at_i<{end}",
+            "hitsPerPage": 10,
+        })
+        if resp.status_code != 200:
+            continue
+        for h in resp.json().get("hits", []):
+            title = (h.get("title") or "").lower()
+            if "who is hiring" in title and "ask hn" in title:
+                posts.append(str(h["objectID"]))
+                break
+    return posts
 
 
 def fetch_hiring_comments(client: httpx.Client, object_id: str) -> list[dict]:
@@ -75,14 +93,16 @@ def comments_to_rawjds(comments: list[dict], item_id: str) -> list[RawJD]:
     return raws
 
 
-def fetch_hn_hiring_rawjds(client: httpx.Client,
-                           limit: int = 0) -> tuple[list[RawJD], str | None]:
-    """抓取当月 Who-is-hiring 帖 → RawJD 列表 + 帖 objectID。"""
-    item_id = find_current_hiring_post(client)
-    if not item_id:
-        return [], None
-    comments = fetch_hiring_comments(client, item_id)
-    raws = comments_to_rawjds(comments, item_id)
+def fetch_hn_hiring_rawjds(client: httpx.Client, limit: int = 0,
+                           months_back: int = 0) -> tuple[list[RawJD], list[str]]:
+    """抓取当月及历史 N 个月 Who-is-hiring 帖 → RawJD 列表 + 帖 objectID 列表（幂等：CLI 当日先清后写）。"""
+    posts = find_hiring_posts(client, months_back=months_back)
+    if not posts:
+        return [], []
+    raws: list[RawJD] = []
+    for item_id in posts:
+        comments = fetch_hiring_comments(client, item_id)
+        raws.extend(comments_to_rawjds(comments, item_id))
     if limit > 0:
         raws = raws[:limit]
-    return raws, item_id
+    return raws, posts

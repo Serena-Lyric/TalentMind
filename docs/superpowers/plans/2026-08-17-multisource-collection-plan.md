@@ -59,6 +59,7 @@ CLI：python -m app.collect.fetch_signals --sources github,blog [--limit N]
 - [x] CLI `fetch_hn_jobs.py`（幂等：当日同源先清后写）
 - [x] 单测 3 个（mock API）；全量 205 测试通过
 - [x] **入库 239 条**（2026-08 帖 objectID=49156683，377 评论中 239 条岗位）→ jd_pool = linkedin 5000 + hn 239
+- [x] **历史扩充（2026-08-17 晚）**：`--months 5` 抓 2026-03~08 共 6 个月 6 帖 → **hn 1795 条**；M2 数据包 `data/local/m2-data-pack/`（jd_pool.sql 全量 6795 + jd.json 200 + skill_dict + signal 快照 + 交叉验证报告）已生成，岗位数据已足量支撑 M2 定义提取
 - [ ] 后续：中文平台若需落地，须先与用户确认合规方案（官方 API/合作数据/人工标注），不绕过反爬 —— **用户已确认：后续再议（2026-08-17，决策跟踪 P6）**
 
 ### P2（2026-08-17 已落地）：交叉验证质量分

@@ -24,6 +24,7 @@
 - **中英文过渡已上线**：API `title/label` 中文 + `name_en` 英文 key（过渡方案；M2 回包 `job_name_zh` 后转正式）。
 - **回发闭环进行中**：`output/` 四包 v3 已发送队员（M2/M3/M4/M5），队员二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
 - **已扩容**：`job_change_log.change_type VARCHAR(32)`、`jd_pool.experience VARCHAR(255)`（DDL+DB 均已改；正式通知随全队会议）。
+- **A 集成修改文件清单（回包防覆盖，追加）**：`job_analysis/db.py` 解析器反斜杠转义保留（2026-08-17，修复 mysqldump 风格 SQL 文本换行/反斜杠丢失，M2 数据包 jd_pool.sql 依赖此修复）；`collect/` 系列（D38/D39/D40/D42/D44）。
 
 ## 三、交接：你接手后必须做的事
 

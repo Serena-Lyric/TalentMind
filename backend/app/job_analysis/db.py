@@ -42,9 +42,11 @@ def _split_sql_values(raw: str) -> list[str]:
             buf = []
             while i < n:
                 if raw[i] == "\\":
-                    # 转义字符：保留下一个字符
+                    # 转义字符：保留反斜杠 + 下一个字符（\n/\\ 等由 _unescape_sql 还原；
+                    # 旧逻辑丢反斜杠，导致 mysqldump 风格导出文本换行/反斜杠丢失）
                     i += 1
                     if i < n:
+                        buf.append("\\")
                         buf.append(raw[i])
                         i += 1
                     continue

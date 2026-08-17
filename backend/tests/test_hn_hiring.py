@@ -2,7 +2,7 @@
 import httpx
 
 from app.collect.fetchers.hn_hiring import (
-    find_current_hiring_post, fetch_hiring_comments, comments_to_rawjds,
+    find_hiring_posts, fetch_hiring_comments, comments_to_rawjds,
 )
 
 SEARCH_JSON = {"hits": [
@@ -37,11 +37,12 @@ class _FakeClient:
         return _FakeResp({}, 404)
 
 
-def test_find_current_hiring_post():
+def test_find_hiring_posts_current_month():
     c = _FakeClient()
-    oid = find_current_hiring_post(c, month_start=1785542400)
-    assert oid == "49156683"
+    posts = find_hiring_posts(c, months_back=0)
+    assert posts == ["49156683"]
     assert c.calls[0][1]["tags"] == "story"
+    assert "created_at_i" in c.calls[0][1]["numericFilters"]
 
 
 def test_fetch_hiring_comments_filters_short():
