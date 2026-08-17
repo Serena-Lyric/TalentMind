@@ -18,9 +18,10 @@
 | GitHub Trending 页面 | 技术热度 | signal | P0 | 公开页面；限速 | **已启动（本轮）** |
 | GitHub API（search/topics） | 技术热度 | signal | P0 | 需 token（.env 未配，先不做 API，页面优先） | 待启动 |
 | 技术博客 RSS（InfoQ/OSCHINA/掘金等） | 技术趋势 | signal | P0 | RSS 公开；源可用性需验证 | **已启动（本轮）** |
-| 拉勾 | 中文岗位 | jd_pool | P1 | 反爬中等；评估公开搜索页 | 待评估 |
-| Boss直聘 | 中文岗位 | jd_pool | P1 | 反爬强；评估 | 待评估 |
-| 智联招聘 / 猎聘 / 牛客 | 中文岗位 | jd_pool | P1 | 反爬强；评估 | 待评估 |
+| 拉勾 | 中文岗位 | jd_pool | P1 | 站级反爬（robots 返回反爬页） | **暂缓（robots 禁止）** |
+| Boss直聘 | 中文岗位 | jd_pool | P1 | robots 禁止搜索页（`/*?query=*`+`/web/geek/*`） | **暂缓（robots 禁止）** |
+| 智联招聘 / 猎聘 / 牛客 | 中文岗位 | jd_pool | P1 | 猎聘 `/*?*` 禁止；智联验证码；牛客待评估 | **暂缓（robots/验证码）** |
+| **HN Who-is-hiring（Algolia 公开 API）** | 技术岗 | jd_pool | **P1（已落地）** | 官方公开 API，无登录/robots 限制 | **已入库 239 条（source=hn）** |
 | 开源社区（Gitee 等） | 技术热度 | signal | P2 | 公开 API | 待定 |
 
 ## 三、架构（复用现有 collect 框架）
@@ -51,11 +52,14 @@ CLI：python -m app.collect.fetch_signals --sources github,blog [--limit N]
 
 **P0 结果（2026-08-17）**：signal 表 22 条 = github（6 语言 repo_count）+ blog（16 技能 mention_count，中文正常 UTF-8）。`python -m app.collect.fetch_signals` 可重复执行（当日同 source 先清后写，幂等）。
 
-### P1（下周，8/18-22）：中文平台岗位
-- 评估拉勾/Boss 公开搜索页反爬强度 → 选 1 个先落地（搜索词=新一代信息技术关键词）
-- fetcher：搜索页 → RawJD（source=boss/zhilian/liepin/lagou/nowcoder）→ 现有 pipeline（clean/dedup/quality）→ jd_pool
-- source_detail 记页面 URL/账号；遵守 robots/限速 1 请求/2s
-- 产出：jd_pool 中英文混合多源
+### P1（2026-08-17 已启动）：岗位多源
+**选型结论（合规优先）**：实测四大中文招聘平台搜索页均被 robots.txt 禁止或反爬（Boss `/*?query=*`+`/web/geek/*`；猎聘 `/*?*`；智联验证码；拉勾站级反爬），V2EX 网络不可达。按红线"遵守 robots、不绕过登录"，**不抓取**。改为 HN "Who is hiring"（Algolia 官方公开 API）作为第二个岗位来源：
+
+- [x] `fetchers/hn_hiring.py`：找当月帖（Algolia search）→ 评论（items API）→ 剥 HTML → RawJD（source=hn）
+- [x] CLI `fetch_hn_jobs.py`（幂等：当日同源先清后写）
+- [x] 单测 3 个（mock API）；全量 205 测试通过
+- [x] **入库 239 条**（2026-08 帖 objectID=49156683，377 评论中 239 条岗位）→ jd_pool = linkedin 5000 + hn 239
+- [ ] 后续：中文平台若需落地，须先与用户确认合规方案（官方 API/合作数据/人工标注），不绕过反爬
 
 ### P2（后续）：交叉验证质量分
 - 跨平台同岗位（title 归一 + 技能 Jaccard）比对 → quality 融合多平台一致度
