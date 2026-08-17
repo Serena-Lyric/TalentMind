@@ -12,17 +12,8 @@ import httpx
 from sqlalchemy import text
 
 
-def main():
-    parser = argparse.ArgumentParser(description="抓取多源信号写入 signal 表（D39）")
-    parser.add_argument("--sources", default="github,blog",
-                        help="逗号分隔来源: github,blog")
-    args = parser.parse_args()
-
-    sources = [s.strip() for s in args.sources.split(",") if s.strip()]
-    if not sources:
-        print("[fetch_signals] 未指定来源")
-        return
-
+def run_fetch(sources: list[str]) -> int:
+    """抓取指定来源信号并写入 signal 表（幂等：当日同 source 先清后写）。返回写入条数。"""
     client = httpx.Client(timeout=20, follow_redirects=True, verify=False)  # 本机无系统证书链，公网抓取关闭校验
     all_signals = []
     try:
@@ -50,8 +41,22 @@ def main():
         db.commit()
         n = save_signals(db, all_signals)
         print(f"[fetch_signals] 写入 {n} 条 signal（sources={sources}）")
+        return n
     finally:
         db.close()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="抓取多源信号写入 signal 表（D39）")
+    parser.add_argument("--sources", default="github,blog",
+                        help="逗号分隔来源: github,blog")
+    args = parser.parse_args()
+
+    sources = [s.strip() for s in args.sources.split(",") if s.strip()]
+    if not sources:
+        print("[fetch_signals] 未指定来源")
+        return
+    run_fetch(sources)
 
 
 if __name__ == "__main__":
