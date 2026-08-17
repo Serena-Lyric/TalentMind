@@ -12,11 +12,13 @@ def load_csv_posting(path: str, limit: int = 100000) -> list[RawJD]:
             if not title:
                 continue
             rows.append(RawJD(
-                source="dataset",
+                source="linkedin",   # D39：来源平台（LinkedIn 数据集，D17 仅记录平台）
                 job_title=title,
                 raw_html=row.get("description") or "",
                 experience=(row.get("formatted_experience_level") or "").strip(),
                 job_id=(row.get("job_id") or "").strip(),
+                source_detail=((row.get("posting_domain") or "").strip()
+                               or "linkedin_job_postings"),
             ))
             if limit > 0 and len(rows) >= limit:
                 break

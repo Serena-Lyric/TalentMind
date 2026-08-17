@@ -25,7 +25,7 @@ def test_rawtalent_full_construction():
 
 def test_rawjd_unaffected_by_rawtalent_addition():
     # 回归防护：RawJD 字段不受本次修改影响
-    jd = RawJD(source="dataset", job_title="AI Engineer", raw_html="desc")
-    assert jd.source == "dataset"
+    jd = RawJD(source="linkedin", job_title="AI Engineer", raw_html="desc")
+    assert jd.source == "linkedin"
     assert jd.job_id == ""
     assert jd.raw_skills is None

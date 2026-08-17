@@ -245,7 +245,7 @@ def test_translate_structure_preserved():
         "required_skills": ["python", "docker", "communication skills", "project management"],
         "bonus_skills": ["aws", "kubernetes"],
         "scenarios": ["Enterprise Software", "Cloud Migration"],
-        "source": ["dataset"],
+        "source": ["linkedin"],
         "quality": 0.85,
         "is_emerging": True,
         "evolution": {"stage": "growth", "stage_confidence": 0.6, "indicators": {}},

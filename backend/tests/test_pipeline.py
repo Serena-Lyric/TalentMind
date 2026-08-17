@@ -52,7 +52,7 @@ class TestRunPipeline:
         raws = [
             RawJD(source="github", job_title="AI工程师",
                   raw_html="负责 RAG 开发 熟悉 Python 的候选人", experience="3-5年"),
-            RawJD(source="dataset", job_title="AI工程师",
+            RawJD(source="linkedin", job_title="AI工程师",
                   raw_html="负责RAG开发,熟悉Python的候选人", experience="3-5年"),
         ]
         stats = run_pipeline(db, raws)
@@ -63,7 +63,7 @@ class TestRunPipeline:
     def test_pipeline_with_skill_enrichment(self):
         db = FakeDB()
         raws = [
-            RawJD(source="dataset", job_title="AI Engineer",
+            RawJD(source="linkedin", job_title="AI Engineer",
                   raw_html="Build AI systems.", job_id="100"),
         ]
         job_skill_map = {"100": ["ENG"]}
@@ -88,7 +88,7 @@ class TestRunPipelineRouting:
     def test_routes_mixed_raws_to_both_sides(self):
         db = FakeDB()
         raws = [
-            RawJD(source="dataset", job_title="AI Engineer", raw_html="Build AI systems."),
+            RawJD(source="linkedin", job_title="AI Engineer", raw_html="Build AI systems."),
             RawTalent(source="github", raw_text="Python developer with 5 repos"),
         ]
         stats = run_pipeline(db, raws)

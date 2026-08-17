@@ -13,7 +13,7 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - 当前冻结的数据契约位于 `backend/app/contracts/ddl.sql`。
 - FastAPI 后端入口是 `backend/app/main.py`，现有健康检查为 `GET /health`。
 - MySQL、Neo4j、Redis 由根目录 `docker-compose.yml` 提供。
-- 各模块代码已交付到根目录、**整合中**（D26 已裁决）：`jd-filter-package/`（M2 岗位分析）、`图谱模块/`（M3 图谱）、`岗位能力图谱-前端源码/`（M5 前端）；M4 原型 `人岗匹配/` 待迁移（D25 已解除，脱敏入库暂缓 D36）。
+- 四个原交付目录（`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/`）已统一归档至 `input/`（gitignore 保护；M4 脱敏入库暂缓 D36，阶段 7 清理待用户确认）。
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
@@ -21,13 +21,13 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 | 模块 | 正式位置 | 状态 |
 |---|---|---|
-| M1 数据采集 | `backend/app/collect/` | 可运行；jd_pool 5003 条 cleaned；`exchange/m1/jd.json`（200 条）已产出 |
+| M1 数据采集 | `backend/app/collect/` | 可运行；jd_pool 5000 条 cleaned（source=linkedin，D38 来源标签 2026-08-17）；`exchange/m1/jd.json`（200 条）已产出 |
 | M2 岗位分析 | `backend/app/job_analysis/` | 约束重跑 22 岗位定义；待回包修复 job_skill 关联（L1–L3） |
 | M3 图谱 | `backend/app/graph/` | 97 节点/222 边，已导入 Neo4j；待回包补充 name_zh |
 | M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |
 | M5 前端 | `frontend/` | 6 页全真实 API（中文过渡已生效）；待回包对接 name_en/隐藏空列 |
 
-整合未决项已于 2026-08-13 裁决（决策 D26–D36），数据闭环与回发闭环就绪（2026-08-15）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**198 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
+整合未决项已于 2026-08-13 裁决（决策 D26–D37），数据闭环与回发闭环就绪（2026-08-15；2026-08-16 落地测试数据自动清理规范 D37，并恢复 jd_pool 5000 条 cleaned——原 5003 曾被集成测试误删，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**198 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
 
 ## 目录说明
 
@@ -36,9 +36,9 @@ TalentMind/
 ├─ backend/
 │  ├─ app/
 │  │  ├─ collect/          # M1：采集、清洗、去重、入库
-│  │  ├─ job_analysis/     # M2：岗位分析（预留）
-│  │  ├─ graph/            # M3：图谱节点和关系（预留）
-│  │  ├─ matching/         # M4：正式匹配实现（预留；当前不迁移根目录原型）
+│  │  ├─ job_analysis/     # M2：岗位分析
+│  │  ├─ graph/            # M3：图谱节点和关系
+│  │  ├─ matching/         # M4：正式匹配实现
 │  │  ├─ integration/      # A：交接导入、编排、组装
 │  │  ├─ routers/          # A：统一 API 路由
 │  │  ├─ contracts/        # DDL 和跨模块数据契约
@@ -46,7 +46,7 @@ TalentMind/
 │  │  ├─ llm/              # LLM 适配
 │  │  └─ skills/           # 技能标准化
 │  └─ tests/               # 后端测试
-├─ frontend/               # M5 正式前端（预留）
+├─ frontend/               # M5 正式前端
 ├─ exchange/               # 模块交接文件、接口自述、小型 Mock
 ├─ data/local/             # 大型本地数据、网页快照和缓存（不入 Git）
 ├─ docs/                   # 需求、设计、计划、决策和演示材料
@@ -136,6 +136,8 @@ cd backend
 
 新增模块必须至少提供一个模块级测试和一个与 A 集成的验证。测试数据优先放 `backend/tests/fixtures/`，不要从 `data/local/` 读取不可复现的个人目录。
 
+集成测试数据自动清理（D37）：测试写入 DB 的数据必须按测试夹具特征精确删除（finally/teardown），禁止按 source 等宽泛条件 DELETE；运行集成测试后需查询 DB 验证无测试残留、生产数据未被误删。
+
 ## 模块交接规范
 
 交接目录使用 `exchange/m1` 至 `exchange/m5`。每次交接至少包含：
@@ -159,7 +161,7 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 4. 检查没有调用方、生成物或敏感数据依赖；
 5. 最后才删除重复源码和缓存。
 
-根目录 `人岗匹配/` 的迁移当前明确暂缓。它仍是待审查的原型区，不作为正式后端入口；后续开始迁移前，必须重新盘点源码、测试、样例数据、UI 原型和简历文件。
+`input/人岗匹配/` 的迁移当前明确暂缓（原根目录交付目录已统一归档 `input/`）。它仍是待审查的原型区，不作为正式后端入口；后续开始迁移前，必须重新盘点源码、测试、样例数据、UI 原型和简历文件。
 
 ## 文档入口
 
@@ -177,6 +179,6 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 
 - 不整体删除 `backend`；
 - 不把 M1 采集管道重写成另一套实现；
-- 不迁移根目录 `人岗匹配/`（已按用户要求暂缓）；
+- 不迁移 `input/人岗匹配/`（已按用户要求暂缓）；
 - 不提交 `.env`、真实密钥、数据库 volume、未经脱敏的简历和大型本地数据；
 - 不创建 Git commit，除非用户明确要求。

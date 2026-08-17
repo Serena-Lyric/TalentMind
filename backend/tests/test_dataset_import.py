@@ -16,7 +16,7 @@ class TestLoadCsvPosting:
         assert len(rows) == 2
         assert isinstance(rows[0], RawJD)
         assert rows[0].job_title == "AI Engineer"
-        assert rows[0].source == "dataset"
+        assert rows[0].source == "linkedin"
         assert rows[0].raw_html == "We need an AI engineer."
         assert rows[0].experience == "Mid-Senior level"
         assert rows[0].job_id == "123"

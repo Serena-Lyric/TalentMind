@@ -98,7 +98,7 @@ class TestExtractExperience:
 class TestClean:
     def test_clean_produces_jd_pool_row(self):
         raw = RawJD(
-            source="dataset",
+            source="linkedin",
             job_title="  AI Engineer ",
             raw_html=(
                 "Job descriptionWe are seeking an AI Engineer.\n"
@@ -110,7 +110,7 @@ class TestClean:
             experience="",
         )
         row = clean(raw)
-        assert row["source"] == "dataset"
+        assert row["source"] == "linkedin"
         assert row["job_title"] == "AI Engineer"
         assert "Pay:" not in row["raw_text"]
         assert "Benefits:" not in row["raw_text"]

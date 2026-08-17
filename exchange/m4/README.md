@@ -14,6 +14,6 @@
 
 ## 已知限制
 - `extract_skills` 对"中文紧邻英文"（如 `熟悉Python`）提取失效（原型 `\b` 边界缺陷），待优化
-- PDF/DOCX 解析依赖（pdfplumber/python-docx/mammoth）未安装；当前为文本模式
+- PDF/DOCX 解析依赖已安装（requirements.txt 含 pdfplumber/python-docx/mammoth，2026-08-15）；`backend/tests/fixtures/matching/samples/` 含 5 份合成 DOCX/PDF 样本（file_parser 实测可解析）
 - 匹配为加权规则（编程语言 1.5x / 后端框架 1.3x / 数据库 1.2x），非 embedding
 - 真实简历样例未入库（D36），测试用 fixtures 文本样例

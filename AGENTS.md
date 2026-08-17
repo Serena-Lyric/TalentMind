@@ -73,10 +73,15 @@ language: 简体中文
 - 每次回复前检查是否有用户已确认但未执行的协议
 - 大方向切换前，显式确认上一个需求的未完成子项
 
+### 测试数据清理（强制，D37）
+- 测试写入数据库/文件的数据必须在测试后自动清理：按测试夹具特征（job_title / identity_hint / 唯一标记）精确删除，**禁止按 source 等宽泛条件 DELETE**（曾因 `DELETE WHERE source='dataset'` 误删 jd_pool 5000 条，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）。
+- 清理必须放在 `finally` 或 fixture teardown 中，断言失败也不得残留。
+- 运行集成测试后，agent 必须查询数据库验证测试产出数据已真实清理（夹具行计数为 0）且生产数据未被误删，并把核查结果写入回复。
+
 ### 工作前状态同步（强制）
 - 开始任何任务前，**先读根目录 `AGENT_START_HERE.md`（通用了解路线）并按路线顺序阅读全部必读文件**（第一条回复须逐文件给出要点证明）；A 角色（M1/集成）任务另读 `A_AGENT_HANDOVER.md`。核心必读：`docs/superpowers/资产与状态.md` + `决策跟踪.md` + `backend/app/contracts/ddl.sql`，确认当前资产位置、契约与未决事项后再动手。
 - 新增、移动、删除、迁移资产，修改契约 / 目录 / 交接文件后，必须**及时更新** `docs/superpowers/资产与状态.md`；涉及决策时同步更新 `决策跟踪.md`。
-- 未入库模块（`人岗匹配/`、`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`）的迁移 / 清理，先确认未决项状态；未裁决前不擅自动作，禁止 `git add -A`（未忽略目录内含 421MB 数据与真实简历）。
+- 未入库模块（`input/人岗匹配/`、`input/jd-filter-package/`、`input/图谱模块/`、`input/岗位能力图谱-前端源码/`，原根目录交付物已统一归档 `input/`）的迁移 / 清理，先确认未决项状态；未裁决前不擅自动作，禁止 `git add -A`（`input/` 内含 421MB 数据与真实简历，已整目录 gitignore 保护）。
 - 处理已知限制前先查证 `docs/superpowers/资产与状态.md` 中的记录，不臆测、不重复踩坑。
 
 ## 陷阱记录
@@ -87,6 +92,8 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 
 已有陷阱:
 - 2026-08-14 job_change_log 导入字段与 DDL/M2 语义不一致（`docs/superpowers/traps/2026-08-14-import-change-log-mismatch.md`）
+- 2026-08-16 集成测试误删 jd_pool（`docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）
+- 2026-08-16 cleaner experience 单行描述捕获整段致 1406（`docs/superpowers/traps/2026-08-16-cleaner-experience-overlength.md`）
 
 ## 项目决策要点（2026-08-03）
 
@@ -94,7 +101,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 
 仓库边界：`TalentMind` 同时是 A 的 M1 数据采集开发仓和 M1–M5 完整系统唯一主仓。正式后端源码只放 `backend/app/`，前端只放 `frontend/`；`exchange/` 只存交接文件、接口自述和小型 Mock；大型本地数据放 Git 忽略的 `data/local/`。旧 `backend` 不整体删除，重复代码只有在迁移、测试和集成验证通过后才清理，Git 历史负责追溯。
 
-当前例外：根目录 `人岗匹配/` 的 M4 原型迁移暂缓，未经用户再次确认不得移动或删除其中内容。
+当前例外：`input/人岗匹配/` 的 M4 原型迁移暂缓（原根目录交付目录已归档 `input/`，2026-08-16 确认），未经用户再次确认不得移动或删除其中内容。
 
 完整资产清单与已知限制（按轻重分类）见 `docs/superpowers/资产与状态.md`，**工作前必读**。
 

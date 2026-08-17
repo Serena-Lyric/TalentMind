@@ -4,14 +4,14 @@ from app.collect.repository import build_insert_params, save_rows
 
 def test_build_insert_params_maps_fields():
     row = {
-        "source": "dataset", "job_title": "AI Engineer", "raw_text": "Build AI systems",
+        "source": "linkedin", "job_title": "AI Engineer", "raw_text": "Build AI systems",
         "duties": "Design and implement", "experience": "3-5年",
         "quality": 0.8, "dup_group": "abc123",
         "crawled_at": datetime(2026, 7, 24, tzinfo=timezone.utc),
         "status": "cleaned",
     }
     p = build_insert_params(row)
-    assert p["source"] == "dataset"
+    assert p["source"] == "linkedin"
     assert p["job_title"] == "AI Engineer"
     assert p["raw_text"] == "Build AI systems"
     assert p["duties"] == "Design and implement"

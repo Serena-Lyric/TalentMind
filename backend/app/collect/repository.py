@@ -2,9 +2,9 @@ import json
 from sqlalchemy import text
 
 INSERT_STMT = text(
-    "INSERT INTO jd_pool (source, job_title, raw_text, duties, experience, "
+    "INSERT INTO jd_pool (source, source_detail, job_title, raw_text, duties, experience, "
     "quality, dup_group, crawled_at, status) VALUES "
-    "(:source, :job_title, :raw_text, :duties, :experience, "
+    "(:source, :source_detail, :job_title, :raw_text, :duties, :experience, "
     ":quality, :dup_group, :crawled_at, :status)"
 )
 
@@ -12,6 +12,7 @@ INSERT_STMT = text(
 def build_insert_params(row: dict) -> dict:
     return {
         "source": row.get("source", ""),
+        "source_detail": (row.get("source_detail", "") or "")[:128],
         "job_title": (row.get("job_title", "") or "")[:128],
         "raw_text": row.get("raw_text", ""),
         "duties": row.get("duties", ""),

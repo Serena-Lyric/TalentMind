@@ -2,8 +2,9 @@
 -- 数据分层: 原始层(jd_pool/talent_raw/signal, M1 产出) / 分析层(skill_dict/job_definition/job_skill/job_change_log/resume)
 CREATE TABLE IF NOT EXISTS jd_pool (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  source VARCHAR(32), job_title VARCHAR(128), raw_text TEXT,
-  duties TEXT, experience VARCHAR(255), quality FLOAT DEFAULT 0,  -- 2026-08-15 扩容 32->255 (D33, 真实数据最长约79字符)
+  source VARCHAR(32), source_detail VARCHAR(128),  -- source: 来源平台(D17，当前 linkedin)；source_detail: posting_domain/数据集标识(D39 2026-08-17)
+  job_title VARCHAR(128), raw_text TEXT,
+  duties TEXT, experience VARCHAR(255), quality FLOAT DEFAULT 0,  -- 2026-08-15 扩容 32->255 (D33); 2026-08-16 cleaner 提取上限 255（单行描述曾捕获整段致 1406）
   dup_group VARCHAR(64), crawled_at DATETIME, status VARCHAR(16) DEFAULT 'raw',
   INDEX idx_status (status), INDEX idx_source (source)
 );

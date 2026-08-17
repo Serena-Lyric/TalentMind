@@ -11,14 +11,14 @@
 | `backend/app/integration/import_exchange.py` | M2 交接 → MySQL 导入（**全量重建语义**：M2 产出是权威岗位集合） |
 | `backend/app/integration/import_graph.py` | graph.json → Neo4j（MERGE 幂等；换数据先清空） |
 | `backend/app/routers/mvp.py` | 20 个统一 API（jobs/graph/resume/dashboard；中英文 title/name_en 已生效） |
-| `backend/app/collect/` | M1 采集（import_csv 等；jd_pool 5003 cleaned 已就绪） |
+| `backend/app/collect/` | M1 采集（import_csv 等；jd_pool 5000 cleaned 已就绪，2026-08-16 恢复） |
 | `backend/.env` | 本地配置（MySQL/Neo4j/Redis/LLM 密钥，gitignore 保护，**禁止外传/入库**） |
 | `frontend/前后端接口对接文档.md` | 20 接口基线文档 |
 | `output/` | 回发包 v3（已生成并发送给四位队员；结构见 08-14 roundtrip 方案） |
 
-## 二、当前状态（截至 2026-08-15，commit `452a9b2`）
+## 二、当前状态（截至 2026-08-16，commit `42a12b1`）
 
-- **数据闭环完成**：jd_pool 5003 cleaned；skill_dict 285；job_definition 22（M2 约束重跑）；job_skill 22；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31；`exchange/m1/jd.json`（200 条）已产出。
+- **数据闭环完成**：jd_pool 5000 cleaned（2026-08-16 恢复导入；原 5003 曾被集成测试误删，见 traps/2026-08-16-integration-test-wiped-jd-pool.md）；skill_dict 285；job_definition 22（M2 约束重跑）；job_skill 22；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31；`exchange/m1/jd.json`（200 条，2026-08-16 重新导出）。
 - **测试**：后端 198 全量通过；前端 `pnpm run build`（含 vue-tsc）通过。
 - **服务**：后端 uvicorn :8000、前端 vite :5173（vite 已配 `/api` 代理到 8000）；MySQL/Neo4j/Redis 在 Docker。
 - **中英文过渡已上线**：API `title/label` 中文 + `name_en` 英文 key（过渡方案；M2 回包 `job_name_zh` 后转正式）。
@@ -29,7 +29,7 @@
 
 ### 1. 立即（等队员回包前）
 - [ ] 全队会议：正式通知 change_type / experience 扩容（均已执行，补告知）+ 中英文统一规则 + 版本 v3 基线 + 错峰时间表（材料见 `笔记.md` 第十一节 + `output/` 各包问题/要求清单）。
-- [ ] 补填 `exchange/m1/quality_check.md` 抽样 10 条核对结论（当前"待核对"）。
+- [x] 补填 `exchange/m1/quality_check.md` 抽样 10 条核对结论（2026-08-16 已由 AI 基于数据标注：10/10 通过，可人工复核）。
 - [ ] 熟悉验收工具链：`validate_exchange.py`、`import_exchange.py`、`import_graph.py`、测试命令（`cd backend && .\.venv\Scripts\python.exe -m pytest -q`）。
 
 ### 2. 队员回包验收（4 关门禁，见 08-14 roundtrip 方案 Step 5）
@@ -47,7 +47,7 @@
 - [ ] 重跑 `validate_exchange` 确认关联警告（当前 job_skill↔job_definition 3/22）清零。
 
 ### 4. 未完成事项（P1 / 收尾）
-- [ ] 阶段 7 清理：根目录 `jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/`（**`人岗匹配/岗位测试用例/*.pdf/docx` 真实简历删除前先列清单与用户确认**，D36）；
+- [ ] 阶段 7 清理：`input/` 下原交付目录（`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/`，2026-08-16 确认已归档于此）（**`input/人岗匹配/岗位测试用例/*.pdf/docx` 真实简历删除前先列清单与用户确认**，D36）；
 - [ ] 部署说明与演示材料（P3）；
 - [ ] P1 项（见 `笔记.md` 第七节）：M2 is_emerging 复核与 100 JD 测试集；M4 pathfinder 已列 P0（队员）；M5 空列/趋势/Learning；M3 Skill–Skill；resume 落库。
 
@@ -90,3 +90,4 @@ cd frontend; pnpm run build
 3. **契约变更先通知**：改/删字段须全队通知（D32/D33/P4 已执行，通知随会议）；加字段自由但须同步 `validate_exchange` 与文档。
 4. **不臆测**：不确定先查资产清单/决策跟踪/笔记；仍不确定问用户。
 5. **测试门禁**：任何集成改动后必须 `pytest` 全量通过（198 基线）+ 前端 `pnpm run build`。
+6. **测试数据清理（D37）**：集成测试写库数据必须按测试夹具特征精确清理（finally/teardown），禁止按 source 宽泛删除；跑完测试后查询 DB 验证无残留、生产数据未被误删。

@@ -10,6 +10,8 @@
 
 4. **闭环追踪** — 用户提出跨多轮的全局需求时，确认所有子项处理完毕再切换方向。每次回复前检查是否有用户已确认但未执行的协议。
 
+5. **测试数据清理（D37）** — 测试写入数据库/文件的数据必须在测试后自动清理（finally/teardown，按测试夹具特征精确删除，禁止按 source 等宽泛条件 DELETE）；运行集成测试后必须查询数据库验证无测试残留且生产数据完好。详见 AGENTS.md「测试数据清理」与 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`。
+
 ## 参考文档
 
 - 现行设计: `docs/superpowers/specs/2026-08-03-team-plan-design.md`（唯一当前依据）
@@ -28,10 +30,10 @@
 
 权威清单与维护规则见 `docs/superpowers/资产与状态.md`。摘要：
 
-- 已交付、整合中模块（D26 定稿）：`jd-filter-package/`（M2 → `backend/app/job_analysis/`；已预跑 8 个岗位定义）、`图谱模块/`（M3 → `backend/app/graph/`）、`岗位能力图谱-前端源码/`（M5 → `frontend/`，保留 6 页、20 接口为基线）、`人岗匹配/`（M4 → `backend/app/matching/`，脱敏入库暂缓 D36）
-- 关键裁决（2026-08-13/15，详见决策跟踪 D26–D36）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 已扩容 VARCHAR(255)、`change_type` 已扩容 VARCHAR(32)（D32/D33 已执行，通知随全队会议）；421MB seed SQL 已删除（D27）；中英文过渡（API title 中文 + name_en）已上线
+- 已交付、整合中模块（D26 定稿）：原根目录交付目录 `jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/` 已统一归档至 `input/`（gitignore 保护，阶段 7 清理待用户确认）；正式位置为 M2 → `backend/app/job_analysis/`（约束重跑 22 岗位）、M3 → `backend/app/graph/`、M5 → `frontend/`（保留 6 页、20 接口为基线）、M4 → `backend/app/matching/`（脱敏入库暂缓 D36）
+- 关键裁决（2026-08-13/16，详见决策跟踪 D26–D37）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 已扩容 VARCHAR(255)、`change_type` 已扩容 VARCHAR(32)（D32/D33 已执行，通知随全队会议）；421MB seed SQL 已删除（D27）；中英文过渡（API title 中文 + name_en）已上线；测试数据自动清理与验证（D37，2026-08-16）
 - 协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行（schema 校验 → diff 门禁 → 单测/集成 → 导入+冒烟）；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`
-- 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示）；禁止 `git add -A`（`人岗匹配/` 含真实简历，D36 暂缓）
+- 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示 / P5 关联）；禁止 `git add -A`（`input/人岗匹配/` 含真实简历，D36 暂缓）
 
 ## 项目决策要点（2026-08-03 汇总）
 
@@ -46,4 +48,4 @@
 - 仓库双重角色：本仓库既是 A 的 M1 数据采集开发仓，也是 M1–M5 集成后的完整系统唯一主仓
 - 目录边界：后端正式源码只放 `backend/app/`，前端只放 `frontend/`；交接文件和小型 Mock 放 `exchange/`；大型本地数据放 Git 忽略的 `data/local/`
 - 旧代码策略：不整体删除现有 `backend`；M1 采集管道继续复用。重复目录必须在迁移、测试和集成验证通过后才清理，Git 历史负责追溯
-- M4 原型迁移：根目录 `人岗匹配/` 当前暂缓迁移，保持原状，待用户另行确认后处理
+- M4 原型迁移：`input/人岗匹配/` 当前暂缓迁移（原根目录交付目录已归档 `input/`），保持原状，待用户另行确认后处理
