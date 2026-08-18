@@ -8,11 +8,15 @@ $PSNativeCommandUseErrorActionPreference = $false
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
 Write-Host "===== 1. 定时任务 TalentMindCollect =====" -ForegroundColor Cyan
-$task = schtasks /Query /TN "TalentMindCollect" /V /FO LIST 2>$null
+try {
+    $task = schtasks /Query /TN "TalentMindCollect" /V /FO LIST 2>$null
+} catch {
+    $task = $null
+}
 if ($task) {
     $task | Select-String -Pattern "Status|Last Run Time|Last Result|Next Run Time" | ForEach-Object { $_.Line.Trim() }
 } else {
-    Write-Host "（任务未注册：schtasks /Create ... 见 scripts\collect_daily.ps1 注释）"
+    Write-Host "（任务未注册，或 SYSTEM 任务普通权限不可读——管理员可查）"
 }
 
 Write-Host "`n===== 2. 最近采集日志 =====" -ForegroundColor Cyan
@@ -38,6 +42,6 @@ if (-not $listener) {
 }
 $oldPref = $ErrorActionPreference
 $ErrorActionPreference = "Continue"  # docker stderr（mysql 密码警告）不终止
-$rows = docker exec talentmind-mysql-1 mysql -uroot -ptalentmind --default-character-set=utf8mb4 -N -e "SELECT 'jd_pool 总量', COUNT(*) FROM talentmind.jd_pool UNION ALL SELECT '  - linkedin', COUNT(*) FROM talentmind.jd_pool WHERE source='linkedin' UNION ALL SELECT '  - hn', COUNT(*) FROM talentmind.jd_pool WHERE source='hn' UNION ALL SELECT '  - cross_source 命中', COUNT(*) FROM talentmind.jd_pool WHERE cross_source=1 UNION ALL SELECT 'signal 总量', COUNT(*) FROM talentmind.signal UNION ALL SELECT '  - github', COUNT(*) FROM talentmind.signal WHERE source='github' UNION ALL SELECT '  - blog', COUNT(*) FROM talentmind.signal WHERE source='blog' UNION ALL SELECT '最近 JD 采集时间', MAX(crawled_at) FROM talentmind.jd_pool UNION ALL SELECT '最近信号时间', MAX(captured_at) FROM talentmind.signal;" 2>&1
+$rows = docker exec talentmind-mysql-1 mysql -uroot -ptalentmind --default-character-set=utf8mb4 -N -e "SELECT 'jd_pool 总量', COUNT(*) FROM talentmind.jd_pool UNION ALL SELECT '  - linkedin', COUNT(*) FROM talentmind.jd_pool WHERE source='linkedin' UNION ALL SELECT '  - hn', COUNT(*) FROM talentmind.jd_pool WHERE source='hn' UNION ALL SELECT '  - cross_source 命中', COUNT(*) FROM talentmind.jd_pool WHERE cross_source=1 UNION ALL SELECT 'signal 总量', COUNT(*) FROM talentmind.signal UNION ALL SELECT '  - github', COUNT(*) FROM talentmind.signal WHERE source='github' UNION ALL SELECT '  - blog', COUNT(*) FROM talentmind.signal WHERE source='blog' UNION ALL SELECT '  - 时间序列天数', COUNT(DISTINCT DATE(captured_at)) FROM talentmind.signal UNION ALL SELECT '最近 JD 采集时间', MAX(crawled_at) FROM talentmind.jd_pool UNION ALL SELECT '最近信号时间', MAX(captured_at) FROM talentmind.signal;" 2>&1
 $ErrorActionPreference = $oldPref
 $rows | Where-Object { $_ -notmatch "Warning" } | ForEach-Object { Write-Host $_ }

@@ -22,6 +22,9 @@ def main():
     if not args.skip_hn:
         from app.collect.fetch_hn_jobs import run_fetch as run_hn
         run_hn(args.hn_limit)
+        # hn 刷新后重算多源交叉验证，保持 cross_source 标记与当前 jd_pool 一致
+        from app.collect.cross_validate import run as run_cv
+        run_cv(dry_run=False)
     print("[fetch_all] 全部采集任务完成")
 
 

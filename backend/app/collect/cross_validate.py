@@ -47,11 +47,8 @@ def _is_match(a: str, b: str) -> bool:
     return shorter in longer and len(shorter) / len(longer) >= 0.6
 
 
-def main():
-    parser = argparse.ArgumentParser(description="多源交叉验证质量分（D42）")
-    parser.add_argument("--dry-run", action="store_true", help="只分析不写库")
-    args = parser.parse_args()
-
+def run(dry_run: bool = False) -> dict:
+    """执行多源交叉验证（D42）：匹配 + 写库 + 报告。返回统计 dict。"""
     from app.db.mysql import get_db
     db = next(get_db())
     try:
@@ -86,7 +83,7 @@ def main():
         hit_ids.add(hid)
         hit_ids.add(lid)
 
-    if not args.dry_run and hit_ids:
+    if not dry_run and hit_ids:
         params = [{"i": i, "f": CROSS_SOURCE_FLOOR} for i in hit_ids]
         for j in range(0, len(params), 500):
             db.execute(text(
@@ -121,6 +118,14 @@ def main():
     for m in matches[:10]:
         hid, lid = m
         print(f"  hn#{hid} <-> linkedin#{lid}: [{hn_by_id[hid]['job_title'][:50]}] <=> [{ln_by_id[lid]['job_title'][:50]}]")
+    return {"linkedin": len(ln), "hn": len(hn), "matches": len(matches), "hits": len(hit_ids)}
+
+
+def main():
+    parser = argparse.ArgumentParser(description="多源交叉验证质量分（D42）")
+    parser.add_argument("--dry-run", action="store_true", help="只分析不写库")
+    args = parser.parse_args()
+    run(dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

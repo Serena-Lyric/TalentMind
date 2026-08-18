@@ -13,7 +13,11 @@ from sqlalchemy import text
 
 
 def run_fetch(sources: list[str]) -> int:
-    """抓取指定来源信号并写入 signal 表（幂等：当日同 source 先清后写）。返回写入条数。"""
+    """抓取指定来源信号并写入 signal 表（D44：追加式时间序列，每次运行生成一个时间点快照）。
+
+    不再"当日先清后写"：signal 为轻量计数，追加可形成多时间点序列（captured_at 不同），
+    供 M2 evolution 趋势；如需清理历史可手动 DELETE。
+    """
     client = httpx.Client(timeout=20, follow_redirects=True, verify=False)  # 本机无系统证书链，公网抓取关闭校验
     all_signals = []
     try:
@@ -33,14 +37,8 @@ def run_fetch(sources: list[str]) -> int:
 
     db = next(get_db())
     try:
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        for src in sources:
-            db.execute(text(
-                "DELETE FROM `signal` WHERE source=:s AND DATE(captured_at)=:d"
-            ), {"s": src, "d": today})
-        db.commit()
         n = save_signals(db, all_signals)
-        print(f"[fetch_signals] 写入 {n} 条 signal（sources={sources}）")
+        print(f"[fetch_signals] 写入 {n} 条 signal（sources={sources}，追加式）")
         return n
     finally:
         db.close()

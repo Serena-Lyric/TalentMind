@@ -30,11 +30,18 @@
 .\.venv\Scripts\python.exe -m app.collect.import_csv --csv ..\docs\originalfile\archive\postings.csv --limit 5000
 ```
 
-## 三、幂等与增量
+## 三、幂等与增量（D44 更新）
 
-- `fetch_signals` / `fetch_hn_jobs`：**当日同 source 先清后写**，重复执行不产生重复行（按 `DATE(crawled_at)` / `DATE(captured_at)`）；
-- 时间序列：每日跑一次 `fetch_all` → signal/jd_pool 形成多日快照，供 M2 evolution 趋势使用；
+- `fetch_signals`：**追加式时间序列**——每次运行在 signal 表追加一份快照（captured_at 不同），不再当日覆盖；同一天多次跑会积累多个时间点（M2 evolution 需要）；
+- `fetch_hn_jobs`：**按帖清理**——本次抓取的帖子先删旧行再插入（历史帖保留），当月帖刷新、历史月份不误删；
 - LinkedIn CSV 导入为**追加**模式，扩量前需确认去重策略（dup_group）。
+
+## 三·五、持续采集循环（D44，不依赖计划任务）
+
+- `python -m app.collect.collect_loop --hours 6 --forever`：每 6 小时跑一轮 fetch_all，无限循环（后台可用隐藏窗口启动）；
+- 已启动实例（2026-08-18）：PID 见 `collect_loop.out.log`；停止：`Stop-Process -Id <PID>`；
+- signal 时间序列由此自动积累；计划任务（SYSTEM 02:00）保留为尽力触发。
+- `fetch_all` 与循环每轮末尾**自动执行交叉验证**（cross_validate），保证 hn 刷新后 `cross_source` 标记与当前 jd_pool 一致。
 
 ## 四、字段语义（D38/D39）
 
