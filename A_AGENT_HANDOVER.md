@@ -11,46 +11,52 @@
 | `backend/app/integration/import_exchange.py` | M2 交接 → MySQL 导入（**全量重建语义**：M2 产出是权威岗位集合） |
 | `backend/app/integration/import_graph.py` | graph.json → Neo4j（MERGE 幂等；换数据先清空） |
 | `backend/app/routers/mvp.py` | 20 个统一 API（jobs/graph/resume/dashboard；中英文 title/name_en 已生效） |
-| `backend/app/collect/` | M1 采集（import_csv 等；jd_pool 5000 cleaned 已就绪，2026-08-16 恢复） |
+| `backend/app/collect/README.md` | **M1 采集模块文档（数据源矩阵/命令/幂等/合规/监控）** |
+| `scripts/collect_daily.ps1` / `check_collect_status.ps1` | 每日采集（SYSTEM 任务）/ 一键监控（任务/日志/数据量） |
+| `backend/app/collect/fetch_all.py` | **统一采集入口**（signals + hn + 交叉验证，一键） |
+| `backend/app/collect/collect_loop.py` | **持续采集循环**（每 N 小时一轮，--forever；当前运行中） |
+| `backend/app/collect/cross_validate.py` | 多源交叉验证（D42：cross_source 标记 + quality 上浮） |
+| `docs/superpowers/plans/2026-08-17-multisource-collection-plan.md` | 多源采集计划（P0 信号 ✅ / P1 岗位 ✅ / P2 交叉验证 ✅） |
+| `data/local/m2-data-pack/` | **M2 数据包（已发送 M2 开发者）**：jd_pool.sql 全量 + jd.json + skill_dict + signal 快照 + 交叉验证报告 |
 | `backend/.env` | 本地配置（MySQL/Neo4j/Redis/LLM 密钥，gitignore 保护，**禁止外传/入库**） |
 | `frontend/前后端接口对接文档.md` | 20 接口基线文档 |
-| `output/` | 回发包 v3（已生成并发送给四位队员；结构见 08-14 roundtrip 方案） |
+| `output/` | 回发包 v3（已发送四位队员；结构见 08-14 roundtrip 方案） |
 
-## 二、当前状态（截至 2026-08-16，commit `42a12b1`）
+## 二、当前状态（截至 2026-08-18，commit `cdd36a1`）
 
-- **数据闭环完成**：jd_pool 5000 cleaned（2026-08-16 恢复导入；原 5003 曾被集成测试误删，见 traps/2026-08-16-integration-test-wiped-jd-pool.md）；skill_dict 285；job_definition 22（M2 约束重跑）；job_skill 22；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31；`exchange/m1/jd.json`（200 条，2026-08-16 重新导出）。
-- **测试**：后端 198 全量通过；前端 `pnpm run build`（含 vue-tsc）通过。
-- **服务**：后端 uvicorn :8000、前端 vite :5173（vite 已配 `/api` 代理到 8000）；MySQL/Neo4j/Redis 在 Docker。
-- **中英文过渡已上线**：API `title/label` 中文 + `name_en` 英文 key（过渡方案；M2 回包 `job_name_zh` 后转正式）。
-- **回发闭环进行中**：`output/` 四包 v3 已发送队员（M2/M3/M4/M5），队员二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
-- **已扩容**：`job_change_log.change_type VARCHAR(32)`、`jd_pool.experience VARCHAR(255)`（DDL+DB 均已改；正式通知随全队会议）。
-- **A 集成修改文件清单（回包防覆盖，追加）**：`job_analysis/db.py` 解析器反斜杠转义保留（2026-08-17，修复 mysqldump 风格 SQL 文本换行/反斜杠丢失，M2 数据包 jd_pool.sql 依赖此修复）；`collect/` 系列（D38/D39/D40/D42/D44）。
+- **数据闭环**：jd_pool **6796 cleaned**（linkedin 5000 + hn 1796/6 帖，多源 D38/D40）；signal **130 条 / 2 天时间序列**（8/17+8/18，追加式，今日 4 时间点）；cross_source **426 行**（D42）；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。
+- **持续采集运行中（D44）**：`collect_loop.py` 后台循环（每 6h 一轮 --forever，PID 见 `data/local/logs/collect_loop.out.log`）；SYSTEM 计划任务 02:00 保留为尽力触发（自动触发不可靠，勿依赖）。
+- **M2 数据包已发**：`data/local/m2-data-pack/`（2026-08-17），岗位数据已足量支撑 M2 岗位定义提取；signal ≥3 天后再发第二版（含时间序列）。
+- **测试**：后端 208 全量通过（179+23+新测试）；前端 `pnpm run build` 通过。
+- **服务**：后端 uvicorn :8000、前端 vite :5173；MySQL/Neo4j/Redis 在 Docker。
+- **回发闭环**：`output/` 四包 v3 已发队员，二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
+- **契约/决策**：D37 测试数据安全清理、D38 source=linkedin+source_detail、D39 多源信号、D40 HN 岗位、D41 采集模块完整开发、D42 交叉验证、D43 M2 数据包、D44 持续采集改设计；未决 P1/P2/P3/P5/P6（P6=中文平台合规方案，用户确认后续再议）。
+- **A 集成修改文件清单（回包防覆盖）**：`job_analysis/db.py`（解析器反斜杠转义保留，M2 数据包依赖）；`collect/` 系列（fetch_all/collect_loop/cross_validate/fetch_signals/fetch_hn_jobs/hn_hiring/trending/blog_rss、cleaner/repository/schema/dataset）；`ddl.sql`（experience/change_type 扩容、source_detail、cross_source、signal.source）。
 
 ## 三、交接：你接手后必须做的事
 
 ### 1. 立即（等队员回包前）
-- [ ] 全队会议：正式通知 change_type / experience 扩容（均已执行，补告知）+ 中英文统一规则 + 版本 v3 基线 + 错峰时间表（材料见 `笔记.md` 第十一节 + `output/` 各包问题/要求清单）。
-- [x] 补填 `exchange/m1/quality_check.md` 抽样 10 条核对结论（2026-08-16 已由 AI 基于数据标注：10/10 通过，可人工复核）。
+- [ ] 全队会议：正式通知 change_type / experience 扩容 + 中英文统一规则 + 版本 v3 基线 + 错峰时间表（材料见 `笔记.md` 第十一节 + `output/` 各包问题/要求清单）。
+- [x] 补填 `exchange/m1/quality_check.md` 抽样 10 条核对结论（2026-08-16 AI 标注 10/10 通过，可人工复核）。
 - [ ] 熟悉验收工具链：`validate_exchange.py`、`import_exchange.py`、`import_graph.py`、测试命令（`cd backend && .\.venv\Scripts\python.exe -m pytest -q`）。
+- [ ] **持续采集监控**：`powershell -File scripts\check_collect_status.ps1` 查看数据量与日志；确认 `collect_loop` 进程存活（重启：见第四节）。
 
 ### 2. 队员回包验收（4 关门禁，见 08-14 roundtrip 方案 Step 5）
 1. **schema 校验**：`validate_exchange`（字段/类型/枚举/关联/版本头）；
-2. **diff 检查**：A 修改文件未被回滚（M2 `stage3_extract.py` 约束、M4 `matcher.py` canonical 化、前端 request/vite 配置等，见各包 README「A 修改文件清单」）；
-3. **单测/集成**：队员测试结果 + A 机复验（198 基线 + 模块新增）；
+2. **diff 检查**：A 修改文件未被回滚（M2 `stage3_extract.py` 约束、M4 `matcher.py` canonical 化、前端 request/vite 配置、`job_analysis/db.py` 解析器修复等）；
+3. **单测/集成**：队员测试结果 + A 机复验（208 基线 + 模块新增）；
 4. **导入 + 前端冒烟**：import_exchange/import_graph → MySQL/Neo4j → `/api` → 前端页面。
 
-验收通过 → 更新 `资产与状态.md` / 决策跟踪 → 进入下一里程碑；不通过 → 新问题清单随下一轮回发。
-
 ### 3. 队员回包后的跟进
-- [ ] **M2 回包后重生成数据快照**（`output/` 各包 `依赖数据快照/快照说明.md`：snapshot_version+1）同步给 M3/M4/M5；
+- [ ] **M2 回包后重生成数据快照**（`output/` 各包 `依赖数据快照/快照说明.md`：snapshot_version+1）同步 M3/M4/M5；
 - [ ] 用新产出重跑 M3 builder（`exchange/m2` → graph.json）→ 清空重导 Neo4j；
 - [ ] 若 M2 增加 `job_name_zh`：API/图谱切换到正式中文字段（当前为过渡映射）；
 - [ ] 重跑 `validate_exchange` 确认关联警告（当前 job_skill↔job_definition 3/22）清零。
 
 ### 4. 未完成事项（P1 / 收尾）
+- [ ] signal 时间序列 ≥3 天后：生成**第二版 M2 数据包**（含时间序列，供 evolution）；参考 `data/local/export_m2.py` + `pack_m2.py`（一次性脚本）。
 - [ ] 阶段 7 清理：`input/` 下原交付目录（`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/`，2026-08-16 确认已归档于此）（**`input/人岗匹配/岗位测试用例/*.pdf/docx` 真实简历删除前先列清单与用户确认**，D36）；
-- [ ] 部署说明与演示材料（P3）；
-- [ ] P1 项（见 `笔记.md` 第七节）：M2 is_emerging 复核与 100 JD 测试集；M4 pathfinder 已列 P0（队员）；M5 空列/趋势/Learning；M3 Skill–Skill；resume 落库。
+- [ ] 部署说明与演示材料（P3）；P1 项（见 `笔记.md` 第七节）：M2 is_emerging 复核与 100 JD 测试集；M4 pathfinder（队员 P0）；M5 空列/趋势/Learning；M3 Skill–Skill；resume 落库；P6 中文平台合规方案（用户确认后续再议）。
 
 ## 四、操作手册（A 常用命令）
 
@@ -65,8 +71,16 @@ cd frontend; pnpm dev
 # 全量测试
 cd backend; .\.venv\Scripts\python.exe -m pytest -q
 
+# ★ 采集（D39–D44）
+cd backend
+.\.venv\Scripts\python.exe -m app.collect.fetch_all                 # 一键：信号+hn+交叉验证
+.\.venv\Scripts\python.exe -m app.collect.collect_loop --hours 6 --forever   # 持续采集循环（后台用 Start-Process -WindowStyle Hidden）
+.\.venv\Scripts\python.exe -m app.collect.fetch_hn_jobs --months 5  # 扩充 HN 历史月份
+.\.venv\Scripts\python.exe -m app.collect.cross_validate            # 多源交叉验证（--dry-run 只分析）
+powershell -File ..\scripts\check_collect_status.ps1                # 监控：任务/日志/数据量
+
 # 交接校验（回包第一关）
-cd backend; .\.venv\Scripts\python.exe -m app.integration.validate_exchange  # 或调用 validate_m2()/validate_m3()
+cd backend; .\.venv\Scripts\python.exe -m app.integration.validate_exchange
 
 # M2 交接 → MySQL（全量重建）
 cd backend; .\.venv\Scripts\python.exe -c "from app.integration.import_exchange import import_all; print(import_all())"
@@ -77,7 +91,7 @@ cd backend; .\.venv\Scripts\python.exe -c "from app.integration.import_graph imp
 # 重建图谱（基于 exchange/m2 产出）
 cd backend; .\.venv\Scripts\python.exe -c "from app.graph import builder as b; b.DATA_SOURCE_PRIORITY=['m2']; print(b.build_graph())"
 
-# M2 管道重跑（需 backend/.env 配 LLM_API_KEY）
+# M2 管道重跑（需 backend/.env 配 LLM_API_KEY；输入用 M2 数据包的 jd_pool.sql 或 jd.json）
 cd backend; .\.venv\Scripts\python.exe -m app.job_analysis.main <输入SQL/JSON路径>
 
 # 前端构建（含 vue-tsc 类型检查）
@@ -86,9 +100,10 @@ cd frontend; pnpm run build
 
 ## 五、红线（不可违反）
 
-1. **禁止 `git add -A`**：`input/` 含真实简历、`output/` 含打包物、`backend/.env` 含密钥、`data/local/` 含 421MB SQL；只 add 明确文件。
-2. **`笔记.md` 不提交**（用户要求）；`output/`、`input/` 不入库。
-3. **契约变更先通知**：改/删字段须全队通知（D32/D33/P4 已执行，通知随会议）；加字段自由但须同步 `validate_exchange` 与文档。
+1. **禁止 `git add -A`**：`input/` 含真实简历、`output/` 含打包物、`backend/.env` 含密钥、`data/local/` 含大型 SQL/数据包；只 add 明确文件。
+2. **`笔记.md` 不提交**（用户要求）；`output/`、`input/`、`data/local/` 不入库。
+3. **契约变更先通知**：改/删字段须全队通知（D32/D33/P4 已执行，通知随会议）；加字段自由但须同步 `validate_exchange` 与文档（D38 source_detail、D42 cross_source、D39 signal.source 均已记录）。
 4. **不臆测**：不确定先查资产清单/决策跟踪/笔记；仍不确定问用户。
-5. **测试门禁**：任何集成改动后必须 `pytest` 全量通过（198 基线）+ 前端 `pnpm run build`。
+5. **测试门禁**：任何集成改动后必须 `pytest` 全量通过（208 基线）+ 前端 `pnpm run build`。
 6. **测试数据清理（D37）**：集成测试写库数据必须按测试夹具特征精确清理（finally/teardown），禁止按 source 宽泛删除；跑完测试后查询 DB 验证无残留、生产数据未被误删。
+7. **幂等与增量（D44）**：`fetch_signals` 追加式（不覆盖历史时间点）；`fetch_hn_jobs` 按帖清理（勿改回"当日先清后写"，会误删历史月份，见 traps/2026-08-17-hn-idempotency-wiped-history.md）；计划任务 Task To Run 必须用 powershell 全路径（SYSTEM 任务相对路径不启动）。
