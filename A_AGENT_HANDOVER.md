@@ -22,11 +22,11 @@
 | `frontend/前后端接口对接文档.md` | 20 接口基线文档 |
 | `output/` | 回发包 v3（已发送四位队员；结构见 08-14 roundtrip 方案） |
 
-## 二、当前状态（截至 2026-08-18，commit `cdd36a1`）
+## 二、当前状态（截至 2026-08-19，commit `2a1c3f8`）
 
-- **数据闭环**：jd_pool **6796 cleaned**（linkedin 5000 + hn 1796/6 帖，多源 D38/D40）；signal **130 条 / 2 天时间序列**（8/17+8/18，追加式，今日 4 时间点）；cross_source **426 行**（D42）；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。
-- **持续采集运行中（D44）**：`collect_loop.py` 后台循环（每 6h 一轮 --forever，PID 见 `data/local/logs/collect_loop.out.log`）；SYSTEM 计划任务 02:00 保留为尽力触发（自动触发不可靠，勿依赖）。
-- **M2 数据包已发**：`data/local/m2-data-pack/`（2026-08-17），岗位数据已足量支撑 M2 岗位定义提取；signal ≥3 天后再发第二版（含时间序列）。
+- **数据闭环**：jd_pool **6796 cleaned**（linkedin 5000 + hn 1796/6 帖）；signal **253 条 / 3 天时间序列**（8/17–8/19，追加式多时间点）；cross_source **426 行**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。
+- **持续采集运行中（D44）**：`collect_loop.py` 后台循环（每 6h 一轮 --forever，PID 见 `data/local/logs/collect_loop.out.log`，8/18 启动连续运行、第 5 轮完成）；SYSTEM 计划任务 02:00 保留为尽力触发（自动触发不可靠，勿依赖）。
+- **M2 数据包已发**：`data/local/m2-data-pack/` **2026-08-19-1 版**（signal 3 天时间序列 253 条 + jd_pool.sql 6796 + jd.json 200 + skill_dict + 交叉验证报告）；岗位数据足量支撑 M2；下次更新视 signal 天数或 M2 反馈。
 - **测试**：后端 208 全量通过（179+23+新测试）；前端 `pnpm run build` 通过。
 - **服务**：后端 uvicorn :8000、前端 vite :5173；MySQL/Neo4j/Redis 在 Docker。
 - **回发闭环**：`output/` 四包 v3 已发队员，二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
@@ -35,11 +35,13 @@
 
 ## 三、交接：你接手后必须做的事
 
+> **接手 48h 行动清单**：① 即进入**回包验收期（8/19 M2 → 8/20 M3/M4 → 8/21 M5）**，按下方「队员回包验收」4 关执行；② 确认 `collect_loop` 进程存活（重启命令见第四节）并记录 `check_collect_status.ps1` 基线；③ 若 M2 已用数据包重跑，用新产出重导 `exchange/m2` 并过 `validate_exchange`；④ 全队会议补告知契约变更（change_type/experience/source 语义）；⑤ 每轮采集后确认 signal 时间序列在增长。
+
 ### 1. 立即（等队员回包前）
 - [ ] 全队会议：正式通知 change_type / experience 扩容 + 中英文统一规则 + 版本 v3 基线 + 错峰时间表（材料见 `笔记.md` 第十一节 + `output/` 各包问题/要求清单）。
 - [x] 补填 `exchange/m1/quality_check.md` 抽样 10 条核对结论（2026-08-16 AI 标注 10/10 通过，可人工复核）。
 - [ ] 熟悉验收工具链：`validate_exchange.py`、`import_exchange.py`、`import_graph.py`、测试命令（`cd backend && .\.venv\Scripts\python.exe -m pytest -q`）。
-- [ ] **持续采集监控**：`powershell -File scripts\check_collect_status.ps1` 查看数据量与日志；确认 `collect_loop` 进程存活（重启：见第四节）。
+- [x] **持续采集监控**：`powershell -File scripts\check_collect_status.ps1`（已验证；8/19 循环第 5 轮、signal 3 天）；确认 `collect_loop` 进程存活（重启：见第四节）。
 
 ### 2. 队员回包验收（4 关门禁，见 08-14 roundtrip 方案 Step 5）
 1. **schema 校验**：`validate_exchange`（字段/类型/枚举/关联/版本头）；
@@ -54,7 +56,7 @@
 - [ ] 重跑 `validate_exchange` 确认关联警告（当前 job_skill↔job_definition 3/22）清零。
 
 ### 4. 未完成事项（P1 / 收尾）
-- [ ] signal 时间序列 ≥3 天后：生成**第二版 M2 数据包**（含时间序列，供 evolution）；参考 `data/local/export_m2.py` + `pack_m2.py`（一次性脚本）。
+- [x] signal 时间序列 3 天达成：**M2 数据包 2026-08-19-1 版已生成**（signal 253 条/3 天）；后续更新参考 `data/local/gen_pack3.py` 逻辑。
 - [ ] 阶段 7 清理：`input/` 下原交付目录（`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/`，2026-08-16 确认已归档于此）（**`input/人岗匹配/岗位测试用例/*.pdf/docx` 真实简历删除前先列清单与用户确认**，D36）；
 - [ ] 部署说明与演示材料（P3）；P1 项（见 `笔记.md` 第七节）：M2 is_emerging 复核与 100 JD 测试集；M4 pathfinder（队员 P0）；M5 空列/趋势/Learning；M3 Skill–Skill；resume 落库；P6 中文平台合规方案（用户确认后续再议）。
 
