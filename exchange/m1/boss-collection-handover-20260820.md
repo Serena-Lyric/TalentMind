@@ -9,8 +9,8 @@ BOSS 采集模块已在用户人工登录的 Edge 求职端上通过正式 CDP �
 
 - BOSS 入口：用户选择 **“我要投职”**（求职端），没有选择“我要招人”（招聘端）。
 - CDP：`http://127.0.0.1:9333`。
-- 当前数据库：`jd_pool=126119`，其中 `linkedin=123849`、`hn=1796`、`boss=474`。LinkedIn archive `postings.csv` 已全量导入；本次从既有 5000 行之外追加 118849 行。
-- 原有 BOSS 151 条已保留；扩大批次新增 319 条，因此最终 BOSS 总量在持续循环首轮后为 474 条。
+- 当前数据库核验（2026-08-20 22:42:08 +08:00）：`jd_pool=126133`，其中 `linkedin=123849`、`hn=1796`、`boss=488`；全部 `status=cleaned`。LinkedIn archive `postings.csv` 已全量导入；本次从既有 5000 行之外追加 118849 行。
+- 原有 BOSS 151 条已保留；扩大批次新增 319 条，低速循环第 1–15 轮又新增 14 条，当前 BOSS 总量为 488 条。
 - 当前独立 Edge 仍保持 BOSS 登录；用户必须在同一窗口人工注销，注销时间尚未补录。
 
 ## 2. 本次正式扩大采集
@@ -74,7 +74,7 @@ BOSS 最大 id：125915
 测试数据安全核查：
 
 ```text
-后端全量测试：216 passed，3668 warnings
+该批次历史核验时后端全量测试：216 passed，3668 warnings
 测试岗位夹具残留：0
 测试人才 identity_hint 残留：0
 MVP 测试岗位残留：0
@@ -117,7 +117,7 @@ job_change_log 测试标记残留：0
 ## 6. 下一个 Agent 的接手步骤
 
 1. 先读根目录 `AGENT_START_HERE.md`，再按路线读 `docs/superpowers/决策跟踪.md`、`docs/superpowers/资产与状态.md`、`backend/app/contracts/ddl.sql` 和 `A_AGENT_HANDOVER.md`。
-2. 阅读本文件和 `backend/app/collect/README.md`，确认当前 BOSS 总量应以数据库实时查询为准；本次记录为 474，历史首轮 151 已包含在内。
+2. 阅读本文件和 `backend/app/collect/README.md`，确认当前 BOSS 总量应以数据库实时查询为准；当前核验为 488，历史首轮 151 与扩大批次新增 319 均已包含在内。
 3. 运行状态检查：
 
    ```powershell
@@ -149,3 +149,15 @@ job_change_log 测试标记残留：0
 - 默认单关键词/城市、1 页、最多 12 条岗位/8 条详情；页面间隔 15–30 秒，关键词/城市切换间隔 6–12 分钟，默认不间断运行。
 - 检测到登录页或验证页立即停止；不实现验证码/登录/反爬绕过。日志为 `data/local/logs/boss_collect_loop.out.log`。
 - 当前运行记录（2026-08-20 17:20:11 +08:00）：BOSS 低速循环已按新默认节奏重启，启动器 PID 20544、工作进程 PID 35472；首轮北京/Python 于 17:23:46 完成，`listed=12/details=8/new=0/skipped=12`，随后等待 575.8 秒切换。
+
+
+## 8. 2026-08-20 运行状态复核
+
+本次复核以数据库和日志实时结果为准：
+
+- MySQL：`jd_pool=126133`，按来源为 `linkedin=123849`、`hn=1796`、`boss=488`；全部 `status=cleaned`。BOSS `source_detail` 空值 0、重复 URL 0、占位 URL 0；`duties` 非空 243 条。
+- BOSS 低速循环：第 1–15 轮完成，累计 `listed=180/details=120/new=14/skipped=166`；第 16 轮于 `2026-08-20 20:27:19 +08:00` 因 CDP 无可用页面目标安全停止。`127.0.0.1:9333` 仍监听，但当前没有可用 BOSS 页面，不能据此判断采集器仍在运行。
+- 通用循环：`collect_loop.py --hours 6 --forever` 第 11 轮于 `2026-08-20 22:44:07 +08:00` 完成；本轮 GitHub/博客追加 22 条 signal，HN 处理 240 条，下一轮等待约 6 小时。
+- 其他状态：`signal=433`（github 102、blog 331）；`talent_raw=0`（按需人才线索未持续运行）；拉勾/猎聘/智联仍按 P6 暂不采集。
+- 交叉验证：`cross_validate --dry-run` 重算报告为 887 行；数据库当前 `cross_source=1` 为 888 行，差异定位为历史残留 `jd_pool.id=111901`（`linkedin / Product Designer`），未做宽泛删除。
+- 测试：后端全量 `221 passed`；按 D37 精确夹具核查，`Mixed Batch JD`、`mixed_batch_user`、MVP 岗位和集成测试 change-log 标记均为 0，生产来源计数保持不变。

@@ -24,10 +24,10 @@
 
 ## 二、当前状态（截至 2026-08-20，工作树未提交）
 
-- **数据闭环**：jd_pool **126119 cleaned**（linkedin 123849 + hn 1796 + boss 474）；signal **411 条 / 4 天时间序列**；cross_source **426 行**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。BOSS 扩大采集详见 `exchange/m1/boss-collection-handover-20260820.md`。
-- **持续采集运行中（D44）**：`collect_loop.py` 后台循环（每 6h 一轮 --forever，PID 见 `data/local/logs/collect_loop.out.log`，8/18 启动连续运行、第 5 轮完成）；SYSTEM 计划任务 02:00 保留为尽力触发（自动触发不可靠，勿依赖）。
+- **数据闭环**：jd_pool **126133 cleaned**（linkedin 123849 + hn 1796 + boss 488）；signal **433 条 / 4 天时间序列**；cross_source **888 行（数据库实时值；最新报告重算为 887 行，含 1 条历史残留标记）**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。BOSS 扩大采集详见 `exchange/m1/boss-collection-handover-20260820.md`。
+- **通用持续采集运行中（D44）**：`collect_loop.py` 后台循环（每 6h 一轮 --forever，当前已完成第 11 轮，PID 见 `data/local/logs/collect_loop.out.log`）；BOSS 独立循环已完成第 1–15 轮并新增 14 条，第 16 轮因 CDP 无可用页面安全停止；9333 仍监听但无可用 BOSS 页面；SYSTEM 计划任务 02:00 保留为尽力触发（自动触发不可靠，勿依赖）。
 - **M2 数据包已发**：`data/local/m2-data-pack/` **2026-08-19-1 版**（signal 3 天时间序列 253 条 + jd_pool.sql 6796 + jd.json 200 + skill_dict + 交叉验证报告）；岗位数据足量支撑 M2；下次更新视 signal 天数或 M2 反馈。
-- **测试**：后端 216 全量通过，包含 BOSS CDP 连接与详情归一化测试；前端 `pnpm run build` 通过。
+- **测试**：后端 221 全量通过，包含 BOSS CDP 连接与详情归一化测试；前端 `pnpm run build` 通过。
 - **服务**：后端 uvicorn :8000、前端 vite :5173；MySQL/Neo4j/Redis 在 Docker。
 - **回发闭环**：`output/` 四包 v3 已发队员，二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
 - **契约/决策**：D37 测试数据安全清理、D38 source=linkedin+source_detail、D39 多源信号、D40 HN 岗位、D41 采集模块完整开发、D42 交叉验证、D43 M2 数据包、D44 持续采集改设计、D45–D48 BOSS 受控 CDP 采集与 9333 端口、D49 BOSS 扩大采集结果；未决 P1/P2/P3/P5/P6（P6=其他中文平台合规方案，BOSS 已进入可运行受控方案）。

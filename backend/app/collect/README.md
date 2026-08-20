@@ -12,7 +12,7 @@
 | GitHub Trending（公开页面） | 信号 | signal（source=github） | `fetchers/trending.py` | ✅ 语言热度 |
 | 技术博客 RSS（InfoQ/掘金；OSCHINA 403 待换源） | 信号 | signal（source=blog） | `fetchers/blog_rss.py` | ✅ 技能提及 |
 | GitHub Trending 贡献者 → 人才线索 | 人才 | talent_raw（source=github） | `fetchers/github.py`（保留） | 按需 |
-| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 474 条；扩大批次新增 319 条，持续循环后又新增 4 条 |
+| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 488 条；扩大批次新增 319 条，低速循环第 1–15 轮又新增 14 条 |
 | 其他中文招聘平台（拉勾/猎聘/智联） | 岗位 JD | — | — | ⛔ 暂不抓，仍按合规方案后再议（D40/P6） |
 
 ## 二、常用命令（均在 `backend/` 下，需 venv）
@@ -84,8 +84,8 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 > 历史数据记录（2026-08-20，+08:00）：Codex 内部浏览器快照读取了 7 个关键词共 105 条列表记录，与 2026-08-19 快照 45 条合并去重后将 77 条写入数据库，合计 122 条；这 122 条不计作 CDP 正式采集模块的首轮结果。快照：`data/local/boss_inapp_raw_20260819.json`、`data/local/boss_inapp_live_20260820.json`。
 - CDP/路由核查：`127.0.0.1:9222` 位于 Windows TCP 排除段 `9181-9280`，不可监听；`127.0.0.1:15721` 属于 CC Switch（`cc-switch.exe`），仅返回 `/health` 200，`/json/version` 与 `/json/list` 均 404，不是 CDP；3180 不纳入正式协议。正式连接使用 `http://127.0.0.1:9333`，用户目录为 `C:/Users/SERENA~1/AppData/Local/Temp/TalentMind-BOSS-Edge-9222`。
 - 首轮正式 CDP 批次（2026-08-20）：3 个关键词（Python、Java、数据分析）× 北京 × 2 页；CLI `listed=50, details=47, new=29, skipped=21`。该批次入库后 `jd_pool=6947`、`source=boss=151`；新增 29 条中 26 条含 `duties` 与详情正文。
-- 扩大正式 CDP 批次（2026-08-20）：8 个关键词（Python、Java、数据分析、后端工程师、数据工程师、AI工程师、机器学习、产品经理）× 北京/上海/深圳 × 5 页，详情尝试上限 300；CLI `listed=415, details=300, new=319, skipped=96`。原有 BOSS 151 条全部保留，批次完成后 `jd_pool=7266`、`source=boss=470`。
-- 最终质量核验：BOSS 470 条全部 `status=cleaned`；`source_detail` 空值 0、重复组 0、占位 URL 0；本次新增 319 条中 `raw_text` 长度>100 的 215 条、`duties` 非空 212 条；最大 id=125915。ID 不连续是历史删除/其他写入造成，不按 ID 连续性判断采集数。
+- 扩大正式 CDP 批次（2026-08-20，历史记录）：8 个关键词（Python、Java、数据分析、后端工程师、数据工程师、AI工程师、机器学习、产品经理）× 北京/上海/深圳 × 5 页，详情尝试上限 300；CLI `listed=415, details=300, new=319, skipped=96`。原有 BOSS 151 条全部保留，批次完成后 `jd_pool=7266`、`source=boss=470`。低速循环随后又新增 14 条，当前 `source=boss=488`。
+- 批次质量核验（历史记录）：BOSS 470 条全部 `status=cleaned`；`source_detail` 空值 0、重复组 0、占位 URL 0；本次新增 319 条中 `raw_text` 长度>100 的 215 条、`duties` 非空 212 条；最大 id=125915。ID 不连续是历史删除/其他写入造成，不按 ID 连续性判断采集数。当前数据库复核为 BOSS 488 条、全部 `status=cleaned`，`source_detail` 空值 0、重复 URL 0、占位 URL 0；`duties` 非空 243 条。
 - 注销记录：当前独立 Edge 的 BOSS 求职端仍保持登录，尚未注销。必须由用户在同一窗口人工执行“退出登录”，随后把实际注销时间（含时区）补入本文、`资产与状态.md` 和专项交接文件。未输入或处理验证码；不得复用登录态。
 
 ## 四、字段语义（D38/D39）
@@ -111,11 +111,11 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
 - `test_collect_integration.py` / `test_talent_pipeline_integration.py`：管道集成（D37 精确清理）；
-- 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（当前 216 passed）。
+- 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（当前 221 passed）。
 
 ## 六、设计参考（crawl4ai 评估，2026-08-17）
 
 - 评估结论：**不引入 crawl4ai 依赖**（当前数据源均静态/API/XML，无需 JS 渲染；其 stealth 反检测不改变合规红线；引入需 Playwright/Chromium 重型依赖）；
 - 可借鉴设计：内容清洗策略（fit-markdown 噪声过滤 → 已由 cleaner `_strip_noise`/`_fix_fused_prefix`/`_extract_duties` 覆盖）；缓存与幂等（已由当日先清后写覆盖）；
 - 若未来出现"robots 允许但需 JS 渲染"的合规源，再评估 Playwright 直连（无需 crawl4ai）。
-- 运行记录（2026-08-20 17:20:11 +08:00）：独立进程启动器 PID 20544、工作进程 PID 35472 已按 15–30 秒页面间隔和 6–12 分钟切换间隔重启；首轮北京/Python 于 17:23:46 完成，`listed=12/details=8/new=0/skipped=12`，随后等待 575.8 秒；日志见 `data/local/logs/boss_collect_loop.out.log`。
+- 最新运行记录（2026-08-20 20:27:19 +08:00）：BOSS 低速循环已完成第 1–15 轮，共处理 180 条列表岗位、120 条详情、14 条新增，数据库 `source=boss=488`；第 16 轮开始时因 CDP 没有可用页面目标而按安全策略停止，端口 9333 仍监听但需用户重新打开 BOSS 页面后再启动。日志见 `data/local/logs/boss_collect_loop.out.log`。通用循环第 11 轮于 22:44:07 +08:00 完成；GitHub/博客 signal 本轮追加 22 条，HN 处理 240 条，交叉验证报告重算为 887 行。
