@@ -1,5 +1,10 @@
 import csv
-from app.collect.fetchers.dataset import load_csv_posting, load_skill_map, load_job_skills
+from app.collect.fetchers.dataset import (
+    iter_csv_postings,
+    load_csv_posting,
+    load_skill_map,
+    load_job_skills,
+)
 from app.collect.schema import RawJD
 
 
@@ -29,6 +34,17 @@ class TestLoadCsvPosting:
         f.write_text("".join(lines), encoding="utf-8")
         rows = load_csv_posting(str(f), limit=5)
         assert len(rows) == 5
+
+    def test_supports_offset_for_resume(self, tmp_path):
+        f = tmp_path / "postings.csv"
+        lines = ["job_id,title,description,formatted_experience_level\n"]
+        for i in range(5):
+            lines.append(f"{i},Job {i},Description {i},\n")
+        f.write_text("".join(lines), encoding="utf-8")
+
+        rows = list(iter_csv_postings(str(f), offset=2, limit=2))
+
+        assert [row.job_id for row in rows] == ["2", "3"]
 
     def test_skips_empty_title(self, tmp_path):
         f = tmp_path / "postings.csv"

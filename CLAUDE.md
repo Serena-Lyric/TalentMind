@@ -19,8 +19,8 @@
 - 实施计划: `docs/superpowers/plans/`（按日期取最新；旧版见 archive/）
 - 决策与未决: `docs/superpowers/决策跟踪.md`
 - 历史版本: `docs/superpowers/specs/archive/`、`docs/superpowers/plans/archive/`（仅供参考溯源，不作为当前依据）
-- 有效信息汇总: `docs/superpowers/旧文档有效信息汇总.md`
-- 项目需求: `docs/superpowers/项目需求.txt`
+- 历史有效信息汇总（仅溯源）: `docs/superpowers/archive/2026-08-20/legacy/旧文档有效信息汇总.md`
+- 初始项目需求（仅溯源）: `docs/superpowers/archive/2026-08-20/legacy/项目需求.txt`
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
 - **资产清单与已知限制: `docs/superpowers/资产与状态.md`（工作前必读，变更后必更新）**

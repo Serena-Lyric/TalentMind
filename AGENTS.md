@@ -94,6 +94,10 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 - 2026-08-14 job_change_log 导入字段与 DDL/M2 语义不一致（`docs/superpowers/traps/2026-08-14-import-change-log-mismatch.md`）
 - 2026-08-16 集成测试误删 jd_pool（`docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）
 - 2026-08-16 cleaner experience 单行描述捕获整段致 1406（`docs/superpowers/traps/2026-08-16-cleaner-experience-overlength.md`）
+- 2026-08-20 Edge CDP 动态端口与过期 DevToolsActivePort（`docs/superpowers/traps/2026-08-20-edge-cdp-active-port-stale.md`）
+- 2026-08-20 Edge CDP 端口落入 Windows 排除段（`docs/superpowers/traps/2026-08-20-edge-cdp-port-excluded.md`）
+- 2026-08-20 BOSS 详情字段合并后丢失（`docs/superpowers/traps/2026-08-20-boss-detail-fields-dropped.md`）
+- 2026-08-20 BOSS 中文职责标题未抽取（`docs/superpowers/traps/2026-08-20-boss-duties-not-extracted.md`）
 
 ## 项目决策要点（2026-08-03）
 

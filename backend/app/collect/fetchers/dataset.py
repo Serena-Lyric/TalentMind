@@ -1,17 +1,27 @@
 import csv
+from collections.abc import Iterator
+
 from app.collect.schema import RawJD
 
 
-def load_csv_posting(path: str, limit: int = 100000) -> list[RawJD]:
-    """Read postings.csv, yield RawJD per row. limit=0 means full."""
-    rows: list[RawJD] = []
+def iter_csv_postings(path: str, *, offset: int = 0, limit: int = 0) -> Iterator[RawJD]:
+    """Stream postings.csv; offset/limit count only rows with a non-empty title."""
+    if offset < 0 or limit < 0:
+        raise ValueError("offset 和 limit 不能为负数")
+
+    valid_count = 0
+    yielded = 0
     with open(path, encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             title = (row.get("title") or "").strip()
             if not title:
                 continue
-            rows.append(RawJD(
+            if valid_count < offset:
+                valid_count += 1
+                continue
+
+            yield RawJD(
                 source="linkedin",   # D39：来源平台（LinkedIn 数据集，D17 仅记录平台）
                 job_title=title,
                 raw_html=row.get("description") or "",
@@ -19,10 +29,16 @@ def load_csv_posting(path: str, limit: int = 100000) -> list[RawJD]:
                 job_id=(row.get("job_id") or "").strip(),
                 source_detail=((row.get("posting_domain") or "").strip()
                                or "linkedin_job_postings"),
-            ))
-            if limit > 0 and len(rows) >= limit:
-                break
-    return rows
+            )
+            valid_count += 1
+            yielded += 1
+            if limit > 0 and yielded >= limit:
+                return
+
+
+def load_csv_posting(path: str, limit: int = 100000, offset: int = 0) -> list[RawJD]:
+    """Read postings.csv into memory; use iter_csv_postings for large imports."""
+    return list(iter_csv_postings(path, offset=offset, limit=limit))
 
 
 def load_skill_map(skills_csv: str) -> dict[str, str]:

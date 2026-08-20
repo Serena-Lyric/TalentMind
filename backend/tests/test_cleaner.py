@@ -74,6 +74,12 @@ class TestExtractDuties:
         assert "Task A" in result
         assert "Education:" not in result
 
+    def test_extracts_boss_chinese_duties_section(self):
+        text = "职位描述:\n负责数据分析与报告输出\n公司简介: 示例公司"
+        result = _extract_duties(text)
+        assert "负责数据分析与报告输出" in result
+        assert "公司简介" not in result
+
     def test_returns_empty_when_no_duties_header(self):
         text = "Just a plain job description without any section headers."
         result = _extract_duties(text)

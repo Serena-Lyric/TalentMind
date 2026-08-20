@@ -61,6 +61,7 @@ DUTY_HEADER_PATTERN = re.compile(
     r"(?im)^(?:Key\s+)?Responsibilities?:?\s*$|"
     r"^Essential\s+Functions?:?\s*$|"
     r"^(?:Primary\s+)?Duties?:?\s*$|"
+    r"^(?:职位描述|岗位职责|工作职责|工作内容)\s*:?[ \t]*$|"
     r"^What\s+You'?ll\s+Do:?\s*$|"
     r"^Role\s*:?\s*$"
 )
@@ -70,7 +71,8 @@ SECTION_BOUNDARY_PATTERN = re.compile(
     r"(?im)^(?:Qualifications?|Requirements?|Education|Experience|Skills?|"
     r"About\s+(?:Us|the\s+Company)|Benefits?|Compensation|"
     r"We\s+(?:Are|Offer|Value)|How\s+to\s+Apply|"
-    r"Equal\s+Opportunity|Our\s+Company)\s*:?"
+    r"Equal\s+Opportunity|Our\s+Company|任职要求|岗位要求|职位要求|"
+    r"福利待遇|公司介绍|公司简介|工作地址)\s*:?"
 )
 
 

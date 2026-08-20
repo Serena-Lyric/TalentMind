@@ -22,15 +22,15 @@
 | `frontend/前后端接口对接文档.md` | 20 接口基线文档 |
 | `output/` | 回发包 v3（已发送四位队员；结构见 08-14 roundtrip 方案） |
 
-## 二、当前状态（截至 2026-08-19，commit `2a1c3f8`）
+## 二、当前状态（截至 2026-08-20，工作树未提交）
 
-- **数据闭环**：jd_pool **6796 cleaned**（linkedin 5000 + hn 1796/6 帖）；signal **253 条 / 3 天时间序列**（8/17–8/19，追加式多时间点）；cross_source **426 行**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。
+- **数据闭环**：jd_pool **126119 cleaned**（linkedin 123849 + hn 1796 + boss 474）；signal **411 条 / 4 天时间序列**；cross_source **426 行**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。BOSS 扩大采集详见 `exchange/m1/boss-collection-handover-20260820.md`。
 - **持续采集运行中（D44）**：`collect_loop.py` 后台循环（每 6h 一轮 --forever，PID 见 `data/local/logs/collect_loop.out.log`，8/18 启动连续运行、第 5 轮完成）；SYSTEM 计划任务 02:00 保留为尽力触发（自动触发不可靠，勿依赖）。
 - **M2 数据包已发**：`data/local/m2-data-pack/` **2026-08-19-1 版**（signal 3 天时间序列 253 条 + jd_pool.sql 6796 + jd.json 200 + skill_dict + 交叉验证报告）；岗位数据足量支撑 M2；下次更新视 signal 天数或 M2 反馈。
-- **测试**：后端 208 全量通过（179+23+新测试）；前端 `pnpm run build` 通过。
+- **测试**：后端 216 全量通过，包含 BOSS CDP 连接与详情归一化测试；前端 `pnpm run build` 通过。
 - **服务**：后端 uvicorn :8000、前端 vite :5173；MySQL/Neo4j/Redis 在 Docker。
 - **回发闭环**：`output/` 四包 v3 已发队员，二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
-- **契约/决策**：D37 测试数据安全清理、D38 source=linkedin+source_detail、D39 多源信号、D40 HN 岗位、D41 采集模块完整开发、D42 交叉验证、D43 M2 数据包、D44 持续采集改设计；未决 P1/P2/P3/P5/P6（P6=中文平台合规方案，用户确认后续再议）。
+- **契约/决策**：D37 测试数据安全清理、D38 source=linkedin+source_detail、D39 多源信号、D40 HN 岗位、D41 采集模块完整开发、D42 交叉验证、D43 M2 数据包、D44 持续采集改设计、D45–D48 BOSS 受控 CDP 采集与 9333 端口、D49 BOSS 扩大采集结果；未决 P1/P2/P3/P5/P6（P6=其他中文平台合规方案，BOSS 已进入可运行受控方案）。
 - **A 集成修改文件清单（回包防覆盖）**：`job_analysis/db.py`（解析器反斜杠转义保留，M2 数据包依赖）；`collect/` 系列（fetch_all/collect_loop/cross_validate/fetch_signals/fetch_hn_jobs/hn_hiring/trending/blog_rss、cleaner/repository/schema/dataset）；`ddl.sql`（experience/change_type 扩容、source_detail、cross_source、signal.source）。
 
 ## 三、交接：你接手后必须做的事
@@ -109,3 +109,10 @@ cd frontend; pnpm run build
 5. **测试门禁**：任何集成改动后必须 `pytest` 全量通过（208 基线）+ 前端 `pnpm run build`。
 6. **测试数据清理（D37）**：集成测试写库数据必须按测试夹具特征精确清理（finally/teardown），禁止按 source 宽泛删除；跑完测试后查询 DB 验证无残留、生产数据未被误删。
 7. **幂等与增量（D44）**：`fetch_signals` 追加式（不覆盖历史时间点）；`fetch_hn_jobs` 按帖清理（勿改回"当日先清后写"，会误删历史月份，见 traps/2026-08-17-hn-idempotency-wiped-history.md）；计划任务 Task To Run 必须用 powershell 全路径（SYSTEM 任务相对路径不启动）。
+
+## 2026-08-20 低速持续采集
+
+- 已新增 `backend/app/collect/boss_collect_loop.py`，BOSS 独立于通用 `collect_loop.py` 运行。
+- 默认单关键词/城市、1 页、最多 12 条岗位/8 条详情；页面间隔 15–30 秒，关键词/城市切换间隔 6–12 分钟，默认不间断运行。
+- 检测到登录页或验证页立即停止；不实现验证码/登录/反爬绕过。日志为 `data/local/logs/boss_collect_loop.out.log`。
+- 当前运行记录（2026-08-20 17:20:11 +08:00）：BOSS 低速循环已按新默认节奏重启，启动器 PID 20544、工作进程 PID 35472；首轮北京/Python 于 17:23:46 完成，`listed=12/details=8/new=0/skipped=12`，随后等待 575.8 秒切换。

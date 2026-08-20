@@ -17,17 +17,17 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
-## 模块交付与整合状态（2026-08-15）
+## 模块交付与整合状态（2026-08-20）
 
 | 模块 | 正式位置 | 状态 |
 |---|---|---|
-| M1 数据采集 | `backend/app/collect/` | 可运行；jd_pool 5000 条 cleaned（source=linkedin，D38 来源标签 2026-08-17）；`exchange/m1/jd.json`（200 条）已产出 |
+| M1 数据采集 | `backend/app/collect/` | 可运行；jd_pool 126119 条（linkedin 123849 + hn 1796 + BOSS 474）；signal 411 条/4 天；2026-08-20 已通过正式 BOSS CDP 采集模块在 9333 端口完成扩大采集（8 个关键词×3 个城市×5 页），列表 415 条、详情尝试 300 条、新增 319 条、跳过 96 条；原有 BOSS 151 条全部保留。BOSS URL 无重复/占位，全部 status=cleaned；当前独立 Edge 仍保持 BOSS 登录；已启动低速持续采集循环（单关键词/城市、1 页、小批量、6–12 分钟切换间隔），`exchange/m1/jd.json`（200 条）已产出 |
 | M2 岗位分析 | `backend/app/job_analysis/` | 约束重跑 22 岗位定义；待回包修复 job_skill 关联（L1–L3） |
 | M3 图谱 | `backend/app/graph/` | 97 节点/222 边，已导入 Neo4j；待回包补充 name_zh |
 | M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |
 | M5 前端 | `frontend/` | 6 页全真实 API（中文过渡已生效）；待回包对接 name_en/隐藏空列 |
 
-整合未决项已于 2026-08-13 裁决（决策 D26–D37），数据闭环与回发闭环就绪（2026-08-15；2026-08-16 落地测试数据自动清理规范 D37，并恢复 jd_pool 5000 条 cleaned——原 5003 曾被集成测试误删，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**198 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
+整合未决项已于 2026-08-13 裁决（决策 D26–D37），数据闭环与回发闭环就绪（2026-08-15；2026-08-16 落地测试数据自动清理规范 D37，并恢复 jd_pool 5000 条 cleaned——原 5003 曾被集成测试误删，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**216 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
 
 ## 目录说明
 
