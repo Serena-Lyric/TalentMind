@@ -17,11 +17,11 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
-## 模块交付与整合状态（2026-08-20）
+## 模块交付与整合状态（2026-08-22）
 
 | 模块 | 正式位置 | 状态 |
 |---|---|---|
-| M1 数据采集 | `backend/app/collect/` | 可运行；jd_pool 126133 条（linkedin 123849 + hn 1796 + BOSS 488）；signal 433 条/4 天；2026-08-20 已通过正式 BOSS CDP 采集模块在 9333 端口完成扩大采集（8 个关键词×3 个城市×5 页），列表 415 条、详情尝试 300 条、新增 319 条、跳过 96 条；原有 BOSS 151 条全部保留。BOSS URL 无重复/占位，全部 status=cleaned；当前独立 Edge 仍保持 BOSS 登录；已运行 15 轮低速持续采集并新增 14 条；第 16 轮因 CDP 无可用 BOSS 页面安全停止，`exchange/m1/jd.json`（200 条）已产出；数据库 `cross_source=1` 为 888 行，最新报告重算为 887 行，差异是 1 条历史残留标记 |
+| M1 数据采集 | `backend/app/collect/` | 可运行；截至 2026-08-22 核验，jd_pool 126266 条（linkedin 123849 + hn 1796 + BOSS 621，全部 status=cleaned）；signal 610 条/6 天（github 150、blog 460）。BOSS 独立低速循环已完成 116 轮、累计新增 133 条，当前进程仍在运行；BOSS source_detail 空值/重复数均为 0，duties 非空 273 条。通用循环已完成第 17 轮并继续每 6 小时运行；数据库 cross_source=1 为 888 行，报告为 887 行（保留 1 条历史残留标记）。详见 `exchange/m1/collection-status-20260822.md`。|
 | M2 岗位分析 | `backend/app/job_analysis/` | 约束重跑 22 岗位定义；待回包修复 job_skill 关联（L1–L3） |
 | M3 图谱 | `backend/app/graph/` | 97 节点/222 边，已导入 Neo4j；待回包补充 name_zh |
 | M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |

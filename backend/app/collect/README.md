@@ -12,7 +12,7 @@
 | GitHub Trending（公开页面） | 信号 | signal（source=github） | `fetchers/trending.py` | ✅ 语言热度 |
 | 技术博客 RSS（InfoQ/掘金；OSCHINA 403 待换源） | 信号 | signal（source=blog） | `fetchers/blog_rss.py` | ✅ 技能提及 |
 | GitHub Trending 贡献者 → 人才线索 | 人才 | talent_raw（source=github） | `fetchers/github.py`（保留） | 按需 |
-| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 488 条；扩大批次新增 319 条，低速循环第 1–15 轮又新增 14 条 |
+| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 621 条（2026-08-22）；扩大批次新增 319 条，低速循环已完成 116 轮并累计新增 133 条 |
 | 其他中文招聘平台（拉勾/猎聘/智联） | 岗位 JD | — | — | ⛔ 暂不抓，仍按合规方案后再议（D40/P6） |
 
 ## 二、常用命令（均在 `backend/` 下，需 venv）
@@ -75,7 +75,7 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - 日志：`data/local/logs/boss_collect_loop.out.log`；停止：`Get-Process -Name python` 后按命令行确认 PID，再 `Stop-Process -Id <PID>`。
 - 检测到登录页/验证页时循环停止；普通单轮异常记录后继续低速运行。
 - 采集不会自动退出 BOSS；完成后必须由用户在同一 Edge 窗口手动注销。
-- 2026-08-21 启动核验：单轮 `--once` 正常完成（`listed=12/details=8/new=0/skipped=12`），当前无 BOSS 采集进程；9333 `/json` 可访问且有 BOSS 页面目标。面向前端的启动/进度/控制资料包见 `exchange/m1/boss-frontend-control-pack-20260821/`。
+- 2026-08-22 运行核验：BOSS 低速循环启动器/工作进程 PID `33828/26124` 均存活，已完成第 116 轮并累计 `listed=1392/details=928/new=133/skipped=1259`；最近一轮于 11:25:20 完成后等待 499.3 秒，错误日志为空。面向前端的启动/进度/控制资料包见 `exchange/m1/boss-frontend-control-pack-20260821/`，当前快照见 `exchange/m1/collection-status-20260822.md`。
 
 ## 三·六、BOSS 人工登录、采集与注销记录（D45/D49）
 
@@ -119,4 +119,4 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - 评估结论：**不引入 crawl4ai 依赖**（当前数据源均静态/API/XML，无需 JS 渲染；其 stealth 反检测不改变合规红线；引入需 Playwright/Chromium 重型依赖）；
 - 可借鉴设计：内容清洗策略（fit-markdown 噪声过滤 → 已由 cleaner `_strip_noise`/`_fix_fused_prefix`/`_extract_duties` 覆盖）；缓存与幂等（已由当日先清后写覆盖）；
 - 若未来出现"robots 允许但需 JS 渲染"的合规源，再评估 Playwright 直连（无需 crawl4ai）。
-- 最新运行记录（2026-08-20 20:27:19 +08:00）：BOSS 低速循环已完成第 1–15 轮，共处理 180 条列表岗位、120 条详情、14 条新增，数据库 `source=boss=488`；第 16 轮开始时因 CDP 没有可用页面目标而按安全策略停止，端口 9333 仍监听但需用户重新打开 BOSS 页面后再启动。日志见 `data/local/logs/boss_collect_loop.out.log`。通用循环第 11 轮于 22:44:07 +08:00 完成；GitHub/博客 signal 本轮追加 22 条，HN 处理 240 条，交叉验证报告重算为 887 行。
+- 历史运行记录（2026-08-20）保留于专项交接文档；当前运行记录（2026-08-22）见 `exchange/m1/collection-status-20260822.md`：BOSS 已完成第 116 轮，数据库 `source=boss=621`；通用循环已完成第 17 轮并继续每 6 小时运行。

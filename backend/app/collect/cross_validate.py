@@ -13,6 +13,7 @@
 """
 from __future__ import annotations
 import argparse
+from datetime import datetime
 import re
 from pathlib import Path
 
@@ -97,7 +98,7 @@ def run(dry_run: bool = False) -> dict:
     # 报告
     report_path = REPO_ROOT / "exchange" / "m1" / "cross_validate_report.md"
     lines = [
-        "# M1 多源交叉验证报告（D42，2026-08-17）",
+        f"# M1 多源交叉验证报告（D42，{datetime.now().strftime('%Y-%m-%d')}）",
         "",
         f"- 数据：linkedin {len(ln)} × hn {len(hn)}（均 cleaned）",
         f"- 匹配规则：normalize_title + hn 段（≥2 词、≥6 字符）↔ linkedin 双向包含 + 长度比 ≥0.6",

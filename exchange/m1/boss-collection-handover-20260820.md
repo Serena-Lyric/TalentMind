@@ -3,14 +3,24 @@
 > 交接对象：下一位负责 M1 采集、数据库核验或系统集成的 Agent。
 > 本文件只记录采集模块和数据库状态，不包含账号、密码、验证码、Cookie 或任何登录态。
 
-## 1. 结论
+## 0. 2026-08-22 当前运行快照
+
+> 本节是当前事实，覆盖本文原有 2026-08-20/2026-08-21 运行描述；后续历史章节不改写。完整快照见 `exchange/m1/collection-status-20260822.md`。
+
+- 核验时间：2026-08-22 11:25:46（Asia/Singapore）。
+- BOSS 持续循环启动器 PID `33828`、工作进程 PID `26124` 均存活，启动时间为 2026-08-21 11:04:38；已完成第 116 轮，当前处于轮次间等待，不是“完成一轮后退出”。
+- 第 116 轮于 11:25:20 完成：`listed=12`、`details=8`、`new=1`、`skipped=11`；累计 `listed=1392`、`details=928`、`new=133`、`skipped=1259`。
+- 数据库：`jd_pool=126266`（`linkedin=123849`、`hn=1796`、`boss=621`），全部 `status=cleaned`；BOSS `source_detail` 空值 0、重复 0、`duties` 非空 273；`signal=610`（GitHub 150、Blog 460，6 天）；`talent_raw=0`；`cross_source=1` 为 888。
+- `127.0.0.1:9333` 处于监听，BOSS 采集错误日志为空；BOSS 独立 Edge 仍由用户人工登录并提供页面可见内容，采集器不处理凭据、验证码、Cookie 或反爬绕过。
+- 通用循环 PID `34120/35004` 仍运行，第 17 轮于 2026-08-22 10:57:40 完成，随后等待 6 小时；拉勾、猎聘、智联按 P6 暂不采集，`talent_raw` 人才线索管线按需运行。
+## 1. 历史结论（2026-08-20 批次）
 
 BOSS 采集模块已在用户人工登录的 Edge 求职端上通过正式 CDP 完成扩大采集；不是人工手工采集冒充。
 
 - BOSS 入口：用户选择 **“我要投职”**（求职端），没有选择“我要招人”（招聘端）。
 - CDP：`http://127.0.0.1:9333`。
-- 当前数据库核验（2026-08-20 22:42:08 +08:00）：`jd_pool=126133`，其中 `linkedin=123849`、`hn=1796`、`boss=488`；全部 `status=cleaned`。LinkedIn archive `postings.csv` 已全量导入；本次从既有 5000 行之外追加 118849 行。
-- 原有 BOSS 151 条已保留；扩大批次新增 319 条，低速循环第 1–15 轮又新增 14 条，当前 BOSS 总量为 488 条。
+- 历史批次数据库核验（2026-08-20 22:42:08 +08:00）：`jd_pool=126133`，其中 `linkedin=123849`、`hn=1796`、`boss=488`；全部 `status=cleaned`。LinkedIn archive `postings.csv` 已全量导入；本次从既有 5000 行之外追加 118849 行。
+- 原有 BOSS 151 条已保留；扩大批次新增 319 条，低速循环第 1–15 轮又新增 14 条；该历史核验时 BOSS 总量为 488 条。
 - 当前独立 Edge 仍保持 BOSS 登录；用户必须在同一窗口人工注销，注销时间尚未补录。
 
 ## 2. 本次正式扩大采集
@@ -117,7 +127,7 @@ job_change_log 测试标记残留：0
 ## 6. 下一个 Agent 的接手步骤
 
 1. 先读根目录 `AGENT_START_HERE.md`，再按路线读 `docs/superpowers/决策跟踪.md`、`docs/superpowers/资产与状态.md`、`backend/app/contracts/ddl.sql` 和 `A_AGENT_HANDOVER.md`。
-2. 阅读本文件和 `backend/app/collect/README.md`，确认当前 BOSS 总量应以数据库实时查询为准；当前核验为 488，历史首轮 151 与扩大批次新增 319 均已包含在内。
+2. 阅读本文件和 `backend/app/collect/README.md`，确认当前 BOSS 总量应以数据库实时查询和 `exchange/m1/collection-status-20260822.md` 为准；本文件中的 488 是历史核验值，历史首轮 151 与扩大批次新增 319 均已包含在内。
 3. 运行状态检查：
 
    ```powershell
