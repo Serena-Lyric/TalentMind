@@ -17,11 +17,11 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
-## 模块交付与整合状态（2026-08-22）
+## 模块交付与整合状态（2026-08-23）
 
 | 模块 | 正式位置 | 状态 |
 |---|---|---|
-| M1 数据采集 | `backend/app/collect/` | 可运行；截至 2026-08-22 核验，jd_pool 126266 条（linkedin 123849 + hn 1796 + BOSS 621，全部 status=cleaned）；signal 610 条/6 天（github 150、blog 460）。BOSS 独立低速循环已完成 116 轮、累计新增 133 条，当前进程仍在运行；BOSS source_detail 空值/重复数均为 0，duties 非空 273 条。通用循环已完成第 17 轮并继续每 6 小时运行；数据库 cross_source=1 为 888 行，报告为 887 行（保留 1 条历史残留标记）。详见 `exchange/m1/collection-status-20260822.md`。|
+| M1 数据采集 | `backend/app/collect/` | 可运行；截至 2026-08-23 核验，jd_pool 126330 条（linkedin 123849 + hn 1796 + BOSS 685，全部 status=cleaned）；signal 680 条/6 个日期（github 174、blog 506）。BOSS 独立低速循环已重启，PID 22980/36524，首轮 `listed=12/details=8/new=2/skipped=10` 后继续等待切换；source_detail 空值/重复数均为 0，duties 非空 288 条。通用循环仍按每 6 小时运行；数据库 cross_source=1 为 888 行，报告为 887 行（保留 1 条历史残留标记）。详见 `exchange/m1/collection-status-20260823.md` 与 `exchange/m2/m1-database-handover-20260823.md`。|
 | M2 岗位分析 | `backend/app/job_analysis/` | 约束重跑 22 岗位定义；待回包修复 job_skill 关联（L1–L3） |
 | M3 图谱 | `backend/app/graph/` | 97 节点/222 边，已导入 Neo4j；待回包补充 name_zh |
 | M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |

@@ -75,7 +75,7 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - 日志：`data/local/logs/boss_collect_loop.out.log`；停止：`Get-Process -Name python` 后按命令行确认 PID，再 `Stop-Process -Id <PID>`。
 - 检测到登录页/验证页时循环停止；普通单轮异常记录后继续低速运行。
 - 采集不会自动退出 BOSS；完成后必须由用户在同一 Edge 窗口手动注销。
-- 2026-08-22 运行核验：BOSS 低速循环启动器/工作进程 PID `33828/26124` 均存活，已完成第 116 轮并累计 `listed=1392/details=928/new=133/skipped=1259`；最近一轮于 11:25:20 完成后等待 499.3 秒，错误日志为空。面向前端的启动/进度/控制资料包见 `exchange/m1/boss-frontend-control-pack-20260821/`，当前快照见 `exchange/m1/collection-status-20260822.md`。
+- 2026-08-23 运行核验：BOSS 低速循环已重启，启动器/工作进程 PID `22980/36524`；第 1 轮于 09:47:37 +08:00 完成，`listed=12/details=8/new=2/skipped=10`，随后等待 648.3 秒切换；当前进程仍存活，错误日志为空。最新快照见 `exchange/m1/collection-status-20260823.md`，M2 数据库完整导出说明见 `exchange/m2/m1-database-handover-20260823.md`。
 
 ## 三·六、BOSS 人工登录、采集与注销记录（D45/D49）
 

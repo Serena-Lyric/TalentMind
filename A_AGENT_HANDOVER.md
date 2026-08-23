@@ -22,11 +22,11 @@
 | `frontend/前后端接口对接文档.md` | 20 接口基线文档 |
 | `output/` | 回发包 v3（已发送四位队员；结构见 08-14 roundtrip 方案） |
 
-## 二、当前状态（截至 2026-08-22，工作树待提交）
+## 二、当前状态（截至 2026-08-23，工作树待提交）
 
-- **数据闭环**：jd_pool **126266 cleaned**（linkedin 123849 + hn 1796 + boss 621）；signal **610 条 / 6 天时间序列**（github 150、blog 460）；cross_source **888 行（数据库实时值；最新报告 887 行，保留 1 条历史残留标记）**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；Neo4j Job 22 / Skill 75 / REQUIRES 191 / RELATED_TO 31。BOSS 当前快照见 `exchange/m1/collection-status-20260822.md`。
-- **通用持续采集运行中（D44）**：`collect_loop.py --hours 6 --forever` 父/工作进程 PID `34120/35004`，第 17 轮于 2026-08-22 10:57:40 完成，随后等待 6 小时；BOSS 独立循环 `boss_collect_loop.py --forever` 父/工作进程 PID `33828/26124`，截至 11:25 已完成第 116 轮并累计新增 133 条，仍在等待下一轮；9333 与 BOSS 页面连接正常。两条循环均不依赖 SYSTEM 计划任务，后者仅保留为尽力触发。
-- **M2 数据包已发**：`data/local/m2-data-pack/` **2026-08-19-1 版**（signal 3 天时间序列 253 条 + jd_pool.sql 6796 + jd.json 200 + skill_dict + 交叉验证报告）；岗位数据足量支撑 M2；下次更新视 signal 天数或 M2 反馈。
+- **数据闭环**：jd_pool **126330 cleaned**（linkedin 123849 + hn 1796 + boss 685）；signal **680 条 / 6 个日期**（github 174、blog 506）；cross_source **888 行（数据库实时值；最新报告 887 行，保留 1 条历史残留标记）**；skill_dict 285；job_definition 22；job_skill 22；job_change_log 0；完整数据库导出位于 `data/local/m2-data-pack/talentmind-db-full-20260823.sql`，交接说明见 `exchange/m2/m1-database-handover-20260823.md`。BOSS 当前快照见 `exchange/m1/collection-status-20260823.md`。
+- **通用持续采集运行中（D44）**：`collect_loop.py --hours 6 --forever` 父/工作进程 PID `34120/35004` 仍在运行；BOSS 独立循环已于 2026-08-23 09:44:57 +08:00 重启，父/工作进程 PID `22980/36524`，第 1 轮于 09:47:37 完成并记录 `new=2`，随后进入随机等待；9333 与 BOSS 页面连接正常。两条循环均不依赖 SYSTEM 计划任务，后者仅保留为尽力触发。
+- **M2 数据包已发**：`data/local/m2-data-pack/` 原有 2026-08-19-1 原始输入包仍保留；本次新增完整数据库导出 `talentmind-db-full-20260823.sql`（534,151,037 bytes，SHA-256 见 `exchange/m2/m1-database-handover-20260823.md`），需通过安全渠道单独发送，不能随 GitHub 提交。
 - **测试**：后端 221 全量通过，包含 BOSS CDP 连接与详情归一化测试；前端 `pnpm run build` 通过。
 - **服务**：后端 uvicorn :8000、前端 vite :5173；MySQL/Neo4j/Redis 在 Docker。
 - **回发闭环**：`output/` 四包 v3 已发队员，二次开发窗口 8/16–19，A 验收 8/19–21（错峰：M2 8/19 → M3/M4 8/20 → M5 8/21）。
