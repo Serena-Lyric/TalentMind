@@ -1,7 +1,7 @@
 """导出层 —— 写入最终 JSON 交付物 + 管道报告。"""
 import json
 from pathlib import Path
-from app.job_analysis.models import (
+from .models import (
     MergedJobDefinition, MergedJobSkillDetail, JobChangeLog,
     RejectedItem, PipelineStats, CostInfo,
 )
@@ -44,6 +44,8 @@ def export_all(
     output_dir: Path,
     accuracy: float | None = None,
     cost: dict | None = None,
+    hallucination_control: dict | None = None,
+    stage_counts: dict | None = None,
 ) -> PipelineStats:
     """导出所有交付物，返回统计信息。"""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -55,6 +57,7 @@ def export_all(
     _write_json(output_dir, "manual_review.json", manual)
 
     cost_info = CostInfo(**(cost or {}))
+    sc = stage_counts or {}
 
     # 统计各阶段数量
     stats = PipelineStats(
@@ -62,10 +65,19 @@ def export_all(
         rules_rejected=sum(
             1 for r in rejected
             if r.rule_id in ("empty_fields", "garbled", "duplicate")),
+        stage1_passed=sc.get("stage1_passed", 0),
+        stage1_rejected=sc.get("stage1_rejected", 0),
+        stage1_manual=sc.get("stage1_manual", 0),
+        stage2_passed=sc.get("stage2_passed", 0),
+        stage2_rejected=sc.get("stage2_rejected", 0),
+        stage2_manual=sc.get("stage2_manual", 0),
+        stage3_passed=sc.get("stage3_passed", 0),
+        stage3_manual=sc.get("stage3_manual", 0),
         final_job_definitions=len(job_defs),
         change_logs=len(change_logs),
         accuracy=accuracy,
         cost=cost_info,
+        hallucination_control=hallucination_control or {},
     )
     _write_json(output_dir, "pipeline_report.json", [stats])
     return stats

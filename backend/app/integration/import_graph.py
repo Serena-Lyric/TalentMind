@@ -32,8 +32,9 @@ def import_graph(path: Path | None = None) -> dict:
             if ntype == "job":
                 s.run(
                     "MERGE (j:Job {name: $name}) "
-                    "SET j.core_duties = $d, j.is_emerging = $e",
+                    "SET j.name_zh = $name_zh, j.core_duties = $d, j.is_emerging = $e",
                     name=name,
+                    name_zh=n.get("name_zh", ""),
                     d=n.get("core_duties", ""),
                     e=bool(n.get("is_emerging", False)),
                 )

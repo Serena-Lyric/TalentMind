@@ -1,21 +1,35 @@
 """SQL 解析器 —— 从 mysqldump 中提取 jd_pool 记录。"""
 import re
-from app.job_analysis.models import JdRecord
+from .models import JdRecord
 
 # jd_pool 表的列顺序（对应 INSERT 语句的列）
 _COLUMNS = ["id", "source", "job_title", "raw_text", "duties", "experience",
             "quality", "dup_group", "crawled_at", "status"]
 
 
+# SQL 转义解码表（mysqldump 标准：\n \r \t \\ \' \" 等）
+_SQL_ESCAPES = {
+    "n": "\n", "r": "\r", "t": "\t", "0": "\0",
+    "\\": "\\", "'": "'", '"': '"',
+}
+
+
 def _unescape_sql(s: str) -> str:
-    """反转义 SQL 字符串中的特殊字符。"""
-    s = s.replace("\\'", "'")
-    s = s.replace('\\"', '"')
-    s = s.replace("\\n", "\n")
-    s = s.replace("\\r", "\r")
-    s = s.replace("\\t", "\t")
-    s = s.replace("\\\\", "\\")
-    return s
+    """解码 SQL 转义序列（\n → 换行 等）。
+
+    注意：parse_jd_pool 的字段扫描已内建解码，此函数仅供
+    含反斜杠转义的独立字符串使用（与解析器行为一致）。
+    """
+    out = []
+    i = 0
+    while i < len(s):
+        if s[i] == "\\" and i + 1 < len(s) and s[i + 1] in _SQL_ESCAPES:
+            out.append(_SQL_ESCAPES[s[i + 1]])
+            i += 2
+        else:
+            out.append(s[i])
+            i += 1
+    return "".join(out)
 
 
 def _split_sql_values(raw: str) -> list[str]:
@@ -37,18 +51,19 @@ def _split_sql_values(raw: str) -> list[str]:
 
         ch = raw[i]
         if ch == "'":
-            # 单引号字符串：找到闭合引号（处理 '' 转义和 \' 转义）
+            # 单引号字符串：找到闭合引号（处理 '' 转义和 \ 转义）
             i += 1  # 跳过起始引号
             buf = []
             while i < n:
                 if raw[i] == "\\":
-                    # 转义字符：保留反斜杠 + 下一个字符（\n/\\ 等由 _unescape_sql 还原；
-                    # 旧逻辑丢反斜杠，导致 mysqldump 风格导出文本换行/反斜杠丢失）
-                    i += 1
-                    if i < n:
-                        buf.append("\\")
-                        buf.append(raw[i])
-                        i += 1
+                    # SQL 转义序列：解码为实际字符
+                    if i + 1 < n and raw[i + 1] in _SQL_ESCAPES:
+                        buf.append(_SQL_ESCAPES[raw[i + 1]])
+                        i += 2
+                    else:
+                        # 未知转义：保留原字符
+                        buf.append(raw[i + 1] if i + 1 < n else "")
+                        i += 2 if i + 1 < n else 1
                     continue
                 if raw[i] == "'":
                     if i + 1 < n and raw[i + 1] == "'":
@@ -68,10 +83,12 @@ def _split_sql_values(raw: str) -> list[str]:
             buf = []
             while i < n:
                 if raw[i] == "\\":
-                    i += 1
-                    if i < n:
-                        buf.append(raw[i])
-                        i += 1
+                    if i + 1 < n and raw[i + 1] in _SQL_ESCAPES:
+                        buf.append(_SQL_ESCAPES[raw[i + 1]])
+                        i += 2
+                    else:
+                        buf.append(raw[i + 1] if i + 1 < n else "")
+                        i += 2 if i + 1 < n else 1
                     continue
                 if raw[i] == '"':
                     i += 1
@@ -132,15 +149,15 @@ def parse_jd_pool(path: str) -> list[JdRecord]:
             try:
                 records.append(JdRecord(
                     id=int(row["id"]),
-                    source=_unescape_sql(row["source"]),
-                    job_title=_unescape_sql(row["job_title"]),
-                    raw_text=_unescape_sql(row["raw_text"]),
-                    duties=_unescape_sql(row["duties"]),
-                    experience=_unescape_sql(row["experience"]),
+                    source=row["source"],
+                    job_title=row["job_title"],
+                    raw_text=row["raw_text"],
+                    duties=row["duties"],
+                    experience=row["experience"],
                     quality=float(row["quality"]),
-                    dup_group=_unescape_sql(row["dup_group"]),
+                    dup_group=row["dup_group"],
                     crawled_at=row["crawled_at"],
-                    status=_unescape_sql(row["status"]),
+                    status=row["status"],
                 ))
             except (ValueError, TypeError):
                 pass

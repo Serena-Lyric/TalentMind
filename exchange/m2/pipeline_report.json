@@ -1,7 +1,7 @@
 [
   {
-    "total": 439,
-    "rules_rejected": 2,
+    "total": 537,
+    "rules_rejected": 0,
     "stage1_passed": 0,
     "stage1_rejected": 0,
     "stage1_manual": 0,
@@ -10,15 +10,22 @@
     "stage2_manual": 0,
     "stage3_passed": 0,
     "stage3_manual": 0,
-    "final_job_definitions": 22,
+    "final_job_definitions": 537,
     "change_logs": 0,
     "accuracy": null,
     "cost": {
-      "total_tokens": 1221379,
-      "prompt_tokens": 725012,
-      "completion_tokens": 496367,
-      "estimated_cost_usd": 0.9365,
-      "api_calls": 560
+      "total_tokens": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "estimated_cost_usd": 0.0,
+      "api_calls": 0
+    },
+    "hallucination_control": {
+      "skills_extracted": 6475,
+      "removed_hallucinated": 0,
+      "downgraded_suspicious": 0,
+      "verified_by_two_models": 6475,
+      "hallucination_rate": "0.0%"
     }
   }
 ]

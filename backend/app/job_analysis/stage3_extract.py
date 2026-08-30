@@ -1,36 +1,8 @@
-"""模型3 —— 结构化提取（LLM 输出每个 skill 的 confidence；D31：候选限定 skill_dict）。"""
-import json
-from app.job_analysis.config import MODEL_STAGE3, BATCH_SIZE, MAX_RETRY, SKILL_DICT_PATH
-from app.job_analysis.llm import call_llm_batch
-from app.job_analysis.models import JdRecord, ExtractionResult, EvolutionInfo, SkillEntry
-
-_SKILL_CACHE: tuple[set[str], dict[str, str]] | None = None
-
-
-def _load_skill_dict() -> tuple[set[str], dict[str, str]]:
-    """加载 skill_dict 种子：返回 (canonical 集合, alias→canonical 映射)。"""
-    global _SKILL_CACHE
-    if _SKILL_CACHE is None:
-        with open(SKILL_DICT_PATH, "r", encoding="utf-8") as f:
-            entries = json.load(f)
-        canonicals = {e["canonical"] for e in entries}
-        aliases = {}
-        for e in entries:
-            for a in e["aliases"]:
-                aliases[a.lower()] = e["canonical"]
-        _SKILL_CACHE = (canonicals, aliases)
-    return _SKILL_CACHE
-
-
-def _canonicalize(name: str) -> str | None:
-    """把 LLM 输出的技能名映射为 skill_dict.canonical；无法映射返回 None。"""
-    canonicals, aliases = _load_skill_dict()
-    n = name.strip().lower()
-    if n in aliases:
-        return aliases[n]
-    if n in canonicals:
-        return n
-    return None
+"""模型3 —— 结构化提取（LLM 输出每个 skill 的 confidence + 逐字证据）。"""
+import asyncio
+from .config import SLOT_POOLS, MAX_RETRY
+from .llm import LLMClient
+from .models import JdRecord, ExtractionResult, EvolutionInfo, SkillEntry
 
 EXTRACT_SYSTEM = """You are a job data extraction specialist. Extract structured information from JD text with precision.
 
@@ -43,19 +15,17 @@ Key rules:
     0.7-0.9: mentioned as important
     0.5-0.7: mentioned as nice-to-have
     0.3-0.5: hinted or listed among many
-- evidence: Quote the exact phrase from the JD that mentions this skill
+- evidence: VERBATIM quote from the JD text, copied character-for-character,
+  no paraphrasing, no translation, no summarizing. Maximum 50 characters.
+  If the JD text is Chinese, evidence must be in Chinese; if English,
+  evidence must be in English. Never translate evidence.
+  If you cannot find a supporting quote for a skill, DO NOT output that skill.
 - scenarios: Real industry application scenarios
-- evolution: Assess based on the skill combination's novelty and JD count patterns
-- SKILL CONSTRAINTS (D31): skill names MUST be one of the canonical names in the skill_dict provided in the prompt. Map synonyms/aliases to the canonical form. If a skill cannot be mapped to the dict, DO NOT put it in skills; put it in unknown_skills instead."""
+- evolution: Assess based on the skill combination's novelty and JD count patterns"""
 
 
 def build_extract_prompt(record: JdRecord) -> str:
-    canonicals, _ = _load_skill_dict()
-    skill_list = ", ".join(sorted(canonicals))
     return f"""Extract structured job info.
-
-SKILL_DICT (canonical names; use ONLY these, map synonyms to them):
-{skill_list}
 
 Output format:
 {{
@@ -125,22 +95,19 @@ EXTRACT_SCHEMA = {
 def _build_skill_entries(
     raw_skills: list[dict],
 ) -> tuple[list[SkillEntry], list[SkillEntry], list[str]]:
-    """分离 required/bonus skills（D31：仅保留 skill_dict 内技能，未命中进 unknown）。"""
+    """分离 required/bonus skills，LLM 自由提取不限制词表。"""
     required, bonus, unknown = [], [], []
     for s in raw_skills:
-        canonical = _canonicalize(s.get("name", ""))
-        if canonical is None:
-            unknown.append(s.get("name", "").strip())
-            continue
         entry = SkillEntry(
-            name=canonical, confidence=s["confidence"],
+            name=s["name"], confidence=s["confidence"],
             evidence=s["evidence"], is_required=s.get("is_required", True),
         )
         if entry.is_required:
             required.append(entry)
         else:
             bonus.append(entry)
-    return required, bonus, list(set(unknown))
+    # unknown_skills 来自 LLM 报告的未知技能
+    return required, bonus, unknown
 
 
 def _validate_extraction(result: ExtractionResult) -> list[str]:
@@ -195,71 +162,192 @@ def parse_extraction_response(
         model=model,
     )
 
-    errors = _validate_extraction(result)
-    if errors:
-        result.verdict = "manual"
-
+    # 提取层永不拒绝：校验错误仅触发重试，最终仍以 best-effort 结果通过
+    # （残缺 JD 也收集，合并层聚合成完整岗位定义）
     return result
 
 
 async def run_stage3(
     records: list[JdRecord],
-    model: str = "",
+    client: LLMClient | None = None,
+    batch_size: int = 6,
+    on_chunk_done=None,
+    on_result=None,
 ) -> tuple[list[ExtractionResult], list[dict]]:
-    model = model or MODEL_STAGE3
-    prompts = [build_extract_prompt(r) for r in records]
-    all_results: list[ExtractionResult] = []
+    # L4 走官方 DeepSeek 端点（实测 11s/批 vs go 107s/批）
+    own_client = client is None
+    if client is None:
+        from config import DS_ENDPOINT
+        client = LLMClient(endpoint_override=DS_ENDPOINT)
     manual_results: list[dict] = []
+    # 逐条落库回调：每批完成立即通知调用方（断点续跑/进度可见）
+    chunk_done = on_chunk_done
+    # 流水线回调：每条解析完立即送出（L5 worker 并发消费）
+    result_cb = on_result
 
-    for i in range(0, len(prompts), BATCH_SIZE):
-        batch_records = records[i:i + BATCH_SIZE]
-        batch_prompts = prompts[i:i + BATCH_SIZE]
-        batch_results: list[ExtractionResult] = []
+    # ═══ L4 分流双队列（纯文本规则，零 LLM）═══
+    # 先 L3 清洗（本地规则：去 HTML/转义/乱码），再分流：
+    # 清洗后仍脏/长的走 pro，其余走 flash（快）。
+    import asyncio as _a
+    from batch_prompts import build_batch_extract_prompt
+    from l3_clean import clean_jd_text
+    from l4_split import calc_split_result, MODEL_L4_FLASH, MODEL_L4_KIMI
+    from config import (L4_FLASH_MAX_CONCURRENT, L4_KIMI_MAX_CONCURRENT)
 
-        for attempt in range(MAX_RETRY):
-            responses = await call_llm_batch(
-                batch_prompts, model, EXTRACT_SCHEMA, system=EXTRACT_SYSTEM,
+    flash_recs = []
+    kimi_recs = []
+    split_info: dict[int, dict] = {}
+    clean_texts: dict[int, str] = {}
+    for r in records:
+        cleaned = clean_jd_text(r.raw_text)
+        clean_texts[r.id] = cleaned
+        sr = calc_split_result(cleaned)
+        split_info[r.id] = {"used_l4_model": sr.target_model,
+                            "text_len": sr.text_len,
+                            "dirty_score": sr.dirty_score}
+        # 用清洗后文本做提取（快 + 证据干净）
+        r2 = r.model_copy(update={"raw_text": cleaned})
+        (flash_recs if sr.target_model == MODEL_L4_FLASH
+         else kimi_recs).append(r2)
+
+    FLASH_TIMEOUT = 200.0
+    KIMI_TIMEOUT = 240.0
+    # 重试约束：仅 5xx/429 重试 2 次，退避 2s/4s；4xx 不重试。
+    RETRY_DELAYS = [2.0, 4.0]
+
+    def is_retryable(resp: dict) -> bool:
+        err = resp.get("_error", "")
+        if "HTTP 5" in err:
+            return True
+        if "429" in err:
+            return True
+        return False
+
+    async def extract_queue(recs, model, sem, timeout, on_chunk=None):
+        """单队列执行：独立信号量 + 5xx 有限重试。
+
+        每批完成后立即回调 on_chunk(chunk_records, chunk_results)
+        （逐条落库用，不再等整层结束才写）。
+        """
+        out: list[dict] = []
+
+        async def run_chunk(chunk):
+            async with sem:
+                prompt = build_batch_extract_prompt(chunk)
+                last_err = None
+                # 初始 + 最多 2 次重试（仅 5xx/429）
+                for attempt in range(3):
+                    resp = await client.call_batch_consolidated(
+                        [prompt], model, system=EXTRACT_SYSTEM,
+                        batch_size=1, max_tokens=32000,
+                        item_ids=[r.id for r in chunk])
+                    if isinstance(resp, list) and resp and \
+                            not all("_error" in x for x in resp):
+                        if on_chunk:
+                            on_chunk(chunk, resp)
+                        return resp
+                    err = resp[0] if isinstance(resp, list) and resp \
+                        else {"_error": str(resp)}
+                    last_err = err
+                    if not is_retryable(err):
+                        break
+                    if attempt < 2:
+                        await _a.sleep(RETRY_DELAYS[attempt])
+                # 失败：不丢弃（用原文兜底），并回调落库
+                failed = [{"_error": (last_err or {}).get(
+                    "_error", "extract failed")} for _ in chunk]
+                if on_chunk:
+                    on_chunk(chunk, failed)
+                return failed
+
+        chunks = [recs[i:i + batch_size]
+                  for i in range(0, len(recs), batch_size)]
+        results = await _a.gather(
+            *[run_chunk(c) for c in chunks], return_exceptions=True)
+        for i, r in enumerate(results):
+            if isinstance(r, Exception):
+                failed = [{"_error": str(r)} for _ in chunks[i]]
+                if on_chunk:
+                    on_chunk(chunks[i], failed)
+                out.extend(failed)
+            else:
+                out.extend(r)
+        return out
+
+    flash_sem = _a.Semaphore(L4_FLASH_MAX_CONCURRENT)
+    kimi_sem = _a.Semaphore(L4_KIMI_MAX_CONCURRENT)
+    # 逐条落库：每批完成立即回调（用 raw resp 做轻量落库标记）
+    def _cb(chunk_recs, chunk_results):
+        if chunk_done:
+            chunk_done(chunk_recs, chunk_results)
+
+    # 两个队列并行执行
+    flash_task = _a.create_task(extract_queue(
+        flash_recs, MODEL_L4_FLASH, flash_sem, FLASH_TIMEOUT,
+        on_chunk=_cb))
+    kimi_task = _a.create_task(extract_queue(
+        kimi_recs, MODEL_L4_KIMI, kimi_sem, KIMI_TIMEOUT,
+        on_chunk=_cb))
+    flash_out, kimi_out = await _a.gather(flash_task, kimi_task)
+
+    # 按原顺序拼回 all_raw
+    raw_by_id: dict[int, dict] = {}
+    for r, resp in zip(flash_recs, flash_out):
+        raw_by_id[r.id] = resp
+    for r, resp in zip(kimi_recs, kimi_out):
+        raw_by_id[r.id] = resp
+
+    batch_results: list[ExtractionResult] = []
+
+    for record in records:
+        resp = raw_by_id.get(record.id, {"_error": "missing"})
+        info = split_info.get(record.id, {})
+        used_model = info.get("used_l4_model", "")
+        if "_error" in resp:
+            # API 错误：用原标题/原文兜底，best-effort 收集（不丢弃）。
+            # 标题先过 normalize_job_type 清洗（剥公司/地点/工作制段）
+            from merge import normalize_job_type
+            result = ExtractionResult(
+                jd_id=record.id,
+                job_name=normalize_job_type(record.job_title),
+                core_duties=record.duties or record.raw_text[:200],
+                quality=record.quality, collected_at=record.crawled_at,
+                verdict="pass", model=used_model,
             )
-            batch_results = []
-            batch_ok = True
+            batch_results.append(result)
+            manual_results.append({
+                "jd_id": record.id, "stage": "model3",
+                "reason": f"API error (fallback to title): {resp['_error']}",
+            })
+        else:
+            result = parse_extraction_response(
+                record.id, resp,
+                record.quality, record.crawled_at, record.source,
+                used_model,
+            )
+            # job_name 提取失败或脏（含 | / 公司段）→ 清洗后兜底
+            from merge import normalize_job_type
+            if not result.job_name.strip() or "|" in result.job_name:
+                cleaned = normalize_job_type(result.job_name or record.job_title)
+                if cleaned:
+                    result.job_name = cleaned
+            if not result.core_duties.strip():
+                result.core_duties = (
+                    record.duties or record.raw_text[:200])
+            batch_results.append(result)
+            if result.verdict == "manual":
+                manual_results.append({
+                    "jd_id": record.id, "stage": "model3",
+                    "reason": "schema validation failed",
+                    "model_output": resp,
+                })
+        # 流水线：解析完立即送出（不阻塞队列）
+        if result_cb is not None:
+            try:
+                result_cb(result)
+            except Exception:
+                pass    # 回调失败不影响主流程
 
-            for record, resp in zip(batch_records, responses):
-                if "_error" in resp:
-                    result = ExtractionResult(
-                        jd_id=record.id, job_name="", core_duties="",
-                        quality=record.quality, collected_at=record.crawled_at,
-                        verdict="manual", model=model,
-                    )
-                    batch_results.append(result)
-                    manual_results.append({
-                        "jd_id": record.id, "stage": "model3",
-                        "reason": f"API error: {resp['_error']}",
-                    })
-                    batch_ok = False
-                else:
-                    result = parse_extraction_response(
-                        record.id, resp,
-                        record.quality, record.crawled_at, record.source, model,
-                    )
-                    batch_results.append(result)
-                    if result.verdict == "manual":
-                        manual_results.append({
-                            "jd_id": record.id, "stage": "model3",
-                            "reason": "schema validation failed",
-                            "model_output": resp,
-                        })
-                        if attempt < MAX_RETRY - 1:
-                            batch_ok = False
-
-            if batch_ok:
-                break
-            elif attempt < MAX_RETRY - 1:
-                for j, res in enumerate(batch_results):
-                    if res.verdict == "manual":
-                        errs = _validate_extraction(res)
-                        batch_prompts[j] += (
-                            f"\n\nVALIDATION ERRORS (fix these): {errs}")
-
-        all_results.extend(batch_results)
-
-    return all_results, manual_results
+    if own_client:
+        await client.close()
+    return batch_results, manual_results

@@ -76,8 +76,10 @@ def _load_zh_map() -> dict[str, str]:
         try:
             en_list = json.loads(en_path.read_text(encoding="utf-8"))
             zh_list = json.loads(path.read_text(encoding="utf-8"))
-            for e, z in zip(en_list, zh_list):
-                m[e.get("job_name", "")] = z.get("job_name", "") or e.get("job_name", "")
+            # 只接受同批次等长映射，避免新 M2 产出与旧中文快照按顺序错配。
+            if len(en_list) == len(zh_list):
+                for e, z in zip(en_list, zh_list):
+                    m[e.get("job_name", "")] = z.get("job_name", "") or e.get("job_name", "")
         except Exception:
             m = {}
         _ZH_MAP = m

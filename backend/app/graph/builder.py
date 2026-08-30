@@ -78,6 +78,7 @@ def load_m2_job_definitions() -> List[Dict]:
         for d in data:
             jobs.append({
                 "job_name": d.get("job_name", ""),
+                "job_name_zh": d.get("job_name_zh", ""),
                 "core_duties": d.get("core_duties", ""),
                 "required_skills": list(d.get("required_skills", [])),
                 "bonus_skills": list(d.get("bonus_skills", [])),
@@ -278,6 +279,7 @@ def build_job_nodes(jobs: List[Dict]) -> List[Dict]:
             "id": job["job_name"],  # 对齐 job_definition.job_name（D26）
             "type": "job",
             "name": job["job_name"],
+            "name_zh": job.get("job_name_zh", ""),
             "industry": job.get("industry", ""),
             "is_emerging": job.get("is_emerging", False),
             "core_duties": job.get("core_duties", "")

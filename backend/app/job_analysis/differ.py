@@ -1,10 +1,10 @@
 """对比层 —— 新岗位定义 vs 已有定义，生成全字段 change_log。"""
 from datetime import datetime, timezone
-from app.job_analysis.models import (
+from .models import (
     MergedJobDefinition, MergedJobSkillDetail,
     JobChangeLog,
 )
-from app.job_analysis.llm import call_llm
+from .llm import call_llm
 
 
 async def _duties_changed(old_duties: str, new_duties: str, model: str) -> dict | None:
@@ -32,8 +32,8 @@ async def diff_jobs(
     list[MergedJobSkillDetail],
     list[JobChangeLog],
 ]:
-    from app.job_analysis.config import MODEL_DUTIES_DIFF
-    duties_diff_model = duties_diff_model or MODEL_DUTIES_DIFF
+    from config import SLOT_POOLS
+    duties_diff_model = duties_diff_model or SLOT_POOLS["duties_diff"][0]
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
     change_logs: list[JobChangeLog] = []
 

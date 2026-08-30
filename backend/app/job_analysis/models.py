@@ -86,6 +86,7 @@ class SkillEntry(BaseModel):
     confidence: float
     evidence: str
     is_required: bool
+    verification: str = ""   # ""=未验证 | "verified" | "suspicious"
 
     @field_validator("confidence")
     @classmethod
@@ -142,6 +143,7 @@ class MergedJobSkill(BaseModel):
     confidence: float = 0.0
     evidence: str = ""
     evidence_jd_count: int = 1
+    verification: str = ""
     is_required: bool = False
 
 
@@ -217,3 +219,4 @@ class PipelineStats(BaseModel):
     change_logs: int = 0
     accuracy: Optional[float] = None
     cost: CostInfo = Field(default_factory=CostInfo)
+    hallucination_control: dict = Field(default_factory=dict)

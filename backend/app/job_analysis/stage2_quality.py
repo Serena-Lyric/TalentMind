@@ -1,7 +1,8 @@
 """模型2 —— 质量评分（含锚定校准示例）。"""
-from app.job_analysis.config import MODEL_STAGE2, QUALITY_PASS, QUALITY_REJECT, BATCH_SIZE
-from app.job_analysis.llm import call_llm_batch
-from app.job_analysis.models import JdRecord, QualityResult, QualityDimensions, QualityFlags
+import asyncio
+from .config import SLOT_POOLS, QUALITY_PASS, QUALITY_REJECT
+from .llm import LLMClient
+from .models import JdRecord, QualityResult, QualityDimensions, QualityFlags
 
 QUALITY_SYSTEM = """You are a JD quality evaluator. Score each JD across 5 dimensions (0-1), then compute an overall quality score.
 
@@ -29,7 +30,8 @@ Scoring rules:
 Overall quality = weighted average (0.25*completeness + 0.20*clarity + 0.25*tech_depth + 0.15*freshness + 0.15*originality), adjust ±0.05 for special circumstances."""
 
 
-def build_quality_prompt(record: JdRecord) -> str:
+def build_quality_prompt(record: JdRecord, text: str | None = None) -> str:
+    text = text if text is not None else record.raw_text[:3000]
     return f"""Score this JD's quality.
 
 Also detect:
@@ -39,8 +41,7 @@ Also detect:
 
 ---
 job_title: {record.job_title}
-raw_text: {record.raw_text[:3000]}
-duties: {record.duties[:1000]}
+raw_text: {text}
 ---
 
 Output JSON:
@@ -82,12 +83,9 @@ def parse_quality_response(jd_id: int, response: dict, model: str) -> QualityRes
     dims = response.get("dimensions", {})
     flags_raw = response.get("flags") or {}
 
-    if quality >= QUALITY_PASS:
-        verdict = "pass"
-    elif quality < QUALITY_REJECT:
-        verdict = "reject"
-    else:
-        verdict = "manual"
+    # 质量层不再拒绝：只打分（分数作为合并权重参考）。
+    # L2 相关性是唯一筛选闸门——只要是新一代信息技术岗位，无论质量高低全部收集。
+    verdict = "pass"
 
     return QualityResult(
         jd_id=jd_id,
@@ -102,35 +100,82 @@ def parse_quality_response(jd_id: int, response: dict, model: str) -> QualityRes
     )
 
 
+def apply_cross_source(quality: float, cross_source: bool) -> float:
+    """多源交叉验证标记：quality 上浮至不低于 0.85（对齐数据包规则）。"""
+    return max(quality, 0.85) if cross_source else quality
+
+
+# ── 方案 A：L3 纯规则质量打分（零 LLM 调用）──
+# 规则分替代 LLM 评分，作为合并权重参考。
+# 质量分 = 基础分(文本长度+技能命中) + cross_source 上浮 + 原有 quality 列
+
+def rule_score(record: JdRecord, cross_source: bool = False) -> float:
+    """规则打分（0-1）：基于可观测数据，零 LLM 调用。
+
+    组成：
+    - 基础分：min(0.8, len(text)/5000*0.3 + skill_hits*0.15) 上限 0.8
+    - 数据自带 quality 列占 0.2
+    - cross_source 上浮至不低于 0.85
+    """
+    text = record.raw_text
+    text_len_score = min(0.6, len(text) / 5000 * 0.3)
+    skill_hits = sum(1 for w in SKILL_PROBE_WORDS if w in text.lower())
+    skill_score = min(0.2, skill_hits * 0.03)
+    base = min(0.8, text_len_score + skill_score)
+    raw_quality = max(0.0, min(1.0, record.quality))
+    score = base * 0.8 + raw_quality * 0.2
+    if cross_source:
+        score = max(score, 0.85)
+    return round(score, 3)
+
+
+# 技能探针词（规则打分的技能命中检测，取自 skill_dict 高频类别）
+SKILL_PROBE_WORDS = {
+    "python", "java", "javascript", "typescript", "go", "rust", "c++",
+    "sql", "docker", "kubernetes", "k8s", "aws", "azure", "gcp",
+    "react", "vue", "angular", "node", "terraform", "ci/cd", "git",
+    "linux", "machine learning", "deep learning", "llm", "rag",
+    "data science", "data engineering", "analytics", "spark", "kafka",
+    "microservices", "cloud", "api", "devops", "sre", "security",
+    "embedded", "iot", "区块链", "机器学习", "深度学习", "数据分析",
+}
+
+
+def build_rule_quality_result(record: JdRecord,
+                              cross_source: bool = False) -> QualityResult:
+    """构建规则质量结果（永不拒绝，只打分）。"""
+    score = rule_score(record, cross_source)
+    text = record.raw_text
+    # dimensions 用可观测值填充（不再 0.5 占位）
+    text_len_score = min(0.6, len(text) / 5000 * 0.3)
+    skill_hits = sum(1 for w in SKILL_PROBE_WORDS if w in text.lower())
+    return QualityResult(
+        jd_id=record.id,
+        quality=score,
+        dimensions=QualityDimensions(
+            completeness=min(1.0, len(text) / 4000),
+            clarity=0.5 + text_len_score / 2,
+            tech_depth=min(1.0, skill_hits * 0.1),
+            freshness=record.quality,
+            originality=record.quality,
+        ),
+        weak_points="rule-based score (zero LLM)",
+        verdict="pass",
+        model="rule",
+    )
+
+
 async def run_stage2(
     records: list[JdRecord],
-    model: str = "",
+    client: LLMClient | None = None,
+    cross_source_ids: set[int] | None = None,
 ) -> tuple[list[JdRecord], list[QualityResult]]:
-    model = model or MODEL_STAGE2
-    prompts = [build_quality_prompt(r) for r in records]
+    """L3 规则质量打分（零 LLM 调用）：全部 pass，分数供合并权重。"""
+    cross_ids = cross_source_ids or set()
     all_results: list[QualityResult] = []
-
-    for i in range(0, len(prompts), BATCH_SIZE):
-        batch_records = records[i:i + BATCH_SIZE]
-        batch_prompts = prompts[i:i + BATCH_SIZE]
-        responses = await call_llm_batch(
-            batch_prompts, model, QUALITY_SCHEMA, system=QUALITY_SYSTEM,
-        )
-
-        for record, resp in zip(batch_records, responses):
-            if "_error" in resp:
-                all_results.append(QualityResult(
-                    jd_id=record.id, quality=0,
-                    dimensions=QualityDimensions(
-                        completeness=0, clarity=0, tech_depth=0,
-                        freshness=0, originality=0,
-                    ),
-                    weak_points=f"API error: {resp['_error']}",
-                    verdict="manual", model=model,
-                ))
-            else:
-                all_results.append(
-                    parse_quality_response(record.id, resp, model))
-
-    passed = [r for r, res in zip(records, all_results) if res.verdict == "pass"]
+    for record in records:
+        all_results.append(build_rule_quality_result(
+            record, cross_source=record.id in cross_ids))
+    passed = [r for r, res in zip(records, all_results)
+              if res.verdict == "pass"]
     return passed, all_results

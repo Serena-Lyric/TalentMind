@@ -1,8 +1,16 @@
-﻿<template>
+<template>
   <div class="resume-demo-page">
+    <div v-if="!resume" class="empty-state">
+      <el-icon :size="48" color="#D98B6E"><Document /></el-icon>
+      <h2>暂无可预览的简历</h2>
+      <p>请先在“简历解析匹配”页面上传并完成一次简历解析。</p>
+      <el-button type="primary" @click="goBack">返回简历解析</el-button>
+    </div>
+
+    <template v-else>
     <div class="page-header">
       <h1>简历预览与导出</h1>
-      <p>模拟简历数据预览，支持一键导出PDF</p>
+      <p>展示最近一次简历解析结果，支持导出 PDF</p>
       <div class="header-actions">
         <el-button @click="goBack">
           <el-icon><ArrowLeft /></el-icon>返回
@@ -119,25 +127,27 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, Download, Phone, Message, Location, User } from '@element-plus/icons-vue'
+import { ArrowLeft, Download, Phone, Message, Location, User, Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 
 const router = useRouter()
 const resumeRef = ref<HTMLElement | null>(null)
-const resume = ref<any>({})
+const resume = ref<any>(null)
 
 function goBack() {
   router.push('/resume')
 }
 
 async function exportPDF() {
+  if (!resume.value) { ElMessage.warning('暂无可导出的简历'); return }
   ElMessage.info('正在生成PDF，请稍候...')
   
   try {
@@ -167,7 +177,7 @@ async function exportPDF() {
     const imgY = 0
     
     pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
-    pdf.save('林苑琪_前端开发简历.pdf')
+    pdf.save('TalentMind-简历.pdf')
     
     ElMessage.success('PDF导出成功！')
   } catch (error) {
@@ -178,6 +188,32 @@ async function exportPDF() {
 </script>
 
 <style scoped>
+.empty-state {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #F0EBE3;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin: 8px 0 0;
+  color: #3D3D3D;
+  font-size: 20px;
+}
+
+.empty-state p {
+  margin: 0 0 8px;
+  color: #8C8C8C;
+  font-size: 13px;
+}
+
 .resume-demo-page {
   max-width: 1200px;
   margin: auto;

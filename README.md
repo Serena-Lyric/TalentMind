@@ -13,7 +13,7 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - 当前冻结的数据契约位于 `backend/app/contracts/ddl.sql`。
 - FastAPI 后端入口是 `backend/app/main.py`，现有健康检查为 `GET /health`。
 - MySQL、Neo4j、Redis 由根目录 `docker-compose.yml` 提供。
-- 四个原交付目录（`jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/`）已统一归档至 `input/`（gitignore 保护；M4 脱敏入库暂缓 D36，阶段 7 清理待用户确认）。
+- 当前原始对照包保留在 `input/`：`图谱模块/`、`岗位能力图谱前端系统/`、`人岗匹配/`；旧 `input/jd-filter-package/` 已被 2026-08-30 M2 新回包替代并删除。
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
@@ -22,10 +22,10 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 | 模块 | 正式位置 | 状态 |
 |---|---|---|
 | M1 数据采集 | `backend/app/collect/` | 可运行；截至 2026-08-23 核验，jd_pool 126330 条（linkedin 123849 + hn 1796 + BOSS 685，全部 status=cleaned）；signal 680 条/6 个日期（github 174、blog 506）。BOSS 独立低速循环已重启，PID 22980/36524，首轮 `listed=12/details=8/new=2/skipped=10` 后继续等待切换；source_detail 空值/重复数均为 0，duties 非空 288 条。通用循环仍按每 6 小时运行；数据库 cross_source=1 为 888 行，报告为 887 行（保留 1 条历史残留标记）。详见 `exchange/m1/collection-status-20260823.md` 与 `exchange/m2/m1-database-handover-20260823.md`。|
-| M2 岗位分析 | `backend/app/job_analysis/` | 约束重跑 22 岗位定义；待回包修复 job_skill 关联（L1–L3） |
-| M3 图谱 | `backend/app/graph/` | 97 节点/222 边，已导入 Neo4j；待回包补充 name_zh |
+| M2 岗位分析 | `backend/app/job_analysis/` | 已接入 2026-08-30 回包，exchange/m2 实际 470 岗位/470 技能明细；canonical 对齐和 488/470 数量差异待 M2 处理 |
+| M3 图谱 | `backend/app/graph/` | 已基于新 M2 数据重建 588 节点/4003 边；Neo4j MERGE 后 588 节点/3998 边，重复关系待处理 |
 | M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |
-| M5 前端 | `frontend/` | 6 页全真实 API（中文过渡已生效）；待回包对接 name_en/隐藏空列 |
+| M5 前端 | `frontend/` | 已保留正式 API/Graph 多视图；演示硬编码已清理为真实 API/空态，部分页面写操作待 M5/A 回包 |
 
 整合未决项已于 2026-08-13 裁决（决策 D26–D37），数据闭环与回发闭环就绪（2026-08-15；2026-08-16 落地测试数据自动清理规范 D37，并恢复 jd_pool 5000 条 cleaned——原 5003 曾被集成测试误删，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**221 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
 

@@ -30,7 +30,7 @@
 
 权威清单与维护规则见 `docs/superpowers/资产与状态.md`。摘要：
 
-- 已交付、整合中模块（D26 定稿）：原根目录交付目录 `jd-filter-package/`、`图谱模块/`、`岗位能力图谱-前端源码/`、`人岗匹配/` 已统一归档至 `input/`（gitignore 保护，阶段 7 清理待用户确认）；正式位置为 M2 → `backend/app/job_analysis/`（约束重跑 22 岗位）、M3 → `backend/app/graph/`、M5 → `frontend/`（保留 6 页、20 接口为基线）、M4 → `backend/app/matching/`（脱敏入库暂缓 D36）
+- 已交付、整合中模块（D26 定稿）：原始对照包 `图谱模块/`、`岗位能力图谱前端系统/`、`人岗匹配/` 保留在 `input/`（gitignore 保护）；旧 `input/jd-filter-package/` 已于 2026-08-30 被新 M2 回包替代并删除。正式位置为 M2 → `backend/app/job_analysis/`（当前 470 条回包数据）、M3 → `backend/app/graph/`、M5 → `frontend/`、M4 → `backend/app/matching/`（脱敏入库暂缓 D36）
 - 关键裁决（2026-08-13/16，详见决策跟踪 D26–D37）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 已扩容 VARCHAR(255)、`change_type` 已扩容 VARCHAR(32)（D32/D33 已执行，通知随全队会议）；421MB seed SQL 已删除（D27）；中英文过渡（API title 中文 + name_en）已上线；测试数据自动清理与验证（D37，2026-08-16）
 - 协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行（schema 校验 → diff 门禁 → 单测/集成 → 导入+冒烟）；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`
 - 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示 / P5 关联）；禁止 `git add -A`（`input/人岗匹配/` 含真实简历，D36 暂缓）

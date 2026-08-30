@@ -209,13 +209,10 @@ class CdpClient:
         deadline = time.monotonic() + max(settle_seconds, 0)
         while time.monotonic() < deadline:
             try:
-                if self.evaluate("document.readyState") in {"interactive", "complete"}:
-                    break
+                self.evaluate("document.readyState")
             except CdpError:
                 pass
             time.sleep(0.2)
-        if settle_seconds > 0:
-            time.sleep(min(1.0, settle_seconds / 2))
 
     def close(self) -> None:
         self._ws.close()

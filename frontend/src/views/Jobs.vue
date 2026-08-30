@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="job-page">
     <!-- 页面装饰 -->
     <div class="page-deco deco-top-right">
@@ -146,7 +146,7 @@
         <el-table-column label="岗位信息" min-width="250">
           <template #default="{ row }">
             <b class="job-title-link" @click.stop="openJdDetail(row)">{{ row.title }}</b>
-            <p class="subline">{{ row.company }} · {{ row.city }} · {{ row.type }}</p>
+            <p class="subline">{{ row.company || '—' }} · {{ row.city || '—' }} · {{ row.type || '—' }}</p>
           </template>
         </el-table-column>
         <el-table-column prop="salary" label="薪资范围" width="120" />
@@ -416,7 +416,7 @@ function batchExportExcel() {
 
 function openJdDetail(job: Job) { jdDetailJob.value = job; jdDetailDialog.value = true }
 
-const oldSkills = computed(() => selectedJob.value ? selectedJob.value.skills.slice(0, 4).concat(['jQuery', '传统特征工程']) : [])
+const oldSkills = computed(() => selectedJob.value ? selectedJob.value.skills : [])
 const evolutionGroups = computed(() => selectedJob.value ? [
   { key: 'added', symbol: '+', label: '新增技能', items: selectedJob.value?.evolution?.added || [] },
   { key: 'removed', symbol: '-', label: '淘汰技能', items: selectedJob.value?.evolution?.removed || [] },

@@ -78,3 +78,9 @@ def test_normalize_skills_skips_unknown():
     out = builder._normalize_skills(jobs)
     assert out[0]["required_skills"] == ["python"]
     assert out[0]["bonus_skills"] == ["kubernetes"]
+
+def test_job_node_carries_chinese_display_name():
+    nodes = builder.build_job_nodes([
+        {"job_name": "Cloud Engineer", "job_name_zh": "云平台工程师"},
+    ])
+    assert nodes[0]["name_zh"] == "云平台工程师"

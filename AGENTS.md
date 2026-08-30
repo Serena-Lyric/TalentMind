@@ -81,7 +81,7 @@ language: 简体中文
 ### 工作前状态同步（强制）
 - 开始任何任务前，**先读根目录 `AGENT_START_HERE.md`（通用了解路线）并按路线顺序阅读全部必读文件**（第一条回复须逐文件给出要点证明）；A 角色（M1/集成）任务另读 `A_AGENT_HANDOVER.md`。核心必读：`docs/superpowers/资产与状态.md` + `决策跟踪.md` + `backend/app/contracts/ddl.sql`，确认当前资产位置、契约与未决事项后再动手。
 - 新增、移动、删除、迁移资产，修改契约 / 目录 / 交接文件后，必须**及时更新** `docs/superpowers/资产与状态.md`；涉及决策时同步更新 `决策跟踪.md`。
-- 未入库模块（`input/人岗匹配/`、`input/jd-filter-package/`、`input/图谱模块/`、`input/岗位能力图谱-前端源码/`，原根目录交付物已统一归档 `input/`）的迁移 / 清理，先确认未决项状态；未裁决前不擅自动作，禁止 `git add -A`（`input/` 内含 421MB 数据与真实简历，已整目录 gitignore 保护）。
+- 未入库模块（`input/人岗匹配/`、`input/图谱模块/`、`input/岗位能力图谱前端系统/`，原根目录交付物已统一归档 `input/`）的迁移 / 清理，先确认未决项状态；未裁决前不擅自动作，禁止 `git add -A`（`input/` 内含大型数据与真实简历，已整目录 gitignore 保护）。
 - 处理已知限制前先查证 `docs/superpowers/资产与状态.md` 中的记录，不臆测、不重复踩坑。
 
 ## 陷阱记录
@@ -98,6 +98,10 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 - 2026-08-20 Edge CDP 端口落入 Windows 排除段（`docs/superpowers/traps/2026-08-20-edge-cdp-port-excluded.md`）
 - 2026-08-20 BOSS 详情字段合并后丢失（`docs/superpowers/traps/2026-08-20-boss-detail-fields-dropped.md`）
 - 2026-08-20 BOSS 中文职责标题未抽取（`docs/superpowers/traps/2026-08-20-boss-duties-not-extracted.md`）
+- 2026-08-23 智联/猎聘登录页选择器字符串多一层引号（`docs/superpowers/traps/2026-08-23-cn-job-login-selector-quote.md`）
+- 2026-08-23 智联/猎聘 DOM 回归测试自身引号错误（`docs/superpowers/traps/2026-08-23-cn-job-test-quote.md`）
+- 2026-08-23 智联动态卡片标题未就绪导致空批次（`docs/superpowers/traps/2026-08-23-cn-job-dynamic-title.md`）
+- 2026-08-27 图谱前端适配后画布空白与视图无数据（`docs/superpowers/traps/2026-08-27-graph-panorama-api-adapter.md`）
 
 ## 项目决策要点（2026-08-03）
 

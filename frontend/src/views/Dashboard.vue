@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="dashboard">
     <!-- 页面装饰：底部波浪线 + 小仙人掌 -->
     <div class="page-deco deco-wave-bl">
@@ -98,7 +98,7 @@
         <el-table :data="pagedJobs" style="width:100%" :header-cell-style="tblHeaderStyle" :cell-style="{ padding:'12px 0' }">
           <el-table-column prop="name" label="岗位名称" min-width="150"><template #default="{ row }"><span class="job-name">{{ row.name }}</span></template></el-table-column>
           <el-table-column prop="dept" label="部门" width="110" />
-          <el-table-column prop="count" label="需求人数" width="90" align="center"><template #default="{ row }"><span class="count-badge" :class="row.count>=10?'hot':row.count>=5?'warm':'cool'">{{ row.count }}人</span></template></el-table-column>
+          <el-table-column prop="count" label="需求人数" width="90" align="center"><template #default="{ row }"><span class="count-badge" :class="row.count>=10?'hot':row.count>=5?'warm':'cool'">{{ row.count ? row.count + '人' : '—' }}</span></template></el-table-column>
           <el-table-column prop="salary" label="薪资范围" width="120" />
           <el-table-column prop="status" label="状态" width="90" align="center"><template #default="{ row }"><span class="status-dot" :class="row.status==='急聘'?'urgent':row.status==='招聘中'?'open':'pending'"></span>{{ row.status }}</template></el-table-column>
           <el-table-column prop="updateTime" label="更新时间" width="110" />
@@ -140,110 +140,136 @@
 import { ref, computed, onMounted, onUnmounted, watch, reactive } from 'vue'
 import { Search, User, Document, DataAnalysis, Trophy, Plus } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { getDashboardOverview } from '../api'
+import { getDashboardOverview, getDashboardTrend, getSkillDistribution } from '../api/dashboard'
+import { getJobList } from '../api/jobs'
 
 const dashboardLoading = ref(true)
-const timeRange = ref('month')
-const lineMetric = ref('demand')
+const timeRange = ref<'day' | 'week' | 'month'>('month')
+const lineMetric = ref<'demand' | 'salary'>('demand')
 const jobSearch = ref('')
 const currentPage = ref(1)
 const pageSize = 8
-const timeOptions = [{ label:'日', value:'day' },{ label:'周', value:'week' },{ label:'月', value:'month' }]
-const metricOptions = [{ label:'需求指数', value:'demand' },{ label:'薪资水平', value:'salary' }]
+const timeOptions = [{ label: '日', value: 'day' as const }, { label: '周', value: 'week' as const }, { label: '月', value: 'month' as const }]
+const metricOptions = [{ label: '需求指数', value: 'demand' as const }, { label: '薪资水平', value: 'salary' as const }]
 const statCards = reactive([
-  { title:'岗位总数', value:2468, trend:'↑ 12.5%', iconBg:'#FDE8E4', iconColor:'#E07B6D', icon:DataAnalysis, badgeBg:'#FDE8E4', badgeColor:'#D96C63' },
-  { title:'解析简历数', value:8932, trend:'↑ 23.1%', iconBg:'#E8F5E9', iconColor:'#66BB6A', icon:Document, badgeBg:'#E8F5E9', badgeColor:'#43A047' },
-  { title:'匹配成功数', value:1847, trend:'↑ 8.7%', iconBg:'#FFF3E0', iconColor:'#FFA726', icon:Trophy, badgeBg:'#FFF3E0', badgeColor:'#EF6C00' },
-  { title:'技能缺口数', value:376, trend:'↓ 5.2%', iconBg:'#FCE4EC', iconColor:'#EF5350', icon:User, badgeBg:'#FCE4EC', badgeColor:'#E53935' }
+  { title: '岗位总数', value: 0, trend: '—', iconBg: '#FDE8E4', iconColor: '#E07B6D', icon: DataAnalysis, badgeBg: '#FDE8E4', badgeColor: '#D96C63' },
+  { title: '解析简历数', value: 0, trend: '—', iconBg: '#E8F5E9', iconColor: '#66BB6A', icon: Document, badgeBg: '#E8F5E9', badgeColor: '#43A047' },
+  { title: '匹配成功数', value: 0, trend: '—', iconBg: '#FFF3E0', iconColor: '#FFA726', icon: Trophy, badgeBg: '#FFF3E0', badgeColor: '#EF6C00' },
+  { title: '技能缺口数', value: 0, trend: '—', iconBg: '#FCE4EC', iconColor: '#EF5350', icon: User, badgeBg: '#FCE4EC', badgeColor: '#E53935' },
 ])
-const coralBlocks = [{ value:'28', label:'新增岗位' },{ value:'24', label:'待面试' },{ value:'04', label:'紧急招聘' }]
-
-const animatedNums = ref([0,0,0,0])
+const coralBlocks = ref<{ value: number | string; label: string }[]>([])
+const animatedNums = ref([0, 0, 0, 0])
 let animTimer: ReturnType<typeof setInterval> | null = null
+
 function animateNumbers() {
-  const targets = statCards.map(c => c.value); let step = 0
-  animTimer = setInterval(() => { step++; const p = step/40; const ease = 1 - Math.pow(1-p,3); animatedNums.value = targets.map(t => Math.round(t*ease)); if (step>=40) { animatedNums.value = targets; if(animTimer) clearInterval(animTimer) } }, 30)
+  if (animTimer) clearInterval(animTimer)
+  const targets = statCards.map(card => card.value)
+  let step = 0
+  animTimer = setInterval(() => {
+    step += 1
+    const progress = Math.min(step / 40, 1)
+    const ease = 1 - Math.pow(1 - progress, 3)
+    animatedNums.value = targets.map(target => Math.round(target * ease))
+    if (step >= 40 && animTimer) {
+      animatedNums.value = targets
+      clearInterval(animTimer)
+      animTimer = null
+    }
+  }, 30)
 }
 
-const lineChartRef = ref<HTMLElement>(); const barChartRef = ref<HTMLElement>()
-let lineChart: echarts.ECharts | null = null; let barChart: echarts.ECharts | null = null
-const months = ['2月','3月','4月','5月','6月','7月']
-const demandData: Record<string, number[]> = { 'AI算法':[82,88,91,95,98,105], '前端开发':[75,78,82,86,90,94], '后端开发':[70,73,76,80,83,87], '大数据':[65,69,74,78,82,88], '云计算':[58,62,67,71,76,80], '测试':[50,53,56,60,64,68], '产品':[55,58,61,65,69,73], '物联网':[45,48,52,56,60,65] }
-const salaryData: Record<string, number[]> = { 'AI算法':[28,30,31,32,34,35], '前端开发':[20,21,22,23,24,25], '后端开发':[22,23,24,25,26,27], '大数据':[24,25,26,27,28,29], '云计算':[23,24,25,26,27,28], '测试':[15,16,17,18,19,20], '产品':[18,19,20,21,22,23], '物联网':[17,18,19,20,21,22] }
-const lineColors = ['#E07B6D','#66BB6A','#FFA726','#EF5350','#42A5F5','#AB47BC','#78909C','#26A69A']
+const lineChartRef = ref<HTMLElement>()
+const barChartRef = ref<HTMLElement>()
+let lineChart: echarts.ECharts | null = null
+let barChart: echarts.ECharts | null = null
+const months = ref<string[]>([])
+const trendSeries = ref<{ name: string; color?: string; data: number[] }[]>([])
+const barSkills = ref<string[]>([])
+const barValues = ref<number[]>([])
 
 function getLineOption() {
-  const dm = lineMetric.value === 'demand' ? demandData : salaryData
-  return { tooltip:{ trigger:'axis', backgroundColor:'#fff', borderColor:'#F0EBE3', textStyle:{ color:'#3D3D3D', fontSize:12 }, borderRadius:12, extraCssText:'box-shadow:0 4px 16px rgba(0,0,0,0.06);' }, legend:{ bottom:0, textStyle:{ color:'#999', fontSize:11 }, itemWidth:14, itemHeight:6, itemGap:14 }, grid:{ top:16, right:16, bottom:44, left:44 }, xAxis:{ type:'category', data:months, axisLine:{ lineStyle:{ color:'#F0EBE3' } }, axisTick:{ show:false }, axisLabel:{ color:'#999', fontSize:11 } }, yAxis:{ type:'value', axisLabel:{ color:'#999', fontSize:11 }, splitLine:{ lineStyle:{ color:'#F5F0EA', type:'dashed' } } }, series: Object.keys(dm).map((name,i) => ({ name, type:'line', data:dm[name], smooth:0.4, symbol:'circle', symbolSize:5, lineStyle:{ width:2, color:lineColors[i] }, itemStyle:{ color:lineColors[i] }, areaStyle:{ color: new echarts.graphic.LinearGradient(0,0,0,1,[{ offset:0, color:lineColors[i]+'20' },{ offset:1, color:lineColors[i]+'02' }]) } })) }
+  return {
+    title: { show: !months.value.length, text: '暂无趋势数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
+    tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#F0EBE3', textStyle: { color: '#3D3D3D', fontSize: 12 }, borderRadius: 12 },
+    legend: { bottom: 0, textStyle: { color: '#999', fontSize: 11 }, itemWidth: 14, itemHeight: 6, itemGap: 14 },
+    grid: { top: 16, right: 16, bottom: 44, left: 44 },
+    xAxis: { type: 'category', data: months.value, axisLine: { lineStyle: { color: '#F0EBE3' } }, axisTick: { show: false }, axisLabel: { color: '#999', fontSize: 11 } },
+    yAxis: { type: 'value', axisLabel: { color: '#999', fontSize: 11 }, splitLine: { lineStyle: { color: '#F5F0EA', type: 'dashed' } } },
+    series: trendSeries.value.map((series, index) => ({ name: series.name, type: 'line', data: series.data, smooth: 0.4, symbol: 'circle', symbolSize: 5, lineStyle: { width: 2, color: series.color || ['#E07B6D', '#66BB6A', '#FFA726', '#42A5F5'][index % 4] }, itemStyle: { color: series.color || ['#E07B6D', '#66BB6A', '#FFA726', '#42A5F5'][index % 4] } })),
+  }
 }
-const barSkills = ['JavaScript','Python','Java','TypeScript','SQL','Vue','React','Go']
-const barValues = [92,88,76,71,68,65,60,55]
+
 function getBarOption() {
-  return { tooltip:{ trigger:'axis', backgroundColor:'#fff', borderColor:'#F0EBE3', textStyle:{ color:'#3D3D3D', fontSize:12 }, borderRadius:12, extraCssText:'box-shadow:0 4px 16px rgba(0,0,0,0.06);', formatter:(params:any) => { const p=params[0]; return '<div style="font-weight:600">'+p.name+'</div><div style="margin-top:4px;color:#8C8C8C">覆盖率 <b style="color:#E07B6D">'+p.value+'%</b></div>' } }, grid:{ top:12, right:16, bottom:32, left:76 }, xAxis:{ type:'value', max:100, axisLabel:{ color:'#999', fontSize:11, formatter:'{value}%' }, splitLine:{ lineStyle:{ color:'#F5F0EA', type:'dashed' } } }, yAxis:{ type:'category', data:barSkills, axisLine:{ show:false }, axisTick:{ show:false }, axisLabel:{ color:'#3D3D3D', fontSize:12 } }, series:[{ type:'bar', data:barValues.map((v,i)=>({ value:v, itemStyle:{ borderRadius:[0,6,6,0], color: new echarts.graphic.LinearGradient(0,0,1,0,[{ offset:0, color:lineColors[i]+'40' },{ offset:1, color:lineColors[i] }]) } })), barWidth:14, label:{ show:true, position:'right', formatter:'{c}%', color:'#999', fontSize:11 } }] }
+  return {
+    title: { show: !barSkills.value.length, text: '暂无技能分布数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
+    tooltip: { trigger: 'axis' },
+    grid: { top: 10, right: 32, bottom: 18, left: 76 },
+    xAxis: { type: 'value', max: 100, axisLabel: { color: '#999', fontSize: 10 }, splitLine: { lineStyle: { color: '#F5F0EA', type: 'dashed' } } },
+    yAxis: { type: 'category', data: [...barSkills.value].reverse(), axisLabel: { color: '#777', fontSize: 11 } },
+    series: [{ type: 'bar', data: [...barValues.value].reverse(), barWidth: 12, itemStyle: { borderRadius: [0, 8, 8, 0], color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ offset: 0, color: '#E07B6D' }, { offset: 1, color: '#A8C5B8' }]) }, label: { show: true, position: 'right', color: '#888', fontSize: 10, formatter: '{c}%' } }],
+  }
 }
 
-interface JobRow { id:number; name:string; dept:string; count:number; salary:string; status:string; updateTime:string }
-const allJobs = ref<JobRow[]>([
-  { id:1, name:'AI算法工程师', dept:'人工智能部', count:15, salary:'30-50K', status:'急聘', updateTime:'2026-08-06' },
-  { id:2, name:'高级前端工程师', dept:'产品技术部', count:8, salary:'25-40K', status:'招聘中', updateTime:'2026-08-05' },
-  { id:3, name:'大数据开发工程师', dept:'数据平台部', count:12, salary:'28-45K', status:'急聘', updateTime:'2026-08-05' },
-  { id:4, name:'Go后端工程师', dept:'基础架构部', count:6, salary:'25-42K', status:'招聘中', updateTime:'2026-08-04' },
-  { id:5, name:'云计算运维工程师', dept:'基础设施部', count:4, salary:'20-35K', status:'招聘中', updateTime:'2026-08-04' },
-  { id:6, name:'测试开发工程师', dept:'质量保障部', count:5, salary:'18-30K', status:'招聘中', updateTime:'2026-08-03' },
-  { id:7, name:'产品经理（B端）', dept:'产品部', count:3, salary:'22-38K', status:'待开放', updateTime:'2026-08-03' },
-  { id:8, name:'NLP算法工程师', dept:'人工智能部', count:10, salary:'35-55K', status:'急聘', updateTime:'2026-08-02' },
-  { id:9, name:'嵌入式软件工程师', dept:'物联网部', count:7, salary:'18-32K', status:'招聘中', updateTime:'2026-08-02' },
-  { id:10, name:'DevOps工程师', dept:'基础设施部', count:4, salary:'22-36K', status:'招聘中', updateTime:'2026-08-01' },
-  { id:11, name:'数据分析师', dept:'商业智能部', count:6, salary:'18-28K', status:'招聘中', updateTime:'2026-08-01' },
-  { id:12, name:'Vue3前端工程师', dept:'产品技术部', count:9, salary:'20-35K', status:'急聘', updateTime:'2026-07-31' },
-  { id:13, name:'Java高级工程师', dept:'基础架构部', count:5, salary:'28-45K', status:'招聘中', updateTime:'2026-07-30' },
-  { id:14, name:'SRE工程师', dept:'基础设施部', count:3, salary:'25-40K', status:'待开放', updateTime:'2026-07-30' },
-  { id:15, name:'自动化测试工程师', dept:'质量保障部', count:4, salary:'15-25K', status:'招聘中', updateTime:'2026-07-29' }
-])
-const filteredJobs = computed(() => jobSearch.value ? allJobs.value.filter(j => j.name.includes(jobSearch.value)) : allJobs.value)
-const pagedJobs = computed(() => { const s=(currentPage.value-1)*pageSize; return filteredJobs.value.slice(s,s+pageSize) })
-const tblHeaderStyle = { background:'#FAF7F2', color:'#8C8C8C', fontWeight:'500', fontSize:'12px', borderBottom:'1px solid #F0EBE3' }
+interface JobRow { id: string; name: string; dept: string; count: number; salary: string; status: string; updateTime: string }
+const allJobs = ref<JobRow[]>([])
+const filteredJobs = computed(() => jobSearch.value ? allJobs.value.filter(job => job.name.toLowerCase().includes(jobSearch.value.trim().toLowerCase())) : allJobs.value)
+const pagedJobs = computed(() => { const start = (currentPage.value - 1) * pageSize; return filteredJobs.value.slice(start, start + pageSize) })
+const tblHeaderStyle = { background: '#FAF7F2', color: '#8C8C8C', fontWeight: '500', fontSize: '12px', borderBottom: '1px solid #F0EBE3' }
 
-interface ScheduleItem { id:number; title:string; time:string; tag:string; level:'urgent'|'normal'|'low' }
-const scheduleItems = ref<ScheduleItem[]>([
-  { id:1, title:'AI算法岗位JD评审', time:'今天 14:00', tag:'紧急', level:'urgent' },
-  { id:2, title:'前端团队能力评估', time:'今天 16:30', tag:'进行中', level:'normal' },
-  { id:3, title:'大数据岗位需求对接', time:'明天 10:00', tag:'待处理', level:'normal' },
-  { id:4, title:'季度技能缺口报告', time:'周五 15:00', tag:'计划中', level:'low' }
-])
-interface TaskItem { id:number; title:string; deadline:string; done:boolean }
-const taskItems = ref<TaskItem[]>([
-  { id:1, title:'NLP工程师能力模型更新', deadline:'今日截止', done:false },
-  { id:2, title:'前端React技能树校准', deadline:'明日截止', done:false },
-  { id:3, title:'云计算岗位薪资调研', deadline:'3天后', done:false },
-  { id:4, title:'物联网嵌入式技能补充', deadline:'本周内', done:false },
-  { id:5, title:'大数据Spark能力评估', deadline:'已完成', done:true }
-])
-const pendingCount = computed(() => taskItems.value.filter(t => !t.done).length)
+interface ScheduleItem { id: number; title: string; time: string; tag: string; level: 'urgent' | 'normal' | 'low' }
+const scheduleItems = ref<ScheduleItem[]>([])
+interface TaskItem { id: number; title: string; deadline: string; done: boolean }
+const taskItems = ref<TaskItem[]>([])
+const pendingCount = computed(() => taskItems.value.filter(task => !task.done).length)
 
-function initCharts() { if(lineChartRef.value){lineChart=echarts.init(lineChartRef.value);lineChart.setOption(getLineOption())} if(barChartRef.value){barChart=echarts.init(barChartRef.value);barChart.setOption(getBarOption())} }
+function initCharts() {
+  if (lineChartRef.value) { lineChart = echarts.init(lineChartRef.value); lineChart.setOption(getLineOption()) }
+  if (barChartRef.value) { barChart = echarts.init(barChartRef.value); barChart.setOption(getBarOption()) }
+}
+function refreshCharts() {
+  lineChart?.setOption(getLineOption(), true)
+  barChart?.setOption(getBarOption(), true)
+}
 function handleResize() { lineChart?.resize(); barChart?.resize() }
-watch(lineMetric, () => { lineChart?.setOption(getLineOption(), true) })
+
 async function loadDashboardData() {
   dashboardLoading.value = true
   try {
-    const [overview] = await Promise.all([
+    const [overview, trend, distribution, jobs] = await Promise.all([
       getDashboardOverview(),
+      getDashboardTrend(timeRange.value),
+      getSkillDistribution(),
+      getJobList({ page: 1, page_size: 100 }),
     ])
     if (overview) {
-      statCards[0].value = overview.totalJobs
-      statCards[1].value = overview.totalResumes
-      statCards[2].value = overview.matchSuccess
-      statCards[3].value = overview.skillGaps
+      statCards[0].value = Number(overview.totalJobs || 0)
+      statCards[1].value = Number(overview.totalResumes || 0)
+      statCards[2].value = Number(overview.matchSuccess || 0)
+      statCards[3].value = Number(overview.skillGaps || 0)
+      coralBlocks.value = (overview.coralBlocks || []).map(block => ({ label: block.label, value: block.value }))
+      animateNumbers()
     }
-  } catch (e) {
-    console.error('加载看板数据失败:', e)
+    months.value = Array.isArray(trend?.months) ? trend.months : []
+    trendSeries.value = Array.isArray(trend?.series) ? trend.series : []
+    const dist = Array.isArray(distribution) ? distribution : []
+    barSkills.value = dist.slice(0, 8).map(item => item.name)
+    barValues.value = dist.slice(0, 8).map(item => Number(item.percentage || 0))
+    allJobs.value = (jobs?.list || []).map(job => ({
+      id: String(job.id), name: job.title, dept: job.company || '—', count: 0,
+      salary: job.salary || '—', status: job.status === 'open' ? '招聘中' : job.status || '—', updateTime: job.updated || '—',
+    }))
+    refreshCharts()
+  } catch (error) {
+    console.error('加载看板数据失败:', error)
   } finally {
     dashboardLoading.value = false
   }
 }
-onMounted(async () => { animateNumbers(); initCharts(); window.addEventListener('resize', handleResize); await loadDashboardData() })
-onUnmounted(() => { window.removeEventListener('resize', handleResize); lineChart?.dispose(); barChart?.dispose(); if(animTimer) clearInterval(animTimer) })
+
+watch(timeRange, loadDashboardData)
+watch(lineMetric, refreshCharts)
+onMounted(async () => { initCharts(); window.addEventListener('resize', handleResize); await loadDashboardData() })
+onUnmounted(() => { window.removeEventListener('resize', handleResize); lineChart?.dispose(); barChart?.dispose(); if (animTimer) clearInterval(animTimer) })
 </script>
 <style scoped>
 .dashboard{--coral:#E07B6D;--coral-light:#FDE8E4;--green:#66BB6A;--green-light:#E8F5E9;--orange:#FFA726;--orange-light:#FFF3E0;--red:#EF5350;--red-light:#FCE4EC;--text:#3D3D3D;--text-sec:#8C8C8C;--text-muted:#B0B0B0;--bg:#FDFBF7;--card-bg:#FFFFFF;--border:#F0EBE3;--radius:16px;position:relative}

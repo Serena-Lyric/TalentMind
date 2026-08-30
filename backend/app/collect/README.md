@@ -12,8 +12,9 @@
 | GitHub Trending（公开页面） | 信号 | signal（source=github） | `fetchers/trending.py` | ✅ 语言热度 |
 | 技术博客 RSS（InfoQ/掘金；OSCHINA 403 待换源） | 信号 | signal（source=blog） | `fetchers/blog_rss.py` | ✅ 技能提及 |
 | GitHub Trending 贡献者 → 人才线索 | 人才 | talent_raw（source=github） | `fetchers/github.py`（保留） | 按需 |
-| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 621 条（2026-08-22）；扩大批次新增 319 条，低速循环已完成 116 轮并累计新增 133 条 |
-| 其他中文招聘平台（拉勾/猎聘/智联） | 岗位 JD | — | — | ⛔ 暂不抓，仍按合规方案后再议（D40/P6） |
+| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 当前 703 条，低速循环仍在运行 |
+| 智联招聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=zhaopin） | `fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py` | ✅ 已冒烟：3 条落库 |
+| 猎聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=liepin） | `fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py` | ✅ 已冒烟：6 条落库 |
 
 ## 二、常用命令（均在 `backend/` 下，需 venv）
 
@@ -75,7 +76,7 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - 日志：`data/local/logs/boss_collect_loop.out.log`；停止：`Get-Process -Name python` 后按命令行确认 PID，再 `Stop-Process -Id <PID>`。
 - 检测到登录页/验证页时循环停止；普通单轮异常记录后继续低速运行。
 - 采集不会自动退出 BOSS；完成后必须由用户在同一 Edge 窗口手动注销。
-- 2026-08-23 运行核验：BOSS 低速循环已重启，启动器/工作进程 PID `22980/36524`；第 1 轮于 09:47:37 +08:00 完成，`listed=12/details=8/new=2/skipped=10`，随后等待 648.3 秒切换；当前进程仍存活，错误日志为空。最新快照见 `exchange/m1/collection-status-20260823.md`，M2 数据库完整导出说明见 `exchange/m2/m1-database-handover-20260823.md`。
+- 2026-08-23 运行核验：BOSS 低速循环已重新启动，当前 PID `20560`；第 1 轮于 19:15:46 +08:00 完成，`listed=12/details=8/new=3/skipped=9`，随后等待 541.0 秒切换；当前进程仍存活，错误日志为空。最新快照见 `exchange/m1/collection-status-20260823.md`，M2 数据库完整导出说明见 `exchange/m2/m1-database-handover-20260823.md`。
 
 ## 三·六、BOSS 人工登录、采集与注销记录（D45/D49）
 
@@ -89,10 +90,36 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - 批次质量核验（历史记录）：BOSS 470 条全部 `status=cleaned`；`source_detail` 空值 0、重复组 0、占位 URL 0；本次新增 319 条中 `raw_text` 长度>100 的 215 条、`duties` 非空 212 条；最大 id=125915。ID 不连续是历史删除/其他写入造成，不按 ID 连续性判断采集数。当前数据库复核为 BOSS 488 条、全部 `status=cleaned`，`source_detail` 空值 0、重复 URL 0、占位 URL 0；`duties` 非空 243 条。
 - 注销记录：当前独立 Edge 的 BOSS 求职端仍保持登录，尚未注销。必须由用户在同一窗口人工执行“退出登录”，随后把实际注销时间（含时区）补入本文、`资产与状态.md` 和专项交接文件。未输入或处理验证码；不得复用登录态。
 
+## 三·七、智联/猎聘低速页面采集
+
+已实现共享的页面可见 DOM 适配器：`fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py`。采集器只连接用户已人工登录的 Edge CDP 页面，读取当前渲染 DOM；不读取密码/Cookie，不拦截网络请求，不调用未公开接口，不处理验证码或其他验证。
+
+```powershell
+# 单轮冒烟：先人工登录对应平台，再执行；城市值必须按当前平台页面确认
+.\.venv\Scripts\python.exe -m app.collect.fetch_cn_jobs `
+  --platform zhaopin `
+  --cdp http://127.0.0.1:9333 `
+  --user-data-dir "C:\Users\<用户>\AppData\Local\Temp\TalentMind-CN-Edge" `
+  --keywords "Python,后端工程师" `
+  --cities "北京=530" `
+  --pages 1 --detail-limit 5 --max-jobs 8 --delay 15 --settle 6
+
+# 低速持续循环：每轮一个关键词/城市，默认 15–30 秒页面间隔、6–12 分钟切换间隔
+.\.venv\Scripts\python.exe -m app.collect.cn_collect_loop `
+  --platform liepin `
+  --cdp http://127.0.0.1:9333 `
+  --user-data-dir "C:\Users\<用户>\AppData\Local\Temp\TalentMind-CN-Edge" `
+  --keywords "Python,数据工程师" `
+  --cities "北京=北京" `
+  --forever
+```
+
+`--search-url-template` 可覆盖平台当前搜索 URL，支持 `{keyword}`、`{city}`、`{page}`。默认 URL 仅作为启动模板；若页面结构或搜索 URL 变化，应先用 `--once` 做小批量验证。检测到登录页、验证码、安全验证或页面异常时，循环安全停止，不尝试绕过。
+
 ## 四、字段语义（D38/D39）
 
-- `jd_pool.source`：来源平台（linkedin / hn / boss；其他中文平台接入后再扩展），仅记录平台（D17）；
-- `jd_pool.source_detail`：来源细节（posting_domain / HN item URL / 数据集标识）；
+- `jd_pool.source`：来源平台（linkedin / hn / boss / zhaopin / liepin），仅记录平台（D17）；
+- `jd_pool.source_detail`：来源细节（posting_domain / HN item URL / 数据集标识 / 智联稳定 DOM 身份或职位详情 URL）；
 - `signal.source`：github / blog / …（D39 新增列）；
 - 技能匹配严格限定 `backend/app/skills/skill_dict_seed.json`（285 canonical + aliases），不自由命名（反幻觉）。
 

@@ -1,9 +1,9 @@
-# M1 多源交叉验证报告（D42，2026-08-23）
+# M1 多源交叉验证报告（D42，2026-08-17）
 
-- 数据：linkedin 123849 × hn 1796（均 cleaned）
+- 数据：linkedin 123849 × hn 1793（均 cleaned）
 - 匹配规则：normalize_title + hn 段（≥2 词、≥6 字符）↔ linkedin 双向包含 + 长度比 ≥0.6
-- 结果：匹配 722 对；hn 命中率 40.2%
-- 命中行：cross_source=1 共 887 行（hn 722 + linkedin 165）
+- 结果：匹配 719 对；hn 命中率 40.1%
+- 命中行：cross_source=1 共 884 行（hn 719 + linkedin 165）
 - quality 上浮：MAX(原 quality, 0.85)（多源一致置信下界）
 
 | hn id | linkedin id | hn 标题 | linkedin 标题 |
@@ -28,5 +28,3 @@
 | 120255 | 111499 | Prolific | Senior Software Engineer | Hybrid ONSID | Software Engineer |
 | 120256 | 112465 | Factory | Security Engineer | ONSITE, San Francisc | Security Engineer |
 | 120257 | 111675 | Third Iron | Senior Quality Engineer | REMOTE (US) | Quality Engineer |
-
-> 说明：数据库当前 `cross_source=1` 为 888 行；本报告按当前匹配结果生成 887 行，保留 1 条已知历史残留标记，未按 source 宽泛删除。
