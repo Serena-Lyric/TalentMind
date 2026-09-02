@@ -2,6 +2,16 @@
 
 language: 简体中文
 
+## 项目决策要点（2026-08-03）
+
+与 CLAUDE.md 同源，权威清单与最新状态见 `docs/superpowers/决策跟踪.md`，详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md` 和 `docs/superpowers/specs/2026-08-11-repository-organization-design.md`。核心：5 机协作、文件交接 + A 唯一集成、技术栈自选；数据契约冻结于 `backend/app/contracts/ddl.sql`（加表/加字段自由，改/删字段须全队通知）；岗位定义不含 status，source 仅记录来源平台；D56 已覆盖 D55 的英文结构化目录限制。
+
+仓库边界：`TalentMind` 同时是 A 的 M1 数据采集开发仓和 M1–M5 完整系统唯一主仓。正式后端源码只放 `backend/app/`，前端只放 `frontend/`；`exchange/` 只存交接文件、接口自述和小型 Mock；大型本地数据放 Git 忽略的 `data/local/`。旧 `backend` 不整体删除，重复代码只有在迁移、测试和集成验证通过后才清理，Git 历史负责追溯。
+
+当前例外：`input/人岗匹配/` 的 M4 原型迁移暂缓（原根目录交付目录已归档 `input/`，2026-08-16 确认），未经用户再次确认不得移动或删除其中内容。
+
+完整资产清单与已知限制（按轻重分类）见 `docs/superpowers/资产与状态.md`，**工作前必读**。
+
 ## 脚本编码规则
 
 ### PowerShell (.ps1)
@@ -91,9 +101,14 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 内容: 症状 → 根因 → 修复 → 教训。
 
 已有陷阱:
+- 2026-09-02 图谱岗位节点点击后详情栏空白：列表字段以 JSON 字符串返回（`docs/superpowers/traps/2026-09-02-graph-job-node-detail-render-crash.md`）
+- 2026-09-02 整体系统修复与回归门禁（`docs/superpowers/traps/2026-09-02-overall-system-repair.md`）
+- 2026-09-02 M2 完整回包导入与历史日志识别失效（`docs/superpowers/traps/2026-09-02-m2-full-import-and-legacy-log.md`）
 - 2026-08-14 job_change_log 导入字段与 DDL/M2 语义不一致（`docs/superpowers/traps/2026-08-14-import-change-log-mismatch.md`）
 - 2026-08-16 集成测试误删 jd_pool（`docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）
 - 2026-08-16 cleaner experience 单行描述捕获整段致 1406（`docs/superpowers/traps/2026-08-16-cleaner-experience-overlength.md`）
+- 2026-08-17 HN 岗位评论 HTML 未剥离污染 job_title/raw_text（`docs/superpowers/traps/2026-08-17-hn-html-not-stripped.md`）
+- 2026-08-17 HN 采集“当日先清后写”误删历史月份岗位（`docs/superpowers/traps/2026-08-17-hn-idempotency-wiped-history.md`）
 - 2026-08-20 Edge CDP 动态端口与过期 DevToolsActivePort（`docs/superpowers/traps/2026-08-20-edge-cdp-active-port-stale.md`）
 - 2026-08-20 Edge CDP 端口落入 Windows 排除段（`docs/superpowers/traps/2026-08-20-edge-cdp-port-excluded.md`）
 - 2026-08-20 BOSS 详情字段合并后丢失（`docs/superpowers/traps/2026-08-20-boss-detail-fields-dropped.md`）
@@ -102,21 +117,16 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 - 2026-08-23 智联/猎聘 DOM 回归测试自身引号错误（`docs/superpowers/traps/2026-08-23-cn-job-test-quote.md`）
 - 2026-08-23 智联动态卡片标题未就绪导致空批次（`docs/superpowers/traps/2026-08-23-cn-job-dynamic-title.md`）
 - 2026-08-27 图谱前端适配后画布空白与视图无数据（`docs/superpowers/traps/2026-08-27-graph-panorama-api-adapter.md`）
+- 2026-08-30 简历上传 422：UploadFile 包装对象未取 raw（`docs/superpowers/traps/2026-08-30-resume-upload-uploadfile-wrapper.md`）
+- 2026-08-31 前端完整重整误把原版 SFC 当正式源码（docs/superpowers/traps/2026-08-31-frontend-reintegration-legacy-sfc.md）
 
-## 项目决策要点（2026-08-03）
-
-与 CLAUDE.md 同源，权威清单与最新状态见 `docs/superpowers/决策跟踪.md`，详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md` 和 `docs/superpowers/specs/2026-08-11-repository-organization-design.md`。核心：5 机协作、文件交接 + A 唯一集成、技术栈自选；数据契约冻结于 `backend/app/contracts/ddl.sql`（加表/加字段自由，改/删字段须全队通知）；岗位定义不含 status，source 仅记录来源平台。
-
-仓库边界：`TalentMind` 同时是 A 的 M1 数据采集开发仓和 M1–M5 完整系统唯一主仓。正式后端源码只放 `backend/app/`，前端只放 `frontend/`；`exchange/` 只存交接文件、接口自述和小型 Mock；大型本地数据放 Git 忽略的 `data/local/`。旧 `backend` 不整体删除，重复代码只有在迁移、测试和集成验证通过后才清理，Git 历史负责追溯。
-
-当前例外：`input/人岗匹配/` 的 M4 原型迁移暂缓（原根目录交付目录已归档 `input/`，2026-08-16 确认），未经用户再次确认不得移动或删除其中内容。
-
-完整资产清单与已知限制（按轻重分类）见 `docs/superpowers/资产与状态.md`，**工作前必读**。
-
-
+- 2026-09-02 本轮状态：用户按 D56 授权完整导入 M2 719 岗位（含 LinkedIn/HN）；MySQL 719/719/243，Neo4j 7852/11423；采集历史日志兼容 UTF-8/GBK，控制台支持 BOSS/智联/猎聘，简历推荐至少 3 张且展示分至少 90，学习路径绑定推荐岗位。
 ## 维护约定
 
 1. 发现新陷阱 → 新建 `docs/superpowers/traps/<日期>-<描述>.md` → 更新上方"已有陷阱"索引
 2. 修改项目约束 → 同步更新 CLAUDE.md 对应章节
 3. 遇到编码/平台/脚本不确定 → 先查阅本文件和 `docs/superpowers/traps/`
 4. 资产 / 目录 / 交接文件变更 → 及时更新 `docs/superpowers/资产与状态.md`，并同步 README / CLAUDE.md 相关章节
+
+
+

@@ -23,6 +23,7 @@
 - 初始项目需求（仅溯源）: `docs/superpowers/archive/2026-08-20/legacy/项目需求.txt`
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
+- 文档地图与未决跟踪: `docs/README.md`、`docs/superpowers/历史时间线.md`、`docs/superpowers/未决问题清单.md`
 - **资产清单与已知限制: `docs/superpowers/资产与状态.md`（工作前必读，变更后必更新）**
 - **Agent 新对话起始路线: `AGENT_START_HERE.md`（通用必读）；A 角色另读 `A_AGENT_HANDOVER.md`**
 
@@ -30,11 +31,13 @@
 
 权威清单与维护规则见 `docs/superpowers/资产与状态.md`。摘要：
 
-- 已交付、整合中模块（D26 定稿）：原始对照包 `图谱模块/`、`岗位能力图谱前端系统/`、`人岗匹配/` 保留在 `input/`（gitignore 保护）；旧 `input/jd-filter-package/` 已于 2026-08-30 被新 M2 回包替代并删除。正式位置为 M2 → `backend/app/job_analysis/`（当前 470 条回包数据）、M3 → `backend/app/graph/`、M5 → `frontend/`、M4 → `backend/app/matching/`（脱敏入库暂缓 D36）
-- 关键裁决（2026-08-13/16，详见决策跟踪 D26–D37）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 已扩容 VARCHAR(255)、`change_type` 已扩容 VARCHAR(32)（D32/D33 已执行，通知随全队会议）；421MB seed SQL 已删除（D27）；中英文过渡（API title 中文 + name_en）已上线；测试数据自动清理与验证（D37，2026-08-16）
-- 协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行（schema 校验 → diff 门禁 → 单测/集成 → 导入+冒烟）；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`
-- 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示 / P5 关联）；禁止 `git add -A`（`input/人岗匹配/` 含真实简历，D36 暂缓）
+- 已交付、整合中模块（D26/D53）：原始对照包 `图谱模块/`、`岗位能力图谱前端系统/`、`人岗匹配/` 保留在 `input/`（gitignore 保护）；旧 `input/jd-filter-package/` 已于 2026-08-30 被新 M2 回包替代并删除。正式位置为 M2 → `backend/app/job_analysis/`（已接入完整 719 回包，当前主库含中英文来源）、M3 → `backend/app/graph/`、M5 → `frontend/`、M4 → `backend/app/matching/`（脱敏入库暂缓 D36）
+- 关键裁决（2026-08-13/16，详见决策跟踪 D26–D37）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 已扩容 VARCHAR(255)、`change_type` 已扩容 VARCHAR(32)（D32/D33 已执行，通知随全队会议）；421MB seed SQL 已删除（D27）；中英文展示字段已按 M2 完整 719 回包接入（API title 中文 + name_en）；D56 覆盖 D55 的英文结构化目录限制；测试数据自动清理与验证（D37，2026-08-16）
+- 2026-08-31 用户确认前端方案 A：正式 `frontend/` 已按设计稿重新整合，导航包含 9 个业务页面；图谱默认 Career Nebula；采集控制台通过 `backend/app/collect/control.py` 调用既有 M1 循环；新增 `/api/collection/*` 与 `/api/evolution/*`。
+- 协作按 docs/superpowers/plans/2026-08-14-module-roundtrip.md 回发闭环执行（schema 校验 → diff 门禁 → 单测/集成 → 导入+冒烟）；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`
+- 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示；P5 关联已随 D56 M2 完整导入关闭）；禁止 `git add -A`（`input/人岗匹配/` 含真实简历，D36 暂缓）
 
+- 2026-09-02 本轮：用户授权完整导入 M2 719 岗位；采集历史日志兼容 UTF-8/GBK，采集控制支持 BOSS/智联/猎聘；简历自动推荐固定至少 3 张且展示分至少 90，Learning 绑定推荐岗位；图谱支持岗位/技能/行业节点和独立滚动详情栏。
 ## 项目决策要点（2026-08-03 汇总）
 
 权威清单与最新状态见 `docs/superpowers/决策跟踪.md`；详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md`。
@@ -49,3 +52,4 @@
 - 目录边界：后端正式源码只放 `backend/app/`，前端只放 `frontend/`；交接文件和小型 Mock 放 `exchange/`；大型本地数据放 Git 忽略的 `data/local/`
 - 旧代码策略：不整体删除现有 `backend`；M1 采集管道继续复用。重复目录必须在迁移、测试和集成验证通过后才清理，Git 历史负责追溯
 - M4 原型迁移：`input/人岗匹配/` 当前暂缓迁移（原根目录交付目录已归档 `input/`），保持原状，待用户另行确认后处理
+

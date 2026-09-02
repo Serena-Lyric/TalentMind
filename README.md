@@ -8,6 +8,8 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 这两个角色共享同一份代码、同一份数据契约和同一套测试入口。不要再建立第二份“采集仓”，也不要在根目录长期维护重复的旧实现。
 
 ## 当前状态
+> **2026-09-02 本轮最新状态**：用户已明确选择完整导入 M2 719 个岗位（新一代 344、现有 375），包含 LinkedIn/HN，覆盖 D55 的旧边界（D56）。MySQL `job_definition/job_skill/job_change_log=719/719/243`；Neo4j 为 7852 节点/11423 关系（岗位/技能/行业均已解析）。前端已接入完整岗位目录、历史日志识别、BOSS/智联/猎聘控制、简历自动推荐与绑定学习路径；前端构建和当前回归测试已通过。
+
 
 - M1 数据采集管道位于 `backend/app/collect/`，继续复用，不重写。
 - 当前冻结的数据契约位于 `backend/app/contracts/ddl.sql`。
@@ -15,19 +17,24 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 - MySQL、Neo4j、Redis 由根目录 `docker-compose.yml` 提供。
 - 当前原始对照包保留在 `input/`：`图谱模块/`、`岗位能力图谱前端系统/`、`人岗匹配/`；旧 `input/jd-filter-package/` 已被 2026-08-30 M2 新回包替代并删除。
 - 完整资产清单、整合状态与已知限制见 `docs/superpowers/资产与状态.md`（工作前必读）。
+- 文档导航：`docs/README.md`（docs 地图）；历史记录：`docs/superpowers/历史时间线.md`；未决问题：`docs/superpowers/未决问题清单.md`。D57 起 `input/`、`output/` 与便利/参赛文件（`docs/submit`、`docs/originalfile`、`docs/前端卡通图片`、`笔记.md`）仅本地保留，不同步 GitHub。
 - 尚未迁入的模块不得复制一份临时正式代码到其他根目录；交付物先放 `exchange/` 并记录自述。
 
-## 模块交付与整合状态（2026-08-23）
+## 模块交付与整合状态（2026-09-02 更新）
 
 | 模块 | 正式位置 | 状态 |
 |---|---|---|
-| M1 数据采集 | `backend/app/collect/` | 可运行；截至 2026-08-23 核验，jd_pool 126330 条（linkedin 123849 + hn 1796 + BOSS 685，全部 status=cleaned）；signal 680 条/6 个日期（github 174、blog 506）。BOSS 独立低速循环已重启，PID 22980/36524，首轮 `listed=12/details=8/new=2/skipped=10` 后继续等待切换；source_detail 空值/重复数均为 0，duties 非空 288 条。通用循环仍按每 6 小时运行；数据库 cross_source=1 为 888 行，报告为 887 行（保留 1 条历史残留标记）。详见 `exchange/m1/collection-status-20260823.md` 与 `exchange/m2/m1-database-handover-20260823.md`。|
-| M2 岗位分析 | `backend/app/job_analysis/` | 已接入 2026-08-30 回包，exchange/m2 实际 470 岗位/470 技能明细；canonical 对齐和 488/470 数量差异待 M2 处理 |
-| M3 图谱 | `backend/app/graph/` | 已基于新 M2 数据重建 588 节点/4003 边；Neo4j MERGE 后 588 节点/3998 边，重复关系待处理 |
+| M1 数据采集 | `backend/app/collect/` | 采集循环仍按用户指示暂停；采集模块管理页进入时自动准备独立 Edge，已登录时仅尝试单轮，未登录只提示人工登录。当前主库中文原始 JD：BOSS 1131、智联 1088、猎聘 764。|
+| M2 岗位分析 | `backend/app/job_analysis/` | 已接入 M2 2026-09-01 完整回包：719 个岗位、719 条合并技能记录、243 条能力更新日志；完整导入入口为 `app.integration.import_exchange.import_all()`。|
+| M3 图谱 | `backend/app/graph/` | 已按 M2 完整 719 岗位重建（D56，含 LinkedIn/HN）；当前 Neo4j 7852 节点/11423 关系（岗位 719 / 技能 4671 / 行业 2462），`exchange/m3/graph.json` 已同步。|
 | M4 简历匹配 | `backend/app/matching/` | 文件解析+匹配可用；待回包实现 pathfinder |
-| M5 前端 | `frontend/` | 已保留正式 API/Graph 多视图；演示硬编码已清理为真实 API/空态，部分页面写操作待 M5/A 回包 |
+| M5 前端 | `frontend/` | 已完成统一重新整合：全局学校品牌、JD 三平台统计/搜索、Career Nebula 图谱、简历内存态匹配、采集控制台和技能学习路径；`pnpm run build` 通过。|
 
-整合未决项已于 2026-08-13 裁决（决策 D26–D37），数据闭环与回发闭环就绪（2026-08-15；2026-08-16 落地测试数据自动清理规范 D37，并恢复 jd_pool 5000 条 cleaned——原 5003 曾被集成测试误删，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）：统一响应 code=0、skill_dict 约束、中英文过渡、change_type/experience 字段扩容（D32/D33 已执行，通知随全队会议）；**221 测试通过**。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
+
+
+> **2026-08-31 前端整合状态**：用户确认不再采用补丁式整合。正式前端现以 `input/图谱.png`、`input/采集模块管理.png` 为视觉基准重新组装，导航包含 Dashboard、JD 岗位、采集图谱、数据分析、采集模块管理、能力动态更新、简历分析、学习路径和简历预览。`input/` 仍是只读对照包，不是运行时源码；没有可信后端数据的页面展示诚实空态。采集控制台通过 `backend/app/collect/control.py` 包装既有 M1 循环，不自动启动采集。
+
+整合未决项已于 2026-08-13 裁决（决策 D26–D37），并在 2026-09-02 完成整体修复阶段第一轮收口；本轮按用户 D56 完整导入 M2 719 岗位，后端全量 **236 passed**，前端构建通过。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
 
 ## 目录说明
 
@@ -115,7 +122,7 @@ cd backend
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-访问 `http://127.0.0.1:8000/health`，应得到统一响应结构 `{code, message, data}`。
+访问 `http://127.0.0.1:18000/health`，应得到统一响应结构 `{code, message, data}`。本机 8000/5173 受 Windows 端口权限限制（WSAEACCES），统一使用 **后端 18000 / 前端 18080**（前端 vite 已默认代理 `/api` 到 18000，可用 `VITE_PROXY_TARGET` 覆盖）。
 
 ## 测试
 
@@ -171,6 +178,7 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 - 实施计划：`docs/superpowers/plans/`
 - 数据契约：`backend/app/contracts/ddl.sql`
 - 前端说明页：`docs/team-plan.html`
+- 文档地图：`docs/README.md`（docs 全目录索引 + 归档说明）
 - Agent 行为约束：`AGENTS.md`、`CLAUDE.md`
 
 修改目录、契约或协作流程时，先更新决策记录，再同步 README 和约束文件。发现由 AI 修复的 bug 时，在 `docs/superpowers/traps/` 留下“症状 → 根因 → 修复 → 教训”记录。
@@ -182,3 +190,4 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 - 不迁移 `input/人岗匹配/`（已按用户要求暂缓）；
 - 不提交 `.env`、真实密钥、数据库 volume、未经脱敏的简历和大型本地数据；
 - 不创建 Git commit，除非用户明确要求。
+

@@ -35,3 +35,9 @@ input/
 
 # 回发包（Roundtrip 输出，用户自行压缩发送，不入库）
 output/
+# D57（2026-09-03）中转站与便利文件：本地保留，不同步 GitHub
+笔记.md
+.superpowers/
+docs/submit/
+docs/originalfile/
+docs/前端卡通图片/
