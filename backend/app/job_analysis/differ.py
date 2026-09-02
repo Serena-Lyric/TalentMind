@@ -4,10 +4,10 @@ from .models import (
     MergedJobDefinition, MergedJobSkillDetail,
     JobChangeLog,
 )
-from .llm import call_llm
+from .llm import LLMClient
 
 
-async def _duties_changed(old_duties: str, new_duties: str, model: str) -> dict | None:
+async def _duties_changed(old_duties: str, new_duties: str, model: str, client: LLMClient) -> dict | None:
     """用轻量模型快速判定职责是否有显著语义变化。"""
     prompt = f"""Compare two versions of core_duties for the same job.
 
@@ -17,7 +17,7 @@ New: "{new_duties}"
 Do they describe significantly different work content? Answer JSON:
 {{"has_significant_change": true/false, "summary": "one sentence describing the change (if any)"}}"""
 
-    resp = await call_llm(prompt, model, temperature=0, max_tokens=256)
+    resp = await client.call(prompt, model, temperature=0, max_tokens=256)
     return resp if "_error" not in resp else None
 
 
@@ -27,6 +27,7 @@ async def diff_jobs(
     existing_defs: dict[str, MergedJobDefinition],
     existing_skills: dict[str, MergedJobSkillDetail],
     duties_diff_model: str = "",
+    client: LLMClient | None = None,
 ) -> tuple[
     list[MergedJobDefinition],
     list[MergedJobSkillDetail],
@@ -34,6 +35,10 @@ async def diff_jobs(
 ]:
     from config import SLOT_POOLS
     duties_diff_model = duties_diff_model or SLOT_POOLS["duties_diff"][0]
+    own_client = client is None
+    if client is None:
+        from .config import DS_API_KEY, DS_ENDPOINT
+        client = LLMClient(endpoint_override=DS_ENDPOINT if DS_API_KEY else None)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
     change_logs: list[JobChangeLog] = []
 
@@ -110,7 +115,7 @@ async def diff_jobs(
         # ── duties diff ──
         if old_def.core_duties != nd.core_duties:
             change = await _duties_changed(
-                old_def.core_duties, nd.core_duties, duties_diff_model,
+                old_def.core_duties, nd.core_duties, duties_diff_model, client,
             )
             if change and change.get("has_significant_change"):
                 change_logs.append(JobChangeLog(
@@ -164,4 +169,6 @@ async def diff_jobs(
                 created_at=now,
             ))
 
+    if own_client:
+        await client.close()
     return new_defs, new_skills, change_logs

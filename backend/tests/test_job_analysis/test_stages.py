@@ -87,7 +87,7 @@ def test_parse_quality_pass():
     assert result.quality == 0.8
 
 
-def test_parse_quality_reject():
+def test_parse_quality_keeps_low_score_for_weighting():
     resp = {
         "quality": 0.3,
         "dimensions": {"completeness": 0.3, "clarity": 0.3, "tech_depth": 0.3,
@@ -95,7 +95,8 @@ def test_parse_quality_reject():
         "weak_points": "too vague",
     }
     result = parse_quality_response(1, resp, "test-model")
-    assert result.verdict == "reject"
+    assert result.verdict == "pass"
+    assert result.quality == 0.3
 
 
 # ── Stage 3 ──

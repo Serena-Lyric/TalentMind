@@ -39,8 +39,8 @@ def get_cost_summary() -> dict:
     }
 
 
-def _extract_json(text: str) -> dict:
-    text = text.strip()
+def _extract_json(text: str | None) -> dict:
+    text = (text or "").strip()
     if not text:
         return {"_error": "empty content from model"}
     try:

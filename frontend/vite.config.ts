@@ -11,11 +11,11 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
-    port: 5173,
+    port: 18080,
     proxy: {
-      // 开发环境：/api 代理到后端（安装即用，无需 VITE_API_BASE_URL）
+      // 开发环境：/api 代理到后端（安装即用；默认 18000，可用 VITE_PROXY_TARGET 覆盖）
       "/api": {
-        target: "http://127.0.0.1:8000",
+        target: process.env.VITE_PROXY_TARGET || "http://127.0.0.1:18000",
         changeOrigin: true
       }
     }

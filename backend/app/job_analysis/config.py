@@ -25,7 +25,7 @@ SLOT_POOLS = {
     "extract":     ["deepseek-v4-flash", "deepseek-v4-pro"],
     "verify":      ["qwen3.7-plus", "mimo-v2.5-pro"],
     "translate":   ["glm-5.3"],
-    "duties_diff": ["glm-5.3"],
+    "duties_diff": ["deepseek-v4-flash"],
 }
 
 # ── 模型怪癖（探针实测）──

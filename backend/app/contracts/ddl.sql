@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS skill_dict (
 -- 岗位技能证据链明细: 每条技能带 weight/confidence/evidence(反幻觉), is_required 区分必备/加分
 CREATE TABLE IF NOT EXISTS job_skill (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  jd_id BIGINT, job_name VARCHAR(128), level VARCHAR(16),
+  jd_id BIGINT, job_name VARCHAR(128), m2_job_id VARCHAR(32), level VARCHAR(16),
   skills JSON, -- [{skill_id,name,weight,confidence,evidence,is_required}]
   duties TEXT, extracted_at DATETIME,
   INDEX idx_jobname (job_name)
@@ -44,6 +44,12 @@ CREATE TABLE IF NOT EXISTS job_definition (
   first_seen DATETIME,             -- 首次出现时间 (演化分析依据)
   collected_at DATETIME,           -- 收集时间
   updated_at DATETIME,             -- 人工优化/最近修改时间
+  m2_job_id VARCHAR(32),           -- M2 回包稳定关联键
+  name_en VARCHAR(255),            -- M2 英文 canonical 展示名
+  job_name_zh VARCHAR(255),        -- M2 中文展示名
+  category VARCHAR(32),            -- 新一代/现有
+  category_review VARCHAR(32),     -- M2 分类复核状态
+  source_jd_count INT,             -- 聚合来源 JD 数
   INDEX idx_jobname (job_name),
   INDEX idx_is_emerging (is_emerging)
 );
@@ -57,6 +63,9 @@ CREATE TABLE IF NOT EXISTS job_change_log (
   source VARCHAR(128),             -- 数据源/依据
   reason TEXT,                     -- 更新说明
   created_at DATETIME,
+  m2_job_id VARCHAR(64),         -- M2 原始 job_id（无法关联时仍保留）
+  object_type VARCHAR(32),       -- skill/job/duties/scenarios/evolution
+  source_jd_time DATETIME,        -- M2 证据数据时间
   INDEX idx_job (job_id)
 );
 CREATE TABLE IF NOT EXISTS resume (

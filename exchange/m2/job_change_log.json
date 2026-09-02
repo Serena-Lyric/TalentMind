@@ -1,1 +1,4712 @@
-[]
+[
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "故障排查/rca",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 故障排查/rca",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "azure devops",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 azure devops",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "sql",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 sql",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "粤语",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.4,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 粤语",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "保险行业经验",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 保险行业经验",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "etl/elt",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 etl/elt",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "英语",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 英语",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据建模与范式设计",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据建模与范式设计",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "客户管理与团队协作",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 客户管理与团队协作",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "azure sql/sql mi",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 azure sql/sql mi",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "sql性能调优",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 sql性能调优",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "Azure云数据仓库/ETL实施",
+    "detail": {
+      "old_value": null,
+      "new_value": "Azure云数据仓库/ETL实施"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: Azure云数据仓库/ETL实施",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "金融科技项目外包驻场",
+    "detail": {
+      "old_value": null,
+      "new_value": "金融科技项目外包驻场"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 金融科技项目外包驻场",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "保险行业数据平台支持",
+    "detail": {
+      "old_value": null,
+      "new_value": "保险行业数据平台支持"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 保险行业数据平台支持",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Azure Data Engineer",
+    "change_type": "evolution_changed",
+    "object_type": "evolution",
+    "skill_name": "stage",
+    "detail": {
+      "old_value": "growth",
+      "new_value": "mature"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "演化阶段: growth→mature",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "零售/供应链",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 零售/供应链",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "database operations",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 database operations",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据可视化",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据可视化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "internal plugin/tool development",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 internal plugin/tool development",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据质量监控",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据质量监控",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ppt",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 ppt",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据分析",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "dbt",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 dbt",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "bi看板维护",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 bi看板维护",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据清洗",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据清洗",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "市场分析",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 市场分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai工具使用",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 ai工具使用",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "api usage",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 api usage",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据建模",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据建模",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "统计建模",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.4,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 统计建模",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "r",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.65,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 r",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "power bi",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 power bi",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai coding tools",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 ai coding tools",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "prompt engineering",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 prompt engineering",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "自动化报表",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 自动化报表",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "technical documentation reading",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 technical documentation reading",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai agent development",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 ai agent development",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "英文读写能力",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 英文读写能力",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "bi工具",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 bi工具",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "竞品分析",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 竞品分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "电商数据平台",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 电商数据平台",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "电商/订单/支付/履约分析",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 电商/订单/支付/履约分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "python/pandas",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 python/pandas",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "假设检验",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 假设检验",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "归因分析",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 归因分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "a/b测试",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 a/b测试",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "excel",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 excel",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "agent orchestration frameworks",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 agent orchestration frameworks",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "tableau",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 tableau",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "python",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 python",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai workflow development",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 ai workflow development",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "old_value": "Conduct recurring and ad hoc data analysis for business users; compile and analyze data and create clear visualizations to convey insights.",
+      "new_value": "参与业务流程梳理，识别适合AI Agent自动化的场景并设计自动化方案；开发AI Agent、搭建多步骤AI工作流及内部通用插件工具，并参与测试验收与效果评估。",
+      "summary": "The role shifted from traditional data analysis and visualization for business users to AI Agent development, including business process mapping, designing automation solutions, building multi-step AI workflows and internal plugin tools, and testing/evaluating their effectiveness."
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "The role shifted from traditional data analysis and visualization for business users to AI Agent development, including business process mapping, designing automation solutions, building multi-step AI workflows and internal plugin tools, and testing/evaluating their effectiveness.",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "互联网产品数据分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "互联网产品数据分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 互联网产品数据分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "业务流程自动化",
+    "detail": {
+      "old_value": null,
+      "new_value": "业务流程自动化"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 业务流程自动化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "内容社区数据分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "内容社区数据分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 内容社区数据分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "零售需求计划",
+    "detail": {
+      "old_value": null,
+      "new_value": "零售需求计划"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 零售需求计划",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "AI Agent智能助手开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "AI Agent智能助手开发"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: AI Agent智能助手开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "电商数据运营",
+    "detail": {
+      "old_value": null,
+      "new_value": "电商数据运营"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 电商数据运营",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "汽车销售业务数据分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "汽车销售业务数据分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 汽车销售业务数据分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "A/B测试与产品优化",
+    "detail": {
+      "old_value": null,
+      "new_value": "A/B测试与产品优化"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: A/B测试与产品优化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "数据分析工程（Analytics Engineering）",
+    "detail": {
+      "old_value": null,
+      "new_value": "数据分析工程（Analytics Engineering）"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 数据分析工程（Analytics Engineering）",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "消费者运营",
+    "detail": {
+      "old_value": null,
+      "new_value": "消费者运营"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 消费者运营",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "商品库存分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "商品库存分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 商品库存分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "品牌营销",
+    "detail": {
+      "old_value": null,
+      "new_value": "品牌营销"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 品牌营销",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "行业趋势分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "行业趋势分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 行业趋势分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "企业统一指标体系建设",
+    "detail": {
+      "old_value": null,
+      "new_value": "企业统一指标体系建设"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 企业统一指标体系建设",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "销售报表自动化",
+    "detail": {
+      "old_value": null,
+      "new_value": "销售报表自动化"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 销售报表自动化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "客诉数据归因分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "客诉数据归因分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 客诉数据归因分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "业务指标体系建设",
+    "detail": {
+      "old_value": null,
+      "new_value": "业务指标体系建设"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 业务指标体系建设",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "数据报表搭建",
+    "detail": {
+      "old_value": null,
+      "new_value": "数据报表搭建"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 数据报表搭建",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "企业级AI工具链建设",
+    "detail": {
+      "old_value": null,
+      "new_value": "企业级AI工具链建设"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 企业级AI工具链建设",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "物流与供应链SaaS数据分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "物流与供应链SaaS数据分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 物流与供应链SaaS数据分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "用户行为数据分析",
+    "detail": {
+      "old_value": null,
+      "new_value": "用户行为数据分析"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 用户行为数据分析",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Data Analysis Intern",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "产品决策数据论证",
+    "detail": {
+      "old_value": null,
+      "new_value": "产品决策数据论证"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 产品决策数据论证",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-20 05:04:16"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "react",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 react",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "vue",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 vue",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "前端开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 前端开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai辅助开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 ai辅助开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "webpack",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 webpack",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "javascript",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 javascript",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "vite",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 vite",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "html5",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 html5",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "接口联调",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 接口联调",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "兼容性处理",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 兼容性处理",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "b端系统经验",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 b端系统经验",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "uniapp",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 uniapp",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "es6+",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 es6+",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "typescript",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.95,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 typescript",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "组件库开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 组件库开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "css",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 css",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "前端工程化",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 前端工程化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "css3",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 css3",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "前端性能优化",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 前端性能优化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "采购、合同、职场服务等业务场景",
+    "detail": {
+      "old_value": null,
+      "new_value": "采购、合同、职场服务等业务场景"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 采购、合同、职场服务等业务场景",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "PC管理系统前端",
+    "detail": {
+      "old_value": null,
+      "new_value": "PC管理系统前端"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: PC管理系统前端",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "前后端协作",
+    "detail": {
+      "old_value": null,
+      "new_value": "前后端协作"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 前后端协作",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "社交产品开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "社交产品开发"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 社交产品开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "B端系统",
+    "detail": {
+      "old_value": null,
+      "new_value": "B端系统"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: B端系统",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "CIS企业服务系统",
+    "detail": {
+      "old_value": null,
+      "new_value": "CIS企业服务系统"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: CIS企业服务系统",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "Web前端开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "Web前端开发"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: Web前端开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "移动跨端App开发(Android/鸿蒙)",
+    "detail": {
+      "old_value": null,
+      "new_value": "移动跨端App开发(Android/鸿蒙)"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 移动跨端App开发(Android/鸿蒙)",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Frontend Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "大屏可视化项目",
+    "detail": {
+      "old_value": null,
+      "new_value": "大屏可视化项目"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 大屏可视化项目",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:04:53"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "react/vue",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 react/vue",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "webpack/vite",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 webpack/vite",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "大模型api接入",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 大模型api接入",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "服务端语言（node.js/python/go）",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 服务端语言（node.js/python/go）",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "django",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 django",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "es6+",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 es6+",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai驱动自动化测试",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 ai驱动自动化测试",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "redis",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 redis",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai编程工具",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 ai编程工具",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "agent工作流设计",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 agent工作流设计",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "测试框架（jest/vitest/playwright/cypress）",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 测试框架（jest/vitest/playwright/cypress）",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "flask",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 flask",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "linux",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 linux",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "低碳节能行业信息化系统",
+    "detail": {
+      "old_value": null,
+      "new_value": "低碳节能行业信息化系统"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 低碳节能行业信息化系统",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "企业级Web全栈开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "企业级Web全栈开发"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 企业级Web全栈开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full Stack Developer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "中大型 Web 应用、H5、小程序",
+    "detail": {
+      "old_value": null,
+      "new_value": "中大型 Web 应用、H5、小程序"
+    },
+    "source": [
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 中大型 Web 应用、H5、小程序",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 06:32:08"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "后端开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 后端开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "java",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 java",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "人工智能",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 人工智能",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "mysql",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 mysql",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "软件测试",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 软件测试",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "python",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 python",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "前端开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 前端开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "c",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 c",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "云计算",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 云计算",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "云计算平台开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "云计算平台开发"
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 云计算平台开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "通信/网络设备行业",
+    "detail": {
+      "old_value": null,
+      "new_value": "通信/网络设备行业"
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 通信/网络设备行业",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "企业级应用开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "企业级应用开发"
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 企业级应用开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Full-Stack Engineer",
+    "change_type": "evolution_changed",
+    "object_type": "evolution",
+    "skill_name": "stage",
+    "detail": {
+      "old_value": "growth",
+      "new_value": "mature"
+    },
+    "source": [
+      "hn",
+      "zhaopin"
+    ],
+    "reason": "演化阶段: growth→mature",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 11:12:03"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "组合优化",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 组合优化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "目标检测",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 目标检测",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "自动驾驶",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 自动驾驶",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "自动标注",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 自动标注",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "vla",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 vla",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "分割",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 分割",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "强化学习",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 强化学习",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "模型部署",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 模型部署",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据清洗",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据清洗",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "团队管理",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 团队管理",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "视觉理解",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 视觉理解",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "图神经网络",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 图神经网络",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "机器学习",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 机器学习",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "线上约束下的系统研发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 线上约束下的系统研发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "transformer",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 transformer",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "多模态大模型",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 多模态大模型",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "机器学习理论基础",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 机器学习理论基础",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "pytorch/jax",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 pytorch/jax",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "高性能推理优化",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 高性能推理优化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "tensorflow",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 tensorflow",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "时序transformer",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 时序transformer",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "gpu生产级系统开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 gpu生产级系统开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据挖掘",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据挖掘",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "英文读写",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 英文读写",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "具身智能",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 具身智能",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "机器人",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 机器人",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "模型训练/微调/部署",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 模型训练/微调/部署",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "深度学习",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 深度学习",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "主流神经网络架构",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.85,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 主流神经网络架构",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "分布式训练",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 分布式训练",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "生成式ai",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 生成式ai",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "c++",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 c++",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "模型评测体系",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 模型评测体系",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "大模型",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 大模型",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "统计学习",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 统计学习",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "pytorch",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 pytorch",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "vlm",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 vlm",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "目标跟踪",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 目标跟踪",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "go",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 go",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "多模态学习",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 多模态学习",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据处理流水线",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据处理流水线",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据管道",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据管道",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "生产级机器学习系统搭建与优化",
+    "detail": {
+      "old_value": null,
+      "new_value": "生产级机器学习系统搭建与优化"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 生产级机器学习系统搭建与优化",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "智能硬件/消费电子",
+    "detail": {
+      "old_value": null,
+      "new_value": "智能硬件/消费电子"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 智能硬件/消费电子",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "业务数据流水线构建",
+    "detail": {
+      "old_value": null,
+      "new_value": "业务数据流水线构建"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 业务数据流水线构建",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "自动驾驶",
+    "detail": {
+      "old_value": null,
+      "new_value": "自动驾驶"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 自动驾驶",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "基金/证券/期货",
+    "detail": {
+      "old_value": null,
+      "new_value": "基金/证券/期货"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 基金/证券/期货",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "大模型微调与线上部署",
+    "detail": {
+      "old_value": null,
+      "new_value": "大模型微调与线上部署"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 大模型微调与线上部署",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "量化交易",
+    "detail": {
+      "old_value": null,
+      "new_value": "量化交易"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 量化交易",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "具身智能",
+    "detail": {
+      "old_value": null,
+      "new_value": "具身智能"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 具身智能",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "机器人",
+    "detail": {
+      "old_value": null,
+      "new_value": "机器人"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 机器人",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Machine Learning Engineer",
+    "change_type": "evolution_changed",
+    "object_type": "evolution",
+    "skill_name": "stage",
+    "detail": {
+      "old_value": "emerging",
+      "new_value": "growth"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "演化阶段: emerging→growth",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 20:23:41"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "mba",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5,
+        "is_required": false
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 mba",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "new product development",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 new product development",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "market segmentation",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 market segmentation",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "customer feedback management",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 customer feedback management",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "p&l management",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 p&l management",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "competitive intelligence",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新JD要求 competitive intelligence",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "汽车零部件及配件行业",
+    "detail": {
+      "old_value": null,
+      "new_value": "汽车零部件及配件行业"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 汽车零部件及配件行业",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "全球/区域市场产品导入",
+    "detail": {
+      "old_value": null,
+      "new_value": "全球/区域市场产品导入"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 全球/区域市场产品导入",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "连接器与线束产品管理",
+    "detail": {
+      "old_value": null,
+      "new_value": "连接器与线束产品管理"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "新增应用场景: 连接器与线束产品管理",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Product Manager",
+    "change_type": "evolution_changed",
+    "object_type": "evolution",
+    "skill_name": "stage",
+    "detail": {
+      "old_value": "growth",
+      "new_value": "mature"
+    },
+    "source": [
+      "liepin",
+      "linkedin"
+    ],
+    "reason": "演化阶段: growth→mature",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-23 23:22:22"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "sqlserver",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.35,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 sqlserver",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ai模型部署",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5499999999999999,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 ai模型部署",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "单元测试/功能测试",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 单元测试/功能测试",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "oracle",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.35,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 oracle",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "html",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 html",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据结构",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 数据结构",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "机器学习",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.5499999999999999,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 机器学习",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "沟通能力",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 沟通能力",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据结构与算法",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 数据结构与算法",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "模块设计与开发",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 模块设计与开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "javascript",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 javascript",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "gcc/make",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 gcc/make",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "计算机基础",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 计算机基础",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "c++",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 c++",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "linux调试",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 linux调试",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "软件开发流程",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 软件开发流程",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "java/python/c/c++/js/rust",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 java/python/c/c++/js/rust",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "pyqt",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.35,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 pyqt",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "go",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 go",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "c/c++",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 c/c++",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "python/shell",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 python/shell",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "java/c++/c/python/js/html/go（至少一种）",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 java/c++/c/python/js/html/go（至少一种）",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "算法",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 算法",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "算法与数据结构",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.9,
+        "is_required": true
+      }
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新JD要求 算法与数据结构",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "AI/Agent方向",
+    "detail": {
+      "old_value": null,
+      "new_value": "AI/Agent方向"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: AI/Agent方向",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "云计算/大数据平台开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "云计算/大数据平台开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 云计算/大数据平台开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "前端/后端全栈开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "前端/后端全栈开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 前端/后端全栈开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "全栈/多语言开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "全栈/多语言开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 全栈/多语言开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "AI模型服务化部署",
+    "detail": {
+      "old_value": null,
+      "new_value": "AI模型服务化部署"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: AI模型服务化部署",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "软件开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "软件开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 软件开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "软件测试",
+    "detail": {
+      "old_value": null,
+      "new_value": "软件测试"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 软件测试",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "嵌入式软件/前端/算法开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "嵌入式软件/前端/算法开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 嵌入式软件/前端/算法开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "多城市大型研发团队协作",
+    "detail": {
+      "old_value": null,
+      "new_value": "多城市大型研发团队协作"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 多城市大型研发团队协作",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "通信/半导体/集成电路行业软件开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "通信/半导体/集成电路行业软件开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 通信/半导体/集成电路行业软件开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "软件/IT服务",
+    "detail": {
+      "old_value": null,
+      "new_value": "软件/IT服务"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 软件/IT服务",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "应用软件开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "应用软件开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 应用软件开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "算法开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "算法开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 算法开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "企业级IT系统研发",
+    "detail": {
+      "old_value": null,
+      "new_value": "企业级IT系统研发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 企业级IT系统研发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "企业级应用开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "企业级应用开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 企业级应用开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "通信/ICT产品软件开发",
+    "detail": {
+      "old_value": null,
+      "new_value": "通信/ICT产品软件开发"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "新增应用场景: 通信/ICT产品软件开发",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "Software Development Engineer",
+    "change_type": "evolution_changed",
+    "object_type": "evolution",
+    "skill_name": "stage",
+    "detail": {
+      "old_value": "growth",
+      "new_value": "mature"
+    },
+    "source": [
+      "boss",
+      "liepin",
+      "linkedin",
+      "zhaopin"
+    ],
+    "reason": "演化阶段: growth→mature",
+    "created_at": "2026-09-01T13:18:32",
+    "source_jd_time": "2026-08-24 10:02:11"
+  },
+  {
+    "job_id": "j_037a2e326e632200",
+    "change_type": "added",
+    "object_type": "job",
+    "skill_name": "Python开发工程师",
+    "detail": {
+      "first_seen": "2026-08-20 09:18:43",
+      "category": "现有"
+    },
+    "source": [
+      "boss"
+    ],
+    "reason": "新增岗位(本轮爬取数据首次出现)",
+    "created_at": "2026-09-01T14:35:11",
+    "source_jd_time": "2026-08-20 09:18:43"
+  },
+  {
+    "job_id": "j_b43ef8c9444b6035",
+    "change_type": "added",
+    "object_type": "job",
+    "skill_name": "Java开发工程师",
+    "detail": {
+      "first_seen": "2026-08-20 10:03:25",
+      "category": "现有"
+    },
+    "source": [
+      "boss"
+    ],
+    "reason": "新增岗位(本轮爬取数据首次出现)",
+    "created_at": "2026-09-01T14:35:11",
+    "source_jd_time": "2026-08-20 10:03:25"
+  },
+  {
+    "job_id": "j_6c51904dbc04fc00",
+    "change_type": "added",
+    "object_type": "job",
+    "skill_name": "数据分析师",
+    "detail": {
+      "first_seen": "2026-08-20 10:57:37",
+      "category": "新一代"
+    },
+    "source": [
+      "boss"
+    ],
+    "reason": "新增岗位(本轮爬取数据首次出现)",
+    "created_at": "2026-09-01T14:35:11",
+    "source_jd_time": "2026-08-20 10:57:37"
+  },
+  {
+    "job_id": "j_4e7388f9ea53d0b1",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据透视表",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      },
+      "evidence": "JD #246576: 掌握数据透视、函数公式及基础图表制作"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 数据透视表",
+    "created_at": "2026-09-01T14:51:59",
+    "source_jd_time": "2026-08-21 14:56:04"
+  },
+  {
+    "job_id": "j_4e7388f9ea53d0b1",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "函数公式",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.8,
+        "is_required": true
+      },
+      "evidence": "JD #246576: 掌握数据透视、函数公式及基础图表制作"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 函数公式",
+    "created_at": "2026-09-01T14:51:59",
+    "source_jd_time": "2026-08-21 14:56:04"
+  },
+  {
+    "job_id": "j_4e7388f9ea53d0b1",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "图表制作",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      },
+      "evidence": "JD #246576: 掌握数据透视、函数公式及基础图表制作"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 图表制作",
+    "created_at": "2026-09-01T14:51:59",
+    "source_jd_time": "2026-08-21 14:56:04"
+  },
+  {
+    "job_id": "j_4e7388f9ea53d0b1",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "word",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      },
+      "evidence": "JD #246576: 具备Word、PPT等办公软件操作能力"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 word",
+    "created_at": "2026-09-01T14:51:59",
+    "source_jd_time": "2026-08-21 14:56:04"
+  },
+  {
+    "job_id": "j_4e7388f9ea53d0b1",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "ppt",
+    "detail": {
+      "old_value": null,
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      },
+      "evidence": "JD #246576: 具备Word、PPT等办公软件操作能力"
+    },
+    "source": [
+      "boss",
+      "linkedin"
+    ],
+    "reason": "新JD要求 ppt",
+    "created_at": "2026-09-01T14:51:59",
+    "source_jd_time": "2026-08-21 14:56:04"
+  },
+  {
+    "job_id": "j_296f37933fe7f1a6",
+    "change_type": "added",
+    "object_type": "job",
+    "skill_name": "大数据质量测试工程师",
+    "detail": {
+      "first_seen": "2026-08-21 05:47:56",
+      "category": "新一代"
+    },
+    "source": [
+      "boss"
+    ],
+    "reason": "新增岗位(本轮爬取数据首次出现)",
+    "created_at": "2026-09-01T14:51:59",
+    "source_jd_time": "2026-08-21 05:47:56"
+  }
+]

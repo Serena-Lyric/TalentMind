@@ -66,8 +66,10 @@ def test_csv_to_jd_pool_via_pipeline(tmp_path):
         ), {"t1": TEST_TITLES[0], "t2": TEST_TITLES[1]}).scalar()
         assert cnt == 2
 
+        # 必须限定 source 与测试夹具标识：生产库存在同名 zhaopin 岗位（无 'Engineering'），
+        # 未限定 source 会取到生产行导致断言失败（2026-08-31 复核）
         text_with_skills = db.execute(text(
-            "SELECT raw_text FROM jd_pool WHERE job_title='AI应用工程师'"
+            "SELECT raw_text FROM jd_pool WHERE source='linkedin' AND job_title='AI应用工程师'"
         )).scalar()
         assert "Engineering" in text_with_skills
         assert "Project Management" in text_with_skills

@@ -6,7 +6,7 @@
  * 2. 请求拦截器：自动附加 token、通用 headers
  * 3. 响应拦截器：统一错误处理、数据提取
  * 4. 统一错误提示（Element Plus ElMessage）
- * 5. 支持 mock 模式切换
+ * 5. 统一空态与错误处理（正式前端不使用 Mock）
  */
 
 import axios from 'axios'
@@ -17,7 +17,7 @@ import { ElMessage } from 'element-plus'
 // 配置区：切换真实后端接口时，只需修改 BASE_URL
 // ============================================================
 
-/** 后端 API 基础地址 —— 对接真实后端时改为实际地址 */
+/** 后端 API 基础地址 */
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 // ============================================================

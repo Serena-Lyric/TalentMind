@@ -50,8 +50,36 @@ def dashboard_overview():
 
 @router.get("/dashboard/trend")
 def dashboard_trend(range: str = Query("month")):
-    # MVP：无历史时间序列，返回空系列（前端空态）
-    return ok({"months": [], "series": []})
+    """按天聚合 signal 信号量，取信号值最高的 Top 技能作为多条序列。
+
+    数据源：`signal` 表（captured_at / skill_or_job / value）。
+    无数据时返回空结构（前端诚实空态），不编造数字。
+    """
+    db = SessionLocal()
+    try:
+        rows = db.execute(text(
+            "SELECT DATE(captured_at) AS d, skill_or_job AS s, SUM(value) AS v "
+            "FROM `signal` GROUP BY DATE(captured_at), skill_or_job ORDER BY d"
+        )).all()
+    finally:
+        db.close()
+    if not rows:
+        return ok({"months": [], "series": []})
+    dates = sorted({str(r.d) for r in rows})
+    total: dict[str, float] = {}
+    for r in rows:
+        total[r.s] = total.get(r.s, 0.0) + float(r.v or 0)
+    top = [s for s, _ in sorted(total.items(), key=lambda x: -x[1])[:5]]
+    colors = ["#E07B6D", "#A8C5B8", "#7B8FA8", "#E8A88A", "#66BB6A"]
+    series = []
+    for i, s in enumerate(top):
+        by_date = {str(r.d): float(r.v or 0) for r in rows if r.s == s}
+        series.append({
+            "name": s,
+            "color": colors[i % len(colors)],
+            "data": [round(by_date.get(d, 0.0), 1) for d in dates],
+        })
+    return ok({"months": [d[5:] for d in dates], "series": series})
 
 
 @router.get("/dashboard/skill-distribution")
@@ -85,8 +113,8 @@ def dashboard_skill_distribution():
 
 @router.get("/dashboard/skill-radar")
 def dashboard_skill_radar(skill_name: str = Query("")):
-    # MVP：无技能画像数据，8 维占位
-    return ok({"dimensions": RADAR_DIMENSIONS, "values": [50] * len(RADAR_DIMENSIONS)})
+    # 暂无技能画像数据：返回空结构（前端按空处理），不再返回全 50 占位
+    return ok({"dimensions": [], "values": []}, message="暂无技能画像数据")
 
 
 @router.get("/dashboard/industry-tracks")

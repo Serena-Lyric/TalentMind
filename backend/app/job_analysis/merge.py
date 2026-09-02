@@ -104,6 +104,12 @@ def normalize_job_type(job_name: str) -> str:
     return stripped.lower()
 
 
+def _stable_job_id(job_name: str) -> str:
+    """稳定关联键：岗位名归一后的 MD5 前 16 位。"""
+    import hashlib
+    return "j_" + hashlib.md5(job_name.strip().lower().encode("utf-8")).hexdigest()[:16]
+
+
 def merge_jobs(
     results: list[ExtractionResult],
 ) -> tuple[list[MergedJobDefinition], list[MergedJobSkillDetail]]:
@@ -210,6 +216,7 @@ def merge_jobs(
         updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
         definitions.append(MergedJobDefinition(
+            job_id=_stable_job_id(job_name),
             job_name=job_name,
             core_duties=best.core_duties,
             required_skills=required,
@@ -226,6 +233,7 @@ def merge_jobs(
         ))
 
         skill_details.append(MergedJobSkillDetail(
+            job_id=_stable_job_id(job_name),
             job_name=job_name,
             skills=skills_list,
         ))

@@ -15,7 +15,7 @@ from .stage2_quality import run_stage2
 from .stage3_extract import run_stage3
 from .merge import merge_jobs
 from .differ import diff_jobs
-from .export import export_all
+from .export import export_all, _load_json
 from .llm import LLMClient, reset_cost_counters, get_cost_summary
 from .config import (SKILL_DICT_PATH, DATA_DIR, EXCHANGE_DIR,
                     POST_VERIFY_AFTER_AGGREGATE)
@@ -452,12 +452,12 @@ async def _run_pipeline_async(
         if existing_job_defs_path:
             ed_path = Path(existing_job_defs_path)
             if ed_path.exists():
-                for item in json.load(open(ed_path, encoding="utf-8")):
+                for item in (_load_json(ed_path) or []):
                     jd = MergedJobDefinition(**item)
                     existing_defs[jd.job_name.strip().lower()] = jd
                 esk_path = ed_path.parent / "job_skill.json"
                 if esk_path.exists():
-                    for item in json.load(open(esk_path, encoding="utf-8")):
+                    for item in (_load_json(esk_path) or []):
                         js = MergedJobSkillDetail(**item)
                         existing_skills[js.job_name.strip().lower()] = js
         job_defs, job_skills, change_logs = await diff_jobs(
@@ -465,6 +465,10 @@ async def _run_pipeline_async(
         print(f"       变更日志: {len(change_logs)} 条")
 
         print("[导出] 导出")
+        # M2 回包的中文展示名由专用翻译层负责；中文标题本身可直接作为展示名。
+        for definition in job_defs:
+            if not definition.job_name_zh and any("\u4e00" <= char <= "\u9fff" for char in definition.job_name):
+                definition.job_name_zh = definition.job_name
         cost = get_cost_summary()
         # 成本估算：按各模型 token 计费（MODEL_COST 表，未列模型兜底）
         from config import MODEL_COST

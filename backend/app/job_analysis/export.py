@@ -1,5 +1,6 @@
 """导出层 —— 写入最终 JSON 交付物 + 管道报告。"""
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from .models import (
     MergedJobDefinition, MergedJobSkillDetail, JobChangeLog,
@@ -10,12 +11,14 @@ from .models import (
 def _write_json(output_dir: Path, filename: str, data: list):
     """安全写入 JSON 数组文件。"""
     path = output_dir / filename
+    payload = {
+        "schema_version": "1.0", "contract_version": "2026-08-31",
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+        "module": "m2",
+        "items": [item.model_dump() if hasattr(item, "model_dump") else item for item in data],
+    }
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(
-            [item.model_dump() if hasattr(item, "model_dump") else item
-             for item in data],
-            f, ensure_ascii=False, indent=2,
-        )
+        json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
 def _load_json(path: Path) -> list | None:
@@ -24,7 +27,10 @@ def _load_json(path: Path) -> list | None:
         return None
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+        if isinstance(data, dict) and isinstance(data.get("items"), list):
+            return data["items"]
+        return data if isinstance(data, list) else None
     except (json.JSONDecodeError, OSError):
         return None
 

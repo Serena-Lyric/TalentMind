@@ -18,8 +18,32 @@ export interface ResumeProfile {
   summary: string
 }
 
+export interface RecommendedJob {
+  id: string
+  title: string
+  platform: string
+  platform_label: string
+  score: number
+  raw_score?: number
+  display_score?: number
+  is_score_floor?: boolean
+  name_en?: string
+  category?: string
+  source_jd_count?: number
+  matched: string[]
+  missing: { name: string; level: string; tip: string }[]
+  skills: string[]
+  collected_at?: string
+}
+
 export interface MatchResult {
   score: number
+  raw_score?: number
+  display_score?: number
+  is_score_floor?: boolean
+  name_en?: string
+  category?: string
+  source_jd_count?: number
   matched: string[]
   missing: { name: string; level: string; tip: string }[]
   strengths: string[]
@@ -49,10 +73,12 @@ export interface SkillDimension {
  *   }
  * }
  */
-export async function uploadResume(file: File) {
+export async function uploadResume(file: File, targetJobId = '') {
   
   const formData = new FormData()
   formData.append('file', file)
+  // 后端按用户选择的目标岗位匹配；为空则遍历库内岗位取最高分
+  if (targetJobId) formData.append('target_job_id', targetJobId)
   return post('/resume/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })

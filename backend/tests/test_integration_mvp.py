@@ -59,17 +59,20 @@ def test_mvp_graph_api():
     assert body["code"] == 0
     assert body["data"]["stats"]["totalNodes"] > 0
     kinds = {n["kind"] for n in body["data"]["nodes"]}
-    assert kinds <= {"job", "skill"}
+    assert kinds <= {"job", "skill", "industry"}
 
 
 def test_mvp_resume_upload():
     resume = "姓名：张三\n技能：Python、Django、MySQL、Redis"
-    resp = client.post("/api/resume/upload", data={"content": resume})
+    target = client.get("/api/resume/target-jobs").json()["data"][0]
+    resp = client.post("/api/resume/upload", data={"content": resume, "target_job_id": target["value"]})
     assert resp.status_code == 200
     body = resp.json()
     assert body["code"] == 0
     assert body["data"]["profile"]["skills"]
     assert "score" in body["data"]["matchResult"]
+    assert body["data"]["matchResult"]["target_job_id"] == target["value"]
+    assert len(body["data"]["recommendedJobs"]) >= 3
 
 # ==================== MVP 补全接口（dashboard + jobs CRUD + import/export） ====================
 
@@ -192,7 +195,7 @@ def test_import_change_logs_job_name_resolution(tmp_path):
         db = SessionLocal()
         try:
             row = db.execute(
-                text("SELECT job_id, change_type, skill_name FROM job_change_log")
+                text("SELECT job_id, change_type, skill_name FROM job_change_log WHERE reason = :m"), {"m": MARKER}
             ).first()
         finally:
             db.close()
@@ -201,7 +204,7 @@ def test_import_change_logs_job_name_resolution(tmp_path):
         assert row[1] == "added"
         assert row[2] == "python"
     finally:
-        # 无论成败都按唯一标记清理，保持 job_change_log 为空（与线上状态一致）
+        # 无论成败都按唯一标记清理，不影响 M2 生产变更日志
         db = SessionLocal()
         try:
             db.execute(text("DELETE FROM job_change_log WHERE reason = :m"), {"m": MARKER})

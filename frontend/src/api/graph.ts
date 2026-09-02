@@ -1,4 +1,4 @@
-import { get } from '../utils/request'
+﻿import { get } from '../utils/request'
 
 ﻿/**
  * 数据图谱模块 API
@@ -20,6 +20,17 @@ export interface GraphNode {
   growth?: string
   desc?: string
   parent?: string
+  name_en?: string
+  source?: string[]
+  platform_label?: string
+  core_duties?: string
+  required_skills?: string[]
+  bonus_skills?: string[]
+  scenarios?: string[]
+  category?: string
+  is_emerging?: boolean
+  canonical_name?: string
+  evolution?: Record<string, unknown>
 }
 
 export interface GraphEdge {

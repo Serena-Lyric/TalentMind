@@ -11,6 +11,13 @@ import { get, post, put, del } from '../utils/request'
 export interface Job {
   id: string
   title: string
+  name_en?: string
+  job_name_zh?: string
+  m2_job_id?: string
+  category?: string
+  category_review?: string
+  source_jd_count?: number
+  is_emerging?: boolean
   company: string
   city: string
   type: string
@@ -29,10 +36,18 @@ export interface Job {
   responsibilities?: string[]
   requirements?: string[]
   jdVersions?: { year: number; version: string; publishedAt: string; content: string; skills: string[] }[]
+  platform?: string
+  platform_label?: string
+  core_duties?: string
+  collected_at?: string
+  experience?: string
+  source?: string[]
 }
 
 export interface JobQuery {
   keyword?: string
+  platform?: string
+  category?: string
   city?: string
   track?: string
   skillStatus?: '新增' | '淘汰' | '变更'
@@ -78,6 +93,17 @@ export async function getJobList(query: JobQuery = {}): Promise<JobListResult> {
  * 入参：id (路径参数)
  * 响应：Job 完整对象
  */
+export interface JobPlatformStat {
+  platform: string
+  label: string
+  count: number
+  unique_titles: number
+  latest_crawled_at: string | null
+}
+
+export async function getJobPlatformStats(): Promise<JobPlatformStat[]> {
+  return get<JobPlatformStat[]>('/jobs/platform-stats')
+}
 export async function getJobDetail(id: string): Promise<Job> {
   
   return get<Job>(`/jobs/${id}`)

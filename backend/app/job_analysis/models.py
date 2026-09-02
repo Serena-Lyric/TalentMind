@@ -148,7 +148,9 @@ class MergedJobSkill(BaseModel):
 
 
 class MergedJobDefinition(BaseModel):
+    job_id: str = ""
     job_name: str
+    job_name_zh: str = ""
     core_duties: str
     required_skills: list[str] = Field(default_factory=list)
     bonus_skills: list[str] = Field(default_factory=list)
@@ -164,6 +166,7 @@ class MergedJobDefinition(BaseModel):
 
 
 class MergedJobSkillDetail(BaseModel):
+    job_id: str = ""
     job_name: str
     skills: list[MergedJobSkill] = Field(default_factory=list)
 
@@ -179,6 +182,7 @@ class JobChangeLog(BaseModel):
     source: list[str] = Field(default_factory=list)
     reason: str = ""
     created_at: str = ""
+    source_jd_time: str = ""
 
 
 # ── 人工复核 ──

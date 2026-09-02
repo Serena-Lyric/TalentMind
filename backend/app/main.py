@@ -12,6 +12,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173", "http://127.0.0.1:5173",
         "http://localhost:4173", "http://127.0.0.1:4173",
+        "http://localhost:18080", "http://127.0.0.1:18080",
     ],
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +33,12 @@ async def _test_crash():
 # 统一 API（A 集成层，阶段 6 MVP）
 from app.routers.mvp import router as mvp_router
 from app.routers.dashboard import router as dashboard_router
+from app.routers.collection import router as collection_router
+from app.routers.evolution import router as evolution_router
+from app.routers.learning import router as learning_router
+
 app.include_router(mvp_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
-
+app.include_router(collection_router, prefix="/api")
+app.include_router(evolution_router, prefix="/api")
+app.include_router(learning_router, prefix="/api")

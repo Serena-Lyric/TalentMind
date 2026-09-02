@@ -132,15 +132,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Download, Phone, Message, Location, User, Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useResumeStore } from '../store/resume'
 
 
 const router = useRouter()
+const resumeStore = useResumeStore()
 const resumeRef = ref<HTMLElement | null>(null)
-const resume = ref<any>(null)
+
+// 把后端解析 profile 适配为预览模板结构；无真实数据时显示空态
+const resume = computed<any>(() => {
+  const p = resumeStore.profile
+  if (!p) return null
+  return {
+    basic: {
+      name: p.name || '未命名简历',
+      jobIntention: p.role || '—',
+      phone: '', email: '', location: '', gender: '',
+    },
+    education: {
+      school: p.education || '—',
+      major: '', degree: '', duration: '',
+      courses: [],
+    },
+    skills: {
+      details: p.skills && p.skills.length
+        ? { '已识别技能': { level: 80, items: p.skills } }
+        : {},
+    },
+    projects: [],
+    honors: [],
+    selfEvaluation: p.summary || ('工作年限：' + (p.experience || '—') + '；最近公司：' + (p.company || '—') + '。'),
+  }
+})
 
 function goBack() {
   router.push('/resume')

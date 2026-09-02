@@ -1,29 +1,21 @@
-"""exchange 交接文件校验器（A 集成层，2026-08-14）。
-
-职责：回包/导入前对 exchange/*.json 做机读校验。
-- 结构校验：用 pydantic 模型（复用已装依赖，不引 jsonschema）检查字段/类型/必填；
-- 命名校验：字段名必须 snake_case；
-- 软校验（警告不阻断）：job_skill.job_name 与 job_definition.job_name 关联、
-  技能名对齐 skill_dict_seed（当前 M2 旧产出已知不满足，等 M2 二次开发修复后转硬校验）。
-"""
+"""M2/M3 交接文件校验器。"""
 from __future__ import annotations
 
 import json
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, ValidationError
+
+from app.integration.m2_package import DEFAULT_PACKAGE_DIR, load_return_package, unwrap_payload
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 EXCHANGE_M2 = REPO_ROOT / "exchange" / "m2"
 EXCHANGE_M3 = REPO_ROOT / "exchange" / "m3"
 SKILL_DICT_PATH = REPO_ROOT / "backend" / "app" / "skills" / "skill_dict_seed.json"
-
 SNAKE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 
-
-# ── pydantic 结构模型（与 DDL / 08-03 设计 §6/§7/§8 对齐） ──
 
 class SkillEntryModel(BaseModel):
     skill_id: Optional[str] = None
@@ -33,35 +25,40 @@ class SkillEntryModel(BaseModel):
     evidence: Optional[str] = None
     evidence_jd_count: Optional[int] = None
     is_required: Optional[bool] = None
+    canonical_name: Optional[str] = None
+    verification: Optional[str] = None
 
 
 class JobDefinitionModel(BaseModel):
     job_name: str = Field(min_length=1)
     core_duties: str = ""
-    required_skills: list = []
-    bonus_skills: list = []
-    scenarios: list = []
-    source: list = []
+    required_skills: list = Field(default_factory=list)
+    bonus_skills: list = Field(default_factory=list)
+    scenarios: list = Field(default_factory=list)
+    source: list = Field(default_factory=list)
     quality: Optional[float] = None
     is_emerging: Optional[bool] = None
     evolution: Optional[dict] = None
     first_seen: Optional[str] = None
     collected_at: Optional[str] = None
     updated_at: Optional[str] = None
-    # 2026-08-14 中英文统一：新增展示字段（允许缺失，等 M2 补齐）
     job_name_zh: Optional[str] = None
-    # M2 现有额外字段（加字段自由，允许）
     source_jd_count: Optional[int] = None
+    job_id: Optional[str] = None
+    name_en: Optional[str] = None
+    category: Optional[str] = None
+    category_review: Optional[str] = None
 
 
 class JobSkillFileModel(BaseModel):
     job_name: str = Field(min_length=1)
-    skills: list[SkillEntryModel] = []
+    skills: list[SkillEntryModel] = Field(default_factory=list)
+    job_id: Optional[str] = None
 
 
 CHANGE_TYPES = {
-    "added", "removed", "modified",
-    "duties_changed", "scenarios_added", "scenarios_removed", "evolution_changed",
+    "added", "removed", "modified", "duties_changed", "scenarios_added",
+    "scenarios_removed", "evolution_changed",
 }
 
 
@@ -73,6 +70,8 @@ class JobChangeLogModel(BaseModel):
     source: Optional[list] = None
     reason: Optional[str] = None
     created_at: Optional[str] = None
+    object_type: Optional[str] = None
+    source_jd_time: Optional[str] = None
 
 
 class GraphNodeModel(BaseModel):
@@ -97,13 +96,13 @@ class GraphEdgeModel(BaseModel):
 
 
 class GraphFileModel(BaseModel):
-    nodes: list[GraphNodeModel] = []
-    edges: list[GraphEdgeModel] = []
+    nodes: list[GraphNodeModel] = Field(default_factory=list)
+    edges: list[GraphEdgeModel] = Field(default_factory=list)
 
 
 class SkillDictModel(BaseModel):
     canonical: str = Field(min_length=1)
-    aliases: list = []
+    aliases: list = Field(default_factory=list)
     category: str = ""
 
 
@@ -120,7 +119,6 @@ class JdRecordModel(BaseModel):
     status: Optional[str] = None
 
 
-# 文件类型 → 单条模型（列表校验）
 MODEL_BY_KIND = {
     "job_definition": JobDefinitionModel,
     "job_skill": JobSkillFileModel,
@@ -132,31 +130,37 @@ MODEL_BY_KIND = {
 
 
 def _load(path: Path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
-def _check_snake_case(obj, errors: list, prefix: str = ""):
+def _items(value: Any) -> list:
+    if isinstance(value, list):
+        return value
+    if isinstance(value, dict) and isinstance(value.get("items"), list):
+        return value["items"]
+    return []
+
+
+def _check_snake_case(obj: Any, errors: list[str], prefix: str = "") -> None:
     if isinstance(obj, dict):
-        for k, v in obj.items():
-            if not SNAKE_RE.match(k):
-                errors.append(f"{prefix}.{k}: 字段名不是 snake_case")
-            _check_snake_case(v, errors, f"{prefix}.{k}" if prefix else k)
+        for key, value in obj.items():
+            if not SNAKE_RE.match(key):
+                errors.append(f"{prefix}.{key}: 字段名不是 snake_case")
+            _check_snake_case(value, errors, f"{prefix}.{key}" if prefix else key)
     elif isinstance(obj, list):
-        for i, item in enumerate(obj):
-            _check_snake_case(item, errors, f"{prefix}[{i}]")
+        for index, item in enumerate(obj):
+            _check_snake_case(item, errors, f"{prefix}[{index}]")
 
 
 def _load_skill_canonicals() -> set[str]:
     try:
-        entries = json.loads(SKILL_DICT_PATH.read_text(encoding="utf-8"))
-        return {e["canonical"].strip().lower() for e in entries}
+        return {str(item["canonical"]).strip().lower() for item in _load(SKILL_DICT_PATH)}
     except Exception:
         return set()
 
 
 def validate_exchange(path: Path, kind: str) -> dict:
-    """校验单个交接文件。返回 {ok, errors, warnings}。"""
     errors: list[str] = []
     warnings: list[str] = []
     model = MODEL_BY_KIND.get(kind)
@@ -170,102 +174,79 @@ def validate_exchange(path: Path, kind: str) -> dict:
         return {"ok": False, "errors": [f"JSON 解析失败: {exc}"], "warnings": []}
 
     _check_snake_case(data, errors)
-
-    # 结构校验
     try:
         if kind == "graph":
-            GraphFileModel.model_validate(data)
-        elif isinstance(data, list):
-            for i, item in enumerate(data):
+            model.model_validate(data)
+            items = data
+        else:
+            items, _ = unwrap_payload(data)
+            for index, item in enumerate(items):
                 try:
                     model.model_validate(item)
                 except ValidationError as exc:
-                    for e in exc.errors():
-                        loc = ".".join(str(x) for x in e["loc"])
-                        errors.append(f"[{i}] {loc}: {e['msg']}")
-        else:
-            errors.append("顶层必须是 JSON 数组（graph 除外）")
+                    for error in exc.errors():
+                        loc = ".".join(str(part) for part in error["loc"])
+                        errors.append(f"[{index}] {loc}: {error['msg']}")
     except Exception as exc:
         errors.append(f"结构校验异常: {exc}")
 
-    # change_type 枚举硬校验（D32 扩展枚举）
-    if kind == "job_change_log" and isinstance(data, list):
-        for i, item in enumerate(data):
-            ct = item.get("change_type") if isinstance(item, dict) else None
-            if ct not in CHANGE_TYPES:
-                errors.append(f"[{i}] change_type 不在枚举内: {ct!r}")
+    if kind == "job_change_log":
+        for index, item in enumerate(_items(data)):
+            if item.get("change_type") not in CHANGE_TYPES:
+                errors.append(f"[{index}] change_type 不在枚举内: {item.get('change_type')!r}")
 
-    # 软校验：技能 canonical 对齐（不阻断，输出警告）
     if kind in ("job_definition", "job_skill"):
         canonicals = _load_skill_canonicals()
-        if canonicals:
-            if kind == "job_definition":
-                for i, d in enumerate(data or []):
-                    for f in ("required_skills", "bonus_skills"):
-                        for s in d.get(f, []):
-                            if isinstance(s, str) and s.strip().lower() not in canonicals:
-                                warnings.append(f"[{i}] 技能不在 skill_dict: {s}")
-            else:
-                for i, d in enumerate(data or []):
-                    for s in d.get("skills", []):
-                        name = s.get("name") if isinstance(s, dict) else s
-                        if isinstance(name, str) and name.strip().lower() not in canonicals:
-                            warnings.append(f"[{i}] 技能不在 skill_dict: {name}")
-
+        for index, item in enumerate(_items(data)):
+            values = item.get("required_skills", []) + item.get("bonus_skills", []) if kind == "job_definition" else [skill.get("canonical_name") or skill.get("name") for skill in item.get("skills", [])]
+            for value in values:
+                if isinstance(value, str) and value.strip().lower() not in canonicals:
+                    warnings.append(f"[{index}] 技能不在 skill_dict: {value}")
     return {"ok": not errors, "errors": errors, "warnings": warnings}
 
 
-def validate_m2() -> dict:
-    """校验 exchange/m2 全部产出 + 关联软校验。"""
-    result = {}
-    warnings_extra: list[str] = []
-    # skill_dict 权威文件是 backend/app/skills/skill_dict_seed.json（D31），
-    # exchange/m2 不要求单独交付 skill_dict.json（可选，若存在也校验）
-    for name, kind in [
-        ("job_definition.json", "job_definition"),
-        ("job_skill.json", "job_skill"),
-        ("job_change_log.json", "job_change_log"),
-    ]:
-        path = EXCHANGE_M2 / name
-        r = validate_exchange(path, kind)
-        result[name] = r
-        warnings_extra.extend(r["warnings"])
+def validate_return_package(package_dir: Path | str | None = None) -> dict:
+    try:
+        package = load_return_package(package_dir or DEFAULT_PACKAGE_DIR)
+    except Exception as exc:
+        return {"ok": False, "errors": [str(exc)], "warnings": []}
+    defs = package["definitions"]
+    skills = package["skills"]
+    logs = package["change_logs"]
+    def_ids = {str(item.get("job_id")) for item in defs}
+    skill_ids = {str(item.get("job_id")) for item in skills}
+    warnings = []
+    if len(defs) != 719:
+        warnings.append(f"岗位定义数量为 {len(defs)}，本次预期 719")
+    if def_ids != skill_ids:
+        warnings.append(f"岗位/技能 job_id 集合不一致: missing={len(def_ids-skill_ids)}, extra={len(skill_ids-def_ids)}")
+    return {"ok": True, "errors": [], "warnings": warnings, "summary": {
+        "definitions": len(defs), "skill_records": len(skills), "change_logs": len(logs),
+        "unique_definition_ids": len(def_ids), "skill_job_ids": len(skill_ids),
+    }}
 
-    # 关联软校验：job_skill.job_name ⊆ job_definition.job_name（当前已知 0/22，等 M2 修复）
-    defs = _load(EXCHANGE_M2 / "job_definition.json") if (EXCHANGE_M2 / "job_definition.json").exists() else []
-    skills = _load(EXCHANGE_M2 / "job_skill.json") if (EXCHANGE_M2 / "job_skill.json").exists() else []
-    en_names = {d.get("job_name", "").strip().lower() for d in defs}
-    mismatch = [s.get("job_name") for s in skills if s.get("job_name", "").strip().lower() not in en_names]
+
+def validate_m2() -> dict:
+    result = {}
+    warnings: list[str] = []
+    for name, kind in (("job_definition.json", "job_definition"), ("job_skill.json", "job_skill"), ("job_change_log.json", "job_change_log")):
+        check = validate_exchange(EXCHANGE_M2 / name, kind)
+        result[name] = check
+        warnings.extend(check["warnings"])
+    defs = _items(_load(EXCHANGE_M2 / "job_definition.json")) if (EXCHANGE_M2 / "job_definition.json").exists() else []
+    skills = _items(_load(EXCHANGE_M2 / "job_skill.json")) if (EXCHANGE_M2 / "job_skill.json").exists() else []
+    names = {str(item.get("job_name", "")).strip().lower() for item in defs}
+    mismatch = [item.get("job_name") for item in skills if str(item.get("job_name", "")).strip().lower() not in names]
     if mismatch:
-        warnings_extra.append(
-            f"job_skill 有 {len(mismatch)} 条 job_name 不在 job_definition 中（中英文分裂，待 M2 修复 L1-L3）: {mismatch[:3]}"
-        )
-    result["_关联检查"] = {"ok": True, "errors": [], "warnings": warnings_extra}
-    # 版本头软提示（M2 P0：schema_version/contract_version/generated_at）
-    version_hint = []
-    for name in ("job_definition.json", "job_skill.json", "job_change_log.json"):
-        fpath = EXCHANGE_M2 / name
-        if fpath.exists():
-            try:
-                head = json.loads(fpath.read_text(encoding="utf-8"))
-                if isinstance(head, list) and head:
-                    first = head[0] if isinstance(head[0], dict) else {}
-                    if not any(k in first for k in ("schema_version", "contract_version", "generated_at")):
-                        version_hint.append(f"{name} 未带版本头（M2 P0 要求）")
-            except Exception:
-                pass
-    if version_hint:
-        result["_版本头"] = {"ok": True, "errors": [], "warnings": version_hint}
-    # skill_dict 种子自校验
+        warnings.append(f"job_skill 有 {len(mismatch)} 条 job_name 不在 job_definition 中: {mismatch[:3]}")
+    result["_关联检查"] = {"ok": True, "errors": [], "warnings": warnings}
     result["skill_dict_seed.json"] = validate_exchange(SKILL_DICT_PATH, "skill_dict")
     return result
 
 
 def validate_m3() -> dict:
-    """校验 exchange/m3/graph.json。"""
     return validate_exchange(EXCHANGE_M3 / "graph.json", "graph")
 
 
 if __name__ == "__main__":
-    import json as _json
-    print(_json.dumps(validate_m2(), ensure_ascii=False, indent=2)[:2000])
+    print(json.dumps(validate_m2(), ensure_ascii=False, indent=2)[:2000])

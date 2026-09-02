@@ -1,9 +1,9 @@
-"""graph.json → Neo4j 导入（A 集成层，MVP）。
+"""graph.json → Neo4j 导入。
 
-节点：Job（对齐 job_name）/ Skill（对齐 skill_dict.canonical）
-关系：REQUIRES（weight, is_required）/ RELATED_TO（similar）
-幂等：Cypher MERGE，重复执行不产生重复节点/边。
+节点使用 node_id 作为稳定键；兼容旧 graph.json 的 id/name 与 Job/Skill 节点。
 """
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -14,61 +14,35 @@ GRAPH_PATH = REPO_ROOT / "exchange" / "m3" / "graph.json"
 
 
 def import_graph(path: Path | None = None) -> dict:
-    driver = get_neo4j()
     path = path or GRAPH_PATH
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
+    data = json.loads(path.read_text(encoding="utf-8"))
     nodes = data.get("nodes", [])
     edges = data.get("edges", [])
-
-    with driver.session() as s:
-        # 节点
-        for n in nodes:
-            ntype = n.get("type")
-            name = n.get("name") or n.get("id")
-            if not name:
-                continue
-            if ntype == "job":
-                s.run(
-                    "MERGE (j:Job {name: $name}) "
-                    "SET j.name_zh = $name_zh, j.core_duties = $d, j.is_emerging = $e",
-                    name=name,
-                    name_zh=n.get("name_zh", ""),
-                    d=n.get("core_duties", ""),
-                    e=bool(n.get("is_emerging", False)),
-                )
-            elif ntype == "skill":
-                s.run("MERGE (s:Skill {name: $name})", name=name)
-
-        # 边
-        for e in edges:
-            etype = e.get("type")
-            source = e.get("source")
-            target = e.get("target")
-            if not source or not target:
-                continue
-            if etype == "REQUIRES":
-                s.run(
-                    "MATCH (j:Job {name: $s}), (sk:Skill {name: $t}) "
-                    "MERGE (j)-[r:REQUIRES]->(sk) "
-                    "SET r.weight = $w, r.is_required = $r",
-                    s=source, t=target,
-                    w=float(e.get("weight", 1.0)),
-                    r=bool(e.get("is_required", True)),
-                )
-            elif etype == "RELATED_TO":
-                s.run(
-                    "MATCH (a:Job {name: $s}), (b:Job {name: $t}) "
-                    "MERGE (a)-[r:RELATED_TO]->(b) SET r.similar = $sim",
-                    s=source, t=target, sim=float(e.get("similar", 0.0)),
-                )
-
-        # 统计
-        node_count = s.run("MATCH (n) RETURN count(n) AS c").single()["c"]
-        edge_count = s.run("MATCH ()-[r]->() RETURN count(r) AS c").single()["c"]
-
-    return {"nodes": node_count, "edges": edge_count}
+    driver = get_neo4j()
+    try:
+        with driver.session() as session:
+            session.run("MATCH (n) DETACH DELETE n").consume()
+            for node_type, label in (("job", "Job"), ("skill", "Skill"), ("industry", "Industry")):
+                payload = []
+                for node in nodes:
+                    if str(node.get("type") or "entity").lower() != node_type:
+                        continue
+                    node_id = str(node.get("id") or node.get("node_id") or node.get("name") or "").strip()
+                    if not node_id:
+                        continue
+                    props = {key: (json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else value) for key, value in node.items() if key not in {"id", "type", "kind"}}
+                    props.setdefault("name", node.get("name") or node_id)
+                    payload.append({"node_id": node_id, "props": props})
+                if payload:
+                    session.run(f"UNWIND $nodes AS node MERGE (n:{label} {{node_id: node.node_id}}) SET n += node.props", nodes=payload).consume()
+            for relation in ("REQUIRES", "RELATED_TO", "APPLIES_TO"):
+                payload = [{"source": str(edge.get("source") or ""), "target": str(edge.get("target") or ""), "props": {key: (json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else value) for key, value in edge.items() if key not in {"source", "target", "type"}}} for edge in edges if str(edge.get("type") or "RELATED_TO").upper() == relation and edge.get("source") and edge.get("target")]
+                if payload:
+                    session.run(f"UNWIND $edges AS edge MATCH (a {{node_id: edge.source}}), (b {{node_id: edge.target}}) MERGE (a)-[r:{relation}]->(b) SET r += edge.props", edges=payload).consume()
+            counts = session.run("MATCH (n) WITH count(n) AS nodes OPTIONAL MATCH ()-[r]->() RETURN nodes, count(r) AS edges").single()
+            return {"nodes": int(counts["nodes"]), "edges": int(counts["edges"])}
+    finally:
+        driver.close()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 """模型3 —— 结构化提取（LLM 输出每个 skill 的 confidence + 逐字证据）。"""
 import asyncio
-from .config import SLOT_POOLS, MAX_RETRY
+import json
+from .config import SLOT_POOLS, MAX_RETRY, SKILL_DICT_PATH
 from .llm import LLMClient
 from .models import JdRecord, ExtractionResult, EvolutionInfo, SkillEntry
 
@@ -92,22 +93,38 @@ EXTRACT_SCHEMA = {
 }
 
 
+with open(SKILL_DICT_PATH, "r", encoding="utf-8") as _skill_dict_file:
+    _skill_dict = json.load(_skill_dict_file)
+_SKILL_CANONICAL = {str(item["canonical"]).strip().lower() for item in _skill_dict}
+_SKILL_ALIASES = {
+    str(alias).strip().lower(): str(item["canonical"]).strip().lower()
+    for item in _skill_dict
+    for alias in item.get("aliases", [])
+    if str(alias).strip()
+}
+
+
 def _build_skill_entries(
     raw_skills: list[dict],
 ) -> tuple[list[SkillEntry], list[SkillEntry], list[str]]:
-    """分离 required/bonus skills，LLM 自由提取不限制词表。"""
+    """分离 required/bonus skills，并把词表外技能放入 unknown。"""
     required, bonus, unknown = [], [], []
-    for s in raw_skills:
+    for skill in raw_skills:
+        raw_name = str(skill.get("name", "")).strip()
+        if not raw_name:
+            continue
+        name = _SKILL_ALIASES.get(raw_name.lower(), raw_name.lower())
+        if name not in _SKILL_CANONICAL:
+            unknown.append(raw_name)
+            continue
         entry = SkillEntry(
-            name=s["name"], confidence=s["confidence"],
-            evidence=s["evidence"], is_required=s.get("is_required", True),
+            name=name,
+            confidence=skill.get("confidence", 0.0),
+            evidence=skill.get("evidence", ""),
+            is_required=skill.get("is_required", True),
         )
-        if entry.is_required:
-            required.append(entry)
-        else:
-            bonus.append(entry)
-    # unknown_skills 来自 LLM 报告的未知技能
-    return required, bonus, unknown
+        (required if entry.is_required else bonus).append(entry)
+    return required, bonus, list(dict.fromkeys(unknown))
 
 
 def _validate_extraction(result: ExtractionResult) -> list[str]:
