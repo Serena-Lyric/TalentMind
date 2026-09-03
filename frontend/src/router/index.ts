@@ -6,7 +6,7 @@ const router = createRouter({
     { path: '/', redirect: '/dashboard' },
     { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { title: '数据概览' } },
     { path: '/jobs', name: 'Jobs', component: () => import('../views/Jobs.vue'), meta: { title: 'JD岗位管理' } },
-    { path: '/graph', name: 'Graph', component: () => import('../views/Graph.vue'), meta: { title: '采集图谱' } },
+    { path: '/graph', name: 'Graph', component: () => import('../views/Graph.vue'), meta: { title: '岗位星云图谱' } },
     { path: '/graph-collection', redirect: '/graph' },
     { path: '/analytics', name: 'Analytics', component: () => import('../views/Analytics.vue'), meta: { title: '数据分析' } },
     { path: '/collection', name: 'Collection', component: () => import('../views/Collection.vue'), meta: { title: '采集模块管理' } },

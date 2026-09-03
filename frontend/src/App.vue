@@ -83,10 +83,10 @@ const route = useRoute()
 const sidebarCollapsed = ref(false)
 
 const navItems = [
-  { label: '能力动态更新', path: '/evolution', icon: TrendCharts },
-  { label: 'JD岗位管理', path: '/jobs', icon: Files },
-  { label: '采集图谱', path: '/graph', icon: Collection },
   { label: '采集模块管理', path: '/collection', icon: Connection },
+  { label: 'JD岗位管理', path: '/jobs', icon: Files },
+  { label: '能力动态更新', path: '/evolution', icon: TrendCharts },
+  { label: '岗位星云图谱', path: '/graph', icon: Collection },
   { label: '简历分析', path: '/resume', icon: Document },
   { label: '技能学习路径', path: '/learning', icon: MagicStick },
 ]
