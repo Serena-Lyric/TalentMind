@@ -353,7 +353,7 @@ def job_detail(job_id: int):
                                is_emerging, evolution, source_jd_count, collected_at, updated_at
                                FROM job_definition WHERE id=:id"""), {"id": job_id}).mappings().first()
         if row:
-            item = _catalog_to_item(dict(row)); item["responsibilities"] = [line.strip() for line in str(row.get("core_duties") or "").splitlines() if line.strip()]; item["requirements"] = []; return ok(item)
+            item = _catalog_to_item(dict(row)); item["responsibilities"] = [line.strip() for line in str(row.get("core_duties") or "").splitlines() if line.strip()]; item["requirements"] = []; item["job_name"] = str(row.get("job_name") or ""); return ok(item)
         row = db.execute(text("SELECT id, source, source_detail, job_title, raw_text, duties, experience, quality, crawled_at, status FROM jd_pool WHERE id=:id AND source IN ('boss','zhaopin','liepin')"), {"id": job_id}).mappings().first()
         if not row: raise BizError(4041, "岗位不存在")
         item = _raw_pool_to_item(dict(row)); item["responsibilities"] = [line.strip() for line in str(row.get("duties") or "").splitlines() if line.strip()]; item["requirements"] = [str(row.get("experience") or "").strip()] if row.get("experience") else []; item["raw_text"] = row.get("raw_text") or ""; return ok(item)

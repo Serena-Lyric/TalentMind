@@ -10,6 +10,7 @@ import { get, post, put, del } from '../utils/request'
 
 export interface Job {
   id: string
+  job_name?: string
   title: string
   name_en?: string
   job_name_zh?: string
@@ -24,6 +25,10 @@ export interface Job {
   salary: string
   status: string
   skills: string[]
+  required_skills?: string[]
+  bonus_skills?: string[]
+  scenarios?: string[]
+  quality?: number
   updated: string
   track?: string
   kind?: string

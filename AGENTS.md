@@ -101,6 +101,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 内容: 症状 → 根因 → 修复 → 教训。
 
 已有陷阱:
+- 2026-09-03 前端重整后 JD 岗位详情技能增删丢失（`docs/superpowers/traps/2026-09-03-jobs-skill-edit-restore.md`）
 - 2026-09-02 图谱岗位节点点击后详情栏空白：列表字段以 JSON 字符串返回（`docs/superpowers/traps/2026-09-02-graph-job-node-detail-render-crash.md`）
 - 2026-09-02 整体系统修复与回归门禁（`docs/superpowers/traps/2026-09-02-overall-system-repair.md`）
 - 2026-09-02 M2 完整回包导入与历史日志识别失效（`docs/superpowers/traps/2026-09-02-m2-full-import-and-legacy-log.md`）
@@ -127,6 +128,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 2. 修改项目约束 → 同步更新 CLAUDE.md 对应章节
 3. 遇到编码/平台/脚本不确定 → 先查阅本文件和 `docs/superpowers/traps/`
 4. 资产 / 目录 / 交接文件变更 → 及时更新 `docs/superpowers/资产与状态.md`，并同步 README / CLAUDE.md 相关章节
+
 
 
 
