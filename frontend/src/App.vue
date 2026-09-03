@@ -69,7 +69,6 @@ import { useRoute } from 'vue-router'
 import {
   ArrowRight,
   Collection,
-  DataAnalysis,
   DArrowLeft,
   DArrowRight,
   Document,
@@ -87,7 +86,6 @@ const navItems = [
   { label: '能力动态更新', path: '/evolution', icon: TrendCharts },
   { label: 'JD岗位管理', path: '/jobs', icon: Files },
   { label: '采集图谱', path: '/graph', icon: Collection },
-  { label: '数据分析', path: '/analytics', icon: DataAnalysis },
   { label: '采集模块管理', path: '/collection', icon: Connection },
   { label: '简历分析', path: '/resume', icon: Document },
   { label: '技能学习路径', path: '/learning', icon: MagicStick },
