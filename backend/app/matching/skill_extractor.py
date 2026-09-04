@@ -341,6 +341,13 @@ def normalize_skill(skill: str) -> str:
     return skill
 
 
+def _space_cjk_ascii(text: str) -> str:
+    """在中英文/中数交界补空格，解决中文紧邻英文无 \b 边界导致漏匹配（如 熟悉Python）。"""
+    text = re.sub(r"(?<=[\u4e00-\u9fff])(?=[A-Za-z0-9])", " ", text)
+    text = re.sub(r"(?<=[A-Za-z0-9])(?=[\u4e00-\u9fff])", " ", text)
+    return text
+
+
 def extract_skills(text: str, enable_fuzzy: bool = True) -> list:
     """
     从文本中提取技能关键词
@@ -357,14 +364,16 @@ def extract_skills(text: str, enable_fuzzy: bool = True) -> list:
 
     found_skills = set()
     all_skills = get_all_skills()
-    text_lower = text.lower()
+    # 先在中英文交界补空格，避免中文紧邻英文（如 熟悉Python/掌握Django）因无单词边界而漏识别
+    spaced = _space_cjk_ascii(text)
+    text_lower = spaced.lower()
 
     # 方法1: 精确匹配（使用单词边界）
     for skill in all_skills:
         if skill.isascii():
             # 英文技能使用正则匹配
             pattern = r'\b' + re.escape(skill) + r'\b'
-            if re.search(pattern, text, re.IGNORECASE):
+            if re.search(pattern, spaced, re.IGNORECASE):
                 found_skills.add(skill)
         else:
             # 中文技能直接包含匹配
@@ -406,28 +415,35 @@ def extract_skills(text: str, enable_fuzzy: bool = True) -> list:
     return list(found_skills)
 
 
+_CATEGORY_LOWER: list = []
+
+
+def _category_lower() -> list:
+    global _CATEGORY_LOWER
+    if not _CATEGORY_LOWER:
+        _CATEGORY_LOWER = [
+            ('编程语言', {s.lower() for s in LANGUAGES}),
+            ('前端技术', {s.lower() for s in FRONTEND}),
+            ('后端框架', {s.lower() for s in BACKEND}),
+            ('数据库', {s.lower() for s in DATABASE}),
+            ('大数据/云', {s.lower() for s in BIGDATA_CLOUD}),
+            ('AI/机器学习', {s.lower() for s in AI_ML}),
+            ('DevOps/运维', {s.lower() for s in DEVOPS}),
+            ('软件工程', {s.lower() for s in SOFTWARE_ENGINEERING}),
+            ('专业领域', {s.lower() for s in DOMAINS}),
+        ]
+    return _CATEGORY_LOWER
+
+
 def get_skill_category(skill: str) -> str:
-    """获取技能所属类别"""
-    if skill in LANGUAGES:
-        return '编程语言'
-    elif skill in FRONTEND:
-        return '前端技术'
-    elif skill in BACKEND:
-        return '后端框架'
-    elif skill in DATABASE:
-        return '数据库'
-    elif skill in BIGDATA_CLOUD:
-        return '大数据/云'
-    elif skill in AI_ML:
-        return 'AI/机器学习'
-    elif skill in DEVOPS:
-        return 'DevOps/运维'
-    elif skill in SOFTWARE_ENGINEERING:
-        return '软件工程'
-    elif skill in DOMAINS:
-        return '专业领域'
-    else:
+    """获取技能所属类别（大小写不敏感，兼容 canonical 小写技能名）"""
+    lowered = str(skill or '').lower()
+    if not lowered:
         return '其他'
+    for name, members in _category_lower():
+        if lowered in members:
+            return name
+    return '其他'
 
 
 def categorize_skills(skills: list) -> dict:

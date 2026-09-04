@@ -11,61 +11,79 @@
         <el-button @click="goToPreview"><el-icon><View /></el-icon>预览简历</el-button>
       </div>
     </div>
+
     <section v-if="!parsed" class="upload-panel panel">
-<div class="upload-copy">
-        <span class="upload-badge">AI 简历解析</span>
+      <div class="upload-copy">
+        <span class="upload-badge">简历解析</span>
         <h2>上传简历，开始能力诊断</h2>
         <p>支持 PDF、DOC、DOCX、TXT 格式。系统将提取教育、经历和技能信息，并自动匹配完整岗位目录。</p>
-        <div class="privacy-line">
-          <span>✓</span> 文件仅用于本次本地诊断，不会存储或对外共享
-        </div>
+        <div class="privacy-line"><span>✓</span> 文件仅用于本次本地诊断，不会存储或对外共享</div>
       </div>
-      <el-upload
-        drag
-        :auto-upload="false"
-        :show-file-list="false"
-        accept=".pdf,.doc,.docx,.txt"
-        :on-change="handleFile"
-        class="resume-upload"
-      >
+      <el-upload drag :auto-upload="false" :show-file-list="false" accept=".pdf,.doc,.docx,.txt" :on-change="handleFile" class="resume-upload">
         <el-icon class="upload-illustration"><UploadFilled /></el-icon>
-        <div class="el-upload__text">
-          将 PDF / Word 简历拖到这里<br/>
-          <em>或点击选择文件</em>
-        </div>
-        <template #tip>
-          <div class="el-upload__tip">支持最大 10MB 的 PDF、DOC、DOCX、TXT 文件</div>
-        </template>
+        <div class="el-upload__text">将 PDF / Word 简历拖到这里<br/><em>或点击选择文件</em></div>
+        <template #tip><div class="el-upload__tip">支持最大 10MB 的 PDF、DOC、DOCX、TXT 文件</div></template>
       </el-upload>
     </section>
-    
-    <section v-else>
+
+    <section v-else class="parsed-view">
       <div class="parse-success">
         <span class="success-icon">✓</span>
-        <div>
-          <b>{{ fileName }} 已解析完成</b>
-          <p>已提取 {{ profile.skills.length }} 项个人技能，诊断报告已根据自动岗位推荐更新。</p>
-          <span class="parse-quality-badge">解析完成度 {{ parseQuality }}%</span>
-        </div>
+        <div class="success-main"><b>{{ fileName }}</b><span>解析完成 · 已提取 {{ profile.skills.length }} 项技能</span></div>
+        <span class="parse-quality-badge">{{ parseQuality }}%</span>
         <el-button text type="primary" @click="resetDiagnosis">重新上传</el-button>
       </div>
-      
-      <article class="panel profile-panel standalone-profile">
-        <div class="profile-head">
-          <el-avatar :size="60">{{ profile.name?.[0] || '个' }}</el-avatar>
-          <div><h2>{{ profile.name || '个人简历' }}</h2><p>{{ profile.role || '未识别岗位' }} · {{ profile.experience || '经验待补充' }}</p></div>
-          <el-tag type="success" effect="light">解析成功</el-tag>
+
+      <article class="panel split-card">
+        <aside class="split-side">
+          <div class="side-person">
+            <el-avatar :size="54" class="side-avatar">{{ profile.name?.[0] || '个' }}</el-avatar>
+            <div class="side-id"><h2>{{ profile.name || '个人简历' }}</h2><p>{{ profile.role || '未识别岗位' }}</p><span class="tag-ok">解析成功</span></div>
+          </div>
+          <section class="m-module">
+            <h4 class="m-head">基本信息</h4>
+            <dl class="info-rows">
+              <div class="info-row"><dt>最高学历</dt><dd>{{ profile.education || '—' }}</dd></div>
+              <div class="info-row"><dt>最近公司</dt><dd>{{ profile.company || '—' }}</dd></div>
+              <div class="info-row"><dt>工作年限</dt><dd>{{ profile.experience || '—' }}</dd></div>
+              <div class="info-row" v-if="profile.phone"><dt>联系电话</dt><dd>{{ profile.phone }}</dd></div>
+              <div class="info-row" v-if="profile.location"><dt>所在城市</dt><dd>{{ profile.location }}</dd></div>
+            </dl>
+          </section>
+          <section class="m-module">
+            <h4 class="m-head">技能标签 <em>{{ profile.skills.length }}</em></h4>
+            <div class="skill-flow">
+              <el-tag v-for="skill in profile.skills" :key="skill" size="small" effect="plain">{{ skill }}</el-tag>
+              <span v-if="!profile.skills.length" class="muted">暂无识别技能</span>
+            </div>
+          </section>
+        </aside>
+
+        <div class="split-main">
+          <template v-if="(profile.projects && profile.projects.length) || (profile.honors && profile.honors.length)">
+            <section class="m-module" v-if="profile.projects && profile.projects.length">
+              <h4 class="m-head">项目经历 <em>{{ profile.projects.length }}</em></h4>
+              <div class="exp-list">
+                <div v-for="(pr, i) in profile.projects" :key="'p' + i" class="proj-item">
+                  <div class="exp-title"><b>{{ pr.name }}</b><span v-if="pr.duration" class="exp-time">{{ pr.duration }}</span></div>
+                  <ul v-if="pr.responsibilities && pr.responsibilities.length"><li v-for="(r, j) in pr.responsibilities" :key="j">{{ r }}</li></ul>
+                </div>
+              </div>
+            </section>
+            <section class="m-module" v-if="profile.honors && profile.honors.length">
+              <h4 class="m-head">竞赛与荣誉 <em>{{ profile.honors.length }}</em></h4>
+              <div class="exp-list">
+                <div v-for="(h, i) in profile.honors" :key="'h' + i" class="honor-row"><b>{{ h.title }}</b><span v-if="h.time" class="exp-time">{{ h.time }}</span></div>
+              </div>
+            </section>
+          </template>
+          <div v-else class="empty-hint">当前简历未识别到项目经历与竞赛荣誉，可在下方岗位推荐中查看匹配度。</div>
         </div>
-        <el-divider />
-        <div class="info-list"><div><span>最高学历</span><b>{{ profile.education || '—' }}</b></div><div><span>最近公司</span><b>{{ profile.company || '—' }}</b></div><div><span>工作年限</span><b>{{ profile.experience || '—' }}</b></div></div>
-        <h3>提取的个人技能 <small>({{ profile.skills.length }})</small></h3>
-        <div class="extracted-skills"><el-tag v-for="skill in profile.skills" :key="skill" effect="plain">{{ skill }}</el-tag><span v-if="!profile.skills.length" class="muted">暂无识别技能</span></div>
-        <h3>关键词摘要</h3><p class="profile-summary">{{ profile.summary || '系统已根据个人技能自动计算岗位推荐。' }}</p>
       </article>
 
       <section class="panel recommendations-panel">
         <div class="panel-head"><div><h3>自动匹配岗位</h3><p>系统已遍历完整岗位目录，固定展示至少 3 个推荐结果；点击卡片即可为对应岗位生成学习路径。</p></div><el-tag type="success" effect="plain">{{ recommendedJobs.length }} 个岗位</el-tag></div>
-        <div v-if="recommendedJobs.length" class="recommendation-grid"><article v-for="(job, index) in recommendedJobs" :key="job.id" class="recommendation-card"><div class="recommendation-title"><div><small>推荐 {{ index + 1 }}</small><strong>{{ job.title }}</strong><em>{{ job.name_en || '' }}</em></div><el-tag size="small" effect="plain">{{ job.category || job.platform_label }}</el-tag></div><div class="recommendation-score"><b>{{ job.score }}%</b><span>展示匹配度</span></div><p>已匹配 {{ job.matched.length }} 项技能<span v-if="job.missing.length">，待补 {{ job.missing.length }} 项</span></p><el-button text class="recommendation-link" @click="selectRecommendation(job)">按此岗位生成学习路径<el-icon><ArrowRight /></el-icon></el-button></article></div>
+        <div v-if="recommendedJobs.length" class="recommendation-grid"><article v-for="(job, index) in recommendedJobs" :key="job.id" class="recommendation-card"><div class="recommendation-title"><div><small>推荐 {{ index + 1 }}</small><strong>{{ job.title }}</strong><em>{{ job.name_en || '' }}</em></div><el-tag size="small" effect="plain">{{ job.category || job.platform_label }}</el-tag></div><div class="recommendation-score"><b>{{ scoreText(job.score) }}%</b><span>展示匹配度</span></div><p>已匹配 {{ job.matched.length }} 项技能<span v-if="job.missing.length">，待补 {{ job.missing.length }} 项</span></p><el-button text class="recommendation-link" @click="selectRecommendation(job)">按此岗位生成学习路径<el-icon><ArrowRight /></el-icon></el-button></article></div>
         <div v-else class="recommendation-empty">当前暂无可计算岗位，请先确认岗位目录已导入。</div>
       </section>
     </section>
@@ -120,6 +138,8 @@ async function handleFile(file: File | UploadFile) {
     ElMessage.error(error?.message || '简历解析失败')
   }
 }
+
+function scoreText(value: number | string | undefined) { const n = Number(value || 0); return Number.isFinite(n) ? n.toFixed(2) : '—' }
 
 function resetDiagnosis() {
   parsed.value = false
@@ -468,5 +488,86 @@ padding: 28px 20px;
 .recommendation-empty { padding: 30px; color: #a09a96; font-size: 12px; text-align: center; }
 @media (max-width: 900px) { .recommendation-grid { grid-template-columns: 1fr; } }
 
+
+.diagnosis-page .page-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.diagnosis-page .page-title h1 { margin: 0 0 4px; font-size: 22px; }
+.diagnosis-page .page-title p { margin: 0; color: #8f8985; font-size: 12px; }
+.diagnosis-page .title-actions { display: flex; gap: 10px; }
+.parsed-view { display: flex; flex-direction: column; gap: 16px; }
+.parse-success { display: flex; align-items: center; gap: 10px; margin: 0; padding: 9px 14px; border-radius: 10px; background: #eef7f0; }
+.parse-success .success-icon { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: #67a37b; color: #fff; font-size: 12px; line-height: 1; flex: none; }
+.success-main { display: flex; flex-direction: column; line-height: 1.35; min-width: 0; }
+.success-main b { font-size: 13px; color: #3f7a58; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.success-main span { font-size: 11px; color: #6c8f78; }
+.parse-success .parse-quality-badge { margin-left: auto; font-size: 11px; color: #3f7a58; background: rgba(103,163,123,.14); border-radius: 10px; padding: 2px 9px; flex: none; }
+.parse-success .el-button { margin-left: 4px; flex: none; }
+.split-card { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
+.split-side { display: flex; flex-direction: column; gap: 20px; padding: 18px 16px; background: #fbf9f6; border-right: 1px solid var(--line); }
+.side-person { display: flex; align-items: center; gap: 12px; }
+.side-avatar { flex: none; background: var(--coral-soft); color: var(--coral-deep); font-size: 20px; font-weight: 600; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.side-id { min-width: 0; }
+.side-id h2 { margin: 0; font-size: 17px; line-height: 1.3; }
+.side-id p { margin: 3px 0 0; color: #8f8985; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag-ok { display: inline-block; margin-top: 6px; padding: 1px 8px; border-radius: 20px; background: #e3f2e8; color: #3f7a58; font-size: 10px; }
+.m-module { min-width: 0; }
+.m-head { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding-left: 9px; border-left: 3px solid var(--coral); font-size: 14px; line-height: 1.3; }
+.m-head em { margin-left: auto; padding: 1px 8px; border-radius: 10px; background: #f2ede7; color: #a5a09b; font-size: 11px; font-style: normal; }
+.info-rows { display: flex; flex-direction: column; margin: 0; }
+.info-row { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #ece6df; font-size: 12px; }
+.info-row:last-child { border-bottom: none; }
+.info-row dt { width: 66px; color: #a5a09b; flex: none; }
+.info-row dd { margin: 0; color: var(--text); word-break: break-all; }
+.skill-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.skill-flow .el-tag { margin: 0; }
+.split-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; padding: 18px 20px; }
+.exp-list { display: flex; flex-direction: column; gap: 10px; }
+.proj-item { padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.exp-title, .honor-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.exp-title b, .honor-row b { font-size: 13px; color: var(--text); }
+.exp-time { flex: none; color: #a5a09b; font-size: 11px; white-space: nowrap; }
+.proj-item ul { margin: 6px 0 0; padding-left: 16px; color: #6f6a65; font-size: 12px; line-height: 1.75; }
+.honor-row { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.empty-hint { padding: 24px; border: 1px dashed var(--line-strong); border-radius: 12px; color: #a29d99; font-size: 12px; text-align: center; }
+@media (max-width: 900px) { .split-card { grid-template-columns: 1fr; } .split-side { border-right: none; border-bottom: 1px solid var(--line); } }
+.diagnosis-page .page-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.diagnosis-page .page-title h1 { margin: 0 0 4px; font-size: 22px; }
+.diagnosis-page .page-title p { margin: 0; color: #8f8985; font-size: 12px; }
+.diagnosis-page .title-actions { display: flex; gap: 10px; }
+.parsed-view { display: flex; flex-direction: column; gap: 16px; }
+.parse-success { display: flex; align-items: center; gap: 10px; margin: 0; padding: 9px 14px; border-radius: 10px; background: #eef7f0; }
+.parse-success .success-icon { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: #67a37b; color: #fff; font-size: 12px; line-height: 1; flex: none; }
+.success-main { display: flex; flex-direction: column; line-height: 1.35; min-width: 0; }
+.success-main b { font-size: 13px; color: #3f7a58; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.success-main span { font-size: 11px; color: #6c8f78; }
+.parse-success .parse-quality-badge { margin-left: auto; font-size: 11px; color: #3f7a58; background: rgba(103,163,123,.14); border-radius: 10px; padding: 2px 9px; flex: none; }
+.parse-success .el-button { margin-left: 4px; flex: none; }
+.split-card { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
+.split-side { display: flex; flex-direction: column; gap: 20px; padding: 18px 16px; background: #fbf9f6; border-right: 1px solid var(--line); }
+.side-person { display: flex; align-items: center; gap: 12px; }
+.side-avatar { flex: none; background: var(--coral-soft); color: var(--coral-deep); font-size: 20px; font-weight: 600; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.side-id { min-width: 0; }
+.side-id h2 { margin: 0; font-size: 17px; line-height: 1.3; }
+.side-id p { margin: 3px 0 0; color: #8f8985; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag-ok { display: inline-block; margin-top: 6px; padding: 1px 8px; border-radius: 20px; background: #e3f2e8; color: #3f7a58; font-size: 10px; }
+.m-module { min-width: 0; }
+.m-head { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding-left: 9px; border-left: 3px solid var(--coral); font-size: 14px; line-height: 1.3; }
+.m-head em { margin-left: auto; padding: 1px 8px; border-radius: 10px; background: #f2ede7; color: #a5a09b; font-size: 11px; font-style: normal; }
+.info-rows { display: flex; flex-direction: column; margin: 0; }
+.info-row { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #ece6df; font-size: 12px; }
+.info-row:last-child { border-bottom: none; }
+.info-row dt { width: 66px; color: #a5a09b; flex: none; }
+.info-row dd { margin: 0; color: var(--text); word-break: break-all; }
+.skill-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.skill-flow .el-tag { margin: 0; }
+.split-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; padding: 18px 20px; }
+.exp-list { display: flex; flex-direction: column; gap: 10px; }
+.proj-item { padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.exp-title, .honor-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.exp-title b, .honor-row b { font-size: 13px; color: var(--text); }
+.exp-time { flex: none; color: #a5a09b; font-size: 11px; white-space: nowrap; }
+.proj-item ul { margin: 6px 0 0; padding-left: 16px; color: #6f6a65; font-size: 12px; line-height: 1.75; }
+.honor-row { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.empty-hint { padding: 24px; border: 1px dashed var(--line-strong); border-radius: 12px; color: #a29d99; font-size: 12px; text-align: center; }
+@media (max-width: 900px) { .split-card { grid-template-columns: 1fr; } .split-side { border-right: none; border-bottom: 1px solid var(--line); } }
 </style>
 

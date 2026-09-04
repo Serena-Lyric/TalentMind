@@ -102,6 +102,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 
 已有陷阱:
 - 2026-09-03 前端重整后 JD 岗位详情技能增删丢失（`docs/superpowers/traps/2026-09-03-jobs-skill-edit-restore.md`）
+- 2026-09-04 简历预览页 项目经历/竞赛与荣誉/自我评价 空内容与错误占位（`docs/superpowers/traps/2026-09-04-resume-preview-empty-sections.md`）
 - 2026-09-02 图谱岗位节点点击后详情栏空白：列表字段以 JSON 字符串返回（`docs/superpowers/traps/2026-09-02-graph-job-node-detail-render-crash.md`）
 - 2026-09-02 整体系统修复与回归门禁（`docs/superpowers/traps/2026-09-02-overall-system-repair.md`）
 - 2026-09-02 M2 完整回包导入与历史日志识别失效（`docs/superpowers/traps/2026-09-02-m2-full-import-and-legacy-log.md`）
@@ -121,7 +122,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 - 2026-08-30 简历上传 422：UploadFile 包装对象未取 raw（`docs/superpowers/traps/2026-08-30-resume-upload-uploadfile-wrapper.md`）
 - 2026-08-31 前端完整重整误把原版 SFC 当正式源码（docs/superpowers/traps/2026-08-31-frontend-reintegration-legacy-sfc.md）
 
-- 2026-09-02 本轮状态：用户按 D56 授权完整导入 M2 719 岗位（含 LinkedIn/HN）；MySQL 719/719/243，Neo4j 7852/11423；采集历史日志兼容 UTF-8/GBK，控制台支持 BOSS/智联/猎聘，简历推荐至少 3 张且展示分至少 90，学习路径绑定推荐岗位。
+- 2026-09-02 本轮状态：用户按 D56 授权完整导入 M2 719 岗位（含 LinkedIn/HN）；【2026-09-04 复核：MySQL 分析层 717/717/275（删除 AI 测试开发工程师与博士后(61322) 共 2 条定义+技能、新增 32 条演示变更），Neo4j 7852/11423，原始层 jd_pool=2984 中文三平台、HN=0；每日采集任务已暂停（PAUSE_COLLECT）】；采集历史日志兼容 UTF-8/GBK，控制台支持 BOSS/智联/猎聘，简历推荐至少 3 张且展示分至少 90，学习路径绑定推荐岗位。
 ## 维护约定
 
 1. 发现新陷阱 → 新建 `docs/superpowers/traps/<日期>-<描述>.md` → 更新上方"已有陷阱"索引

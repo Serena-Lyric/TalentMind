@@ -1,7 +1,7 @@
 <template>
   <section class="page jobs-page">
     <div class="page-title">
-      <div class="title-left"><div class="module-mark jobs-mark"><el-icon><Files /></el-icon></div><div><h1>JD 岗位管理</h1><p>展示 M2 完整岗位目录：新一代与现有岗位、中文及英文来源</p></div></div>
+      <div class="title-left"><div class="module-mark jobs-mark"><el-icon><Files /></el-icon></div><div><h1>JD 岗位管理</h1><p>完整岗位目录：新一代与现有岗位、中文及英文来源</p></div></div>
       <div class="page-actions"><el-button class="btn-soft" :loading="loading" @click="loadPage"><el-icon><RefreshRight /></el-icon>刷新数据</el-button><el-button class="btn-soft-green" @click="exportCurrent"><el-icon><Download /></el-icon>导出岗位目录</el-button></div>
     </div>
 

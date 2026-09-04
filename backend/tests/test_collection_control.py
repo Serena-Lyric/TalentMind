@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.collect import control
 
 
@@ -46,3 +48,43 @@ def test_prepare_browser_auto_start_uses_single_round(tmp_path, monkeypatch):
 
     assert result["status"] == "started"
     assert calls == [{"mode": "once", "rounds": 0}]
+
+
+
+class _FakeRecentSession:
+    """仅支撑 get_recent_raw 的只读 execute().mappings().all() 链。"""
+
+    def __init__(self, rows):
+        self._rows = rows
+
+    def execute(self, *args, **kwargs):
+        return self
+
+    def mappings(self):
+        return self
+
+    def all(self):
+        return self._rows
+
+    def close(self):
+        pass
+
+
+def test_get_recent_raw_returns_latest_rows(tmp_path, monkeypatch):
+    import app.db.mysql as db_mysql
+    rows = [
+        {"id": 2, "source": "zhaopin", "job_title": "后端工程师", "quality": 0.73,
+         "crawled_at": datetime(2026, 8, 28, 21, 6, 45), "body": "岗位职责：" + "长" * 400},
+        {"id": 1, "source": "boss", "job_title": "EDC产品经理", "quality": 0.16,
+         "crawled_at": datetime(2026, 8, 28, 21, 13, 18), "body": ""},
+    ]
+    monkeypatch.setattr(db_mysql, "SessionLocal", lambda: _FakeRecentSession(rows))
+
+    result = control.get_recent_raw(limit=10)
+
+    assert len(result) == 2
+    assert result[0]["job_title"] == "后端工程师"
+    assert result[0]["content"].endswith("…")
+    assert result[1]["content"] == ""
+    assert result[1]["crawled_at"] == "2026-08-28T21:13:18"
+    assert "body" not in result[0]

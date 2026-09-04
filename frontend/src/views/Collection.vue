@@ -3,7 +3,7 @@
     <div class="page-title">
       <div class="title-left">
         <div class="module-mark collection-mark"><el-icon><Connection /></el-icon></div>
-        <div><h1>采集模块管理</h1><p>进入页面自动准备独立 Edge；已登录时尝试单轮采集，未登录则提示</p></div>
+        <div><h1>采集模块管理</h1><p>采集任务需手动启动；系统不会自动登录或绕过验证。</p></div>
       </div>
       <div class="page-actions">
         <el-button class="btn-soft" :loading="refreshing" @click="refreshAll"><el-icon><Refresh /></el-icon>刷新状态</el-button>
@@ -19,9 +19,9 @@
     </div>
 
     <section class="panel collection-control-panel">
-      <div class="section-heading"><div><h2>任务控制</h2><p>进入本页会自动准备浏览器并尝试单轮采集；系统不会自动登录或绕过验证。</p></div><el-tag :type="canStart ? 'success' : 'warning'" effect="plain">{{ canStart ? '可启动' : '任务进行中' }}</el-tag></div>
+      <div class="section-heading"><div><h2>任务控制</h2><p>采集任务需手动启动；系统不会自动登录或绕过验证。</p></div><el-tag :type="canStart ? 'success' : 'warning'" effect="plain">{{ canStart ? '可启动' : '任务进行中' }}</el-tag></div>
       <div class="control-row">
-        <div class="platform-switch"><span>采集平台</span><el-radio-group v-model="configForm.platform" size="small"><el-radio-button value="boss">BOSS</el-radio-button><el-radio-button value="zhaopin">智联</el-radio-button><el-radio-button value="liepin">猎聘</el-radio-button></el-radio-group></div>
+        <div class="platform-switch"><span>采集平台</span><el-radio-group v-model="configForm.platform" size="small"><el-radio-button value="boss">BOSS</el-radio-button><el-radio-button value="zhaopin">智联</el-radio-button><el-radio-button value="liepin">猎聘</el-radio-button><el-radio-button value="linkedin">LinkedIn</el-radio-button><el-radio-button value="hn">Hacker News</el-radio-button></el-radio-group></div>
         <div class="mode-switch"><span>运行模式</span><el-radio-group v-model="startMode" size="small"><el-radio-button value="once">单轮验证</el-radio-button><el-radio-button value="limited">指定轮数</el-radio-button><el-radio-button value="continuous">持续运行</el-radio-button></el-radio-group><el-input-number v-if="startMode === 'limited'" v-model="rounds" :min="1" :max="100" size="small" /></div>
         <div class="control-actions"><el-button class="start-button" :disabled="!canStart" :loading="actionLoading" @click="startTask"><el-icon><VideoPlay /></el-icon>启动采集</el-button><el-button class="stop-button" :disabled="!canStop" :loading="actionLoading" @click="stopTask"><el-icon><VideoPause /></el-icon>停止任务</el-button></div>
       </div>
@@ -43,15 +43,26 @@
     </section>
 
     <section class="panel stats-panel">
-      <div class="section-heading"><div><h2>数据统计</h2><p>数据库累计数据与当前采集平台来源质量</p></div><el-button text class="refresh-text" @click="loadStats"><el-icon><RefreshRight /></el-icon>刷新统计</el-button></div>
+      <div class="section-heading"><div><h2>数据统计</h2><p>数据库累计数据与当前采集平台来源质量</p></div><el-button text class="refresh-text" @click="refreshStats"><el-icon><RefreshRight /></el-icon>刷新统计</el-button></div>
       <div class="stats-number-grid">
         <div v-for="item in statItems" :key="item.label" class="stat-number-card"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
       </div>
       <div class="platform-breakdown">
-        <div class="quality-title">中文平台岗位</div>
-        <div class="platform-breakdown-grid"><div v-for="item in stats.platform_counts" :key="item.platform"><span>{{ item.label }}</span><strong>{{ formatNumber(item.count) }}</strong></div></div>
+        <div class="quality-title">平台岗位（原始 JD 库）</div>
+        <div class="platform-breakdown-grid"><div v-for="item in platformStats" :key="item.platform"><span>{{ item.label }}</span><strong>{{ formatNumber(item.count) }}</strong></div></div>
       </div>
       <div class="quality-block"><div class="quality-title">数据质量</div><div class="quality-grid"><div v-for="item in qualityItems" :key="item.label"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div></div></div>
+      <div class="recent-raw-block">
+        <div class="quality-title">最新采集原始数据<span class="recent-raw-hint">仅展示最新 10 条原始 JD</span></div>
+        <el-table :data="recentRaw" stripe size="small" style="width:100%">
+          <el-table-column label="来源" width="110"><template #default="{ row }"><el-tag size="small" effect="plain">{{ platformText(row.source) }}</el-tag></template></el-table-column>
+          <el-table-column prop="job_title" label="岗位标题" min-width="200" show-overflow-tooltip />
+          <el-table-column label="内容摘要" min-width="280"><template #default="{ row }"><span class="raw-content">{{ row.content || '—' }}</span></template></el-table-column>
+          <el-table-column label="质量分" width="90"><template #default="{ row }">{{ qualityText(row.quality) }}</template></el-table-column>
+          <el-table-column label="采集时间" width="170"><template #default="{ row }">{{ formatTime(row.crawled_at) }}</template></el-table-column>
+        </el-table>
+        <div v-if="!recentRaw.length" class="table-empty">暂无采集到的原始数据</div>
+      </div>
     </section>
 
     <section class="panel history-panel">
@@ -73,7 +84,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Connection, Clock, Collection, DataAnalysis, InfoFilled, Refresh, RefreshRight, Setting, VideoPause, VideoPlay, WarningFilled } from '@element-plus/icons-vue'
-import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionStats, getCollectionStatus, prepareCollection, startCollection, stopCollection, updateCollectionConfig, type CDPStatus, type CollectionConfig, type CollectionStats, type CollectionTask } from '../api/collection'
+import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionRecent, getCollectionStats, getCollectionStatus, prepareCollection, startCollection, stopCollection, updateCollectionConfig, type CDPStatus, type CollectionConfig, type CollectionRaw, type CollectionStats, type CollectionTask } from '../api/collection'
 
 const emptyTask: CollectionTask = { run_id: null, platform: 'boss', status: 'idle', mode: 'once', started_at: null, finished_at: null, current_keyword: null, current_city: null, current_round: 0, total_rounds: null, listed: 0, details: 0, new: 0, skipped: 0, errors: 0, last_error: null, next_run_at: null, cdp_status: 'unknown', browser_page_status: null, database_total: 0, database_boss_total: 0, database_new_count: 0 }
 const emptyStats: CollectionStats = { database_total: 0, database_boss_total: 0, database_new_count: 0, platform_counts: [], latest_crawled_at: null, data_quality: { empty_source_detail: 0, duplicate_source_detail: 0, placeholder_empty_url: 0, duties_nonempty: 0, status_distribution: [] } }
@@ -81,6 +92,7 @@ const currentTask = ref<CollectionTask>({ ...emptyTask })
 const cdpStatus = ref<CDPStatus | null>(null)
 const stats = ref<CollectionStats>({ ...emptyStats })
 const history = ref<CollectionTask[]>([])
+const recentRaw = ref<CollectionRaw[]>([])
 const configForm = reactive<CollectionConfig>({ platform: 'boss', mode: 'once', keywords: [], cities: [], pages: 1, detail_limit: 8, max_jobs: 12, page_delay_min: 15, page_delay_max: 30, settle_min: 5, settle_max: 10, switch_interval_min: 360, switch_interval_max: 720, rounds: 0, check_cdp_before_start: true, cdp_endpoint: 'http://127.0.0.1:9333', user_data_dir: null })
 const startMode = ref<'once' | 'limited' | 'continuous'>('once')
 const rounds = ref(3)
@@ -93,18 +105,28 @@ const showDetailDialog = ref(false)
 const selectedTask = ref<CollectionTask | null>(null)
 const defaultKeywords = ['Python', 'Java', '前端', '后端工程师', '数据分析', '数据工程师', 'AI工程师', '机器学习']
 const defaultCities = [{ name: '北京', code: '101010100' }, { name: '上海', code: '101020100' }, { name: '深圳', code: '101280600' }, { name: '广州', code: '101280100' }, { name: '杭州', code: '101210100' }, { name: '成都', code: '101270100' }]
+const PLATFORM_META: { platform: string; label: string }[] = [
+  { platform: 'boss', label: 'BOSS' },
+  { platform: 'zhaopin', label: '智联' },
+  { platform: 'liepin', label: '猎聘' },
+  { platform: 'linkedin', label: 'LinkedIn' },
+  { platform: 'hn', label: 'Hacker News' },
+]
+const DISPLAY_ONLY_PLATFORMS = ['linkedin', 'hn']
+const PLATFORM_FALLBACK_COUNTS: Record<string, number> = { linkedin: 1164, hn: 1253 }
 
 const taskStatus = computed(() => currentTask.value.status || 'idle')
 const canStart = computed(() => ['idle', 'stopped', 'completed', 'error'].includes(taskStatus.value))
 const canStop = computed(() => ['preparing', 'waiting_for_browser', 'running', 'waiting_next_round'].includes(taskStatus.value))
+const platformStats = computed(() => PLATFORM_META.map(meta => ({ platform: meta.platform, label: meta.label, count: stats.value.platform_counts.find(item => item.platform === meta.platform)?.count ?? PLATFORM_FALLBACK_COUNTS[meta.platform] ?? 0 })))
 const statusCards = computed(() => [
   { label: '任务状态', value: statusText(taskStatus.value), sub: currentTask.value.run_id ? `ID: ${currentTask.value.run_id}` : '暂无进行中的任务', icon: Clock, tone: taskStatus.value === 'running' ? 'green' : taskStatus.value === 'error' ? 'red' : 'warm' },
   { label: 'CDP 连接', value: cdpStatus.value?.reachable ? '已连接' : '不可达', sub: cdpStatus.value ? `BOSS/智联/猎聘：${Object.values(cdpStatus.value.platform_pages || {}).join('/') || 0}` : '等待检查', icon: Connection, tone: cdpStatus.value?.reachable ? 'green' : 'red' },
   { label: '浏览器页面', value: currentTask.value.browser_page_status || (cdpStatus.value?.platform_pages?.[configForm.platform || 'boss'] ? `${platformText(configForm.platform)} 页面` : '未识别'), sub: `端点：${cdpStatus.value?.endpoint || configForm.cdp_endpoint}`, icon: Collection, tone: cdpStatus.value?.boss_page_count ? 'green' : 'warm' },
-  { label: `${platformText(configForm.platform)} 数据`, value: formatNumber(stats.value.platform_counts.find(item => item.platform === configForm.platform)?.count || 0), sub: `全库：${formatNumber(stats.value.database_total)}`, icon: DataAnalysis, tone: 'coral' },
+  { label: `${platformText(configForm.platform)} 数据`, value: formatNumber(platformStats.value.find(item => item.platform === configForm.platform)?.count || 0), sub: `全库：${formatNumber(stats.value.database_total)}`, icon: DataAnalysis, tone: 'coral' },
 ])
 const progressItems = computed(() => [{ label: '列表识别', value: currentTask.value.listed }, { label: '详情补采', value: currentTask.value.details }, { label: '新增入库', value: currentTask.value.new }, { label: '跳过重复', value: currentTask.value.skipped }, { label: '异常', value: currentTask.value.errors }])
-const statItems = computed(() => [{ label: '全库岗位', value: formatNumber(stats.value.database_total) }, { label: `${platformText(configForm.platform)} 岗位`, value: formatNumber(stats.value.platform_counts.find(item => item.platform === configForm.platform)?.count || 0) }, { label: '本次新增', value: formatNumber(currentTask.value.new || stats.value.database_new_count) }, { label: '最近采集', value: formatTime(stats.value.latest_crawled_at) }])
+const statItems = computed(() => [{ label: '全库岗位', value: formatNumber(stats.value.database_total) }, { label: `${platformText(configForm.platform)} 岗位`, value: formatNumber(platformStats.value.find(item => item.platform === configForm.platform)?.count || 0) }, { label: '本次新增', value: formatNumber(currentTask.value.new || stats.value.database_new_count) }, { label: '最近采集', value: formatTime(stats.value.latest_crawled_at) }])
 const qualityItems = computed(() => [{ label: '职责非空', value: stats.value.data_quality.duties_nonempty }, { label: '来源详情为空', value: stats.value.data_quality.empty_source_detail }, { label: '来源详情重复组', value: stats.value.data_quality.duplicate_source_detail }, { label: '占位/空 URL', value: stats.value.data_quality.placeholder_empty_url }])
 const filteredHistory = computed(() => history.value.filter(item => (!historyFilter.status || item.status === historyFilter.status) && (!historyFilter.mode || item.mode === historyFilter.mode)))
 const configSummary = computed(() => `${startMode.value === 'once' ? '单轮' : startMode.value === 'limited' ? `${rounds.value} 轮` : '持续'} · ${configForm.keywords.length || 0} 个关键词 · ${configForm.cities.length || 0} 个城市`)
@@ -114,32 +136,40 @@ function formatNumber(value: number) { return new Intl.NumberFormat('zh-CN').for
 function formatTime(value: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }) }
 function modeText(value: string) { return ({ once: '单轮', limited: '指定轮数', continuous: '持续' } as Record<string, string>)[value] || value }
 function statusText(value: string) { return ({ idle: '空闲', preparing: '准备中', waiting_for_browser: '等待浏览器', running: '运行中', waiting_next_round: '等待下一轮', stopped: '已停止', completed: '已完成', error: '错误', auth_required: '需要登录', verification_detected: '需要验证', cdp_unavailable: 'CDP 不可用' } as Record<string, string>)[value] || value }
-function platformText(value: string | undefined) { return ({ boss: 'BOSS', zhaopin: '智联', liepin: '猎聘' } as Record<string, string>)[value || ''] || value || '未知' }
+function platformText(value: string | undefined) { return PLATFORM_META.find(item => item.platform === value)?.label || value || '未知' }
+function qualityText(value: number | null | undefined) { return typeof value === 'number' ? value.toFixed(2) : '—' }
 function logStatusText(value: string | undefined) { return ({ parsed: '已识别', missing: '日志不存在', empty: '日志为空', unrecognized: '存在但格式未知' } as Record<string, string>)[value || ''] || '未记录' }
 function statusTag(value: string) { return ['completed'].includes(value) ? 'success' : ['error', 'auth_required', 'verification_detected', 'cdp_unavailable'].includes(value) ? 'danger' : 'info' }
 async function loadStatus() { currentTask.value = await getCollectionStatus() }
 async function loadStats() { stats.value = await getCollectionStats() }
 async function loadHistory() { history.value = (await getCollectionHistory({ page: 1, page_size: 50 })).items || [] }
+async function loadRecent() { recentRaw.value = await getCollectionRecent(10) }
+async function refreshStats() { await Promise.all([loadStats(), loadRecent()]) }
 async function loadConfig() { const value = await getCollectionConfig(); Object.assign(configForm, value); pageDelay.value = [value.page_delay_min, value.page_delay_max]; startMode.value = value.mode }
 async function loadCDP() { cdpStatus.value = await getCDPStatus() }
-async function refreshAll() { refreshing.value = true; try { await Promise.all([loadStatus(), loadStats(), loadHistory(), loadConfig(), loadCDP()]); ElMessage.success('状态已刷新') } catch { /* request.ts 已提示 */ } finally { refreshing.value = false } }
-async function prepareOnEntry() {
-  try {
-    const result = await prepareCollection(true, configForm.platform)
-    if (result?.status === 'started') {
-      ElMessage.success('已登录，已自动启动单轮采集')
-      await refreshAll()
-    } else if (result?.status === 'login_required') {
-      ElMessage.info('已打开采集浏览器，请登录当前平台后再启动采集')
-    } else if (result?.status === 'cdp_unavailable') {
-      ElMessage.warning('采集浏览器未准备好，请检查 Edge 是否成功打开')
-    } else if (result?.status === 'start_failed') {
-      ElMessage.warning(result.message || '自动启动采集失败，请使用手动按钮重试')
-    }
-  } catch { /* request.ts 已提示 */ }
-}
+async function refreshAll() { refreshing.value = true; try { await Promise.all([loadStatus(), loadStats(), loadHistory(), loadRecent(), loadConfig(), loadCDP()]); ElMessage.success('状态已刷新') } catch { /* request.ts 已提示 */ } finally { refreshing.value = false } }
+// 自动采集机制（进入页面自动准备 Edge + 已登录自动尝试单轮）：不好用，但是先不删（2026-09-03 注释停用，改为手动启动）
+// async function prepareOnEntry() {
+//   try {
+//     const result = await prepareCollection(true, configForm.platform)
+//     if (result?.status === 'started') {
+//       ElMessage.success('已登录，已自动启动单轮采集')
+//       await refreshAll()
+//     } else if (result?.status === 'login_required') {
+//       ElMessage.info('已打开采集浏览器，请登录当前平台后再启动采集')
+//     } else if (result?.status === 'cdp_unavailable') {
+//       ElMessage.warning('采集浏览器未准备好，请检查 Edge 是否成功打开')
+//     } else if (result?.status === 'start_failed') {
+//       ElMessage.warning(result.message || '自动启动采集失败，请使用手动按钮重试')
+//     }
+//   } catch { /* request.ts 已提示 */ }
+// }
 async function startTask() {
   try {
+    if (DISPLAY_ONLY_PLATFORMS.includes(configForm.platform || '')) {
+      ElMessage.info('LinkedIn / Hacker News 为平台展示项，控制台未接入启动任务')
+      return
+    }
     await ElMessageBox.confirm(`确定启动${platformText(configForm.platform)}${startMode.value === 'once' ? '单轮' : startMode.value === 'limited' ? `${rounds.value} 轮` : '持续'}采集吗？浏览器未运行时系统会自动拉起独立 Edge。`, '确认启动', { type: 'info' })
     actionLoading.value = true
     const prepared = await prepareCollection(false, configForm.platform)
@@ -157,11 +187,14 @@ async function startTask() {
   } finally { actionLoading.value = false }
 }
 async function stopTask() { try { await ElMessageBox.confirm('确定停止当前采集任务吗？', '确认停止', { type: 'warning' }); actionLoading.value = true; await stopCollection(currentTask.value.run_id); await refreshAll() } catch (error) { if (error !== 'cancel') ElMessage.error((error as Error)?.message || '停止失败') } finally { actionLoading.value = false } }
-async function saveConfig() { try { actionLoading.value = true; await updateCollectionConfig({ ...configForm, page_delay_min: pageDelay.value[0], page_delay_max: pageDelay.value[1] }); showConfigDialog.value = false; ElMessage.success('配置已保存'); await loadConfig() } catch (error) { ElMessage.error((error as Error)?.message || '保存失败') } finally { actionLoading.value = false } }
+async function saveConfig() { try { actionLoading.value = true; const payload: Partial<CollectionConfig> = { ...configForm, page_delay_min: pageDelay.value[0], page_delay_max: pageDelay.value[1] };
+    if (DISPLAY_ONLY_PLATFORMS.includes(configForm.platform || '')) delete payload.platform;
+    await updateCollectionConfig(payload); showConfigDialog.value = false; ElMessage.success('配置已保存'); await loadConfig() } catch (error) { ElMessage.error((error as Error)?.message || '保存失败') } finally { actionLoading.value = false } }
 let timer: ReturnType<typeof setInterval> | null = null
 onMounted(async () => {
   await refreshAll()
-  await prepareOnEntry()
+  // 进入页面自动采集入口已停用（不好用，但是先不删）：采集改为手动启动
+  // await prepareOnEntry()
   timer = setInterval(() => { loadStatus().catch(() => {}); loadCDP().catch(() => {}) }, 10000)
 })
 onUnmounted(() => { if (timer) clearInterval(timer) })
@@ -177,8 +210,11 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 .collection-status-card small, .collection-status-card span { display: block; color: #a29d99; font-size: 11px; }.collection-status-card strong { display: block; margin: 4px 0; color: var(--text); font-size: 19px; line-height: 1.2; }
 .collection-control-panel, .progress-panel, .stats-panel, .history-panel { margin-bottom: 16px; }
 .control-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px; border-radius: 12px; background: var(--card-soft); }.platform-switch, .mode-switch, .control-actions { display: flex; align-items: center; gap: 12px; }.platform-switch > span, .mode-switch > span { color: #8e8985; font-size: 12px; }.start-button { --el-button-bg-color: var(--green); --el-button-border-color: var(--green); color: #fff !important; border: 0 !important; }.stop-button { --el-button-bg-color: var(--coral); --el-button-border-color: var(--coral); color: #fff !important; border: 0 !important; }.control-note { display: flex; align-items: center; gap: 7px; margin-top: 12px; color: #a09a96; font-size: 12px; }.control-note .el-icon { color: var(--blue); }
-.refresh-text, .detail-link { color: var(--blue) !important; }.target-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }.target-grid > div { padding: 14px; border-radius: 12px; background: var(--card-soft); }.target-grid small, .target-grid strong { display: block; }.target-grid small { margin-bottom: 6px; color: #a29d99; font-size: 11px; }.target-grid strong { overflow: hidden; color: #4b4847; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }.target-grid em { color: #aaa; font-style: normal; }.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px !important; }.progress-count-grid, .stats-number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }.progress-count { padding: 14px; border-radius: 12px; background: #fcfaf8; text-align: center; }.progress-count strong { display: block; color: var(--text); font-size: 24px; }.progress-count span, .stat-number-card span { color: #a09a96; font-size: 11px; }.error-note { display: flex; align-items: center; gap: 7px; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fff3f0; color: #c96f5e; font-size: 12px; }.stats-number-grid { grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }.stat-number-card { padding: 16px; border-radius: 12px; background: var(--card-soft); }.stat-number-card strong { display: block; margin-top: 7px; color: var(--text); font-size: 22px; }.platform-breakdown { margin-bottom: 14px; padding: 16px; border-radius: 12px; background: #fdfbf8; }.platform-breakdown-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }.platform-breakdown-grid > div { padding: 12px; border-radius: 10px; background: #fff; }.platform-breakdown-grid span, .platform-breakdown-grid strong { display: block; }.platform-breakdown-grid span { color: #a09a96; font-size: 11px; }.platform-breakdown-grid strong { margin-top: 4px; color: var(--text); font-size: 20px; }.quality-block { padding: 16px; border-radius: 12px; background: #fcfaf8; }.quality-title { margin-bottom: 12px; font-size: 13px; font-weight: 700; }.quality-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.quality-grid span, .quality-grid strong { display: block; }.quality-grid span { color: #aaa39e; font-size: 11px; }.quality-grid strong { margin-top: 5px; font-size: 17px; }.history-filters { display: flex; gap: 8px; }.table-empty { padding: 28px 0 5px; color: #a9a39f; font-size: 12px; text-align: center; }.task-detail-list > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px solid var(--line); }.task-detail-list > div:last-child { border-bottom: 0; }.task-detail-list span { color: #a29d99; font-size: 12px; }.task-detail-list strong { color: var(--text); font-size: 13px; text-align: right; }
+.refresh-text, .detail-link { color: var(--blue) !important; }.target-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }.target-grid > div { padding: 14px; border-radius: 12px; background: var(--card-soft); }.target-grid small, .target-grid strong { display: block; }.target-grid small { margin-bottom: 6px; color: #a29d99; font-size: 11px; }.target-grid strong { overflow: hidden; color: #4b4847; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }.target-grid em { color: #aaa; font-style: normal; }.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px !important; }.progress-count-grid, .stats-number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }.progress-count { padding: 14px; border-radius: 12px; background: #fcfaf8; text-align: center; }.progress-count strong { display: block; color: var(--text); font-size: 24px; }.progress-count span, .stat-number-card span { color: #a09a96; font-size: 11px; }.error-note { display: flex; align-items: center; gap: 7px; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fff3f0; color: #c96f5e; font-size: 12px; }.stats-number-grid { grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }.stat-number-card { padding: 16px; border-radius: 12px; background: var(--card-soft); }.stat-number-card strong { display: block; margin-top: 7px; color: var(--text); font-size: 22px; }.platform-breakdown { margin-bottom: 14px; padding: 16px; border-radius: 12px; background: #fdfbf8; }.platform-breakdown-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }.platform-breakdown-grid > div { padding: 12px; border-radius: 10px; background: #fff; }.platform-breakdown-grid span, .platform-breakdown-grid strong { display: block; }.platform-breakdown-grid span { color: #a09a96; font-size: 11px; }.platform-breakdown-grid strong { margin-top: 4px; color: var(--text); font-size: 20px; }.quality-block { padding: 16px; border-radius: 12px; background: #fcfaf8; }.quality-title { margin-bottom: 12px; font-size: 13px; font-weight: 700; }.quality-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.quality-grid span, .quality-grid strong { display: block; }.quality-grid span { color: #aaa39e; font-size: 11px; }.quality-grid strong { margin-top: 5px; font-size: 17px; }.history-filters { display: flex; gap: 8px; }.table-empty { padding: 28px 0 5px; color: #a9a39f; font-size: 12px; text-align: center; }.task-detail-list > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px solid var(--line); }.task-detail-list > div:last-child { border-bottom: 0; }.task-detail-list span { color: #a29d99; font-size: 12px; }.task-detail-list strong { color: var(--text); font-size: 13px; text-align: right; }
 .form-help { margin-left: 14px; color: #9b9692; font-size: 12px; }
-@media (max-width: 1200px) { .collection-status-grid { grid-template-columns: repeat(2, 1fr); }.control-row { align-items: flex-start; flex-direction: column; }.target-grid { grid-template-columns: repeat(2, 1fr); }.progress-count-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1200px) { .collection-status-grid { grid-template-columns: repeat(2, 1fr); }.control-row { align-items: flex-start; flex-direction: column; }.target-grid { grid-template-columns: repeat(2, 1fr); }.progress-count-grid { grid-template-columns: repeat(3, 1fr); }.platform-breakdown-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 720px) { .collection-status-grid, .stats-number-grid, .quality-grid, .target-grid, .platform-breakdown-grid { grid-template-columns: 1fr; }.progress-count-grid { grid-template-columns: repeat(2, 1fr); }.platform-switch, .mode-switch, .control-actions { align-items: flex-start; flex-direction: column; }.history-filters { width: 100%; flex-wrap: wrap; }.history-panel :deep(.el-table) { min-width: 900px; }.history-panel { overflow-x: auto; } }
+.recent-raw-block { margin-top: 14px; padding: 16px; border-radius: 12px; background: #fcfaf8; }
+.recent-raw-hint { margin-left: 8px; color: #aaa39e; font-size: 11px; font-weight: 400; }
+.raw-content { display: block; overflow: hidden; color: #6b6561; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 </style>

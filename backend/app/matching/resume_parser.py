@@ -21,6 +21,8 @@ class ResumeParser:
             'gender': r'(?:性别[：:]|gender[：:]\s*)(男|女)',
             'location': r'(?:地点[：:]|城市[：:]|location[：:]\s*)([^\n]{2,20})',
             'experience': r'(?:工作年限[：:]|经验[：:]|years?[：:]\s*)(\d{1,2})',
+            'role': r'(?:求职意向|意向岗位|应聘岗位|求职岗位|目标岗位|期望职位)\s*[：:]\s*([^\n]{1,60})',
+            'education_line': r'(?:最高学历|学历)\s*[：:]\s*([^\n]{1,60})',
         }
 
         # 教育经历标题
@@ -31,6 +33,10 @@ class ResumeParser:
         self.project_keywords = ['项目经历', '项目经验', 'Projects']
         # 技能标题
         self.skill_keywords = ['技能专长', '专业技能', 'Skills', '技术技能', '技能']
+        # 竞赛与荣誉标题
+        self.honor_keywords = ['竞赛与荣誉', '获奖情况', '所获荣誉', '荣誉奖项', '竞赛获奖', '个人荣誉', '获奖经历', '奖项荣誉']
+        # 自我评价标题
+        self.self_keywords = ['自我评价', '个人评价', '个人总结', '自我简介', '自我描述', '个人优势']
 
     def parse(self, text: str) -> Dict:
         """
@@ -53,6 +59,8 @@ class ResumeParser:
             'education': self._extract_education(text),
             'work_experience': self._extract_work_experience(text),
             'project_experience': self._extract_project_experience(text),
+            'honors': self._extract_honors(text),
+            'self_evaluation': self._extract_self_evaluation(text),
             'skills': [],
             'skills_by_category': {}
         }
@@ -67,10 +75,10 @@ class ResumeParser:
         """提取个人信息"""
         info = {}
 
-        # 提取姓名
-        name_match = re.search(self.patterns['name'], text, re.MULTILINE)
-        if name_match:
-            info['name'] = name_match.group(1).strip()
+        # 提取姓名（走 _extract_name，避免标题行/同行内容/带岗位后缀导致误取）
+        name = self._extract_name(text)
+        if name:
+            info['name'] = name
 
         # 提取手机号
         phone_match = re.search(self.patterns['phone'], text)
@@ -102,7 +110,63 @@ class ResumeParser:
         if exp_match:
             info['experience_years'] = int(exp_match.group(1))
 
+        # 应届毕业生：没有明确年限数字时按 0 年/应届处理
+        if 'experience_years' not in info and re.search(r'应届\s*(?:毕业生)?', text):
+            info['experience_years'] = 0
+            info['is_fresh_graduate'] = True
+
+        # 提取求职意向/角色（常见标签，取到第一个标点为止）
+        role_match = re.search(self.patterns['role'], text)
+        if role_match:
+            role = re.split(r'[，。；;|｜]', role_match.group(1).strip())[0].strip()
+            if role:
+                info['role'] = role[:40]
+
+        # 兜底：直接标注的“学历：xxx”（没有教育背景章节时也能显示）
+        edu_match = re.search(self.patterns['education_line'], text)
+        if edu_match:
+            val = edu_match.group(1).strip()
+            if val:
+                info['education'] = val
+
         return info
+
+    _NAME_BLACKLIST = {'个人简历', '简历', '求职简历', '我的简历', '中文简历', '英文简历', 'Resume', 'CV'}
+    _NAME_SUFFIX_RE = re.compile(r'[-—–·](?:高级|资深|初级|中级|实习|专家|研发|助理|后端|前端|算法|测试|数据|软件|系统|产品|运营|开发|AI|机器学习)?(?:工程师|开发工程师|架构师|设计师|分析师|研究员|经理|主管|专员|顾问|助理).*$')
+    _ROLE_RE = re.compile(
+        r'((?:高级|资深|初级|中级|实习|专家|研发|助理)*'
+        r'(?:后端|前端|算法|测试|数据|软件|系统|产品|运营|开发|机器学习|Java|Python|Go|C\+\+|AI)?'
+        r'(?:工程师|开发工程师|架构师|设计师|分析师|研究员|经理|主管|专员|顾问|助理|Engineer|Developer|Manager|Designer|Analyst|Scientist))')
+
+    def _extract_name(self, text: str) -> str:
+        """更稳的姓名提取：优先显式“姓名/name”标签，只取到空白/标点；无标签时跳过常见标题行。"""
+        m = re.search(r'(?:姓名|name)\s*[：:]\s*([^\s，。；;|｜（(【]{1,20})', text, re.IGNORECASE)
+        if m:
+            raw = m.group(1).strip()
+            if raw:
+                raw = self._NAME_SUFFIX_RE.sub('', raw)
+                raw = raw.rstrip('，。；、:：')
+            if raw:
+                return raw[:10]
+        for line in text.split('\n'):
+            s = line.strip()
+            if not s or s in self._NAME_BLACKLIST:
+                continue
+            if re.fullmatch(r'[\u4e00-\u9fff·]{2,4}', s):
+                return s
+            if re.fullmatch(r"[A-Za-z][A-Za-z .'\-]{1,30}", s) and not re.search(r'(engineer|developer|manager|designer|analyst|scientist|resume|cv)\b', s, re.I):
+                return s
+        return ''
+
+    def _split_company_position(self, text: str):
+        """把“公司 职位”拆开，返回 (company, position)。"""
+        text = (text or '').strip()
+        m = self._ROLE_RE.search(text)
+        if m and m.start() > 0:
+            company = text[:m.start()].strip().strip(' -–—·|')
+            position = text[m.start():].strip()
+            return company, position
+        return text, ''
 
     def _find_section(self, text: str, keywords: List[str]) -> tuple:
         """查找章节的起始和结束位置"""
@@ -128,6 +192,7 @@ class ResumeParser:
         section_names = [
             '教育背景', '教育经历', '工作经历', '工作经验', '项目经历',
             '专业技能', '技能专长', '项目经验', '自我介绍', '自我评价',
+            '竞赛与荣誉', '获奖情况', '所获荣誉', '获奖经历', '个人荣誉', '个人评价', '个人总结',
             'Education', 'Experience', 'Projects', 'Skills'
         ]
 
@@ -220,9 +285,24 @@ class ResumeParser:
 
         # 时间范围模式
         time_pattern = r'(\d{4}[./]\d{1,2})\s*[-~至]\s*(\d{4}[./]\d{1,2}|至今)'
+        role_hint = re.compile(r'(工程师|开发|架构|设计|产品|运营|分析师|分析|专员|主管|经理|总监|顾问|研究员|助理|测试|算法|前端|后端|Engineer|Developer|Manager|Designer|Analyst|Scientist)', re.I)
+        _action_words = ('负责', '参与', '主导', '从事', '进行', '独立', '支持', '协助', '带领', '跟进', '配合', '推动', '维护', '协调', '撰写')
 
-        current_company = None
+        def _finish():
+            nonlocal current_work
+            if current_work and any((current_work.get('company'), current_work.get('position'), current_work.get('description'))):
+                work_experience.append(current_work)
+            current_work = {}
+
         current_work = {}
+        stage = 'idle'  # idle | after_header(等待公司行) | have_company(等职位行) | desc
+
+        def _looks_like_role(line_text):
+            if len(line_text) > 24:
+                return False
+            if line_text.startswith(_action_words):
+                return False
+            return bool(role_hint.search(line_text))
 
         for line in lines[start_idx:end_idx]:
             line = line.strip()
@@ -232,10 +312,7 @@ class ResumeParser:
             # 检查是否是公司行（包含时间）
             time_match = re.search(time_pattern, line)
             if time_match:
-                # 保存上一份工作
-                if current_company:
-                    work_experience.append(current_work)
-
+                _finish()
                 current_work = {
                     'start_date': time_match.group(1),
                     'end_date': time_match.group(2),
@@ -243,30 +320,41 @@ class ResumeParser:
                     'position': '',
                     'description': []
                 }
-
-                # 提取公司名（时间之后的部分）
+                # 提取公司名与职位（时间之后的部分，尽量拆分）
                 after_time = line[time_match.end():].strip()
                 if after_time:
-                    current_work['company'] = after_time
-                    current_company = after_time
-            elif current_company:
-                # 描述行
+                    company, position = self._split_company_position(after_time)
+                    current_work['company'] = company
+                    current_work['position'] = position
+                    stage = 'have_company' if (company and not position) else ('desc' if position else 'after_header')
+                else:
+                    stage = 'after_header'
+                continue
+
+            # 非时间行：按状态填充公司/职位/描述
+            if stage == 'after_header':
+                company, position = self._split_company_position(line)
+                current_work['company'] = company or line
+                current_work['position'] = position
+                stage = 'have_company' if (company and not position) else ('desc' if position else 'have_company')
+            elif stage == 'have_company':
+                if _looks_like_role(line):
+                    current_work['position'] = line
+                    stage = 'desc'
+                else:
+                    current_work['description'].append(line)
+            else:
                 current_work['description'].append(line)
 
-        # 保存最后一份工作
-        if current_work:
-            work_experience.append(current_work)
+        _finish()
 
-        # 提取职位
+        # 兜底：公司字段里若仍残留职位文本，再拆分一次
         for work in work_experience:
-            company_text = work['company']
-            # 常见职位关键词
-            positions = ['工程师', '架构师', '开发', '经理', '总监', '主管', '专员',
-                        'Designer', 'Developer', 'Engineer', 'Manager', 'Architect']
-            for pos in positions:
-                if pos in company_text:
-                    work['position'] = company_text
-                    break
+            if not work.get('position') and work.get('company'):
+                company, position = self._split_company_position(work['company'])
+                work['company'] = company
+                if position:
+                    work['position'] = position
 
         return work_experience
 
@@ -308,6 +396,11 @@ class ResumeParser:
                     after_time = line[time_match.end():].strip()
                     if after_time:
                         current_project['name'] = after_time
+                    else:
+                        # 形如“项目名 2022.03-2022.09”：时间段在行尾，取行首为项目名
+                        before_time = line[:time_match.start()].strip().strip(' -–—|：:')
+                        if before_time:
+                            current_project['name'] = before_time
                 elif '项目' in line:
                     # 尝试提取项目名
                     parts = line.split('：')
@@ -324,6 +417,42 @@ class ResumeParser:
 
         return projects
 
+
+    def _extract_honors(self, text: str) -> List[Dict]:
+        """提取竞赛与荣誉：每行一条（可选时间 + 荣誉标题）。"""
+        honors = []
+        start_idx, end_idx = self._find_section(text, self.honor_keywords)
+        if start_idx is None:
+            return honors
+        lines = text.split('\n')
+        for raw in lines[start_idx:end_idx]:
+            line = raw.strip().strip('·-–—')
+            if not line:
+                continue
+            m = re.match(r'^((?:\d{4}(?:[./]\d{1,2})?)(?:\s*[-~至]\s*(?:\d{4}(?:[./]\d{1,2})?))?)', line)
+            time = ''
+            title = line
+            if m:
+                time = m.group(1)
+                title = line[m.end():].strip().lstrip('：: ').strip()
+            if not title:
+                continue
+            honors.append({'time': time, 'title': title})
+        return honors
+
+    def _extract_self_evaluation(self, text: str) -> str:
+        """提取自我评价段落（多行合并为一段）。"""
+        start_idx, end_idx = self._find_section(text, self.self_keywords)
+        if start_idx is None:
+            return ''
+        lines = text.split('\n')
+        parts = []
+        for raw in lines[start_idx:end_idx]:
+            line = raw.strip()
+            if not line:
+                continue
+            parts.append(line.rstrip('。；;'))
+        return ('；'.join(parts)).strip() + ('。' if parts else '')
 
 def parse_resume(text: str) -> Dict:
     """便捷函数：解析简历"""

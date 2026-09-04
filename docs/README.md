@@ -23,7 +23,7 @@
 | `superpowers/specs/` | 设计文档（当前依据取最新；`specs/archive/` 仅溯源） |
 | `superpowers/plans/` | 实施计划（按日期取最新；`plans/archive/` 仅溯源） |
 | `superpowers/traps/` | AI 修复 bug 的陷阱记录（症状→根因→修复→教训） |
-| `superpowers/archive/` | 已归档的工作报告与历史块 |
+| `superpowers/archive/` | 已归档的工作报告与历史块（含 2026-09-04 全仓库文档核验与勘误报告，见 `archive/2026-09-04/`） |
 | `prototypes/` | UI 原型（如 M4 matching 原型） |
 | `submit/`、`originalfile/`、`前端卡通图片/` | 参赛/便利文件，**仅本地，不同步 GitHub（D57）** |
 

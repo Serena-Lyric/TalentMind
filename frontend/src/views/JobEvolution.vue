@@ -3,7 +3,7 @@
     <div class="page-title"><div class="title-left"><div class="module-mark evolution-mark"><el-icon><TrendCharts /></el-icon></div><div><h1>能力动态更新</h1><p>追踪岗位能力变化、变更依据和数据来源</p></div></div><el-button class="btn-soft" @click="loadData"><el-icon><RefreshRight /></el-icon>刷新记录</el-button></div>
     <div class="evolution-layout">
       <aside class="panel job-picker"><div class="section-heading"><div><h2>岗位列表</h2><p>{{ jobs.length }} 个结构化岗位</p></div></div><el-input v-model="keyword" placeholder="搜索岗位" clearable /><div class="job-list"><button v-for="job in filteredJobs" :key="job.id" type="button" :class="{ active: selectedJobId === job.id }" @click="selectJob(job.id)"><span>{{ job.title }}</span><small>{{ job.name_en }}</small></button></div></aside>
-      <main class="panel evolution-main"><div class="section-heading"><div><h2>{{ selectedJob?.title || '请选择岗位' }}</h2><p>能力变更审计记录 · 只展示可追溯数据</p></div><el-tag v-if="timeline" effect="plain">{{ timeline.total_changes }} 次变更</el-tag></div><div v-if="timeline?.records?.length" class="record-list"><article v-for="record in timeline.records" :key="record.id" class="record-card"><div><strong>{{ record.summary || '能力变更记录' }}</strong><p>{{ record.reason || record.source || '暂无说明' }}</p></div><el-tag effect="plain">{{ record.change_type || '变更' }}</el-tag></article></div><div v-else class="empty-state"><el-icon :size="42"><TrendCharts /></el-icon><h3>{{ selectedJob ? '暂无能力变更记录' : '请选择岗位' }}</h3><p>{{ selectedJob ? '当前 job_change_log 没有可展示的数据，页面不会使用演示内容填充。' : '从左侧选择岗位查看能力动态。' }}</p></div></main>
+      <main class="panel evolution-main"><div class="section-heading"><div><h2>{{ selectedJob?.title || '请选择岗位' }}</h2><p>能力变更审计记录 · 只展示可追溯数据</p></div><el-tag v-if="timeline" effect="plain">{{ timeline.total_changes }} 次变更</el-tag></div><div v-if="timeline?.records?.length" class="record-list"><article v-for="record in timeline.records" :key="record.id" class="record-card"><div><strong>{{ recordTitle(record) }}</strong><p>{{ record.reason || record.source || '暂无说明' }}</p></div><el-tag effect="plain">{{ changeTypeLabel(record.change_type) }}</el-tag></article></div><div v-else class="empty-state"><el-icon :size="42"><TrendCharts /></el-icon><h3>{{ selectedJob ? '暂无能力变更记录' : '请选择岗位' }}</h3><p>{{ selectedJob ? '当前 job_change_log 没有可展示的数据，页面不会使用演示内容填充。' : '从左侧选择岗位查看能力动态。' }}</p></div></main>
     </div>
   </section>
 </template>
@@ -13,6 +13,10 @@ import { RefreshRight, TrendCharts } from '@element-plus/icons-vue'
 import { getJobEvolutionTimeline, type EvolutionTimeline } from '../api/evolution'
 import { getJobList, type Job } from '../api/jobs'
 const loading = ref(false); const keyword = ref(''); const jobs = ref<Job[]>([]); const selectedJobId = ref(''); const timeline = ref<EvolutionTimeline | null>(null)
+const CHANGE_TYPE_LABELS: Record<string, string> = { added: '新增技能', removed: '移除技能', modified: '技能调整', duties_changed: '职责变化', scenarios_added: '新增应用场景', scenarios_removed: '移除应用场景', evolution_changed: '演化阶段变化' }
+const META_SKILL_NAMES = ['core_duties', 'stage']
+function changeTypeLabel(type?: string) { return (type && CHANGE_TYPE_LABELS[type]) || type || '变更' }
+function recordTitle(record: { change_type?: string; skill_name?: string }) { const name = record.skill_name; return (name && !META_SKILL_NAMES.includes(name)) ? `${changeTypeLabel(record.change_type)}：${name}` : changeTypeLabel(record.change_type) }
 const filteredJobs = computed(() => jobs.value.filter(job => !keyword.value.trim() || job.title.toLowerCase().includes(keyword.value.trim().toLowerCase()) || job.id.includes(keyword.value.trim())))
 const selectedJob = computed(() => jobs.value.find(job => job.id === selectedJobId.value))
 async function selectJob(id: string) { selectedJobId.value = id; timeline.value = null; try { timeline.value = await getJobEvolutionTimeline(id) } catch { /* 后端无记录时显示诚实空态 */ } }

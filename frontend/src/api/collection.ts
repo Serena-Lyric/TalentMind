@@ -2,7 +2,7 @@ import { get, post, put } from '../utils/request'
 
 export interface CollectionTask {
   run_id: string | null
-  platform?: 'boss' | 'zhaopin' | 'liepin' | string
+  platform?: 'boss' | 'zhaopin' | 'liepin' | 'linkedin' | 'hn' | string
   log_path?: string | null
   log_status?: 'parsed' | 'missing' | 'empty' | 'unrecognized' | string
   log_summary?: Record<string, number>
@@ -46,7 +46,7 @@ export interface CollectionConfig {
   check_cdp_before_start: boolean
   cdp_endpoint: string
   user_data_dir?: string | null
-  platform?: 'boss' | 'zhaopin' | 'liepin'
+  platform?: 'boss' | 'zhaopin' | 'liepin' | 'linkedin' | 'hn'
 }
 
 export interface CollectionStats {
@@ -89,3 +89,14 @@ export function getCollectionHistory(params: { page?: number; page_size?: number
 }
 export function startCollection(data: Partial<CollectionConfig>) { return post<{ run_id: string }>('/collection/start', data) }
 export function stopCollection(run_id?: string | null) { return post('/collection/stop', { run_id }) }
+
+export interface CollectionRaw {
+  id: number
+  source: string
+  job_title: string
+  content: string
+  quality: number | null
+  crawled_at: string | null
+}
+
+export function getCollectionRecent(limit = 10) { return get<CollectionRaw[]>('/collection/recent', { limit }) }

@@ -15,6 +15,12 @@ $LogDir = Join-Path $RepoRoot "data\local\logs"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $LogFile = Join-Path $LogDir ("collect_daily-" + (Get-Date -Format "yyyyMMdd") + ".log")
 "[collect_daily] 启动: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') user=$env:USERNAME pwd=$(Get-Location)" | Add-Content $LogFile
+# ---- 暂停开关（2026-09-04 用户要求暂停所有采集任务；存在该标记文件则本次退出，不采集）----
+$PauseFile = Join-Path $RepoRoot "data\local\PAUSE_COLLECT"
+if (Test-Path $PauseFile) {
+    "[collect_daily] 已暂停（检测到 $PauseFile），退出码 0" | Add-Content $LogFile
+    exit 0
+}
 
 if (-not (Test-Path $Python)) {
     "[collect_daily] 错误: 未找到 venv: $Python" | Add-Content $LogFile

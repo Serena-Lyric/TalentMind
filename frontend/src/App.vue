@@ -1,5 +1,6 @@
 <template>
-  <div class="app-shell">
+  <div v-if="isLoginRoute" class="login-route"><router-view /></div>
+  <div v-else class="app-shell">
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-card">
         <div class="brand-row">
@@ -48,7 +49,8 @@
           <el-tooltip content="当前版本的统一前端入口" placement="bottom">
             <el-icon class="topbar-info"><InfoFilled /></el-icon>
           </el-tooltip>
-          <div class="user-chip"><img src="/guangzhou-school.jpg" alt="广州应用科技学院" /><b>广州应用科技学院</b></div>
+          <div class="user-chip"><img src="/guangzhou-school.jpg" alt="" /><b>{{ currentUser ? currentUser.username + ' · ' + currentUser.label : '未登录' }}</b></div>
+          <el-button v-if="currentUser" class="btn-soft" size="small" @click="logout">退出登录</el-button>
         </div>
       </header>
 
@@ -64,8 +66,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowRight,
   Collection,
@@ -78,9 +80,21 @@ import {
   TrendCharts,
   Connection,
 } from '@element-plus/icons-vue'
+import { clearCurrentUser, getCurrentUser, type DemoUser } from './utils/auth'
 
 const route = useRoute()
+const router = useRouter()
 const sidebarCollapsed = ref(false)
+const isLoginRoute = computed(() => route.path === '/login')
+const currentUser = ref<DemoUser | null>(getCurrentUser())
+
+watch(() => route.path, () => { currentUser.value = getCurrentUser() })
+
+function logout() {
+  clearCurrentUser()
+  currentUser.value = null
+  router.replace('/login')
+}
 
 const navItems = [
   { label: '采集模块管理', path: '/collection', icon: Connection },

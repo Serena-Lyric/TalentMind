@@ -84,7 +84,7 @@
         </div>
 
         <!-- 项目经历 -->
-        <div class="resume-section">
+        <div v-if="resume.projects.length" class="resume-section">
           <h2 class="section-title">
             <span class="title-icon">🚀</span>
             项目经历
@@ -93,7 +93,7 @@
             <div class="project-header">
               <div class="project-left">
                 <h3>{{ project.name }}</h3>
-                <div class="tech-stack">技术栈：{{ project.techStack }}</div>
+                <div v-if="project.techStack" class="tech-stack">技术栈：{{ project.techStack }}</div>
               </div>
               <div class="project-right">{{ project.duration }}</div>
             </div>
@@ -104,7 +104,7 @@
         </div>
 
         <!-- 竞赛与荣誉 -->
-        <div class="resume-section">
+        <div v-if="resume.honors.length" class="resume-section">
           <h2 class="section-title">
             <span class="title-icon">🏆</span>
             竞赛与荣誉
@@ -118,7 +118,7 @@
         </div>
 
         <!-- 自我评价 -->
-        <div class="resume-section">
+        <div v-if="resume.selfEvaluation" class="resume-section">
           <h2 class="section-title">
             <span class="title-icon">💡</span>
             自我评价
@@ -151,11 +151,11 @@ const resume = computed<any>(() => {
     basic: {
       name: p.name || '未命名简历',
       jobIntention: p.role || '—',
-      phone: '', email: '', location: '', gender: '',
+      phone: p.phone || '', email: p.email || '', location: p.location || '', gender: p.gender || '',
     },
     education: {
-      school: p.education || '—',
-      major: '', degree: '', duration: '',
+      school: p.education_school || p.education || '—',
+      major: p.education_major || '', degree: p.education_degree || '', duration: p.education_period || '',
       courses: [],
     },
     skills: {
@@ -163,9 +163,9 @@ const resume = computed<any>(() => {
         ? { '已识别技能': { level: 80, items: p.skills } }
         : {},
     },
-    projects: [],
-    honors: [],
-    selfEvaluation: p.summary || ('工作年限：' + (p.experience || '—') + '；最近公司：' + (p.company || '—') + '。'),
+    projects: (p.projects || []).map((pr: any) => ({ name: pr.name || '项目实践', duration: pr.duration || '', techStack: pr.tech_stack || '', responsibilities: pr.responsibilities || [] })),
+    honors: (p.honors || []).map((h: any) => ({ time: h.time || '', title: h.title || '' })),
+    selfEvaluation: p.self_evaluation || '',
   }
 })
 

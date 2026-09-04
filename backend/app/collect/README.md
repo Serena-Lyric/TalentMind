@@ -12,7 +12,7 @@
 | GitHub Trending（公开页面） | 信号 | signal（source=github） | `fetchers/trending.py` | ✅ 语言热度 |
 | 技术博客 RSS（InfoQ/掘金；OSCHINA 403 待换源） | 信号 | signal（source=blog） | `fetchers/blog_rss.py` | ✅ 技能提及 |
 | GitHub Trending 贡献者 → 人才线索 | 人才 | talent_raw（source=github） | `fetchers/github.py`（保留） | 按需 |
-| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | ✅ 当前 703 条，低速循环仍在运行 |
+| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | 2026-09-04 复核：主库 boss=1133 cleaned，采集已暂停（历史 703/488/967 等数字见下，均为快照） |
 | 智联招聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=zhaopin） | `fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py` | ✅ 已冒烟：3 条落库 |
 | 猎聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=liepin） | `fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py` | ✅ 已冒烟：6 条落库 |
 
@@ -139,7 +139,7 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
 - `test_collect_integration.py` / `test_talent_pipeline_integration.py`：管道集成（D37 精确清理）；
-- 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（当前 221 passed）。
+- 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（历史记录 221 passed；2026-09-04 collect-only=237：unit 214 / integration 23，实际通过数以全量运行为准）。
 
 ## 六、设计参考（crawl4ai 评估，2026-08-17）
 

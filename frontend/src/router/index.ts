@@ -1,9 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { getCurrentUser } from '../utils/auth'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', redirect: '/dashboard' },
+    { path: '/', redirect: '/collection' },
     { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { title: '数据概览' } },
     { path: '/jobs', name: 'Jobs', component: () => import('../views/Jobs.vue'), meta: { title: 'JD岗位管理' } },
     { path: '/graph', name: 'Graph', component: () => import('../views/Graph.vue'), meta: { title: '岗位星云图谱' } },
@@ -14,12 +15,17 @@ const router = createRouter({
     { path: '/resume', name: 'Resume', component: () => import('../views/Resume.vue'), meta: { title: '简历分析' } },
     { path: '/resume-demo', name: 'ResumeDemo', component: () => import('../views/ResumeDemo.vue'), meta: { title: '简历预览' } },
     { path: '/learning', name: 'Learning', component: () => import('../views/Learning.vue'), meta: { title: '技能学习路径' } },
-    { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
+    { path: '/login', name: 'Login', component: () => import('../views/Login.vue'), meta: { title: '登录' } },
+    { path: '/:pathMatch(.*)*', redirect: '/collection' },
   ],
 })
 
 router.beforeEach((to) => {
   document.title = `${String(to.meta.title || '岗位能力图谱')} - 岗位能力图谱`
+  if (to.path === '/login') {
+    return getCurrentUser() ? { path: '/collection' } : true
+  }
+  return getCurrentUser() ? true : { path: '/login', query: { redirect: to.fullPath } }
 })
 
 export default router

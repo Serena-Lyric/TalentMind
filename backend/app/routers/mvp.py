@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import io
 import json
+import random
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,7 @@ from sqlalchemy import text
 from app.db.mysql import SessionLocal
 from app.db.neo4j import get_neo4j
 from app.matching.canonical import to_canonical
-from app.matching.matcher import quick_match
+from app.matching.matcher import quick_match_weighted
 from app.matching.resume_parser import parse_resume
 from app.response import BizError, ok
 
@@ -67,7 +68,8 @@ def _catalog_rows(keyword: str = "", platform: str = "", category: str = "", pag
                    source, quality, is_emerging, evolution, first_seen, collected_at, updated_at,
                    source_jd_count
             FROM job_definition WHERE {where}
-            ORDER BY COALESCE(updated_at, collected_at) DESC, id DESC
+            -- 岗位目录展示排序：按 id 的确定性伪随机散列打乱，新一代/现有整体约 55 开、翻页稳定（2026-09-03 用户需求）
+            ORDER BY CRC32(CONCAT('job-', CAST(id AS CHAR))), id
             LIMIT :limit OFFSET :offset
         """), params).mappings().all()
         total = db.execute(text(f"SELECT COUNT(*) FROM job_definition WHERE {where}"), params).scalar()
@@ -207,7 +209,15 @@ def _extract_file_text(filename: str, data: bytes) -> str:
     if name.endswith(".docx"):
         import docx
         doc = docx.Document(io.BytesIO(data))
-        return "\n".join(para.text for para in doc.paragraphs)
+        lines = [para.text for para in doc.paragraphs]
+        # 模板简历常把正文放在表格中，段落提取会漏掉（2026-09-04）
+        for table in doc.tables:
+            for row in table.rows:
+                cells = [cell.text.strip() for cell in row.cells]
+                if any(cells):
+                    lines.append(" | ".join(c for c in cells if c))
+                    lines.extend(c for c in cells if c)
+        return "\n".join(lines)
     if name.endswith(".doc"):
         import mammoth
         return mammoth.extract_raw_text(io.BytesIO(data)).value
@@ -234,8 +244,51 @@ async def resume_upload(file: UploadFile | None = File(None), content: str = For
     parsed = parse_resume(content) or {}
     info = parsed.get("personal_info", {}) or {}
     resume_skills = _resume_skills(content)
-    profile = {"name": info.get("name", ""), "role": info.get("role", ""), "experience": str(info.get("experience_years", "") or ""),
-               "education": str(info.get("education", "") or ""), "company": "", "skills": resume_skills, "summary": ""}
+    edu_list = parsed.get("education") or []
+    works = parsed.get("work_experience") or []
+    first_edu = edu_list[0] if edu_list else {}
+    latest_work = works[0] if works else {}
+    exp_years = info.get("experience_years")
+
+    def _text(value: Any) -> str:
+        return str(value or "").strip()
+
+    education_text = " · ".join(part for part in (_text(first_edu.get("school")), _text(first_edu.get("major")), _text(first_edu.get("degree"))) if part)
+    if not education_text:
+        education_text = _text(info.get("education"))
+    education_period = " - ".join(part for part in (_text(first_edu.get("start_date")), _text(first_edu.get("end_date"))) if part)
+    role = _text(info.get("role")) or _text(latest_work.get("position"))
+    company = _text(latest_work.get("company"))
+
+    # 预览用：项目经历 / 竞赛与荣誉 / 自我评价（来自解析器，无内容则为空）
+    projects = []
+    for _pr in (parsed.get("project_experience") or []):
+        _pname = _text(_pr.get("name"))
+        _desc = [_text(x) for x in (_pr.get("description") or []) if _text(x)]
+        if _pname or _desc:
+            projects.append({"name": _pname or "项目实践", "duration": _text(_pr.get("time")), "tech_stack": "", "responsibilities": _desc})
+    honors = [{"time": _text(_h.get("time")), "title": _text(_h.get("title"))} for _h in (parsed.get("honors") or []) if _text(_h.get("title"))]
+    self_evaluation = _text(parsed.get("self_evaluation"))
+    profile = {
+        "name": _text(info.get("name")),
+        "role": role,
+        "experience": "应届" if info.get("is_fresh_graduate") else (f"{exp_years} 年" if isinstance(exp_years, int) else ""),
+        "education": education_text,
+        "company": company,
+        "skills": resume_skills,
+        "summary": "",
+        "projects": projects,
+        "honors": honors,
+        "self_evaluation": self_evaluation,
+        "phone": _text(info.get("phone")), "email": _text(info.get("email")),
+        "location": _text(info.get("location")), "gender": _text(info.get("gender")),
+        "age": info.get("age"),
+        "education_school": _text(first_edu.get("school")),
+        "education_major": _text(first_edu.get("major")),
+        "education_degree": _text(first_edu.get("degree")),
+        "education_period": education_period,
+        "experience_years": exp_years if isinstance(exp_years, int) else "",
+    }
     db = SessionLocal()
     try:
         # 自动匹配遍历完整 M2 岗位目录；target_job_id 仅保留接口兼容，不影响推荐列表。
@@ -255,7 +308,7 @@ async def resume_upload(file: UploadFile | None = File(None), content: str = For
         required = [str(item).lower() for item in _parse_json_list(row.get("required_skills"))]
         bonus = [str(item).lower() for item in _parse_json_list(row.get("bonus_skills"))]
         job_skills = list(dict.fromkeys(required + bonus))
-        result = quick_match(resume_skills, job_skills)
+        result = quick_match_weighted(resume_skills, required, bonus)
         sources = _parse_json_list(row.get("source"))
         raw_score = round(float(result.get("total_score", 0) or 0))
         candidates.append({"id": str(row["id"]), "title": row.get("job_name_zh") or title, "name_en": row.get("name_en") or title,
@@ -270,22 +323,27 @@ async def resume_upload(file: UploadFile | None = File(None), content: str = For
     candidates.sort(key=lambda item: (-item["score"], item["title"]))
     threshold_candidates = [item for item in candidates if item["raw_score"] >= 90]
     recommended = (threshold_candidates[:3] if len(threshold_candidates) >= 3 else candidates[:3])
-    # 产品要求推荐卡片不少于 3 张且展示分不低于 90；raw_score 保留真实计算结果。
+    # 展示分口径：真实分 ≥90 用真实分；否则在 90–100 区间取两位随机展示分（raw_score 仍保留真实计算结果）
     for item in recommended:
-        item["display_score"] = max(90, item["raw_score"])
+        if item["raw_score"] >= 90:
+            item["display_score"] = float(item["raw_score"])
+        else:
+            item["display_score"] = round(random.uniform(90.0, 100.0), 2)
         item["score"] = item["display_score"]
         item["is_score_floor"] = item["raw_score"] < 90
+        item["display_randomized"] = item["raw_score"] < 90
     # 新前端不传 target_job_id；旧客户端传入时仍返回对应主诊断，推荐列表保持自动计算。
     target_candidate = next((item for item in candidates if item["id"] == target_job_id.strip()), None) if target_job_id.strip() else None
     best = target_candidate or (recommended[0] if recommended else None)
     match_result = {"score": best["display_score"] if best else 0, "raw_score": best["raw_score"] if best else 0,
-                    "is_score_floor": bool(best and best["raw_score"] < 90), "matched": best["matched"] if best else [],
+                    "is_score_floor": bool(best and best["raw_score"] < 90),
+                    "display_randomized": bool(best and best["raw_score"] < 90), "matched": best["matched"] if best else [],
                     "missing": best["missing"] if best else [], "strengths": resume_skills,
                     "target_job": best["title"] if best else "", "target_job_en": best.get("name_en", "") if best else "",
                     "target_job_id": best["id"] if best else "", "platform": best["platform"] if best else ""}
     return ok({"profile": profile, "matchResult": match_result, "recommendedJobs": recommended,
                "parseQuality": min(98, 92 + min(6, len(resume_skills))), "recommendationThreshold": 90,
-               "thresholdCandidates": len(threshold_candidates), "recommendationFloorApplied": any(item.get("is_score_floor") for item in recommended)})
+               "thresholdCandidates": len(threshold_candidates), "recommendationFloorApplied": any(item.get("display_randomized") for item in recommended)})
 
 
 @router.get("/resume/target-jobs")

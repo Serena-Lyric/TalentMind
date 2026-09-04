@@ -2,6 +2,8 @@
 
 M1 数据采集模块交接区。
 
+> **快照说明（2026-09-04）**：本目录各文档中的运行态/进程 PID/数据量均为其标注日期（2026-08-17~08-25）的**时间点快照**，不代表当前。2026-09-04 复核实时：`jd_pool=2984`（BOSS 1133/智联 1088/猎聘 763，HN/LinkedIn 原始 JD 已按 D55 外部归档、主库为 0），采集已暂停（无进程、CDP 9333 未监听、每日任务已加 `data/local/PAUSE_COLLECT` 暂停开关）。权威实时状态见 `docs/superpowers/资产与状态.md`。
+
 **已产出（2026-08-17 重新导出）**：
 - `jd.json`：200 条清洗后 JD（quality 降序；**source=linkedin + source_detail=linkedin_job_postings，D38 来源标签**）
 - `quality_check.md`：质量分/去重抽样核对记录（10 条抽样已由 AI 基于数据标注：10/10 通过，2026-08-16；另含 archive 全部 11 个数据集抽检记录）

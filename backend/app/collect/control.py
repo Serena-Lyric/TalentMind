@@ -394,6 +394,32 @@ def get_database_stats() -> dict[str, Any]:
         db.close()
 
 
+def get_recent_raw(limit: int = 10) -> list[dict[str, Any]]:
+    """只读：返回 jd_pool 最新采集的原始 JD（默认 10 条），供采集页数据展示。"""
+    from sqlalchemy import text
+    from app.db.mysql import SessionLocal
+
+    db = SessionLocal()
+    try:
+        rows = db.execute(text(
+            "SELECT id, source, job_title, quality, crawled_at, "
+            "CASE WHEN NULLIF(duties, '') IS NOT NULL THEN duties ELSE raw_text END AS body "
+            "FROM jd_pool ORDER BY crawled_at DESC, id DESC LIMIT :limit"
+        ), {"limit": int(limit)}).mappings().all()
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            body = str(item.pop("body", "") or "").strip()
+            item["content"] = body if len(body) <= 300 else body[:300] + "…"
+            crawled = item.get("crawled_at")
+            if crawled is not None and hasattr(crawled, "isoformat"):
+                item["crawled_at"] = crawled.isoformat()
+            items.append(item)
+        return items
+    finally:
+        db.close()
+
+
 def get_status() -> dict[str, Any]:
     with _LOCK:
         state = _load_state()

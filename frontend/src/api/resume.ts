@@ -16,6 +16,16 @@ export interface ResumeProfile {
   company: string
   skills: string[]
   summary: string
+  phone?: string
+  email?: string
+  location?: string
+  gender?: string
+  age?: number | null
+  experience_years?: number | string
+  education_school?: string
+  education_major?: string
+  education_degree?: string
+  education_period?: string
 }
 
 export interface RecommendedJob {
@@ -27,6 +37,7 @@ export interface RecommendedJob {
   raw_score?: number
   display_score?: number
   is_score_floor?: boolean
+  display_randomized?: boolean
   name_en?: string
   category?: string
   source_jd_count?: number
@@ -41,6 +52,7 @@ export interface MatchResult {
   raw_score?: number
   display_score?: number
   is_score_floor?: boolean
+  display_randomized?: boolean
   name_en?: string
   category?: string
   source_jd_count?: number

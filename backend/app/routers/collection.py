@@ -52,6 +52,11 @@ def collection_stats():
     return ok(control.get_database_stats())
 
 
+@router.get("/collection/recent")
+def collection_recent(limit: int = Query(10, ge=1, le=50)):
+    return ok(control.get_recent_raw(limit))
+
+
 @router.get("/collection/history")
 def collection_history(
     page: int = Query(1, ge=1),
