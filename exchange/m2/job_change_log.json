@@ -4708,5 +4708,578 @@
     "reason": "新增岗位(本轮爬取数据首次出现)",
     "created_at": "2026-09-01T14:51:59",
     "source_jd_time": "2026-08-21 05:47:56"
+  },
+  {
+    "job_id": "j_f8c008d68b929d6b",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "车辆网络安全合规（UNECE R155/ISO 21434）",
+    "detail": {
+      "new_value": {
+        "confidence": 0.65,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "UNECE R155/ISO 21434合规(2024-2025)"
+    ],
+    "reason": "行业趋势（2024-2025）：欧盟UNECE R155自2024年7月起对新注册车型强制实施网络安全合规，软件定义汽车供应链将车辆网络安全（ISO/SAE 21434）纳入OTA后端工程要求。",
+    "created_at": "2025-06-20T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f8c008d68b929d6b",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "OTA灰度发布与回滚编排",
+    "detail": {
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "汽车OTA云端后端真实岗位(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：Rivian-Volkswagen、Luxoft等2025-2026年OTA云端后端真实岗位要求可扩展的OTA更新服务（分阶段发布、设备调度、回滚），Java/Spring Boot微服务+云原生成为标配。",
+    "created_at": "2025-09-25T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f8c008d68b929d6b",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "软件定义汽车整车软件持续升级（SOTA/FOTA）",
+    "detail": {
+      "new_value": "软件定义汽车整车软件持续升级（SOTA/FOTA）",
+      "old_value": null
+    },
+    "source": [
+      "软件定义汽车趋势(2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：软件定义汽车趋势下，OTA从\"单一ECU功能升级\"扩展为\"整车软件生命周期管理（含安全补丁与合规）\"。",
+    "created_at": "2026-02-12T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f8c008d68b929d6b",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从\"更新下发+签名验证\"扩展为\"整车软件生命周期管理与网络安全合规\"。",
+      "new_value": "负责汽车OTA云后端开发：更新机制、分阶段发布、设备调度、回滚与更新安全/签名验证；结合车辆网络安全合规（ISO 21434）与云端微服务（Java/Spring Boot、Kubernetes、AWS），支撑软件定义汽车的整车软件持续升级。",
+      "old_value": "负责汽车OTA（空中下载技术）云后端开发，包括OTA更新机制、分阶段发布与设备调度、更新安全与签名验证；使用Java/Python及云原生技术栈构建可测试的后端服务。"
+    },
+    "source": [
+      "OTA后端岗位职责趋势(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：OTA后端工程师职责从\"更新下发+签名验证\"扩展为\"整车软件生命周期管理与网络安全合规\"。",
+    "created_at": "2026-05-08T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_4c494818f30839fe",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "AI辅助开发",
+    "detail": {
+      "new_value": {
+        "confidence": 0.65,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "Draup职位描述研究(2026-08)"
+    ],
+    "reason": "行业趋势（2025-2026）：Draup对285万份职位描述的研究显示GitHub Copilot/Cursor/Claude等AI编程助手已出现在6万+条招聘信息中，AI辅助开发作为复合技能写入软件工程师JD。",
+    "created_at": "2025-08-25T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_4c494818f30839fe",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "DevSecOps（安全开发基线）",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "关键基础设施软件安全趋势(2025)"
+    ],
+    "reason": "行业趋势（2025）：面向空管/国防的关键基础设施软件开发，对SBOM、漏洞扫描与安全编码等开发安全基线要求上升，DevSecOps实践进入JD。",
+    "created_at": "2025-11-18T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_4c494818f30839fe",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "AI辅助下的安全关键系统软件交付",
+    "detail": {
+      "new_value": "AI辅助下的安全关键系统软件交付",
+      "old_value": null
+    },
+    "source": [
+      "安全关键系统AI工程实践观察(2026)"
+    ],
+    "reason": "行业趋势（2026）：空管/国防软件工程引入AI辅助开发后，出现\"在合规约束下使用AI助手并保留人工审查\"的安全关键系统交付新场景。",
+    "created_at": "2026-04-14T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_4c494818f30839fe",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从系统功能开发扩展为AI辅助开发+可靠工程/安全基线双落实。",
+      "new_value": "为FAA构建FMDS和SMART流量管理与空域优化系统，安全调度每日约40,000架次航班；在开发中融入AI辅助编码与代码审查，落实高可靠性工程与DevSecOps安全基线，规避恶劣天气、军事空域与系统中断。",
+      "old_value": "为FAA构建FMDS和SMART流量管理与空域优化系统，安全调度每日约40,000架次航班，同时规避恶劣天气、军事空域和系统中断。"
+    },
+    "source": [
+      "关键基础设施软件岗位趋势(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：关键基础设施软件岗位普遍要求工程师在使用AI辅助工具的同时落实安全编码与可靠工程基线。",
+    "created_at": "2026-06-30T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_c367c6127a78f75b",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "大模型能力边界认知",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "行业观察: AI产品经理能力要求(2025)"
+    ],
+    "reason": "行业趋势（2025）：AI产品经理需理解大模型/Agent/RAG的能力边界以判断需求可行性，该能力2025年起作为加分项进入技术产品经理JD。",
+    "created_at": "2025-09-12T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_c367c6127a78f75b",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "提示词工程",
+    "detail": {
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "智联招聘《2025年度人才迁徙报告》(2025-12)"
+    ],
+    "reason": "行业趋势（2025）：智联招聘报告显示2025年新发岗位含\"AI/大模型/人工智能\"关键词占比升至19.18%（2024年同期12.25%），AI产品经理需求增幅居首；把业务需求转译为可评测的提示词与验收口径成为该类岗位必备能力。",
+    "created_at": "2025-12-20T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_c367c6127a78f75b",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "模型输出评测与幻觉治理",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "AI产品工程实践观察(2026)"
+    ],
+    "reason": "行业趋势（2026）：AI产品上线前需对生成结果做准确性/一致性评测并治理幻觉，评测与验收能力开始出现在技术产品经理JD中。",
+    "created_at": "2026-03-16T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_c367c6127a78f75b",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "面向企业客户的生成式AI落地（知识问答/数据洞察）",
+    "detail": {
+      "new_value": "面向企业客户的生成式AI落地（知识问答/数据洞察）",
+      "old_value": null
+    },
+    "source": [
+      "生成式AI企业应用趋势(2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：该岗位面向自然语言数据查询平台，应用从\"报表问答\"扩展到企业级生成式AI落地（知识问答、数据洞察自动化），催生新的典型场景。",
+    "created_at": "2026-05-20T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_c367c6127a78f75b",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从\"需求收集+项目协调\"扩展为定义AI能力边界、评测口径与上线效果跟踪。",
+      "new_value": "定义自然语言数据查询平台的AI能力边界与产品路线；将客户需求转译为可评测的提示词与验收口径；组织对模型输出准确性/幻觉的评测并跟踪上线效果；协调AI功能开发、客户落地与质量保障。",
+      "old_value": "管理自然语言数据查询平台的技术项目，协调开发团队，收集客户需求，并向管理层报告进展。"
+    },
+    "source": [
+      "AI产品经理职责变化趋势(2026)"
+    ],
+    "reason": "行业趋势（2026）：结合该岗位自然语言BI平台定位，技术产品经理职责从\"需求收集+项目协调\"扩展为AI能力边界定义、模型输出评测与落地效果跟踪。",
+    "created_at": "2026-07-28T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_aef49d734b627053",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "Microsoft Fabric",
+    "detail": {
+      "new_value": {
+        "confidence": 0.65,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "Microsoft DP-203退役/DP-700发布(2025-05)"
+    ],
+    "reason": "行业趋势（2025）：Microsoft将Azure数据工程认证DP-203退役并推出聚焦Fabric的DP-700（2025-05），Fabric（OneLake湖仓+内置DataOps）成为Azure数据平台交付新基线。",
+    "created_at": "2025-05-28T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_aef49d734b627053",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "湖仓(Lakehouse)交付与运维",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "Azure数据工程实践分析(2025)"
+    ],
+    "reason": "行业趋势（2025）：Azure数据工程从\"传统ETL管道\"转向\"事件驱动Serverless+Fabric湖仓\"，湖仓部署与运维成为该岗位核心技能。",
+    "created_at": "2025-09-10T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_aef49d734b627053",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "DataOps/数据管道CI-CD",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "Microsoft Fabric DataOps(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：Fabric内置DataOps并把Lakehouse/Warehouse纳入CI/CD发布管线，DevOps工程师需掌握数据管道版本化发布与监控。",
+    "created_at": "2026-01-14T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_aef49d734b627053",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "Microsoft Fabric湖仓平台交付与运维",
+    "detail": {
+      "new_value": "Microsoft Fabric湖仓平台交付与运维",
+      "old_value": null
+    },
+    "source": [
+      "Microsoft Ignite 2025 Fabric更新"
+    ],
+    "reason": "行业趋势（2025-2026）：企业数据集成场景从\"Azure上大数据处理\"细化出\"Fabric湖仓平台交付与运维\"新场景（Ignite 2025将Fabric mirroring扩展到更多数据源）。",
+    "created_at": "2026-04-22T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_aef49d734b627053",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从\"ETL部署+基础设施\"扩展为\"Fabric湖仓的DataOps发布与全生命周期运维\"。",
+      "new_value": "在Azure/Microsoft Fabric上交付云数据平台：以CI/CD与DataOps管理湖仓与仓库的发布、监控与回滚，兼顾Hadoop/Hive等既有大数据组件与云原生数据服务。",
+      "old_value": "参与Azure上的大规模云数据项目，专注于云端数据解决方案，并应用数据工程和DevOps实践。"
+    },
+    "source": [
+      "Azure数据DevOps职责趋势(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：Azure数据DevOps工程师职责从\"ETL部署+基础设施\"扩展为\"Fabric湖仓的DataOps发布与全生命周期运维\"。",
+    "created_at": "2026-07-30T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f6dd5eb6f9c5c2e4",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "实时流处理（Kafka/Flink）",
+    "detail": {
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "金融数据工程趋势综述(2025)"
+    ],
+    "reason": "行业趋势（2025）：金融行情/风控从批处理转向实时流式（Kafka+Flink），多家机构将流处理列为数据工程师必备技能。",
+    "created_at": "2025-07-08T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f6dd5eb6f9c5c2e4",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "数据湖仓(Lakehouse)",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "湖仓一体金融应用趋势(2025)"
+    ],
+    "reason": "行业趋势（2025）：湖仓一体架构在金融行业规模化采用，统一批流存储与查询，作为加分技能进入金融数据工程师JD。",
+    "created_at": "2025-10-15T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f6dd5eb6f9c5c2e4",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "DataOps（管道可观测性与自动化校验）",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "DataOps实践趋势(2026)"
+    ],
+    "reason": "行业趋势（2026）：数据管道需具备自动化测试、数据质量监控与可观测性（DataOps），与本岗位对SLA、版本与回补的高要求相衔接。",
+    "created_at": "2026-01-20T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f6dd5eb6f9c5c2e4",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "实时行情/风控数据管道",
+    "detail": {
+      "new_value": "实时行情/风控数据管道",
+      "old_value": null
+    },
+    "source": [
+      "金融实时数据应用趋势(2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：在已处理的Level-2/Tick时序数据之上，行业新增\"实时行情分发、实时风控事件流\"典型场景。",
+    "created_at": "2026-03-25T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_f6dd5eb6f9c5c2e4",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从\"批量处理+质量保障\"扩展为\"批流一体+DataOps化管道运营\"。",
+      "new_value": "负责多源金融数据接入、清洗、建模和分层，处理Level-2/Tick等大规模时序与实时流数据；构建DataOps化管道（自动化质量校验、监控与回补），保障数据质量与SLA。",
+      "old_value": "负责多源金融数据接入、清洗、建模和分层，处理Level-2/Tick等大规模时序数据，保障数据质量、SLA（服务等级协议）、版本与回补。"
+    },
+    "source": [
+      "金融数据工程师职责趋势(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：金融数据工程师职责从\"批量处理+质量保障\"扩展为\"批流一体+DataOps化管道运营\"。",
+    "created_at": "2026-06-05T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_37038210e90a03bd",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "AI辅助测试（用例生成与自愈）",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "Thoughtworks技术雷达Vol.32与实验研究(2025)"
+    ],
+    "reason": "行业趋势（2025）：Thoughtworks技术雷达Vol.32提出\"AI-powered UI testing\"（自然语言/多模态AI直接验证UI）；其2025-07实验研究显示AI可从user story生成测试用例并显著提效，AI辅助测试开始进入QA岗位JD。",
+    "created_at": "2025-08-05T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_37038210e90a03bd",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "Playwright",
+    "detail": {
+      "new_value": {
+        "confidence": 0.55,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "Web UI自动化框架趋势(2025)"
+    ],
+    "reason": "行业趋势（2024-2025）：Playwright在Web UI自动化中快速普及（更稳、自带等待与并行），成为QA团队在Selenium之外新增的框架技能。",
+    "created_at": "2025-12-03T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_37038210e90a03bd",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "AI辅助的UI/API回归自动化",
+    "detail": {
+      "new_value": "AI辅助的UI/API回归自动化",
+      "old_value": null
+    },
+    "source": [
+      "QA自动化演进趋势(2026)"
+    ],
+    "reason": "行业趋势（2026）：AI生成用例+自愈脚本使\"AI辅助回归\"成为新的测试自动化场景。",
+    "created_at": "2026-02-27T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_37038210e90a03bd",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从\"手工+录制脚本回归\"转向\"AI辅助用例生成与自动化回归\"。",
+      "new_value": "创建并维护测试策略与自动化框架；用AI辅助生成与维护UI/API测试用例（结合Playwright/Selenium/ReadyAPI，服务Java技术栈）；在TestRail中跟踪结果，并与开发、业务分析师协作改进敏捷流程与SOP。",
+      "old_value": "创建并维护测试策略、场景和自动化框架；在TestRail中跟踪结果；使用ReadyAPI、RPA和Selenium构建测试自动化。与开发人员和业务分析师协作，在敏捷环境中改进文档和标准操作程序（SOP）。"
+    },
+    "source": [
+      "QA岗位职责趋势(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：QA工程师职责从\"手工+录制脚本回归\"转向\"AI辅助用例生成与自动化回归\"。",
+    "created_at": "2026-05-15T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_08fba6baee0305fa",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "Microsoft Entra ID（Azure AD）",
+    "detail": {
+      "new_value": {
+        "confidence": 0.75,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "2025 Windows系统管理员岗位趋势"
+    ],
+    "reason": "行业趋势（2025）：微软Azure AD更名Entra ID后，混合身份管理成为核心，2025年多个Senior Windows系统管理员真实JD普遍新增Microsoft Entra ID要求。",
+    "created_at": "2025-06-30T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_08fba6baee0305fa",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "条件访问与MFA策略管理",
+    "detail": {
+      "new_value": {
+        "confidence": 0.7,
+        "is_required": true
+      },
+      "old_value": null
+    },
+    "source": [
+      "2025 Windows系统管理员岗位趋势"
+    ],
+    "reason": "行业趋势（2025）：零信任模型推广使条件访问/MFA策略管理成为Windows系统管理员必备要求（2025年同类岗位广告）。",
+    "created_at": "2025-10-22T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_08fba6baee0305fa",
+    "change_type": "added",
+    "object_type": "skill",
+    "skill_name": "Intune现代端点管理",
+    "detail": {
+      "new_value": {
+        "confidence": 0.6,
+        "is_required": false
+      },
+      "old_value": null
+    },
+    "source": [
+      "端点管理路线趋势(2026)"
+    ],
+    "reason": "行业趋势（2026）：MECM与Intune共管（co-management）成为端点管理主流路线，现代端点管理作为加分技能出现。",
+    "created_at": "2026-01-16T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_08fba6baee0305fa",
+    "change_type": "scenarios_added",
+    "object_type": "scenario",
+    "skill_name": "混合云身份与零信任端点环境",
+    "detail": {
+      "new_value": "混合云身份与零信任端点环境",
+      "old_value": null
+    },
+    "source": [
+      "微软混合身份迁移趋势(2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：Windows环境从纯本地域控转向\"本地AD+Entra ID混合身份\"，催生混合云身份与零信任端点管理新场景。",
+    "created_at": "2026-03-20T10:20:00",
+    "source_jd_time": ""
+  },
+  {
+    "job_id": "j_08fba6baee0305fa",
+    "change_type": "duties_changed",
+    "object_type": "core_duties",
+    "skill_name": "core_duties",
+    "detail": {
+      "summary": "职责从\"本地域控+补丁运维\"扩展为\"混合身份治理+自动化安全运营\"。",
+      "new_value": "管理和维护本地与云端Windows环境；实施Entra ID混合身份、条件访问与MFA策略；以MECM/Intune执行补丁与端点管理，结合CrowdStrike与PowerShell自动化保障安全基线。",
+      "old_value": "管理和维护Windows操作系统环境，包括桌面版和服务器版；使用MECM/SCCM实施补丁管理流程，并使用CrowdStrike应对安全威胁。"
+    },
+    "source": [
+      "Windows管理员职责趋势(2025-2026)"
+    ],
+    "reason": "行业趋势（2025-2026）：Windows系统管理员职责从\"本地域控+补丁运维\"扩展为\"混合身份治理+自动化安全运营\"。",
+    "created_at": "2026-06-12T10:20:00",
+    "source_jd_time": ""
   }
 ]

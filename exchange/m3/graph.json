@@ -45,7 +45,7 @@
       "kind": "skill",
       "name": "python",
       "display_name": "python",
-      "job_count": 226
+      "job_count": 225
     },
     {
       "id": "skill:agent沙盒构建",
@@ -285,7 +285,7 @@
       "kind": "skill",
       "name": "java",
       "display_name": "java",
-      "job_count": 75
+      "job_count": 74
     },
     {
       "id": "skill:c",
@@ -1131,7 +1131,7 @@
       "kind": "skill",
       "name": "ai",
       "display_name": "ai",
-      "job_count": 29
+      "job_count": 27
     },
     {
       "id": "industry:ai智能体",
@@ -2561,7 +2561,7 @@
       "kind": "skill",
       "name": "数据分析",
       "display_name": "数据分析",
-      "job_count": 37
+      "job_count": 36
     },
     {
       "id": "skill:redis",
@@ -6097,7 +6097,7 @@
       "kind": "skill",
       "name": "云计算",
       "display_name": "云计算",
-      "job_count": 12
+      "job_count": 11
     },
     {
       "id": "industry:云计算平台",
@@ -7574,56 +7574,6 @@
       "kind": "industry",
       "name": "人力资本咨询AI产品",
       "display_name": "人力资本咨询AI产品",
-      "job_count": 1,
-      "color": "#c77dff"
-    },
-    {
-      "id": "job:j-acb705a6c9d5c774",
-      "type": "job",
-      "kind": "job",
-      "name": "AI Test Development Engineer",
-      "name_zh": "AI测试开发工程师",
-      "name_en": "AI Test Development Engineer",
-      "category": "新一代",
-      "is_emerging": true,
-      "evolution": {
-        "stage": "emerging",
-        "indicators": {
-          "skill_novelty": "high",
-          "source_diversity": 1,
-          "jd_count_in_batch": 1
-        },
-        "stage_confidence": 0.5
-      },
-      "source": [
-        "zhaopin"
-      ],
-      "platform": "zhaopin",
-      "core_duties": "负责AI测试开发相关工作；文本未提供详细职责描述。",
-      "required_skills": [],
-      "bonus_skills": [
-        "java",
-        "python",
-        "ai"
-      ],
-      "quality": 0.45,
-      "jd_count": 1
-    },
-    {
-      "id": "industry:ai系统测试",
-      "type": "industry",
-      "kind": "industry",
-      "name": "AI系统测试",
-      "display_name": "AI系统测试",
-      "job_count": 1,
-      "color": "#c77dff"
-    },
-    {
-      "id": "industry:自动化测试",
-      "type": "industry",
-      "kind": "industry",
-      "name": "自动化测试",
-      "display_name": "自动化测试",
       "job_count": 1,
       "color": "#c77dff"
     },
@@ -35808,66 +35758,6 @@
       "kind": "industry",
       "name": "三维视觉算法应用",
       "display_name": "三维视觉算法应用",
-      "job_count": 1,
-      "color": "#c77dff"
-    },
-    {
-      "id": "job:j-a8a3f7c81b344626",
-      "type": "job",
-      "kind": "job",
-      "name": "Postdoctoral Researcher",
-      "name_zh": "博士后",
-      "name_en": "Postdoctoral Researcher",
-      "category": "新一代",
-      "is_emerging": true,
-      "evolution": {
-        "stage": "emerging",
-        "indicators": {
-          "skill_novelty": "high",
-          "source_diversity": 1,
-          "jd_count_in_batch": 1
-        },
-        "stage_confidence": 0.5
-      },
-      "source": [
-        "zhaopin"
-      ],
-      "platform": "zhaopin",
-      "core_duties": "从事AI赋能业务领域的应用研究，聚焦情报学、计算机、数据科学、人工智能、管理工程等交叉方向。",
-      "required_skills": [
-        "ai"
-      ],
-      "bonus_skills": [
-        "数据分析",
-        "云计算"
-      ],
-      "quality": 0.57,
-      "jd_count": 1
-    },
-    {
-      "id": "industry:ai赋能业务应用研究",
-      "type": "industry",
-      "kind": "industry",
-      "name": "AI赋能业务应用研究",
-      "display_name": "AI赋能业务应用研究",
-      "job_count": 1,
-      "color": "#c77dff"
-    },
-    {
-      "id": "industry:军事科技情报分析",
-      "type": "industry",
-      "kind": "industry",
-      "name": "军事科技情报分析",
-      "display_name": "军事科技情报分析",
-      "job_count": 1,
-      "color": "#c77dff"
-    },
-    {
-      "id": "industry:科研信息化",
-      "type": "industry",
-      "kind": "industry",
-      "name": "科研信息化",
-      "display_name": "科研信息化",
       "job_count": 1,
       "color": "#c77dff"
     },
@@ -96038,39 +95928,6 @@
       "weight": 1.0
     },
     {
-      "source": "job:j-acb705a6c9d5c774",
-      "target": "skill:java",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "job:j-acb705a6c9d5c774",
-      "target": "skill:python",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "job:j-acb705a6c9d5c774",
-      "target": "skill:ai",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "job:j-acb705a6c9d5c774",
-      "target": "industry:ai系统测试",
-      "type": "APPLIES_TO",
-      "weight": 1.0
-    },
-    {
-      "source": "job:j-acb705a6c9d5c774",
-      "target": "industry:自动化测试",
-      "type": "APPLIES_TO",
-      "weight": 1.0
-    },
-    {
       "source": "job:j-d9bffb51525b2bd8",
       "target": "skill:mcp",
       "type": "REQUIRES",
@@ -119117,45 +118974,6 @@
     {
       "source": "job:j-99eeed4631291e5c",
       "target": "industry:三维视觉算法应用",
-      "type": "APPLIES_TO",
-      "weight": 1.0
-    },
-    {
-      "source": "job:j-a8a3f7c81b344626",
-      "target": "skill:ai",
-      "type": "REQUIRES",
-      "weight": 1.0,
-      "is_required": true
-    },
-    {
-      "source": "job:j-a8a3f7c81b344626",
-      "target": "skill:数据分析",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "job:j-a8a3f7c81b344626",
-      "target": "skill:云计算",
-      "type": "REQUIRES",
-      "weight": 0.6,
-      "is_required": false
-    },
-    {
-      "source": "job:j-a8a3f7c81b344626",
-      "target": "industry:ai赋能业务应用研究",
-      "type": "APPLIES_TO",
-      "weight": 1.0
-    },
-    {
-      "source": "job:j-a8a3f7c81b344626",
-      "target": "industry:军事科技情报分析",
-      "type": "APPLIES_TO",
-      "weight": 1.0
-    },
-    {
-      "source": "job:j-a8a3f7c81b344626",
-      "target": "industry:科研信息化",
       "type": "APPLIES_TO",
       "weight": 1.0
     },
@@ -167192,10 +167010,10 @@
     }
   ],
   "metadata": {
-    "node_count": 7852,
-    "edge_count": 11423,
+    "node_count": 7845,
+    "edge_count": 11412,
     "source": "M2 full return package",
     "version": "m2-full-2026-09-02",
-    "exported_at": "2026-09-02T06:22:37.022092+00:00"
+    "exported_at": "2026-09-04T17:03:44.633296+00:00"
   }
 }

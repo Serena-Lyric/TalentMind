@@ -34,29 +34,54 @@ def _required_path(package_dir: Path, *relative: str) -> Path:
     return path
 
 
+def _detect_layout(root: Path) -> str | None:
+    """识别回包目录布局：
+    - legacy：input/岗位数据-新一代与现有 布局（新一代/现有分文件）
+    - standard：exchange/m2 标准交接布局（job_definition.json / job_skill.json / job_change_log.json）
+    """
+    if all((root / name).exists() for name in ("新一代岗位_定义.json", "现有岗位_定义.json")):
+        return "legacy"
+    if (root / "job_definition.json").exists():
+        return "standard"
+    return None
+
+
 def load_return_package(package_dir: Path | str | None = None) -> dict[str, Any]:
     root = Path(package_dir or DEFAULT_PACKAGE_DIR)
-    definition_files = [
-        _required_path(root, "新一代岗位_定义.json"),
-        _required_path(root, "现有岗位_定义.json"),
-    ]
-    skill_files = [
-        _required_path(root, "新一代岗位_技能.json"),
-        _required_path(root, "现有岗位_技能.json"),
-    ]
+    layout = _detect_layout(root)
+    if layout is None:
+        raise FileNotFoundError(
+            f"M2 回包目录未识别：{root}（需要 legacy 布局或 standard 布局 job_definition.json）"
+        )
     defs: list[dict[str, Any]] = []
     skills: list[dict[str, Any]] = []
     metadata: dict[str, Any] = {}
-    for path in definition_files:
-        items, head = load_json_items(path)
-        defs.extend(items)
-        metadata[path.name] = head
-    for path in skill_files:
-        items, head = load_json_items(path)
-        skills.extend(items)
-        metadata[path.name] = head
-    logs, log_metadata = load_json_items(_required_path(root, "现有岗位_能力更新日志.json"))
-    metadata["现有岗位_能力更新日志.json"] = log_metadata
+    if layout == "legacy":
+        definition_files = [
+            _required_path(root, "新一代岗位_定义.json"),
+            _required_path(root, "现有岗位_定义.json"),
+        ]
+        skill_files = [
+            _required_path(root, "新一代岗位_技能.json"),
+            _required_path(root, "现有岗位_技能.json"),
+        ]
+        for path in definition_files:
+            items, head = load_json_items(path)
+            defs.extend(items)
+            metadata[path.name] = head
+        for path in skill_files:
+            items, head = load_json_items(path)
+            skills.extend(items)
+            metadata[path.name] = head
+        logs, log_metadata = load_json_items(_required_path(root, "现有岗位_能力更新日志.json"))
+        metadata["现有岗位_能力更新日志.json"] = log_metadata
+    else:  # standard（exchange/m2 标准交接布局）
+        defs, head_def = load_json_items(_required_path(root, "job_definition.json"))
+        metadata["job_definition.json"] = head_def
+        skills, head_skill = load_json_items(_required_path(root, "job_skill.json"))
+        metadata["job_skill.json"] = head_skill
+        logs, head_log = load_json_items(_required_path(root, "job_change_log.json"))
+        metadata["job_change_log.json"] = head_log
 
     def_ids = {str(item.get("job_id", "")) for item in defs if item.get("job_id")}
     skill_ids = {str(item.get("job_id", "")) for item in skills if item.get("job_id")}

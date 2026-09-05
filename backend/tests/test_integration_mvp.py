@@ -7,12 +7,20 @@ from app.main import app
 from app.db.mysql import SessionLocal
 from app.integration.import_exchange import import_all
 from app.integration.import_graph import import_graph
+from app.integration.m2_package import DEFAULT_PACKAGE_DIR
 
 pytestmark = pytest.mark.integration
+
+skip_if_no_legacy = pytest.mark.skipif(
+    not DEFAULT_PACKAGE_DIR.exists(),
+    reason="原 M2 回包(input/岗位数据-新一代与现有)仅存于开发仓库，不随提交物提供",
+)
+
 
 client = TestClient(app)
 
 
+@skip_if_no_legacy
 def test_import_exchange_idempotent():
     first = import_all()
     second = import_all()

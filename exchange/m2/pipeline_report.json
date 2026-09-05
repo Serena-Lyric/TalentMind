@@ -1,31 +1,26 @@
 [
   {
-    "total": 537,
+    "total": 717,
     "rules_rejected": 0,
-    "stage1_passed": 0,
-    "stage1_rejected": 0,
-    "stage1_manual": 0,
-    "stage2_passed": 0,
-    "stage2_rejected": 0,
-    "stage2_manual": 0,
-    "stage3_passed": 0,
-    "stage3_manual": 0,
-    "final_job_definitions": 537,
-    "change_logs": 0,
+    "stage1_passed": null,
+    "stage1_rejected": null,
+    "stage1_manual": null,
+    "stage2_passed": null,
+    "stage2_rejected": null,
+    "stage2_manual": null,
+    "stage3_passed": null,
+    "stage3_manual": null,
+    "final_job_definitions": 717,
+    "change_logs": 275,
     "accuracy": null,
-    "cost": {
-      "total_tokens": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "estimated_cost_usd": 0.0,
-      "api_calls": 0
-    },
+    "cost": null,
     "hallucination_control": {
       "skills_extracted": 6475,
       "removed_hallucinated": 0,
       "downgraded_suspicious": 0,
       "verified_by_two_models": 6475,
       "hallucination_rate": "0.0%"
-    }
+    },
+    "note": "各阶段通过/拒绝计数与 LLM 调用成本未随本次导出记录（value=null 表示未记录）；最终口径以 job_definition.json(717)/job_skill.json(717)/job_change_log.json(275) 及《测试方案与测试报告》为准。"
   }
 ]

@@ -2547,43 +2547,6 @@
     "job_name_zh": "AI 解决方案架构师"
   },
   {
-    "job_id": "j_acb705a6c9d5c774",
-    "job_name": "AI测试开发工程师",
-    "name_en": "AI Test Development Engineer",
-    "category": "新一代",
-    "category_review": "auto",
-    "core_duties": "负责AI测试开发相关工作；文本未提供详细职责描述。",
-    "required_skills": [],
-    "bonus_skills": [
-      "Java 编程语言",
-      "Python",
-      "人工智能"
-    ],
-    "scenarios": [
-      "AI系统测试",
-      "自动化测试"
-    ],
-    "source": [
-      "zhaopin"
-    ],
-    "quality": 0.45,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "emerging",
-      "stage_confidence": 0.5,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "high"
-      }
-    },
-    "first_seen": "2026-08-24 07:20:17",
-    "collected_at": "2026-08-24 07:20:17",
-    "updated_at": "2026-09-01T12:00:11",
-    "source_jd_count": 1,
-    "job_name_zh": "AI测试开发工程师"
-  },
-  {
     "job_id": "j_d9bffb51525b2bd8",
     "job_name": "AI 工具链工程师（医疗方向）",
     "name_en": "AI Toolchain Engineer (Healthcare)",
@@ -12971,45 +12934,6 @@
     "updated_at": "2026-09-01T12:00:11",
     "source_jd_count": 1,
     "job_name_zh": "点云深度学习算法工程师"
-  },
-  {
-    "job_id": "j_a8a3f7c81b344626",
-    "job_name": "博士后",
-    "name_en": "Postdoctoral Researcher",
-    "category": "新一代",
-    "category_review": "auto",
-    "core_duties": "从事AI赋能业务领域的应用研究，聚焦情报学、计算机、数据科学、人工智能、管理工程等交叉方向。",
-    "required_skills": [
-      "人工智能"
-    ],
-    "bonus_skills": [
-      "数据分析",
-      "云计算"
-    ],
-    "scenarios": [
-      "AI赋能业务应用研究",
-      "军事科技情报分析",
-      "科研信息化"
-    ],
-    "source": [
-      "zhaopin"
-    ],
-    "quality": 0.57,
-    "is_emerging": true,
-    "evolution": {
-      "stage": "emerging",
-      "stage_confidence": 0.5,
-      "indicators": {
-        "jd_count_in_batch": 1,
-        "source_diversity": 1,
-        "skill_novelty": "high"
-      }
-    },
-    "first_seen": "2026-08-23 22:03:21",
-    "collected_at": "2026-08-23 22:03:21",
-    "updated_at": "2026-09-01T12:00:11",
-    "source_jd_count": 1,
-    "job_name_zh": "博士后"
   },
   {
     "job_id": "j_7b0b99515920fa9a",

@@ -7144,45 +7144,6 @@
     "skills": []
   },
   {
-    "job_id": "j_acb705a6c9d5c774",
-    "job_name": "AI测试开发工程师",
-    "skills": [
-      {
-        "skill_id": "s_java",
-        "weight": 0.333,
-        "confidence": 0.4,
-        "evidence": "JD #250574: 技能标签: 本科 3-5年 Java Python 人工智能 计算机软件",
-        "evidence_jd_count": 1,
-        "verification": "verified",
-        "is_required": false,
-        "name": "Java 编程语言",
-        "canonical_name": "java"
-      },
-      {
-        "skill_id": "s_python",
-        "weight": 0.333,
-        "confidence": 0.4,
-        "evidence": "JD #250574: 技能标签: 本科 3-5年 Java Python 人工智能 计算机软件",
-        "evidence_jd_count": 1,
-        "verification": "verified",
-        "is_required": false,
-        "name": "Python",
-        "canonical_name": "python"
-      },
-      {
-        "skill_id": "s_人工智能",
-        "weight": 0.333,
-        "confidence": 0.4,
-        "evidence": "JD #250574: 技能标签: 本科 3-5年 Java Python 人工智能 计算机软件",
-        "evidence_jd_count": 1,
-        "verification": "verified",
-        "is_required": false,
-        "name": "人工智能",
-        "canonical_name": "人工智能"
-      }
-    ]
-  },
-  {
     "job_id": "j_d9bffb51525b2bd8",
     "job_name": "AI 工具链工程师（医疗方向）",
     "skills": [
@@ -20592,45 +20553,6 @@
         "is_required": false,
         "name": "人工智能",
         "canonical_name": "人工智能"
-      }
-    ]
-  },
-  {
-    "job_id": "j_a8a3f7c81b344626",
-    "job_name": "博士后",
-    "skills": [
-      {
-        "skill_id": "s_人工智能",
-        "weight": 0.529,
-        "confidence": 0.9,
-        "evidence": "JD #250074: 具备AI赋能业务领域应用的研究能力",
-        "evidence_jd_count": 1,
-        "verification": "verified",
-        "is_required": true,
-        "name": "人工智能",
-        "canonical_name": "人工智能"
-      },
-      {
-        "skill_id": "s_数据分析",
-        "weight": 0.294,
-        "confidence": 0.5,
-        "evidence": "JD #250074: 数据分析、管理工程等相关专业",
-        "evidence_jd_count": 1,
-        "verification": "verified",
-        "is_required": false,
-        "name": "数据分析",
-        "canonical_name": "数据分析"
-      },
-      {
-        "skill_id": "s_云计算",
-        "weight": 0.176,
-        "confidence": 0.3,
-        "evidence": "JD #250074: 技能标签: 博士 云计算 人工智能",
-        "evidence_jd_count": 1,
-        "verification": "verified",
-        "is_required": false,
-        "name": "云计算",
-        "canonical_name": "云计算"
       }
     ]
   },
