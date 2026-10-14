@@ -819,6 +819,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 内容: 症状 → 根因 → 修复 → 教训。
 
 已有陷阱:
+- 2026-10-14 备份 tar 硬链接遗漏与 Neo4j 无网络恢复启动退出（`docs/superpowers/traps/2026-10-14-backup-hardlinks-and-neo4j-network.md`）
 - 2026-09-03 前端重整后 JD 岗位详情技能增删丢失（`docs/superpowers/traps/2026-09-03-jobs-skill-edit-restore.md`）
 - 2026-09-04 简历预览页 项目经历/竞赛与荣誉/自我评价 空内容与错误占位（`docs/superpowers/traps/2026-09-04-resume-preview-empty-sections.md`）
 - 2026-09-02 图谱岗位节点点击后详情栏空白：列表字段以 JSON 字符串返回（`docs/superpowers/traps/2026-09-02-graph-job-node-detail-render-crash.md`）

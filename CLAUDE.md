@@ -1,5 +1,7 @@
 # CLAUDE.md — TalentMind 项目
 
+> **2026-10-14 冻结与恢复交接**：V1 分支 `archive/competition-v1` 固定在 `4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`，master 后续开发。私有备份 `D:\backup\TalentMind-2026-10-14` 已恢复核验，但尚无离机私有副本；当前冷卷 JD=2988、竞赛 SQL=2984，两版保留，其他分析层仍 717/717/275、图谱 7845/11412。见 `docs/仓库冻结与资产保全报告-2026-10-14.md`、`docs/V1恢复手册.md` 与 `docs/superpowers/traps/2026-10-14-backup-hardlinks-and-neo4j-network.md`。恢复/测试使用新卷，原库不重建。
+
 
 >
  

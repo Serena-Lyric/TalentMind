@@ -41,3 +41,7 @@ output/
 docs/submit/
 docs/originalfile/
 docs/前端卡通图片/
+
+# V1 本机归档与参赛提交包：含原始数据、配置及个人信息，仅私有备份
+/TalentMind-external-archives/
+/广州应用科技学院-*-TalentMind*/
