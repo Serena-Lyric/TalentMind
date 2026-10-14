@@ -1,0 +1,184 @@
+{
+  "job_definition": {
+    "id": 7218,
+    "job_name": "Senior PHP Developer",
+    "core_duties": "Develop, implement and maintain PHP Laravel web applications; update legacy Laravel framework to current release and PHP code from 7.x to 8.x; troubleshoot and debug existing applications.",
+    "required_skills": [
+      "php",
+      "laravel",
+      "object-oriented programming",
+      "mysql",
+      "mvc design patterns",
+      "html/css/javascript",
+      "front-end technologies (html5, css3, javascript)",
+      "restful apis",
+      "communication"
+    ],
+    "bonus_skills": [
+      "git",
+      "agile development methodologies",
+      "aws, azure",
+      "e-commerce platforms"
+    ],
+    "scenarios": [
+      "Remote web product enhancement",
+      "Online platform feature iteration",
+      "Enterprise web application development and maintenance",
+      "E-commerce web application development",
+      "Legacy PHP/Laravel modernization",
+      "API-driven web services"
+    ],
+    "source": [
+      "linkedin"
+    ],
+    "quality": 0.73,
+    "is_emerging": 0,
+    "evolution": {
+      "stage": "mature",
+      "indicators": {
+        "skill_novelty": "medium",
+        "source_diversity": 1,
+        "jd_count_in_batch": 3
+      },
+      "stage_confidence": 0.85
+    },
+    "first_seen": "2026-08-16 11:21:56",
+    "collected_at": "2026-08-16 11:21:56",
+    "updated_at": "2026-08-29 20:57:24"
+  },
+  "job_skill": {
+    "job_name": "Senior PHP Developer",
+    "skills": [
+      {
+        "name": "php",
+        "weight": 0.094,
+        "evidence": "JD #111503: Expertise in PHP development",
+        "skill_id": "s_php",
+        "confidence": 0.95,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 3
+      },
+      {
+        "name": "laravel",
+        "weight": 0.094,
+        "evidence": "JD #113848: Proven experience as a PHP Laravel Developer",
+        "skill_id": "s_laravel",
+        "confidence": 0.95,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "object-oriented programming",
+        "weight": 0.089,
+        "evidence": "JD #111503: object-oriented programming principles",
+        "skill_id": "s_object-oriented programming",
+        "confidence": 0.9,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 1
+      },
+      {
+        "name": "mysql",
+        "weight": 0.089,
+        "evidence": "JD #113848: Experience with relational databases such as MySQL",
+        "skill_id": "s_mysql",
+        "confidence": 0.9,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 3
+      },
+      {
+        "name": "mvc design patterns",
+        "weight": 0.089,
+        "evidence": "JD #113848: MVC design patterns",
+        "skill_id": "s_mvc design patterns",
+        "confidence": 0.9,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "html/css/javascript",
+        "weight": 0.084,
+        "evidence": "JD #111503: HTML, CSS, and JavaScript",
+        "skill_id": "s_html/css/javascript",
+        "confidence": 0.85,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 1
+      },
+      {
+        "name": "front-end technologies (html5, css3, javascript)",
+        "weight": 0.084,
+        "evidence": "JD #113848: HTML5, CSS3, Javascript",
+        "skill_id": "s_front-end technologies (html5, css3, javascript)",
+        "confidence": 0.85,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "restful apis",
+        "weight": 0.084,
+        "evidence": "JD #113848: RESTful APIs and web services",
+        "skill_id": "s_restful apis",
+        "confidence": 0.85,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "communication",
+        "weight": 0.079,
+        "evidence": "JD #111503: Excellent communication and collaboration skills",
+        "skill_id": "s_communication",
+        "confidence": 0.8,
+        "is_required": true,
+        "verification": "verified",
+        "evidence_jd_count": 1
+      },
+      {
+        "name": "git",
+        "weight": 0.054,
+        "evidence": "JD #113848: version control systems such as Git",
+        "skill_id": "s_git",
+        "confidence": 0.55,
+        "is_required": false,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "agile development methodologies",
+        "weight": 0.054,
+        "evidence": "JD #113848: Understanding of Agile development methodologies",
+        "skill_id": "s_agile development methodologies",
+        "confidence": 0.55,
+        "is_required": false,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "aws, azure",
+        "weight": 0.054,
+        "evidence": "JD #113848: cloud platforms such as AWS and Azure",
+        "skill_id": "s_aws, azure",
+        "confidence": 0.55,
+        "is_required": false,
+        "verification": "verified",
+        "evidence_jd_count": 2
+      },
+      {
+        "name": "e-commerce platforms",
+        "weight": 0.05,
+        "evidence": "JD #111503: e-commerce platforms or projects is preferred",
+        "skill_id": "s_e-commerce platforms",
+        "confidence": 0.5,
+        "is_required": false,
+        "verification": "verified",
+        "evidence_jd_count": 1
+      }
+    ]
+  }
+}

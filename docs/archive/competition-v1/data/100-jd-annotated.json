@@ -1,0 +1,927 @@
+[
+  {
+    "jd_id": 111569,
+    "job_title": "Assistant Director of Admission, Midwest Regional Representative",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "招生助理主任，中西部区域代表\n职位概述：巴特勒大学招生办公室寻求一位充满活力、经验丰富的招生专业人员加入我们的团队，担任中西部区域代表。候选人必须注重细节"
+  },
+  {
+    "jd_id": 111656,
+    "job_title": "Accounts Analyst",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "会计分析师\n公司描述：McNaughton Bros. Inc. 是一家位于宾夕法尼亚州印第安纳州的搬运和仓储公司。我们专注于提供家用物品、办公和工业搬运及仓储服务。除了..."
+  },
+  {
+    "jd_id": 111672,
+    "job_title": "Senior Mechanical Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "高级机械工程师\n高级机械工程师\n关于Dexterity：在Dexterity，我们正在构建机器人自动化系统，以在仓库中执行拾取-放置-打包任务。我们的端到端自动化系统使用智能软..."
+  },
+  {
+    "jd_id": 111708,
+    "job_title": "Admin/HR/Customer Support",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "行政/人力资源/客服\nA&B Machine and Design 是一家成长中的家族企业，为全国领先的美国制造商生产优质零件，服务于多个行业，包括汽车、食品设备、航空航天等。"
+  },
+  {
+    "jd_id": 111738,
+    "job_title": "Design Engineer (Stellantis Background)",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "设计工程师（Stellantis背景）\n职位名称：模具设计工程师（Stellantis设计背景）\n地点：密歇根州罗斯维尔\n工作类型：全职\n职责：审查工艺布局和模具设计，确保符合客户要求——"
+  },
+  {
+    "jd_id": 111769,
+    "job_title": "Social Media Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "社交媒体经理\n关于我们：Betsy Bash 是一家精品数字叙事机构，我们热情地创建引人注目的社交媒体策略，为值得的、有动力的、且……"
+  },
+  {
+    "jd_id": 111795,
+    "job_title": "Creative Development Intern",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "创意开发实习生。EverWonder Studio正在寻找夏季学期的创意开发实习生！职责：我们的实习生将帮助我们的开发团队充实新的非虚构故事片、纪录片系列、节目形式等等。"
+  },
+  {
+    "jd_id": 111804,
+    "job_title": "Senior Linux/RedHat Engineer",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [
+      "Linux",
+      "RedHat"
+    ],
+    "text_head_zh": "高级Linux/RedHat工程师\n公司描述：Vtechys是一家价格实惠且可靠的组织，为软件和硬件问题提供端到端解决方案，例如计算机、笔记本电脑和打印机。我们的目标是帮助客户解决技术问题。"
+  },
+  {
+    "jd_id": 111813,
+    "job_title": "Physical Therapist Tech",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "物理治疗师技术员 *******在提交此职位申请之前请阅读以下要求******- 必须是积极向上的人。- 必须注重细节。- 必须能够同时处理多项任务。北县精品物理治疗"
+  },
+  {
+    "jd_id": 111820,
+    "job_title": "Senior Account Executive",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "高级客户主管 基本职责与责任：文档管理。管理客户保险项目，使用机构管理系统。通常管理比客户主管更大更复杂的账户。"
+  },
+  {
+    "jd_id": 111895,
+    "job_title": "Service Specialist",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "服务专员\n这是一个位于纽约州斯卡斯代尔芬威高尔夫俱乐部的全职、现场岗位。外部服务人员负责为顾客提供出色的客户服务。"
+  },
+  {
+    "jd_id": 111906,
+    "job_title": "Software Engineer",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "软件工程师\n*该职位完全在现场办公，并且需要说流利的英语，因为与客户沟通是必要的。*软件工程师1，在应用开发经理和高级..."
+  },
+  {
+    "jd_id": 111928,
+    "job_title": "Marketing Coordinator / Graphics Specialist",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "市场协调员/图形专家\n关于MCA：Marshall Craft Associates (MCA) 是一家提供全方位设计服务的设计公司，在大西洋中部地区一直名列前茅。MCA的总部位于"
+  },
+  {
+    "jd_id": 111931,
+    "job_title": "Property Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "物业经理\n公司描述：Cornerstone Property Management, CREG Inc. 是一家物业管理公司，服务于南湾地区，特别是圣克拉拉县。拥有超过二十年的综合经验，C"
+  },
+  {
+    "jd_id": 111942,
+    "job_title": "Mid-Market Account Executive",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "中端市场客户经理。Chargezoom正在寻找一位中端市场客户经理来帮助我们增加收入。我们有望在未来12个月内规模扩大4倍，但需要有动力和决心的销售专业人员来达到这一目标。"
+  },
+  {
+    "jd_id": 112023,
+    "job_title": "Education Coordinator",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "教育协调员\n关于国家公园信托：国家公园信托的使命是保护今天的公园，为明天培养公园守护者。我们与国家公园管理局紧密合作，收购私人拥有的土地。"
+  },
+  {
+    "jd_id": 112065,
+    "job_title": "Technical Writer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "技术文档撰写员：职位名称：技术文档撰写员 地点：美国伊利诺伊州芝加哥，60629 时长：6个月以上（可能延长） 工作时间：上午9点至下午6点 100%在岗-非远程 摘要：修改以下内容以准确..."
+  },
+  {
+    "jd_id": 112181,
+    "job_title": "Part-Time CFO/Controller",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "兼职CFO/财务总监。公司描述：不仅仅是兼职CFO，我们提供全套会计服务，协助任何规模的组织。服务所有行业，营利性和非营利性，我们帮助您转型..."
+  },
+  {
+    "jd_id": 112222,
+    "job_title": "IT Project Manager (Remote Work Available)",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "IT项目经理（可远程工作）\n雇主行业：市场营销与传播\n\n为什么考虑这个工作机会\n\n薪资高达10万美元，组织内有职业发展和晋升机会，优秀福利待遇。"
+  },
+  {
+    "jd_id": 112242,
+    "job_title": "Structural Design Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "结构设计工程师。岗位类型：全职。公司：MKM & Associates 结构工程。地点：加利福尼亚州罗内特公园。发布日期：2024年4月5日。薪资范围：年度基本薪资范围为..."
+  },
+  {
+    "jd_id": 112464,
+    "job_title": "Senior Director, Epidemiology (REMOTE 100%)",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "高级总监，流行病学（100%远程）\n职位名称：高级总监，流行病学W2合同和100%远程角色\n所需教育和经验：-• 流行病学研究生学位• 10年以上作为流行病学家的行业经验，必须 "
+  },
+  {
+    "jd_id": 112471,
+    "job_title": "Respiratory Care Practitioner",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "呼吸护理从业者\n描述\n符合条件的合格外部聘用人员可获得6,000美元入职奖金，且需满足相应资格和支付条件——这是除提供的优厚福利和薪酬方案之外的额外奖励。"
+  },
+  {
+    "jd_id": 112516,
+    "job_title": "HRIS & People Data Administrator",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "HRIS与人员数据管理员\n我们的客户是一家全球制造公司，正在为北卡罗来纳州夏洛特市的一个6个月以上的合同项目寻找一名HRIS与人员数据管理员。该职位为混合办公，60%的时间将..."
+  },
+  {
+    "jd_id": 112527,
+    "job_title": "Group Benefits Account Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "团体福利客户经理\n关于我们\nKeyes Coverage的起源可以追溯到20世纪50年代末，当时它在纽约运营。南佛罗里达州的Keyes Coverage由Murray Keyes和他的儿子们于1975年创立。"
+  },
+  {
+    "jd_id": 112543,
+    "job_title": "Associate Communications Specialist - Transit Control Center",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "副通信专员 - 交通控制中心\n我们是都会委员会，明尼苏达州双城都会区七县的区域政府。我们为都会区未来规划30年，并提供区域交通..."
+  },
+  {
+    "jd_id": 112580,
+    "job_title": "Corporate Accountant",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "公司会计师 曼哈顿中城顶级基金正在招聘一名永久公司会计师！ 职责：负责资本调用和分配的编制/输入/记录，分析成员账户..."
+  },
+  {
+    "jd_id": 112612,
+    "job_title": "Network Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "网络工程师\n职位名称 - 网络工程师 地点 - 堪萨斯州欧弗兰帕克（现场）工作类型 - 全职 职位描述：职责 至少13年以上信息技术经验。必须非常强。"
+  },
+  {
+    "jd_id": 112613,
+    "job_title": "Lead ICFR Analyst / SME  (Internal controls, Big 4, Accounting, Audit) - Remote & Onsite 1 Day a week- LOCALS ONLY",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "ICFR首席分析师/主题专家（内部管控，四大，会计，审计）- 远程与每周一天现场-仅限本地候选人 这是直接客户需求！鼓励无需赞助工作授权者申请。请联系Saakshi Sahni - 703-955-1070 邮箱：saakshi(at)zilliontechnologies(dot)com // 7039"
+  },
+  {
+    "jd_id": 112641,
+    "job_title": "Quality Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "质量工程师\n职位名称：质量工程师\n一家全球性汽车公司正在寻找一名质量工程师加入他们的团队。公司提供：\n全面的福利、职业发展和稳定性、搬迁援助"
+  },
+  {
+    "jd_id": 112715,
+    "job_title": "Graphic Designer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "平面设计师\n职位名称：平面设计师 时薪：35-38美元/小时 地点：伊利诺伊州博林布鲁克 - 60440 时长：3个月 工作类型：混合办公 职位描述：在我们的数字市场中开发和推动创新解决方案"
+  },
+  {
+    "jd_id": 112795,
+    "job_title": "Vice President Internal Audit",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "副总裁内部审计\n我们最大的投资银行客户之一正在寻找内部审计顾问加入风险/财务内部审计团队。该团队专注于各种监管相关的审计项目"
+  },
+  {
+    "jd_id": 112883,
+    "job_title": "Nurse - LPN - LTC",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "护士 - LPN - 长期护理\n我们的客户正在寻找有执照的执业护士（LPN）加入他们不断壮大的团队。作为LPN，您将在注册护士的指导下工作，并记录所有患者笔记以制定全面的护理方案。"
+  },
+  {
+    "jd_id": 112961,
+    "job_title": "SRE/DevOps Support Engineer (W2 Only)",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "SRE/DevOps支持工程师（仅W2） SRE-DevOps角色——支持角色 地点-芝加哥，伊利诺伊州（尽量本地）JPMC电话备注。周一、周二、周三（办公室工作）理想情况下候选人应该是本地人，但愿意接受搬迁候选人。应用支持候选人"
+  },
+  {
+    "jd_id": 112981,
+    "job_title": "HR Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "人力资源经理\n职位概述\n\n英格索兰压缩系统与服务美洲业务部（CSS）在全球范围内提供广泛的优质压缩技术与服务。我们有一个机会为一位"
+  },
+  {
+    "jd_id": 113028,
+    "job_title": "Executive Chef",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "行政主厨\n公司描述\n Pinheads 是一个位于大印第安纳波利斯地区的多功能娱乐场所。我们的设施包括一家全方位服务的餐厅、最先进的保龄球馆和一个令人印象深刻的游戏厅。"
+  },
+  {
+    "jd_id": 113086,
+    "job_title": "Front Desk Support",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "前台支持\n公司描述：Apexon是一家总部位于华盛顿州奥林匹亚的数字优先技术服务公司。凭借超过17年的经验，我们专注于加速业务转型和交付人力..."
+  },
+  {
+    "jd_id": 113317,
+    "job_title": "Staff Quality Assurance Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "高级质量保证工程师 作为Thermo Fisher Scientific团队的一员，您将发现对全球产生积极影响的有意义的工作。加入我们的同事，每天将我们的使命变为现实，以..."
+  },
+  {
+    "jd_id": 113333,
+    "job_title": "Manufacturing Engineer II",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [
+      "Validation and procedure design (IQ, OQ, MSA, TMV, PQ, FAT, SAT, SOP)",
+      "Assembly equipment experience"
+    ],
+    "text_head_zh": "制造工程师 II\n职位描述\n该职位要求的三大技术技能：\n验证和程序设​​计经验（IQ、OQ、MSA、TMV、PQ、FAT、SAT、SOP）\n丰富的组装设备经验"
+  },
+  {
+    "jd_id": 113375,
+    "job_title": "Sales Representative - Dearing Compressor & Pump Co.",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "销售代表 - Dearing Compressor & Pump Co. 您是否希望成为建立在卓越和承诺基础上的遗产的一部分，在那里您的成功潜力是无限的？想象一份销售职业，您的目标不仅仅是愿望——它们"
+  },
+  {
+    "jd_id": 113383,
+    "job_title": "Instrument & Controls Technician, Solar - Central Texas",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "太阳能仪器与控制技术员（德克萨斯中部）\n\n描述和要求\n\n请注意：此职位为远程职位，必须位于德克萨斯中部/达拉斯地区。此职位需要定期访问该地区的现场。\n\n我们是谁"
+  },
+  {
+    "jd_id": 113400,
+    "job_title": "Director of National Quality Management",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "国家质量管理总监 国家质量管理总监地点：该职位将采用混合工作模式（远程和办公室）。理想候选人应居住在Elevance Health PulsePoint地点50英里以内。"
+  },
+  {
+    "jd_id": 113405,
+    "job_title": "Health Assistant Actuary - PR12729",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "健康助理精算师 - PR12729\n健康助理精算师职位，工作地点在宾夕法尼亚州/新泽西州/特拉华州。分析基于价值的合同，并支持涉及医疗保险和商业健康险的医疗成本分析，以及/或其他精算职能。"
+  },
+  {
+    "jd_id": 113465,
+    "job_title": "SERVICE TECHNICIAN I",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "服务技术员 I\n\n概述\n\n确定并执行液压设备的必要评估、诊断、更换和维修，只需最少的监督。按照公司要求提供维修的书面文件。"
+  },
+  {
+    "jd_id": 113479,
+    "job_title": "Executive Assistant",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "行政助理\n你是一位出色的沟通者、组织大师，并且渴望在充满活力的技术驱动环境中工作吗？如果是这样，我们有一个激动人心的机会，邀请你加入我们的数字、战略部门。"
+  },
+  {
+    "jd_id": 113485,
+    "job_title": "RVP, Sales - North America",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "销售副总裁 - 北美 | 关于该职位：向首席营收官汇报，北美和加拿大销售团队的销售副总裁是一个关键角色，专注于领导和指导一组企业客户经理。该职位涉及..."
+  },
+  {
+    "jd_id": 113502,
+    "job_title": "Commercial BDR Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "商业BDR经理。Sigma是一个商业智能和数据探索平台，正在改变分析格局。Sigma提供类似电子表格的界面，使所有决策者能够安全地分析"
+  },
+  {
+    "jd_id": 113507,
+    "job_title": "Membership Director",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "会员总监\n职位概述：会员总监指导和监督会员参与和沟通的所有方面，从新会员招募到监督会员委员会，同时还需发展..."
+  },
+  {
+    "jd_id": 113565,
+    "job_title": "Quality Control Technician",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "质量控制技术员\n岗位描述\n\n职责：在质量体系内对材料、组件和产品以及工作过程提供独立评估，作为质量和生产支持资源以确保合规性。"
+  },
+  {
+    "jd_id": 113594,
+    "job_title": "Enterprise Product Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "企业产品经理\nPerplexity正在寻找一位经验丰富的产品经理加入我们的团队，我们正在彻底改变人们搜索和与互联网互动的方式。你将负责构想搜索的未来。"
+  },
+  {
+    "jd_id": 113723,
+    "job_title": "On-Site Hiring Event for Medical Assistants, LPNs, and Medical Office Coordinators",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "医疗助理、LPN和医疗办公室协调员现场招聘活动\n公司：Signature Healthcare\n地点：110 Liberty Street, Brockton, MA 02301\n日期：2024年4月11日，星期四\n时间：下午3:30 - 下午5:30\n我们正在三个紧急护理中心招聘，包括650 Centre Str"
+  },
+  {
+    "jd_id": 113771,
+    "job_title": "Supply Analyst - Hybrid",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "供应链分析师 - 混合办公\n描述：可能延长，3天现场办公，2天远程\n职位描述职能：供应链；部门：供应链；需要一些出差\n职位摘要：这个混合职位将在现场..."
+  },
+  {
+    "jd_id": 113827,
+    "job_title": "RM - Program Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "RM - 项目经理\n职位：项目经理\n\n时长：10个月合同\n薪资范围：$55-$65/小时（W2）\n我们正在寻找一位“RM项目经理”加入我们财富500强客户之一。\n\n职责\n\n构建..."
+  },
+  {
+    "jd_id": 113830,
+    "job_title": "General Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "总经理\n客户是一家现代的、具有全球灵感的小餐馆（以及全套酒吧），提供来自世界各地的精选菜肴的美味版本，正在寻找一位经验丰富的总经理来领导和发展"
+  },
+  {
+    "jd_id": 113838,
+    "job_title": "Project Engineer/Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "项目工程师/经理\n我们的客户正在寻找一位项目工程师/经理加入他们的团队。作为项目工程师/经理，您将成为部门和支持团队的一员。\n\n职位名称：项目工程师/经理"
+  },
+  {
+    "jd_id": 113881,
+    "job_title": "Registered Nurse (RN) - Thoracic Cardiovascular Surgical Acute & Intermediate Unit - Weekend Program",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "注册护士（RN）- 胸心血管外科急症与中级病房 - 周末项目。周末项目提供仅周末轮班的工作安排，并给予更高的薪酬。周末项目要求承诺在12个月内完成48个预定周末的工作，从首个预定周末开始。"
+  },
+  {
+    "jd_id": 114235,
+    "job_title": "Lead Warehouse Worker- 3rd Shift",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "仓库工人组长-第三班\n职位概述：\n\nPenske Logistics正在寻找仓库员工加入一支优秀的团队。这对于注重安全且态度愉快的人来说是一个很好的机会，..."
+  },
+  {
+    "jd_id": 114257,
+    "job_title": "Insurance Agent",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "保险代理人 公司描述 我们建议您在此处输入详细信息。 职位描述 这是LA WEST INSURANCE SERVICES的一个全职保险代理人角色。作为保险代理人，您将负责..."
+  },
+  {
+    "jd_id": 114360,
+    "job_title": "Service Technician",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "服务技术员\n起薪为每小时25美元，根据经验可以上涨！\n\n服务技术员\n\n阿拉巴马州特拉斯维尔\n\n关于我们\n\n在英格索兰，我们像主人一样思考和行动——对我们的业务、我们的社区、我们的..."
+  },
+  {
+    "jd_id": 114364,
+    "job_title": "NLP/data science/Data Analysis(Intern apr 30)",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [
+      "NLP",
+      "Data Science",
+      "Data Analysis",
+      "Big Data",
+      "Analytics"
+    ],
+    "text_head_zh": "NLP/数据科学/数据分析（实习，4月30日截止）理想的候选人将对大数据和分析充满热情，为业务提供涵盖一系列主题的见解。他们将负责进行定期和临时性的分析。"
+  },
+  {
+    "jd_id": 114569,
+    "job_title": "Inside Sales Application Engineer II",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "内部销售应用工程师II 应用工程师II 我们正在寻找一位具有工业产品售前和售后支持经验的人员，服务于水处理、油气和/或石化行业。"
+  },
+  {
+    "jd_id": 114605,
+    "job_title": "Sales Assistant, JS Dallas",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "销售助理，JS Dallas。JIL SANDER，高端奢侈品牌，是现代与精致的缩影。它对当代设计的无条件奉献将优雅与纯净与创新材料和..."
+  },
+  {
+    "jd_id": 114627,
+    "job_title": "Account Management Specialist - Automotive Vertical",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "客户管理专员 - 汽车垂直领域\n职位描述\n\n该客户管理专员支持高级客户经理、主管/客户经理进行项目管理和项目执行，跨内部团队协作，同时还提供"
+  },
+  {
+    "jd_id": 114798,
+    "job_title": "LPN Licensed Practical Nurse",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "LPN 执业护师\n\n职位详情\n\n就业状态：PRN\n薪资：40.00 美元/小时\n班次：所有班次\n\n践行使命\n\n$4,000 签约奖金！\n\n加入我们，与我们一起成长！我们隶属于美国生命护理中心，这是一家"
+  },
+  {
+    "jd_id": 114803,
+    "job_title": "Mobile Billing Coordinator II",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "移动计费协调员 II\nCox Automotive Mobility Fleet Services 让您的车队保持运转！\n总部位于印第安纳波利斯的 Cox Automotive Mobility Fleet Services (CAMFS) 已发展成为最大的车队维护服务提供商之一"
+  },
+  {
+    "jd_id": 114873,
+    "job_title": "RN Registered Nurse $4,000 Sign-on Bonus",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "注册护士（RN）$4,000签约奖金\n\n职位详情\n\n就业状态：全职\n薪资：每小时32.00美元\n班次：下午3点至晚上11点\n状态：全职\n\n践行使命\n\n加入我们，共同成长！我们隶属于美国生命护理中心（Life Care Centers of America），该中心"
+  },
+  {
+    "jd_id": 114881,
+    "job_title": "Analyst - Life Cycle 1",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "分析师 - 生命周期 1\n部门：企业\n部门：生命周期分析师\n工作时间：周一至周五 8-5\n为什么你会喜欢可口可乐联合公司？\n关于我们\n私有制并经营，拥有100多年的历史实力和..."
+  },
+  {
+    "jd_id": 115029,
+    "job_title": "Vehicle Check In Clerk I (Manheim)",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "车辆登记文员 I (Manheim)\n该职位负责正确登记客户车辆以进行拍卖销售，并进行场外注册。\n\n主要职责\n\n- 将准确的车辆信息输入AS400计算机系统"
+  },
+  {
+    "jd_id": 115072,
+    "job_title": "Climate Sustainability Intern",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "气候可持续性实习生\n关于MSF-USA | 无国界医生\n\n无国界医生（Médecins Sans Frontières，MSF）是一个国际人道组织，为受冲突、流行病、自然灾害影响的人群以及被排除在医疗保健之外的人群提供医疗护理。"
+  },
+  {
+    "jd_id": 115178,
+    "job_title": "Senior Writer - Corporate Communications",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "高级撰稿人 - 企业传播\n\n职位描述\n\n该职位为混合办公模式，每周有（3）天需在位于伊利诺伊州诺斯布鲁克或芝加哥市中心办公室工作。\n\n想帮助让世界变得更安全、更有保障、更可持续吗？我们正在寻找"
+  },
+  {
+    "jd_id": 115184,
+    "job_title": "Customer Success Associate",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "客户成功专员\n在这个角色中，您将在确保客户对我们产品和服务的成功与满意度方面发挥重要作用。作为客户成功专员，您将有机会与...（原文不完整）"
+  },
+  {
+    "jd_id": 115214,
+    "job_title": "Nurse Practitioner",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "执业护士\n健康未来家庭医学诊所正在寻找全职或兼职的NP或PA。有竞争力的薪资。提供孕期超声测孕、输精管切除术和性别肯定护理的培训。"
+  },
+  {
+    "jd_id": 115275,
+    "job_title": "Client Advocate - Natural Resources",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "客户倡导者 - 自然资源\n工作描述\n\n客户倡导者负责培养和维护客户关系，包括在保险项目层面制定和执行战略。他们拥有"
+  },
+  {
+    "jd_id": 115367,
+    "job_title": "DATA CENTER PROJECT MANAGER",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "数据中心项目经理\n卡特机械\n类别：项目管理\n发布日期：2024年4月5日\n requisition编号：DATAC004338\n EOE声明\n平等机会雇主/受保护退伍军人/残疾人"
+  },
+  {
+    "jd_id": 115373,
+    "job_title": "Customer Care/Warranty Service Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "客户关怀/保修服务经理\n职位描述\n\nDavid Weekley Homes 正在寻找一位保修服务经理加入我们的明尼阿波利斯-圣保罗团队。该职位要求应聘者具有主动性，能够独立工作，并且..."
+  },
+  {
+    "jd_id": 115547,
+    "job_title": "Travel Nurse RN - ICU/Critical Care - $2,003 to $2,221 per week in Montgomery, AL",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "旅行护士RN - ICU/重症监护 - 每周$2,003至$2,221，位于阿拉巴马州蒙哥马利\nTravelNurseSource正在与LRS Healthcare合作，在阿拉巴马州蒙哥马利（邮编36116）寻找一名合格的ICU/重症监护注册护士。\n薪资信息\n关于该职位\n准备好开始你的下一次旅行冒险"
+  },
+  {
+    "jd_id": 115728,
+    "job_title": "Licensed Practical Nurse Personal Care Management Evaluation",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "执业护士个人护理管理评估\n描述：\n摘要/目标\n这是一个很好的机会，让执业护士在PCA评估部门工作，这是一个独特的项目，真正带来奇妙的变化"
+  },
+  {
+    "jd_id": 115811,
+    "job_title": "Program Manager Non - Tech 4",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "项目经理 非技术 4 职责：按照EPC数字化团队的指示，进行数据验证和分析；与EPC数字化团队合作，按照指示为正在开发的工具和系统提供支持。"
+  },
+  {
+    "jd_id": 115845,
+    "job_title": "Customer Service Representative-UT",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "客户服务代表-UT\n职位名称：客户支持代表/客户代表-高级\n地点：680 West 10000 South South Jordan UT\n时长：6个月合同\n薪资：$21.99/小时（W2）\n优先标准：我们优先考虑"
+  },
+  {
+    "jd_id": 115854,
+    "job_title": "Staff Nurse, Correctional Health Services **Night Tour** (8pm-8:30am, MWF), GRVC",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "Staff Nurse， Correctional Health Services **夜班**（晚上8点至早上8:30，周一、三、五），GRVC。关于NYC Health + Hospitals：NYC Health + Hospitals是全国最大的公共医疗保健系统。我们是一个由11家医院、创伤中心、社区健康中心、疗养院组成的网络。"
+  },
+  {
+    "jd_id": 115901,
+    "job_title": "FIELD SERVICE TECH II",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "现场服务技术员 II\n博彩行业：欢迎来到实体博彩的世界。在Light & Wonder，一切都关乎游戏，我们的博彩团队为最具标志性的赌场构建尖端技术、产品和内容。"
+  },
+  {
+    "jd_id": 115939,
+    "job_title": "sales and operation assistant",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "销售和运营助理\n公司描述：De Nigris家族三代以来一直以热情和知识致力于醋的生产，不懈地追求最高品质的产品。"
+  },
+  {
+    "jd_id": 115975,
+    "job_title": "Research Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "研究工程师\n加入一个因领导力、创新和多样性而受到认可的团队\n未来由你创造！\n在霍尼韦尔先进互联可持续技术（ACST）部门，我们杰出的思想家团队"
+  },
+  {
+    "jd_id": 116053,
+    "job_title": "Renewables Structural Project Engineer",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "可再生能源结构项目工程师\n概述\n\n结构项目工程师 - 明尼苏达州明尼通卡\n\nWestwood Professional Services, Inc.\n\nWestwood Professional Services, Inc. 正在招聘一名结构项目工程师，加入我们的可再生能源团队。"
+  },
+  {
+    "jd_id": 116067,
+    "job_title": "Clinical Lab Supervisor - Generalist",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "临床实验室主管 - 全科\n2024-62187\n\nNorthside Hospital是一家屡获殊荣、最先进的且持续发展的医院。我们不断扩大对患者和社区的护理质量和范围，从而创造更多机会..."
+  },
+  {
+    "jd_id": 116097,
+    "job_title": "Company A Driver, Low Boy",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "公司A低平板车司机\n需求ID：5401\n\n地址：美国科罗拉多州亨德森，邮编80640\n\n薪酬类型：时薪\n\n预计时薪范围：21.48美元至32.49美元\n\n你准备好与我们共同建设进步了吗？\n\n我们的宗旨驱动着我们：为人们建设进步"
+  },
+  {
+    "jd_id": 116107,
+    "job_title": "Documentation Tracker, HH",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "文档追踪员，家庭健康 - 沃斯堡\n\n部门：行政\n\n班次：第一班（美国）\n\n标准每周工时：40\n\n摘要：该职位将负责文档的有序流转。"
+  },
+  {
+    "jd_id": 116115,
+    "job_title": "Strategy Advisor/Consultant - Enterprise Strategy (Hybrid)",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "战略顾问/咨询师 - 企业战略（混合办公）\n公司描述：\n在房利美，未来得以创造。我们所做的鼓舞人心的工作帮助数百万房主和租房者实现拥有住房的可能。每天都有引人注目的机会来产生影响。"
+  },
+  {
+    "jd_id": 116127,
+    "job_title": "Senior Manager, Expert Technology",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "高级专家技术经理\n在Asurion，我们不仅仅是重新定义——我们是在重塑。我们首先建立了一种奖励成果且不受层级限制的文化。因此，我们实现了惊人的增长。今天，这家公司..."
+  },
+  {
+    "jd_id": 116170,
+    "job_title": "SAP ISU ABAP, CDS view, AMDP, C4C",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [
+      "SAP ISU ABAP",
+      "CDS view",
+      "AMDP",
+      "C4C",
+      "ABAP on HANA",
+      "FIORI"
+    ],
+    "text_head_zh": "SAP ISU ABAP, CDS视图, AMDP, C4C。必须具备SAP ISU ABAP和FICA的实践经验。必须具备SAP ABAP on HANA的实践经验，专注于CDS开发。必须具备SAP FIORI应用程序开发的实践经验。"
+  },
+  {
+    "jd_id": 116227,
+    "job_title": "Engineering Manager",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "工程经理\n\n为什么加入我们的团队？\n\n你想成为一个在全球范围内产生积极影响的团队的一员吗？你想加入一个你被认可、尊重和重视的文化吗？"
+  },
+  {
+    "jd_id": 116296,
+    "job_title": "District Manager - Baltimore, MD",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "区域经理 - 马里兰州巴尔的摩\n\n职位名称\n\n区域经理 - 马里兰州巴尔的摩\n\n职位申请编号\n\nR0016706\n\n职位描述\n\nH&E Equipment Services 是全国最大的综合设备公司之一，提供最高"
+  },
+  {
+    "jd_id": 116348,
+    "job_title": "IoT Hardware Field Test Engineer - Modesto, CA",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "IoT硬件现场测试工程师 - 加州莫德斯托。通过结合最先进的数据科学技术、前沿的物联网（IoT）技术和软件即服务（SaaS），我们实现更互联、更智能、更高效的供应链。"
+  },
+  {
+    "jd_id": 116353,
+    "job_title": "Medical Assistant",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "医疗助理\n当您加入不断发展的BILH团队时，您不仅仅是在从事一份工作，您还在为人们的生活带来改变。\n\n常规\n\n计划工时：\n\n40\n\n工作班次：\n\n白班（美国）\n\nThe Medic"
+  },
+  {
+    "jd_id": 116359,
+    "job_title": "Mental Health Provider, Generalist",
+    "pipeline_verdict": "reject",
+    "pipeline_reason": "s1_reject",
+    "is_it": false,
+    "expected_skills": [],
+    "text_head_zh": "心理健康服务提供者，通才型\n: \n该职位，编号294253-AS（咨询师），与职位294255-AS（心理学家）和职位294256-AS（社会工作者）同时发布。总共最多有5个职位空缺。"
+  },
+  {
+    "jd_id": 120221,
+    "job_title": "Twindo (Formerly Canvas; The Spatial Computing Company) | Full-time | Remote",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [
+      "Computer Vision",
+      "3D Reconstruction",
+      "Spatial Computing"
+    ],
+    "text_head_zh": "Twindo（前身为Canvas；空间计算公司）| 全职 | 远程\n在Twindo，我们致力于空间计算——利用计算机视觉对周围环境进行3D重建和理解，以便"
+  },
+  {
+    "jd_id": 120361,
+    "job_title": "Vertex Inc",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "Vertex Inc | AI产品工程师 | 全职 | 美国 | 年薪$104.9k–$136.4k + 奖金。Vertex正在招聘一名AI产品工程师，为真实企业工作流构建生产级AI产品。你将端到端地工作..."
+  },
+  {
+    "jd_id": 120365,
+    "job_title": "Perry Street Software |",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "Perry Street Software | Perry Street Software | | 远程 | 全职 | 全球 Perry Street Software，全球最大的LGBTQ+应用独立出版商，SCRUFF（www.scruff.com）和Jack'd（www.jackd.co）的创建者"
+  },
+  {
+    "jd_id": 120368,
+    "job_title": "Baton | San Francisco, CA (Hybrid) and Remote | Full-Time",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "Baton | 旧金山，加州（混合办公）和远程 | 全职\nBaton | 旧金山，加州（混合办公）和远程 | 全职\nBaton (baton.io) 是Ryder的内部产品开发团队，专注于利用新兴技术重新定义交通运输和物流。"
+  },
+  {
+    "jd_id": 120408,
+    "job_title": "At Tether (",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "",
+    "is_it": true,
+    "expected_skills": [],
+    "text_head_zh": "在Tether（），我们正在招聘！我们设想一个技术能够实现金融自由、教育赋能、能源可持续性和数据主权的世界。我们所有的职位都是完全远程的，工作"
+  },
+  {
+    "jd_id": 120435,
+    "job_title": "Adyen | Senior AI Research Engineer | Madrid (ONSITE 60%) incl. relocation within Europe if necessary",
+    "pipeline_verdict": "pass",
+    "pipeline_reason": "s3_reject",
+    "is_it": true,
+    "expected_skills": [
+      "AI"
+    ],
+    "text_head_zh": "Adyen | 高级AI研究工程师 | 马德里（现场办公60%），必要时包括欧洲内 relocation\nAdyen | 高级AI研究工程师 | 马德里（现场办公60%），必要时包括欧洲内 relocation\nAdyen是一家金融科技支付与银行平台（B2B），每天处理超过430亿美元的交易和20万笔交易"
+  }
+]

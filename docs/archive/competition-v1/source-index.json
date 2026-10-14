@@ -1,0 +1,253 @@
+[
+  {
+    "source": "笔记.md",
+    "destination": "development/team-notes-20260813.md",
+    "source_sha256": "b2ee3870a7534b20b349d29a0e45ee33d8297786ad0f1ec83753cd1f31fbfddb",
+    "published_sha256": "b2ee3870a7534b20b349d29a0e45ee33d8297786ad0f1ec83753cd1f31fbfddb",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/progress.md",
+    "destination": "development/early-progress.md",
+    "source_sha256": "87db6155b1ef7c02eded79a2ec3f9d9bff12da27153659feaaff464be8e4e926",
+    "published_sha256": "87db6155b1ef7c02eded79a2ec3f9d9bff12da27153659feaaff464be8e4e926",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/originalfile/TalentMind_参赛材料准备执行方案.md",
+    "destination": "materials/preparation-20260831.md",
+    "source_sha256": "212fe3dd1697f955857cc865dcfa8ca9dfff2585d26addcfc788d18a4b8dfc98",
+    "published_sha256": "212fe3dd1697f955857cc865dcfa8ca9dfff2585d26addcfc788d18a4b8dfc98",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/作品设计实现方案.md",
+    "destination": "materials/implementation-20260831.md",
+    "source_sha256": "82090d2181a868191f1c0cfdbe422549b47a9b9f75d9c461898747afc7d12ebf",
+    "published_sha256": "82090d2181a868191f1c0cfdbe422549b47a9b9f75d9c461898747afc7d12ebf",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/测试报告.md",
+    "destination": "materials/testing-20260831.md",
+    "source_sha256": "853b7a9521df4687b31c935b2547e93b114ae829d260341ea3b54255f998bdfb",
+    "published_sha256": "853b7a9521df4687b31c935b2547e93b114ae829d260341ea3b54255f998bdfb",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/部署说明.md",
+    "destination": "materials/deployment-20260831.md",
+    "source_sha256": "10eaa059ef666c60ef2a5d6e6fe83d789d3cbf465e38fb63a4bc60bf2bf6e4f0",
+    "published_sha256": "10eaa059ef666c60ef2a5d6e6fe83d789d3cbf465e38fb63a4bc60bf2bf6e4f0",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/02-测试数据/100条JD测试集_中文标注版.json",
+    "destination": "data/100-jd-annotated.json",
+    "source_sha256": "3df63d69a0f4167753dbecff37894eea0b9bc393cdccd8733eac0255484728cc",
+    "published_sha256": "3df63d69a0f4167753dbecff37894eea0b9bc393cdccd8733eac0255484728cc",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/02-测试数据/100条JD测试集_标注说明.md",
+    "destination": "data/100-jd-annotation-notes.md",
+    "source_sha256": "dea539891baf8ee8cbdb0ecb143b2f5c7861b00c4d08d1ba6e3d2f91a78ab73c",
+    "published_sha256": "dea539891baf8ee8cbdb0ecb143b2f5c7861b00c4d08d1ba6e3d2f91a78ab73c",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/02-测试数据/岗位图谱示例/新岗位_Data Architect.json",
+    "destination": "data/new-job-graph-example.json",
+    "source_sha256": "14c6e45dbce0f25306817897deadde76bd201735add5ffbd5450c9ccf38a8e7e",
+    "published_sha256": "14c6e45dbce0f25306817897deadde76bd201735add5ffbd5450c9ccf38a8e7e",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/02-测试数据/岗位图谱示例/既有岗位_Senior PHP Developer.json",
+    "destination": "data/existing-job-graph-example.json",
+    "source_sha256": "6c6186f8c2adf2aa939b6179c08667a29a5cbc0c6bbb2fc2bc39556200db2e59",
+    "published_sha256": "6c6186f8c2adf2aa939b6179c08667a29a5cbc0c6bbb2fc2bc39556200db2e59",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "docs/submit/02-测试数据/岗位图谱示例/说明.md",
+    "destination": "data/graph-example-notes.md",
+    "source_sha256": "ce0d5986377584ebaf9b1bdcdb640e4ccc4d5c3f199fca111de4c9297046e391",
+    "published_sha256": "ce0d5986377584ebaf9b1bdcdb640e4ccc4d5c3f199fca111de4c9297046e391",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位数据-新一代与现有/时间演化测试集/新一代岗位_时间演化测试集.json",
+    "destination": "data/time-evolution-emerging.json",
+    "source_sha256": "feb52f4dc3c1652fd56e6b7063c1ad9658cc63b61c991a828e7a1fb664821b17",
+    "published_sha256": "feb52f4dc3c1652fd56e6b7063c1ad9658cc63b61c991a828e7a1fb664821b17",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位数据-新一代与现有/时间演化测试集/现有岗位_时间演化测试集.json",
+    "destination": "data/time-evolution-existing.json",
+    "source_sha256": "110d4d013bf47d9a947ee815b47a3570b599b1881d83ecc239ee5dce9d584448",
+    "published_sha256": "110d4d013bf47d9a947ee815b47a3570b599b1881d83ecc239ee5dce9d584448",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位数据-新一代与现有/时间演化测试集/测试方案说明.md",
+    "destination": "data/time-evolution-original-notes.md",
+    "source_sha256": "19e43f2be8736ce9451a74e617e601a6f21eb7bf08a50793506cba438cf586fc",
+    "published_sha256": "19e43f2be8736ce9451a74e617e601a6f21eb7bf08a50793506cba438cf586fc",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位能力图谱前端系统/前后端对接说明文档.md",
+    "destination": "interfaces/frontend-integration-original.md",
+    "source_sha256": "1feb2ce1d57bdb21ccb245df169b95ccc5444d85b37bc14fb30cc2a5365481fb",
+    "published_sha256": "9b99d0b492ac783d9c58ac24e70bf1783618997106c7c2cf71575127f9497e60",
+    "transformation": "specific profile name replaced with synthetic label"
+  },
+  {
+    "source": "input/岗位能力图谱前端系统/前后端接口对接文档.md",
+    "destination": "interfaces/frontend-contract-original.md",
+    "source_sha256": "fb2e962295c9ebc1b47dd6f0c1192dcf3f27b6b7165b78b82a520f09028e8590",
+    "published_sha256": "257d7556019bde1dc7d09450707ee0ff24b1f67840bcc6dc7541ca7dad607b5b",
+    "transformation": "specific profile name replaced with synthetic label; line endings and trailing whitespace normalized"
+  },
+  {
+    "source": "input/岗位能力图谱前端系统/docs/采集模块接口清单.md",
+    "destination": "interfaces/collection-api-original.md",
+    "source_sha256": "f32867efb5002dd62fd85b13b76df31698b51a9b4fc80c3d105cf7a2073531c3",
+    "published_sha256": "f32867efb5002dd62fd85b13b76df31698b51a9b4fc80c3d105cf7a2073531c3",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位数据-新一代与现有/使用说明.md",
+    "destination": "handover/m2-full-return-20260901.md",
+    "source_sha256": "15c69495cb001f1247eb2f06c7957b5ad47343019b475546eff9938ae61d41c0",
+    "published_sha256": "15c69495cb001f1247eb2f06c7957b5ad47343019b475546eff9938ae61d41c0",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位数据-新一代与现有/管道源码/README.md",
+    "destination": "handover/m2-pipeline-20260901.md",
+    "source_sha256": "d39d6720481160cd09b4cdd0b0558bbcb0801c91b560556e9b8018bd4ef91c87",
+    "published_sha256": "d39d6720481160cd09b4cdd0b0558bbcb0801c91b560556e9b8018bd4ef91c87",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/人岗匹配/README.md",
+    "destination": "handover/m4-prototype.md",
+    "source_sha256": "c8677df95d2aead202d5d32b8d63e2cc077fffdce466200e997e3a628c9bd027",
+    "published_sha256": "c8677df95d2aead202d5d32b8d63e2cc077fffdce466200e997e3a628c9bd027",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "output/文档整合-2026-09-03/01-总览/01-工作交接-2026-09-04.md",
+    "destination": "handover/session-20260904.md",
+    "source_sha256": "31f4af3217c8f77a883dec1294833323d36be408f3da9b90c0531cc7e75ede04",
+    "published_sha256": "31f4af3217c8f77a883dec1294833323d36be408f3da9b90c0531cc7e75ede04",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "output/产品演示演讲稿-2026-09-04-v5.md",
+    "destination": "demo/speech-20260904-v5.md",
+    "source_sha256": "4d892e2ba870ec888ef43f4c4c47f201ae2f6a882237f288a36f239e33358ebd",
+    "published_sha256": "4d892e2ba870ec888ef43f4c4c47f201ae2f6a882237f288a36f239e33358ebd",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "output/产品演示分镜表-2026-09-04-v2.md",
+    "destination": "demo/storyboard-20260904-v2.md",
+    "source_sha256": "1a9a09625d2181c0eaa62175c0ea3b2d0e3b0eefe77d19ae0f5fd7c57bd035f5",
+    "published_sha256": "1a9a09625d2181c0eaa62175c0ea3b2d0e3b0eefe77d19ae0f5fd7c57bd035f5",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "input/岗位数据-新一代与现有/管道源码/scripts/make_evolution_testset.py",
+    "destination": "generators/make_evolution_testset.py",
+    "source_sha256": "d6f5e235a69341245043e0257dd60d8ce64fdb0197a73b67fd2e48eed95035d9",
+    "published_sha256": "d6f5e235a69341245043e0257dd60d8ce64fdb0197a73b67fd2e48eed95035d9",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-1-report.md",
+    "destination": "development/task-1-report.md",
+    "source_sha256": "1a45e628d921e79d1b078380c215031b834899b88de02e8d7093cd847a028c70",
+    "published_sha256": "1a45e628d921e79d1b078380c215031b834899b88de02e8d7093cd847a028c70",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-2-report.md",
+    "destination": "development/task-2-report.md",
+    "source_sha256": "ab0c93809a90320db013da6fe9654e8fc0d2c416b7aa583c981bec1cc5f5cdbd",
+    "published_sha256": "ab0c93809a90320db013da6fe9654e8fc0d2c416b7aa583c981bec1cc5f5cdbd",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-3-report.md",
+    "destination": "development/task-3-report.md",
+    "source_sha256": "25d6a454b6fb9e3148ed70ae0bd008a39ef7dec2b965f65de9b512590503bd31",
+    "published_sha256": "25d6a454b6fb9e3148ed70ae0bd008a39ef7dec2b965f65de9b512590503bd31",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-4-report.md",
+    "destination": "development/task-4-report.md",
+    "source_sha256": "e64fffe7994d816738c1852435319c845bd1e1cb3afacedaa1c7727be58e3c49",
+    "published_sha256": "e64fffe7994d816738c1852435319c845bd1e1cb3afacedaa1c7727be58e3c49",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-5-report.md",
+    "destination": "development/task-5-report.md",
+    "source_sha256": "afeb9e2b2c622d18439b514b3aab69b5a96fefcfc2f38f992882468fd88dca66",
+    "published_sha256": "afeb9e2b2c622d18439b514b3aab69b5a96fefcfc2f38f992882468fd88dca66",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-6-report.md",
+    "destination": "development/task-6-report.md",
+    "source_sha256": "0e4825cbf2b125bc83a6f9f8c882b703543232f57a1f6768949cc5f27fab61e2",
+    "published_sha256": "0e4825cbf2b125bc83a6f9f8c882b703543232f57a1f6768949cc5f27fab61e2",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-7-report.md",
+    "destination": "development/task-7-report.md",
+    "source_sha256": "29dce422f2c0888c53ca6caacdbdbf0b36d05517c497ce65238734e277410572",
+    "published_sha256": "29dce422f2c0888c53ca6caacdbdbf0b36d05517c497ce65238734e277410572",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": ".superpowers/sdd/task-8-report.md",
+    "destination": "development/task-8-report.md",
+    "source_sha256": "4e08c3e59811103698149c3e0bd0ba0a0375ae0d5afdd4a43350287d5771b03c",
+    "published_sha256": "4e08c3e59811103698149c3e0bd0ba0a0375ae0d5afdd4a43350287d5771b03c",
+    "transformation": "unchanged bytes"
+  },
+  {
+    "source": "private competition submission / TalentMind 产品前期设计文档.docx",
+    "destination": "design/product-design-20260905.md",
+    "source_sha256": null,
+    "published_sha256": "65cb9a384271164cdd5695f34e5365e76f776ed2053c043e3cc2aff3aa734df1",
+    "transformation": "body-only Markdown export; metadata omitted; personal identifiers sanitized"
+  },
+  {
+    "source": "private competition submission / TalentMind 技术设计文档.docx",
+    "destination": "design/technical-design-20260905.md",
+    "source_sha256": null,
+    "published_sha256": "4433db47edd51d32498c03b42bf66b4e288dea44b4c1598f675fcc741874c1ca",
+    "transformation": "body-only Markdown export; metadata omitted; personal identifiers sanitized"
+  },
+  {
+    "source": "private competition submission / TalentMind_测试方案与测试报告.docx",
+    "destination": "design/testing-design-report-20260905.md",
+    "source_sha256": null,
+    "published_sha256": "f116bb83d93429815ac7a2f6f5c401340193a5bb5b20a10420d2079e798c9597",
+    "transformation": "body-only Markdown export; metadata omitted; personal identifiers sanitized"
+  },
+  {
+    "source": "round1 verified runtime inventory",
+    "destination": "runtime/python-installed-20261014.txt",
+    "published_sha256": "f153ce51b4c796d1b45a53eaa04552e4e41888db701055ffe5acdc8f4467fb9b",
+    "transformation": "no configuration values; package versions only"
+  }
+]
