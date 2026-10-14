@@ -1,6 +1,6 @@
 # CLAUDE.md — TalentMind 项目
 
-> **第二轮精简策略（D59）**：GitHub 补充审查通过的历史资料于 `docs/archive/competition-v1/`，保留 `archive/competition-v1` 不变。私有备份只保留两版 SQL、Neo4j dump、必要原始/未入库资料及配置，内容 SHA 去重压缩；整机环境、可下载依赖/镜像及重复恢复副本不再要求保留。原资料和当前 Docker 数据不清理。工具 `scripts/backup_assets.py` 默认只核验、恢复只写新目录；公开资料例外只覆盖已审查导出件，不解除原私有目录保护。
+> **第二轮精简策略（D59，已完成）**：GitHub 补充审查通过的历史资料于 `docs/archive/competition-v1/`，资料提交 `65a6b01fdf36945b870e549c70f24190962d4e7f`；`archive/competition-v1` 不变。私有备份最终 9 文件约 0.967 GB，只保留两版 SQL、Neo4j dump、必要原始/未入库资料及配置，800 路径/729 内容对象 SHA 去重压缩；移除 64 项旧副本，净释放约 27.207 GB。原资料和当前 Docker 数据不清理。工具 `scripts/backup_assets.py` 默认只核验、恢复只写新目录；公开资料例外只覆盖已审查导出件，不解除原私有目录保护。报告 `docs/GitHub资产补全与备份精简报告-2026-10-14.md`；清理陷阱 `docs/superpowers/traps/2026-10-14-backup-cleanup-junction-and-mounted-vhd.md`。
 
 > **2026-10-14 冻结与恢复交接**：V1 分支 `archive/competition-v1` 固定在 `4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`，master 后续开发。私有备份 `D:\backup\TalentMind-2026-10-14` 已恢复核验，但尚无离机私有副本；当前冷卷 JD=2988、竞赛 SQL=2984，两版保留，其他分析层仍 717/717/275、图谱 7845/11412。见 `docs/仓库冻结与资产保全报告-2026-10-14.md`、`docs/V1恢复手册.md` 与 `docs/superpowers/traps/2026-10-14-backup-hardlinks-and-neo4j-network.md`。恢复/测试使用新卷，原库不重建。
 

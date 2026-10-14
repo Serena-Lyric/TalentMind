@@ -1,6 +1,6 @@
 # TalentMind
 
-> **2026-10-14 V1 保全**：竞赛版本已冻结在 `archive/competition-v1`（`4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`），`master` 保留用于后续开发。资产/数据库备份保存到用户指定的 `D:\backup\TalentMind-2026-10-14`，已完成隔离恢复核验；D 盘仍属本机，离机私有副本未完成。当前冷卷 JD=2988，竞赛 SQL JD=2984，两版均保留。详见 [执行报告](docs/仓库冻结与资产保全报告-2026-10-14.md) 和 [V1 恢复手册](docs/V1恢复手册.md)。
+> **2026-10-14 第二轮保全**：V1 归档仍为 `archive/competition-v1`（`4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`）；master 已补充 [审查资料](docs/archive/competition-v1/README.md)。私有备份 `D:\backup\TalentMind-2026-10-14` 精简为 9 文件约 0.967 GB（两版 SQL、Neo4j dump、去重私有资料与清单），实际释放约 27.207 GB；不再保存整机盘、冷卷、镜像及依赖副本。JD=2984 与 2988 两版均保留，业务逻辑和当前 Docker 数据未改动。见 [第二轮报告](docs/GitHub资产补全与备份精简报告-2026-10-14.md) 和 [恢复手册](docs/V1恢复手册.md)。
 
 TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前仓库承担两个角色：
 
