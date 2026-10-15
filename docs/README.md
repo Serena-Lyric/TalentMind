@@ -22,7 +22,7 @@
 
 2026-10-15 入口核查：`笔记.md` 及 `output/` 仅本地存在，新检出不要求恢复这些私有目录；公开历史材料见 `archive/competition-v1/`，现行约束以决策跟踪/DDL 为准。
 
-临时审查交付：[M1 第二阶段报告](review/M1-stage-02.md)（验收后按用户确认方案移除）。
+M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)（临时报告合并前移除；长期结论分别写入正式文档和陷阱记录）。
 
 ## 分类子目录
 

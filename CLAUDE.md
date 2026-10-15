@@ -1,6 +1,6 @@
 # CLAUDE.md — TalentMind 项目
 
-> **2026-10-15 当前工作方式（D60）**：M1 分阶段开发、自检、独立提交后推送临时分支，集中审查验收后再确认合并与清理。禁止自动合并 master、真实数据清理、数据库迁移和大规模真实采集；集成测试仅用隔离库。阶段说明见 `docs/review/M1-stage-02.md`。
+> **2026-10-15 当前工作方式（D60）**：M1 分阶段开发、自检、独立提交后推送临时分支，ChatGPT 集中审查；发现问题交 Codex 补修，复审通过并依用户授权由 ChatGPT 合并。Codex 不得未经审查直接合并 master，禁止擅自清理真实数据、迁移数据库或大规模真实采集；集成测试仅用隔离库。首轮审查记录见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。
 
 
 > **第二轮精简策略（D59，已完成）**：GitHub 补充审查通过的历史资料于 `docs/archive/competition-v1/`，资料提交 `65a6b01fdf36945b870e549c70f24190962d4e7f`；`archive/competition-v1` 不变。私有备份最终 9 文件约 0.967 GB，只保留两版 SQL、Neo4j dump、必要原始/未入库资料及配置，800 路径/729 内容对象 SHA 去重压缩；移除 64 项旧副本，净释放约 27.207 GB。原资料和当前 Docker 数据不清理。工具 `scripts/backup_assets.py` 默认只核验、恢复只写新目录；公开资料例外只覆盖已审查导出件，不解除原私有目录保护。报告 `docs/GitHub资产补全与备份精简报告-2026-10-14.md`；清理陷阱 `docs/superpowers/traps/2026-10-14-backup-cleanup-junction-and-mounted-vhd.md`。
