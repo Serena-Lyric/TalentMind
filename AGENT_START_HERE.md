@@ -1,60 +1,27 @@
-# AGENT 通用项目了解路线（新对话起始必读）
+# Agent 起始入口
 
-> **2026-10-15 当前工作方式（D60）**：M1 分阶段开发、自检、独立提交后推送临时分支，ChatGPT 集中审查；发现问题交 Codex 补修，复审通过并依用户授权由 ChatGPT 合并。Codex 不得未经审查直接合并 master，禁止擅自清理真实数据、迁移数据库或大规模真实采集；集成测试仅用隔离库。首轮审查记录见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。
+先查看当前任务、Git 分支、`git status` 和相关 diff，保护用户未提交修改。核心阅读控制在以下三项；只需简要说明任务边界、冲突与下一步，**不要求逐文件复述或每次通读历史资料**。
 
+## 核心阅读
 
-> **2026-10-14 最新保全入口**：第二轮资料补全及备份精简已完成（D59）。先按下列既有阅读路线了解契约，再读 `docs/GitHub资产补全与备份精简报告-2026-10-14.md` 和 `docs/V1恢复手册.md`。私有备份现仅 9 文件约 0.967 GB，原始层有竞赛 2984 与保全时 2988 两版 SQL；下方 09 月数字为带日期的竞赛/历史基线，第一轮整机备份策略已被精简策略覆盖。
+1. [AGENTS.md](AGENTS.md)：通用规则、私有边界、测试安全和 GitHub 协作流程；Claude 另看 [CLAUDE.md](CLAUDE.md) 的少量补充。
+2. [当前产品决策](docs/PRODUCT_DECISIONS.md)：阅读适用章节，分清已确认目标与待决策；文字/链接的小修仅核对影响含义的章节。
+3. [资产与状态](docs/superpowers/资产与状态.md)：查任务模块的资产、已知限制和证据日期；不能把历史数字或测试结果当作实时状态。
 
-> **2026-09-05 演示提交基线（历史快照）**：演示口径数据已全量对齐。MySQL `job_definition/job_skill/job_change_log=717/717/275`（新一代 342 / 现有 375；已删除 AI 测试开发工程师与博士后共 2 条，含 32 条演示日志；job_id NULL=3）；原始层 `jd_pool=2984`（BOSS 1133/智联 1088/猎聘 763）、`signal=1540`、`resume=0`；Neo4j=**7845 节点/11412 关系**（Job 717/Skill 4671/Industry 2457；REQUIRES 8866/APPLIES_TO 2539/RELATED_TO 7），与 `exchange/m3/graph.json` 一致；后端全量测试 **246 passed**（Python 3.14.5）。完整交接见 `docs/superpowers/archive/2026-09-05/2026-09-05-提交基线对齐与部署交接.md`，部署/导入见 `docs/部署与导入说明.md`。
+产品决策优先于已被替代的历史产品设计；实际实现仍以对应提交的代码、配置和测试为证。需要查历史替代关系时读 [决策跟踪](docs/superpowers/决策跟踪.md)，不要求所有任务通读 D1–D60。
 
-> **陷阱提醒（2026-09-05）**：`import_all()`/`import_change_logs()` 默认读取 `input/岗位数据-新一代与现有/`（719/243 原回包），直接运行会覆盖 717/275 演示库；从提交物复现请按 `docs/部署与导入说明.md`（SQL 快照或对 `exchange/m2` 显式路径导入）。历史默认导入测试会重建分析层为 719/243；集成测试须指向隔离库，禁止以演示库运行后再恢复的方式测试。
+## 按任务选读
 
-> **强制要求**：任何 Agent 在本项目开始任何工作前，**必须按本文路线顺序完整阅读下列文件**，并在**第一条回复中逐文件给出 1–2 句要点**作为"已阅读"证明；未完成阅读不得动手。
-> 用途：确保 Agent 完整、真实了解项目设计，避免与旧设计混淆（D21）、避免臆测（AGENTS.md 不臆测）、避免重复踩坑。
-> 本文件位于项目根目录，是所有新对话的**第一入口**。
->
-> **历史项目阶段（2026-09-04 修订，原 2026-09-02；不作当前操作指令）**：M1 按用户指示暂停采集；用户已明确授权完整导入 M2 719 个岗位（D56 覆盖 D55），MySQL `job_definition/job_skill/job_change_log=717/717/275`（2026-09-04 复核：719 导入后删除 AI 测试开发工程师与博士后(61322) 共 2 条定义+技能、新增 32 条演示变更日志；每日采集任务已加暂停开关 `data/local/PAUSE_COLLECT`），Neo4j=7852 节点/11423 关系；前端自动匹配、学习路径、采集历史日志、三平台控制和图谱展示正在本轮收口。当前接手说明见 `A_AGENT_HANDOVER.md`。
-
-> **2026-08-30 接手提示（历史记录）**：最新整合与问题交接见 `A_AGENT_HANDOVER.md` 和 `output/2026-08-30-简历解析与学习路径问题交接.md`。本轮 M2 回包已完整导入，当前主库以 719 岗位完整回包为准；工作树仍包含历史未提交变更。接手 Agent 先查看 `git status`，不要回滚未提交变更。
-
-## 一、阅读路线（按顺序，全部必读）
-
-| # | 文件 | 作用 | 必读 |
-|---|---|---|---|
-| 0 | `README.md` | 项目总览、模块状态、启动方式 | ✅ |
-| 1 | `AGENT_START_HERE.md`（本文件） | 本路线 | ✅ |
-| 2 | `docs/superpowers/决策跟踪.md` | **已决策 D1–D60 + 未决 P1/P2/P3/P6**，一切裁决的依据 | ✅ |
-| 3 | `docs/superpowers/资产与状态.md` | **资产位置 / 整合状态 / 已知限制 / 工程经验 / 维护规则**（工作前必读） | ✅ |
-| 4 | `docs/superpowers/specs/2026-08-03-team-plan-design.md` | **团队基础设计（后续决策优先）**（数据契约 §6 / 图谱 §7 / 交接 §8 / 接口 §9 / 反幻觉 §10） | ✅ |
-| 5 | `docs/superpowers/specs/2026-08-11-repository-organization-design.md` | 目录边界与仓库双重角色（当前依据） | ✅ |
-| 6 | `docs/superpowers/plans/2026-08-14-remediation-plan.md` | 系统修正方案 v2（中英文统一、缺陷看板 B1–B12） | ✅ |
-| 7 | `docs/superpowers/plans/2026-08-14-module-roundtrip.md` | **外发-回发闭环**（回包结构、验收门禁、时间表、审查补充） | ✅ |
-| 8 | `笔记.md`（仅本地） | 历史全队通知与字段偏差；GitHub 新检出缺失时查 `docs/archive/competition-v1/development/`，当前裁决以决策跟踪为准 | 本地存在时读 |
-| 9 | `backend/app/contracts/ddl.sql` | **数据契约冻结**（8 表；加字段自由、改/删须通知全队） | ✅ |
-| 10 | `backend/app/skills/skill_dict_seed.json` | 技能 canonical 词典（285 个，所有模块技能对齐对象） | ✅ |
-| 11 | （按需）`A_AGENT_HANDOVER.md` | **A 角色（M1 + 唯一集成者）专属路线与交接**——若你的任务是 A 的工作，必读 | 视角色 |
-
-## 二、防混淆红线（AGENTS.md 工作前状态同步的强化）
-
-1. **旧文档不是依据**：`docs/superpowers/plans/archive/`、`specs/archive/`（含 08-08 旧计划、08-13 整合计划、旧需求 txt）仅供溯源，**不作为当前依据**（D21）。
-2. **`input/` 是队员原版备份**（含真实简历，已 gitignore）：只作对比参考，**禁止入库、禁止 `git add -A`**。
-3. **`output/` 是回发包**（已发送）：只读参考，不入库。
-4. **真实简历不提交**（D36）；`backend/.env`（含密钥）不入库。
-5. **先读再动**：修改资产/契约/目录/交接文件后，必须更新 `docs/superpowers/资产与状态.md`；涉及决策变更同步 `决策跟踪.md`。
-
-## 三、完成标准（证明已读）
-
-第一条回复必须输出：
-- 逐文件 1–2 句要点（#0–#10）；
-- 一句话说明"当前项目处于什么阶段"（如：数据闭环完成、回发闭环进行中 8/16–19 队员二次开发、A 负责验收与集成）；
-- 若任务属 A 角色，确认已读 `A_AGENT_HANDOVER.md`。
-
-## 四、常见入口速查
-
-| 想做什么 | 先看 |
+| 任务 | 补充入口 |
 |---|---|
-| 启动系统（后端/前端/Docker） | `README.md`「本地启动」 |
-| 跑测试 | `README.md`「测试」+ 资产清单维护规则 |
-| 集成/导入/校验 | `A_AGENT_HANDOVER.md` + `backend/app/integration/*` |
-| 改某模块 | 笔记对应模块节 + 资产清单该模块行 + `output/<模块>-v3/` 要求清单 |
-| 契约变更 | 决策跟踪（通知流程）+ 08-14 remediation §七 |
+| 纯文档/链接/产品归档 | 目标文件及直接引用来源；[文档地图](docs/README.md)。不因文档修改运行采集、导入或业务测试。 |
+| M1 数据采集与清洗 | [M1 README](backend/app/collect/README.md)、[M1 交接](exchange/m1/README.md)；涉及 A 的采集/集成工作再读 [A 交接](A_AGENT_HANDOVER.md)相关章节；有效 JD/中断边界查对应陷阱。 |
+| M2 岗位分析 | 产品主文档 M2 全节、[M2 README](backend/app/job_analysis/README.md)、[M2 交接](exchange/m2/README.md)；涉及技能规范化再读 `backend/app/skills/` 的实现和词典。 |
+| M3 图谱 | [M3 README](backend/app/graph/README.md)、[M3 交接](exchange/m3/README.md)；旧 builder 不能直接复现当前含行业的交接图，不覆盖已核验 graph.json。 |
+| M4 简历与匹配 | [M4 README](backend/app/matching/README.md)、[M4 交接](exchange/m4/README.md)；遵守软技能推断与真实简历保护边界，原型迁移仍暂缓。 |
+| M5 前端 | [前端 README](frontend/README.md)、实际 API 与关联模块文档；演示展示分与平台回退数值不当作准确率/实时统计。 |
+| 契约/API/跨模块集成 | [DDL](backend/app/contracts/ddl.sql)及同目录契约、[integration README](backend/app/integration/README.md)、[A 交接](A_AGENT_HANDOVER.md)相关章节；改/删冻结字段通知全队，执行迁移另需许可。 |
+| 测试/导入/恢复 | [README 测试入口](README.md#测试)、[部署与导入说明](docs/部署与导入说明.md)；恢复另读 [V1 恢复手册](docs/V1恢复手册.md)。先核对隔离环境与破坏性行为。 |
+| 历史设计与协作溯源 | [决策跟踪](docs/superpowers/决策跟踪.md)、[团队设计](docs/superpowers/specs/2026-08-03-team-plan-design.md)、[目录设计](docs/superpowers/specs/2026-08-11-repository-organization-design.md)；旧计划/回发包按任务选读，不自动执行。 |
+
+`input/`、`output/`、`笔记.md` 等仅本地资料不要求从其他机器恢复；可公开的历史资料见 [竞赛 V1 归档](docs/archive/competition-v1/README.md)。私有文件与真实数据保护统一遵守 AGENTS。

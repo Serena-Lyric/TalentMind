@@ -11,9 +11,11 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
+2026-10-15 产品归档：当前确认方案以 [PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md) 为主要依据；本轮 M2 单条事实、技能语义与岗位分层等规则是产品目标，尚未完成新方案实现验收。Agent 从 [AGENT_START_HERE.md](AGENT_START_HERE.md) 按任务选读，GitHub 分阶段提交、ChatGPT 审查及授权合并统一见 [AGENTS.md](AGENTS.md)。
+
 2026-10-15：M1 第二阶段完成离线开发并经过集中审查；记录见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。三平台有效 JD v2 已通过离线回归；BOSS 增加逐页列表与逐条详情提交，智联/猎聘中断保护待后续完成。未启动真实采集，未操作正式数据库。
 
-本轮只读核对 Git 交接文件：`exchange/m2` 为 **717 定义 / 717 技能 / 275 日志**，`exchange/m3/graph.json` 为 **7845 节点 / 11412 关系**。这不是实时数据库查询；保全时原始 JD 2988 与竞赛快照 2984 的区别见恢复手册。以下 09 月记录保留历史语境，历史通过数不代表本轮测试。
+M1 第二阶段只读核对的 Git 交接文件：`exchange/m2` 为 **717 定义 / 717 技能 / 275 日志**，`exchange/m3/graph.json` 为 **7845 节点 / 11412 关系**。这不是本轮实时数据库查询；保全时原始 JD 2988 与竞赛快照 2984 的区别见恢复手册。以下 09 月记录保留历史语境，历史通过数不代表本轮测试。
 
 > **2026-09-05 演示提交基线（历史快照）**：演示口径数据已全量对齐。MySQL `job_definition/job_skill/job_change_log=717/717/275`（新一代 342 / 现有 375；已删除 AI 测试开发工程师与博士后共 2 条，含 32 条演示日志；job_id NULL=3）；原始层 `jd_pool=2984`（BOSS 1133/智联 1088/猎聘 763）、`signal=1540`、`resume=0`；Neo4j=**7845 节点/11412 关系**（Job 717/Skill 4671/Industry 2457；REQUIRES 8866/APPLIES_TO 2539/RELATED_TO 7），与 `exchange/m3/graph.json` 一致；后端全量测试 **246 passed**（Python 3.14.5）。完整交接见 `docs/superpowers/archive/2026-09-05/2026-09-05-提交基线对齐与部署交接.md`，部署/导入见 `docs/部署与导入说明.md`。
 
@@ -45,7 +47,7 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 > **2026-08-31 前端整合状态**：用户确认不再采用补丁式整合。正式前端现以 `input/图谱.png`、`input/采集模块管理.png` 为视觉基准重新组装，导航包含 Dashboard、JD 岗位、采集图谱、数据分析、采集模块管理、能力动态更新、简历分析、学习路径和简历预览。`input/` 仍是只读对照包，不是运行时源码；没有可信后端数据的页面展示诚实空态。采集控制台通过 `backend/app/collect/control.py` 包装既有 M1 循环，不自动启动采集。
 
-历史整合记录（2026-09-02）：整合未决项已于 2026-08-13 裁决（决策 D26–D37），并在 2026-09-02 完成整体修复阶段第一轮收口；本轮按用户 D56 完整导入 M2 719 岗位，后端全量 **236 passed**，前端构建通过。协作按 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环执行；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
+历史整合记录（2026-09-02）：整合未决项已于 2026-08-13 裁决（决策 D26–D37），并在 2026-09-02 完成整体修复阶段第一轮收口；当时按用户 D56 完整导入 M2 719 岗位，后端全量 **236 passed**，前端构建通过。当时协作采用 `docs/superpowers/plans/2026-08-14-module-roundtrip.md` 回发闭环；当前 GitHub 流程见 AGENTS。旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`。资产清单与已知限制详见 `docs/superpowers/资产与状态.md`。
 
 ## 目录说明
 
@@ -186,7 +188,7 @@ cd backend
 
 M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一 API 并提供 Mock。统一响应约定为 `{code, message, data}`，具体接口由 A 集成时最终确定。
 
-字段变更规则：可以新增表或字段；修改或删除冻结字段前，必须先更新决策记录并通知所有模块负责人。
+字段变更规则：可以按授权新增表或字段；修改或删除冻结字段前，必须先更新决策记录并通知所有模块负责人。执行数据库迁移另需用户许可。文件交接约定继续适用于模块产物；当前开发、审查与合并职责见 [AGENTS.md](AGENTS.md)。
 
 ## 旧代码与清理规则
 
@@ -202,16 +204,18 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 
 ## 文档入口
 
-- 当前架构设计：`docs/superpowers/specs/2026-08-11-repository-organization-design.md`
-- 团队总设计：`docs/superpowers/specs/2026-08-03-team-plan-design.md`
-- 决策记录：`docs/superpowers/决策跟踪.md`
+- 当前产品方案：[PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md)（已确认目标与待决策，独立于实现状态）
+- Agent 阅读路线：[AGENT_START_HERE.md](AGENT_START_HERE.md)（核心 + 按模块选读）
+- 目录设计：`docs/superpowers/specs/2026-08-11-repository-organization-design.md`
+- 团队基础设计：`docs/superpowers/specs/2026-08-03-team-plan-design.md`（历史背景，服从明确替代后的当前规则）
+- 历史决策与变更索引：[决策跟踪](docs/superpowers/决策跟踪.md)（保留 D1–D60，新增索引）
 - 实施计划：`docs/superpowers/plans/`
 - 数据契约：`backend/app/contracts/ddl.sql`
 - 前端说明页：`docs/team-plan.html`
 - 文档地图：`docs/README.md`（docs 全目录索引 + 归档说明）
 - Agent 行为约束：`AGENTS.md`、`CLAUDE.md`
 
-修改目录、契约或协作流程时，先更新决策记录，再同步 README 和约束文件。发现由 AI 修复的 bug 时，在 `docs/superpowers/traps/` 留下“症状 → 根因 → 修复 → 教训”记录。
+产品决策确认后分批更新主文档与决策索引；目录、契约或交接变更同步资产与状态和相关入口，通用协作规则仅在 AGENTS 维护。发现由 AI 修复的 bug 时，在 `docs/superpowers/traps/` 留下“症状 → 根因 → 修复 → 教训”记录。
 
 ## 当前不做的事
 
@@ -219,5 +223,5 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 - 不把 M1 采集管道重写成另一套实现；
 - 不迁移 `input/人岗匹配/`（已按用户要求暂缓）；
 - 不提交 `.env`、真实密钥、数据库 volume、未经脱敏的简历和大型本地数据；
-- 不创建 Git commit，除非用户明确要求。
+- 未获用户授权的任务不创建 Git commit；已授权的阶段开发可按 [AGENTS.md](AGENTS.md) 在独立分支分项提交并创建 PR，但不得未经审查合并 `master`。
 
