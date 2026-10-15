@@ -53,6 +53,29 @@
 
 ## 提交、遗留与下一阶段
 
-阶段一提交 `80c777d`；阶段二提交 `20e366f`。阶段三 SHA 与最终交付验证在收尾提交补记。历史数据库数字不当作本轮查询结果，历史通过数不当作本轮测试结果。
+| 阶段 | 提交 SHA | 内容 |
+|---|---|---|
+| 一 | `80c777d` | 收录已保全的 v2 判定、八个案例的三平台回归及说明 |
+| 二 | `20e366f` | BOSS 逐页/逐条持久化、精确补全与 11 项离线中断测试 |
+| 三 | `a0d602d` | 六份 Markdown 还原、主要文档与代码一致性修正、D60 工作方式 |
+
+全部修改文件（目录以下为精确文件名；共享文件可能跨提交出现）：
+
+- 根目录：`README.md`、`AGENT_START_HERE.md`、`AGENTS.md`、`CLAUDE.md`、`A_AGENT_HANDOVER.md`。
+- `backend/app/collect/`：`cleaner.py`、`pipeline.py`、`repository.py`、`fetch_boss_jobs.py`、`README.md`；`backend/tests/`：`test_pipeline.py`、`test_boss_interruption.py`。
+- 其他模块说明：`backend/app/job_analysis/README.md`、`backend/app/graph/README.md`、`backend/app/matching/README.md`、`backend/app/integration/README.md`、`frontend/README.md`；`exchange/m1/README.md` 至 `exchange/m4/README.md`。
+- 文档：`docs/README.md`、本报告、`docs/superpowers/资产与状态.md`、`docs/superpowers/决策跟踪.md`；`docs/superpowers/traps/` 下 `2026-10-15-cn-jd-validity.md`、`2026-10-15-boss-interruption.md`、`2026-10-15-markdown-single-character.md`。
+
+收尾验证：
+
+- `frontend/` 执行 `pnpm run build`：类型检查与 Vite 构建成功，2619 modules；保留现有 >500 kB chunk 警告，不提交 dist。
+- `backend/` 执行 `.\.venv\Scripts\python.exe -m app.job_analysis.main --help`：退出 0；离线 `importlib.util.find_spec` 核对顶层 `pipeline`、`db_state` 均不存在，完整 CLI 仍列待修复，未运行收费路径。
+- 一次性只读文档扫描：全部 Git 跟踪 Markdown 的连续单字符块已消除；主要文档 9 个相对链接、12 个 Agent 路线入口、229 次明确仓库文件引用均可达。仅本地资料与历史路径保留对应语境。
+- `git diff --check` 通过；28 个阶段修改文件无私有目录、数据库/日志/备份或 >1 MB 文件，新增行凭据模式扫描无命中。DDL 未改。原有无关 Docker 段逐字比对未变，未纳入提交。
+- 局部与非集成测试结果如上；这些通过数来自本地依赖/可选资料环境，新的纯 Git 检出可能跳过依赖本地原回包的既有用例。没有运行 23 项数据库集成测试，也没有对正式库执行核查或清理。
+
+独立只读审查发现 1 项 Important、无 Critical：有效列表技能会掩盖占位详情，使其写入后阻断下一轮补全。已增加“列表→占位/空/薪资详情→下一轮真实详情”3 项回归，先复现 **2 failed / 12 passed**；修复为详情正文单独复用已有判定，不扩规则。最终六份局部 **161 passed**，中断测试 **14 passed**，非集成 **343 passed / 23 deselected**（190 条既有弃用警告），没有未处理的阻塞发现。
+
+审查边界与取舍：无唯一键的并发幂等留后续，不为此迁移表；真实网页/登录态与 MySQL 行为未验收，不启动真实采集或集成；智联/猎聘按用户许可明确遗留；M2–M5 仅核对文档与代码，不扩为功能验收。最终远端核验在收尾补记；不自动合并 master。历史数据库数字不当作本轮查询结果，历史通过数不当作本轮测试结果。
 
 下一阶段优先：对智联/猎聘按当前页卡片逐条完成详情与提交，补中断测试；经审查后再决定是否处理 M2 CLI/M3 重建流程，以及演示评分与平台回退数值的产品口径。

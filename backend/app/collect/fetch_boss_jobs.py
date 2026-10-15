@@ -12,6 +12,7 @@ from functools import partial
 
 from app.collect.fetchers.boss import deduplicate_jobs, normalize_boss_job
 from app.collect.fetchers.cdp import CdpClient, CdpError
+from app.collect.cleaner import clean, is_valid_jd
 from app.collect.pipeline import run_pipeline
 from app.collect.repository import save_incremental_jd_rows
 
@@ -207,6 +208,14 @@ def run_fetch(
                         time.sleep(delay)
                         continue
                     if isinstance(detail, dict):
+                        # 列表技能不能替占位详情证明正文有效，否则会挡住下一轮补全。
+                        detail_raw = normalize_boss_job({
+                            "url": job["url"], "title": job.get("title") or detail.get("title"),
+                            "description": detail.get("description"),
+                        })
+                        if not detail_raw or not is_valid_jd(clean(detail_raw)):
+                            time.sleep(delay)
+                            continue
                         # 列表 URL 是稳定身份，不用详情跳转 URL 覆盖。
                         job.update({key: value for key, value in detail.items() if value and key != "url"})
                         raw = normalize_boss_job(job)

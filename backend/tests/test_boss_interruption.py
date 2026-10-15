@@ -235,3 +235,19 @@ def test_invalid_detail_cannot_pollute_saved_list(offline, monkeypatch):
     assert len(rows()) == 1
     assert "Python" in rows()[0]["raw_text"]
     assert "扫码" not in rows()[0]["raw_text"]
+
+
+@pytest.mark.parametrize("description", ["暂无描述，详情面议", "", "薪资：20-30K"])
+def test_placeholder_detail_does_not_block_next_round_completion(offline, monkeypatch, description):
+    Client, rows, run = offline
+    monkeypatch.setattr(boss, "_fetch_search_page", lambda *args: [card("retry", tags=["Python"])])
+    monkeypatch.setattr(Client, "evaluate", lambda *args: {"description": description})
+    with run(pages=1) as collect:
+        assert collect()["new"] == 1
+    assert len(rows()) == 1
+    assert "职位描述" not in rows()[0]["raw_text"]
+    monkeypatch.setattr(Client, "evaluate", lambda *args: {"description": "负责 Python 后端服务开发"})
+    with run(pages=1) as collect:
+        assert collect()["new"] == 0
+    assert len(rows()) == 1
+    assert "负责 Python 后端服务开发" in rows()[0]["raw_text"]
