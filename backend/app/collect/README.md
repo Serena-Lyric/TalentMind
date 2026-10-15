@@ -3,6 +3,8 @@
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。
 > 合规红线：只读取公开数据或用户人工登录后页面可见内容；不绕过登录/验证码/反爬，不伪造 source（D17/D38）。
 
+> **2026-10-15 核查**：本轮只做离线开发和测试。下表数量、PID、登录/注销状态均为带日期的历史记录，不代表当前机器实时状态。每日脚本的 `data/local/PAUSE_COLLECT` 只约束该脚本，直接 CLI 不检查它。控制台进入页不自动准备 Edge 或启动采集；手动启动可选 BOSS/智联/猎聘，LinkedIn/HN 仅展示。
+
 ## 一、数据源与产出
 
 | 来源 | 类型 | 产出表 | 实现 | 状态 |
@@ -135,15 +137,35 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - **日志文件**：`data/local/logs/collect_daily-YYYYMMDD.log`（每日 02:00 定时任务自动落盘，gitignore）；
 - **定时任务**：`schtasks /Query /TN TalentMindCollect /V`（状态/上次运行/结果）。
 
+## 四·七、三平台有效 JD 判定（2026-10-15）
+
+- BOSS、智联、猎聘在已有详情合并后，经 `run_pipeline()` 清洗，再由 `cleaner.is_valid_jd()` 判定，通过后才参与去重、质量评分与写入；其他来源保持原行为，平台 URL/DOM 身份处理仍由各自适配器负责。
+- 不设置最低字数、不要求完整职责与任职要求同时出现、不用质量分作门槛；公司、薪资、地点缺失不影响判定。简短职责、技能要求或技能标签可保留，例如“熟悉 Java、Spring Boot、MySQL”。
+- 判定副本中排除公司介绍段、带标签的薪资/地点/公司/经验/学历/福利行、仅重复岗位名、已识别的学历年限、福利及“暂无／面议”等占位。排除后没有文字或数字则拒绝；原始入库文本不被这些判定规则改写。
+- 验收修复：按完整片段排除“详情请咨询”“招聘中”“欢迎投递简历”“岗位长期招聘”“投递简历请联系 HR”“待遇优厚”“工作轻松”、K/千/万薪资及北京/上海/广州/深圳/杭州/成都地点名；与技能或职责混合时保留其余内容，不要求命中固定岗位词表。公司介绍仅在行首或句末/冒号边界，且标题后有冒号或换行时识别，不截断“公司简介页面开发”“公司介绍页的开发”等正文。
+- 命中扫码领券、扫码加群、加微信咨询、限时促销、欢迎购买、培训招生、包就业、刷单返佣、招商加盟或明确无招聘意图的已知短语时，先按标点分句排除命中这些短语的句子；其余句子没有“熟悉／熟练／掌握／具备／负责／参与／承担／协助 + 内容”则拒绝。广告开发岗位、正常岗前培训不按单个“广告／培训”词拒绝。
+- 未识别的剩余内容保守放行，因此不是完整的招聘意图识别器；陌生广告话术、未标记的公司宣传或福利仍可能漏放。判定函数本身不发起详情请求或重试；BOSS 的元信息卡片可在既有 detail_limit 范围内尝试本轮详情，补全失败不入库。
+
 ## 五、测试
+
+### BOSS 中断保护（2026-10-15）
+
+每页列表结束后通过公共管道保存有效 JD，每条成功详情后再次提交。无效列表可以在本轮详情成功后入库；详情失败不重试该条、不写入空卡片，已提交的数据保留。列表保存不会挡住同 URL 的详情补全：本轮新增行可精确更新，跨轮仅补全可明确识别的纯元信息列表行；未知历史文本和已有详情保留。列表不会覆盖已有详情，详情重定向不改变列表稳定 URL。写库异常回滚当前记录并上报。
+
+详情合并前，其正文须单独通过同一个有效性判定，列表技能不替代详情正文；“暂无描述/详情面议”、空正文、仅薪资详情不写回，下一轮真实详情仍可补全。
+
+`listed/new/skipped/details` 保留原接口，`new` 只计新增行，更新不重复计数，`details` 计详情尝试。串行 URL 查重依赖现有字段，不保证并发采集唯一性。智联/猎聘仍使用原整轮缓冲，本轮未修改，浏览器中断丢失风险待专项验证。
+
+离线验证：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_boss_interruption.py -q`。仅用合成卡片和临时 SQLite，fixture 自动关闭并删除测试文件；不连接正式 MySQL。
 
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
 - `test_collect_integration.py` / `test_talent_pipeline_integration.py`：管道集成（D37 精确清理）；
+- 三平台有效 JD 离线回归：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_pipeline.py tests/test_cleaner.py tests/test_boss_fetcher.py tests/test_cn_job_fetchers.py tests/test_collect_repo.py -q`（内存数据库替身，不联网、不写真实数据库）；
 - 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（历史记录 221 passed；2026-09-04 collect-only=237：unit 214 / integration 23，实际通过数以全量运行为准）。
 
 ## 六、设计参考（crawl4ai 评估，2026-08-17）
 
 - 评估结论：**不引入 crawl4ai 依赖**（当前数据源均静态/API/XML，无需 JS 渲染；其 stealth 反检测不改变合规红线；引入需 Playwright/Chromium 重型依赖）；
-- 可借鉴设计：内容清洗策略（fit-markdown 噪声过滤 → 已由 cleaner `_strip_noise`/`_fix_fused_prefix`/`_extract_duties` 覆盖）；缓存与幂等（已由当日先清后写覆盖）；
+- 可借鉴设计：内容清洗策略（fit-markdown 噪声过滤 → 已由 cleaner `_strip_noise`/`_fix_fused_prefix`/`_extract_duties` 覆盖）；幂等语义分别见上方 D44，HN 为按帖刷新，signal 为追加时间序列，不使用“当日先清后写”；
 - 若未来出现"robots 允许但需 JS 渲染"的合规源，再评估 Playwright 直连（无需 crawl4ai）。
 - 历史运行记录（2026-08-20）保留于专项交接文档；当前运行记录（2026-08-22）见 `exchange/m1/collection-status-20260822.md`：BOSS 已完成第 116 轮，数据库 `source=boss=621`；通用循环已完成第 17 轮并继续每 6 小时运行。

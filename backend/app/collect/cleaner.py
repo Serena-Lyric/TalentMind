@@ -110,6 +110,65 @@ def _extract_experience(text: str, fallback: str) -> str:
     return ""
 
 
+# ── 入库前有效性判定 ────────────────────────────────────
+
+def is_valid_jd(row: dict) -> bool:
+    """三平台入库前的保守规则；只判定，不改写原文或依赖质量分/字数。"""
+    title = (row.get("job_title") or "").strip()
+    if not title:
+        return False
+    text = row.get("raw_text") or ""
+    job_headers = r"职位描述|岗位职责|工作职责|工作内容|任职要求|岗位要求|职位要求|技能要求"
+    job_boundary = rf"(?:{job_headers})(?:\s*[:：]|\s+)"
+    # 适配器追加的公司介绍，以及描述内的介绍段，都不能充当岗位内容。
+    text = re.sub(
+        rf"(?m)(?:^|(?<=[。；;！？!?：:]))[ \t]*(?:公司简介|公司介绍|企业简介|关于我们)"
+        rf"(?:[ \t]*[:：]|[ \t]*\n)[\s\S]*?(?={job_boundary}|\Z)",
+        "", text,
+    )
+    text = re.sub(
+        r"(?m)^\s*(?:公司|公司规模|公司阶段|行业|薪资|薪酬|工资|地点|地区|工作地址|"
+        rf"经验|学历|福利(?:待遇)?|薪资待遇)\s*[:：][^\n]*?(?={job_boundary}|\n|$)", "", text,
+    )
+    # 任职要求与职责不要求同时出现；岗位技能标签也可提供实质信息。
+    text = re.sub(rf"(?:{job_headers}|技能标签)\s*[:：]?", "", text)
+    text = re.sub(
+        r"暂无(?:描述|信息)?|详情面议|面议|待补充|详见详情|欢迎加入我们|欢迎加入|"
+        r"五险一金|六险一金|周末双休|双休|带薪年假|节日福利|包吃包住|"
+        r"经验不限|不限经验|学历不限|应届生|在校生|本科|大专|硕士|博士|高中|中专|"
+        r"\d+\s*(?:[-~至]\s*\d+)?\s*年(?:以上)?", "", text,
+    )
+    # 只排除完整匹配的宣传/联系/元信息片段，不从正文中删词或要求技能白名单。
+    non_job_clause = (
+        r"详情请咨询|招聘中|欢迎投递(?:简历)?|(?:岗位)?长期招聘|"
+        r"投递简历请联系\s*HR|待遇优厚|工作轻松|"
+        r"\d+(?:\.\d+)?\s*(?:[-~至]\s*\d+(?:\.\d+)?)?\s*(?:K|千|万)(?:元)?(?:[/／](?:月|年))?|"
+        r"(?:北京|上海|广州|深圳|杭州|成都)(?:市)?"
+    )
+    text = "\n".join(
+        part.strip() for part in re.split(r"[，,。；;！!\n]", text)
+        if part.strip(" \t\r\n：:") != title
+        and not re.fullmatch(non_job_clause, part.strip(), re.IGNORECASE)
+    )
+    if not re.search(r"[\w\u4e00-\u9fff]", text):
+        return False
+    # 不把“广告算法”“岗前培训”等正常岗位词汇列为黑名单。
+    ad_pattern = (
+        r"扫码领|扫码加群|加微信咨询|限时促销|欢迎购买|培训招生|包就业|刷单返佣|招商加盟|"
+        r"非招聘信息|无招聘意图|暂无招聘计划|仅供产品宣传"
+    )
+    if re.search(ad_pattern, text):
+        # 促销句里的“参与”等动词不能反过来证明存在岗位内容。
+        content = "\n".join(
+            part for part in re.split(r"[，,。；;！!\n]", text)
+            if not re.search(ad_pattern, part)
+        )
+        if not re.search(r"(?:熟悉|熟练|掌握|具备|负责|参与|承担|协助)\s*[^\W\d_]", content):
+            return False
+    # shortcut: 未识别的剩余文本保守放行；有人工误判样例后再收紧规则。
+    return True
+
+
 # ── clean() 主函数 ─────────────────────────────────────
 
 def clean(raw: RawJD) -> dict:

@@ -8,13 +8,13 @@ from __future__ import annotations
 import argparse
 import time
 import urllib.parse
-from datetime import datetime, timezone
-
-from sqlalchemy import text
+from functools import partial
 
 from app.collect.fetchers.boss import deduplicate_jobs, normalize_boss_job
 from app.collect.fetchers.cdp import CdpClient, CdpError
+from app.collect.cleaner import clean, is_valid_jd
 from app.collect.pipeline import run_pipeline
+from app.collect.repository import save_incremental_jd_rows
 
 SEARCH_URL = "https://www.zhipin.com/web/geek/jobs"
 
@@ -149,75 +149,92 @@ def run_fetch(
     if pages < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0:
         raise ValueError("pages/detail_limit/max_jobs/delay 不能为负数")
 
-    client = CdpClient.connect_first_page(cdp_endpoint, user_data_dir=user_data_dir, target_url_contains="zhipin.com")
-    collected: list[dict] = []
-    try:
-        for keyword in keywords:
-            for city_name, city_code in cities:
-                consecutive_empty = 0
-                for page in range(1, pages + 1):
-                    url = _search_url(keyword, city_code, page)
-                    jobs = _fetch_search_page(client, url, settle)
-                    if not jobs:
-                        if _looks_like_login_page(client):
-                            raise CdpError("当前页面需要 BOSS 登录或触发验证，请在浏览器中人工处理后重试")
-                        consecutive_empty += 1
-                        if consecutive_empty >= 2:
-                            break
-                    else:
-                        consecutive_empty = 0
-                        collected.extend(jobs)
-                    print(f"[fetch_boss_jobs] {city_name}/{keyword} 第 {page} 页: {len(jobs)} 条")
-                    time.sleep(delay)
-    finally:
-        client.close()
-
-    jobs = deduplicate_jobs(collected)
-    if max_jobs:
-        jobs = jobs[:max_jobs]
-
-    if not no_details and detail_limit:
-        detail_client = CdpClient.connect_first_page(cdp_endpoint, user_data_dir=user_data_dir, target_url_contains="zhipin.com")
-        try:
-            for index, job in enumerate(jobs[:detail_limit], 1):
-                try:
-                    detail_client.navigate(job["url"], settle_seconds=settle)
-                    detail = detail_client.evaluate(DETAIL_EXTRACT_JS)
-                    if isinstance(detail, dict):
-                        job.update({key: value for key, value in detail.items() if value})
-                except Exception as exc:
-                    print(f"[fetch_boss_jobs] 详情失败 {index}/{min(detail_limit, len(jobs))}: {exc}")
-                time.sleep(delay)
-        finally:
-            detail_client.close()
-
-    raws = [raw for job in jobs if (raw := normalize_boss_job(job))]
-    if not raws:
-        return {"listed": len(jobs), "new": 0, "skipped": 0, "details": 0}
-
     from app.db.mysql import get_db
-    db = next(get_db())
+
+    # 保留 provider 至 finally，避免 next(get_db()) 的临时生成器提前关闭 session。
+    provider = get_db()
+    db = next(provider)
+    created_ids: set[int] = set()
+    save_list = partial(save_incremental_jd_rows, created_ids=created_ids)
+    save_detail = partial(save_incremental_jd_rows, created_ids=created_ids, allow_updates=True)
+    jobs: list[dict] = []
+    saved = 0
+    details_count = 0
     try:
-        existing = {
-            row[0]
-            for row in db.execute(
-                text("SELECT source_detail FROM jd_pool WHERE source='boss' AND source_detail IS NOT NULL")
-            ).all()
-        }
-        new_raws = [raw for raw in raws if raw.source_detail not in existing]
-        if new_raws:
-            stats = run_pipeline(db, new_raws)
-        else:
-            stats = {"jd_saved": 0}
+        client = CdpClient.connect_first_page(cdp_endpoint, user_data_dir=user_data_dir, target_url_contains="zhipin.com")
+        try:
+            for keyword in keywords:
+                for city_name, city_code in cities:
+                    consecutive_empty = 0
+                    for page in range(1, pages + 1):
+                        url = _search_url(keyword, city_code, page)
+                        page_jobs = _fetch_search_page(client, url, settle)
+                        if not page_jobs:
+                            if _looks_like_login_page(client):
+                                raise CdpError("当前页面需要 BOSS 登录或触发验证，请在浏览器中人工处理后重试")
+                            consecutive_empty += 1
+                            if consecutive_empty >= 2:
+                                break
+                        else:
+                            consecutive_empty = 0
+                            jobs = deduplicate_jobs(jobs + page_jobs)
+                            if max_jobs:
+                                jobs = jobs[:max_jobs]
+                            page_urls = {job["url"] for job in deduplicate_jobs(page_jobs)}
+                            raws = [raw for job in jobs if job["url"] in page_urls
+                                    and (raw := normalize_boss_job(job))]
+                            saved += run_pipeline(db, raws, jd_saver=save_list)["jd_saved"]
+                        print(f"[fetch_boss_jobs] {city_name}/{keyword} 第 {page} 页: {len(page_jobs)} 条")
+                        if max_jobs and len(jobs) >= max_jobs:
+                            break
+                        time.sleep(delay)
+                    if max_jobs and len(jobs) >= max_jobs:
+                        break
+                if max_jobs and len(jobs) >= max_jobs:
+                    break
+        finally:
+            client.close()
+
+        if not no_details and detail_limit and jobs:
+            detail_client = CdpClient.connect_first_page(cdp_endpoint, user_data_dir=user_data_dir, target_url_contains="zhipin.com")
+            try:
+                for index, job in enumerate(jobs[:detail_limit], 1):
+                    details_count += 1
+                    try:
+                        detail_client.navigate(job["url"], settle_seconds=settle)
+                        detail = detail_client.evaluate(DETAIL_EXTRACT_JS)
+                    except Exception as exc:
+                        print(f"[fetch_boss_jobs] 详情失败 {index}/{min(detail_limit, len(jobs))}: {exc}")
+                        time.sleep(delay)
+                        continue
+                    if isinstance(detail, dict):
+                        # 列表技能不能替占位详情证明正文有效，否则会挡住下一轮补全。
+                        detail_raw = normalize_boss_job({
+                            "url": job["url"], "title": job.get("title") or detail.get("title"),
+                            "description": detail.get("description"),
+                        })
+                        if not detail_raw or not is_valid_jd(clean(detail_raw)):
+                            time.sleep(delay)
+                            continue
+                        # 列表 URL 是稳定身份，不用详情跳转 URL 覆盖。
+                        job.update({key: value for key, value in detail.items() if value and key != "url"})
+                        raw = normalize_boss_job(job)
+                        if raw:
+                            # 写库异常不能被当作浏览器错误吞掉，已提交批次仍然保留。
+                            saved += run_pipeline(db, [raw], jd_saver=save_detail)["jd_saved"]
+                    time.sleep(delay)
+            finally:
+                detail_client.close()
     finally:
-        db.close()
+        provider.close()
 
     return {
         "listed": len(jobs),
-        "new": int(stats.get("jd_saved", 0)),
-        "skipped": len(raws) - int(stats.get("jd_saved", 0)),
-        "details": min(detail_limit, len(jobs)) if not no_details else 0,
+        "new": saved,
+        "skipped": len(jobs) - saved,
+        "details": details_count,
     }
+
 
 
 def main() -> None:

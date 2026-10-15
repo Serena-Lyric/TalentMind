@@ -1,12 +1,12 @@
-# M2 完整回包（2026-09-01 生成，2026-09-02 导入）
+# M2 标准交接（原回包 2026-09-01，演示基线 2026-09-05）
 
-当前交接产出来自 `input/岗位数据-新一代与现有/`，已标准化复制到本目录：
+交接最初来自仓库根 `input/岗位数据-新一代与现有/`，标准化后已按演示提交调整。2026-10-15 文件计数：
 
-- `job_definition.json`：719 条岗位定义（新一代 344、现有 375）；
-- `job_skill.json`：719 条按 M2 `job_id` 合并后的技能明细（原始拆分文件共 723 条）；
-- `job_change_log.json`：243 条能力更新日志，保留 `object_type/source_jd_time`；
-- `job_definition_zh.json`：719 条兼容展示快照；
-- `m2-full-return-20260902.md`：导入摘要。
+- `job_definition.json`：717 条岗位定义（新一代 342、现有 375）；
+- `job_skill.json`：717 条按 M2 `job_id` 合并后的技能明细；
+- `job_change_log.json`：275 条日志，保留 `object_type/source_jd_time`，含 32 条演示日志；
+- `job_definition_zh.json`：717 条兼容展示快照；
+- `m2-full-return-20260902.md`：历史导入摘要，原回包为 719/719/243（技能原始拆分文件 723 条），不当作当前文件计数。
 
 
 
