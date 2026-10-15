@@ -1,5 +1,70 @@
 # job_analysis
 
+## 第一阶段 A：独立离线事实基础层
+
+新入口为 `python -m app.job_analysis.foundation`，与下方旧管道隔离。新库跨运行持久化，不读取或升级旧 StateDB，不连接数据库服务或外部模型；要求显式输入/状态/输出。仓库内运行产物只允许位于 Git 忽略的 `data/local/`，也可使用仓库外的独立目录。
+
+在仓库根准备一个**合成** `data/local/m2-a/input.json`：
+
+```json
+[{"id":1,"source":"synthetic","source_detail":"fixture-a","job_title":"Engineer","raw_text":"Use Python","duties":"Build services","experience":"3 years","crawled_at":"2026-10-15T08:00:00+08:00"}]
+```
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m app.job_analysis.foundation run --input ../data/local/m2-a/input.json --dataset synthetic-a --state ../data/local/m2-a/state.sqlite3 --output ../data/local/m2-a/results
+# 使用上一步 stdout 的 run_id 或 aggregate_id：
+.\.venv\Scripts\python.exe -m app.job_analysis.foundation resume --run <run_id> --state ../data/local/m2-a/state.sqlite3 --output ../data/local/m2-a/results
+.\.venv\Scripts\python.exe -m app.job_analysis.foundation replay --aggregate <aggregate_id> --state ../data/local/m2-a/state.sqlite3 --output ../data/local/m2-a/replay
+```
+
+`run` 可加 `--analysis-version v2`、`--aggregate-version v2` 或 `--force`。状态文件始终使用同一路径才能跨运行复用；不要删除状态模拟增量。`resume` 沿用原运行的完整输入范围和两个版本，依赖不符则拒绝。失败或 partial 任务可通过新 `run` 重试；已有成功事实保留，但最新强制尝试失败时不会静默退回旧成功。输出发布失败保留 `publication_failed`，恢复可直接复用已提交事实。
+
+若进程在输出 stdout 前退出，可重复同一 `run` 命令（已提交事实仍复用），或只读查询本地库取得原 run_id，再执行 `resume`：`.\.venv\Scripts\python.exe -c "import sqlite3; c=sqlite3.connect('file:../data/local/m2-a/state.sqlite3?mode=ro',uri=True); print(c.execute('SELECT id,status,error FROM runs ORDER BY rowid DESC').fetchall()); c.close()"`。库的恢复状态在 `AnalysisStore` 重新打开时更新。
+
+CLI 只运行内置 `LiteralDemoAnalyzer`：在完整正文中定位 Python 字面词，记录 `unclassified`，未匹配返回的是该演示范围的零结果。它不能识别真实要求、否定、其他技能或岗位分类，**不代表模型分析效果或完整技能覆盖**。输出携带 `offline-demo` 依赖标识，统计范围限定 `offline_evidence_audit`。
+
+### 输入与精确复用
+
+- 支持 UTF-8（可带 BOM）JSON 数组、逐行 JSON 对象的 JSONL；空列表、坏行、重复 JSON 键、重复身份、非有限数字、缺必填字段及其他文件格式明确报错。JSON 包装对象、CSV、SQL/mysqldump 不在新入口支持范围。
+- 必填 `id`（非空字符串或整数）、`source/job_title/raw_text`（非空文本）；`duties/experience/requirements` 如出现须为文本。其他 JSON 字段保守保留并参与指纹，包括 `source_detail/quality/dup_group/cross_source`。不假设存在职位 URL。整数 ID 转成十进制字符串，故同一数据集内 `1` 与 `"1"` 是同一身份，不能同时出现；不同数据集分别保存。
+- `id` 与数据集构成身份；`crawled_at` 独立存为来源观察值，不进入分析器 payload/内容指纹，不作为发布时间、不补时区或虚构缺失时间。每次载入保留观察及其来源运行；相同来源时间重复出现只是重复导入证据，不宣称新的真实观察。
+- 剩余全部字段按 UTF-8、key 排序、紧凑 JSON、不允许 NaN 稳定序列化后 SHA-256。完整字段不截断；快照正文不可变，整份源文件原始字节与 SHA-256 另存于运行记录。不按正文 hash 或 dup_group 删除身份，增量文件缺项不判下架。
+- 分析版本为显式 revision + 解析/清洗/证据校验修订、实际词典内容摘要、分析器 extractor/prompt/model/configuration 修订的摘要。必填依赖缺失直接拒绝；任何依赖变化保守使所选数据集全部当前输入重新处理。分析器代码、模型参数或提示词改变时接入者必须更新相应修订，第一阶段不自动分析代码依赖。
+- 聚合版本独立保存 revision 与 `offline-evidence-inventory-v1` 规则标识；仅改聚合版本可复用完整单条事实。成功终态、输入/依赖/事实/聚合记录受不可改写触发器保护，不能给旧成功直接改版本号。
+
+### 分层状态与证据
+
+尝试状态为 `running/completed/partial/failed/retryable`；准备后尚无尝试即 pending。partial 包括声明尚未完成、事实结构损坏或引文未通过；failed 包括调用异常、空响应或顶层解析失败。合法 `coverage=complete,facts=[]` 与失败分开。失败日志只存安全原因码，不保存供应商异常文本、API 密钥或任意原始响应；合法 claim 和未知技能的原名/证据保留，非法结构项保留审计记录。
+
+每条 claim 必须指定 `kind/name/requirement`，证据含 `namespace/jd_id/field/quote`。程序核对具体身份、完整引文及字段，保存 Python 字符索引半开区间 `[start,end)`；重复引文取首个位置。当前分析输入不清洗、不分段、不翻译，位置直接对应不可变输入字段，不能当作原始网页位置。`verified` 模型自述被忽略。
+
+`evidence_status` 区分 `matched/missing_evidence/foreign_jd/quote_not_found/invalid_structure`。`matched` 仅证明原文对应，`semantic_status=unreviewed` 始终保留；可承载五态标签，但本阶段没有五态识别算法，兼容 `legacy_required/legacy_bonus` 也不升级为新语义。已知技能复用共享 normalizer；未知项 `governance=candidate`，不改词典。
+
+聚合成员的资格只针对离线证据审计：completed → included，partial/未完成 → incomplete，failed → excluded，逐条保留原因。partial 中合法事实仍可在 matched_facts 核对，不让该 JD 冒充完整样本。所有正式统计资格均为 false，并注明独立职位未关联、语义未复核；没有技能需求率或独立职位数。
+
+### 持久化、恢复与接入边界
+
+SQLite 包含 runs（源文件/版本/状态）、snapshots、heads、observations、versions、attempts、facts、tasks（冻结输入范围及复用选择）、aggregates（版本/完整成员/业务结果和摘要）。新库由 application_id/user_version 标识，旧库拒绝自动迁移。文件锁使用 Windows msvcrt / POSIX flock，仅支持单进程串行拥有；拒绝硬链接状态文件，符号链接/junction 先解析到实际路径，不适用于多机共享网络盘。store 连接开启 recursive_triggers，使 REPLACE 的隐式删除也受历史保护；终态尝试不能追加事实。
+
+准备运行时原子保存快照、观察、当前身份指向与完整数据集任务范围；每次尝试先提交 running，事实与终态一次事务提交。进程退出后重新打开库将遗留 running 标为 retryable；已提交终态复用，未提交结果重做。恢复旧运行按原任务范围执行，后续输入变化不污染旧运行，也不会倒退最新 heads。聚合从完整任务范围构建，不只统计本轮新增项；成员按身份稳定排序，固定 attempt/fact ID 可逐条重放。
+
+SQLite 先保存聚合，文件在同目录暂存、flush/fsync 后原子替换，最后才记运行完成。每个 run_id 独立 JSON，已有不同内容拒绝覆盖；恢复清理该 artifact 自有暂存文件。测试覆盖进程硬退出；断电、文件系统损坏、远程盘和跨机锁不在已验证范围。
+
+可注入边界为 `models.Analyzer` 协议：提供完整 `AnalyzerSpec`，实现 `analyze(InputRecord) -> dict | str`，由 `runner.execute/resume` 编排、验证、落库和聚合。分析器拿到全部参与指纹的字段，观察时间在接口外独立保存；不得私自读取未纳入版本的外部依赖。后续按另行授权接入旧客户端即可复用此基础设施；旧 `ExtractionResult/StateDB/merge/export` 不足以表达完整证据和失败语义，本轮不直接复用这些行为，也不替换生产 API 或交接格式。
+
+### 离线测试
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py -q
+.\.venv\Scripts\python.exe -m pytest -m "not integration" -q
+```
+
+新增测试全部使用合成数据、可注入分析器、临时 SQLite 与临时文件；fixture finally 自动关闭/删除并断言目录不存在。包含真正子进程 `os._exit` 中断、事务回滚及发布失败恢复。不得去掉 integration 排除条件后指向演示库；真实数据库与模型效果验证需另获许可。详细本轮通过数、干净检出时的合成配置及网络阻断回归命令见 `docs/review/M2-stage-A-implementation.md`（审查期间保留）；原因与教训见 [恢复陷阱](../../../docs/superpowers/traps/2026-10-15-m2-facts-and-recovery.md)。
+
+## 旧管道与既有交接
+
 M2 岗位分析正式目录，已接入 2026-09-01 M2 回包管道源码兼容能力。主要流程为：数据解析/预筛 → 相关性与质量判断 → 技能提取与证据验证 → 合并 → 差异记录 → 交接导出。
 
 - 交接数据：仓库根 `exchange/m2/`；2026-10-15 只读核对为 **717 条岗位定义、717 条按 `job_id` 合并的技能明细、275 条日志**。719/719/243 是 2026-09-01 原回包数字，09-05 演示基线已调整；不是本轮数据库实查。
