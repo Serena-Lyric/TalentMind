@@ -1,6 +1,8 @@
 # M2 第一阶段 A 实施与验证报告
 
-日期：2026-10-15。基线：`origin/master` 的 `29caa924`。本报告保留至集中审查结束。
+> **历史实施归档，非生产发布授权。** 原报告在 [PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 中经 ChatGPT 源码审查后归档；代码依据为阶段 A 提交 `aeb7a37`～`629a5494`，后续实现以 Git 历史及正式文档为准。本报告测试结果来自 Codex 的 Windows 本地执行，未由 ChatGPT 独立重跑，也无 GitHub CI 检查。
+
+日期：2026-10-15。基线：`origin/master` 的 `29caa924`。本报告已于审查后从临时目录归档。
 
 ## 授权与实施计划
 
@@ -44,7 +46,7 @@ PR #3 已合并到基线；24 项矩阵、E01～E11、P0 风险与离线验收�
 | `docs/PRODUCT_DECISIONS.md`、`docs/superpowers/决策跟踪.md` | 追加 M2-25～27（A-01～03）与 D64～66，不改 M2-01～24、D1～63 原行 |
 | `docs/superpowers/资产与状态.md` | 新资产、真实验证范围和待审查状态 |
 | `docs/superpowers/traps/2026-10-15-m2-facts-and-recovery.md` | 输入/事实/版本/发布恢复与 SQLite 边界教训 |
-| `docs/review/M2-stage-A-implementation.md` | 本临时计划、实施台账与验证证据，保留待集中审查 |
+| `docs/superpowers/archive/2026-10-15-M2-stage-A-implementation.md` | 计划、实施台账与测试报告，已转历史归档 |
 
 ## 结构、复用与版本
 
@@ -142,4 +144,4 @@ CLI 端到端测试真实启动包入口，检查 run/replay 的 JSON 业务内�
 
 最终静态检查：21 文件范围准确；新增 12 个本地 Markdown 链接存在，围栏配对、git diff --cached --check 通过；M2-01～24 与 D1～63 原决策行保持，SQLite/旁置锁/运行 JSON 忽略规则生效。原工作区仍在 codex/m1-stage-02，仅原有资产状态文件有改动；收尾核对其 SHA-256 为 F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B，与本轮提交前记录一致。
 
-实现提交：`aeb7a37`（21 文件）。分支 `codex/m2-stage-a` 已推送；[PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 面向 master，已关联当前任务。未合并；保留临时报告与工作树供 ChatGPT 集中审查。本段为交付元数据补录，不改业务代码或测试。
+实现提交：`aeb7a37`（21 文件）。分支 `codex/m2-stage-a` 已推送；[PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 面向 master，已关联当前任务。提交时未合并；后续由 ChatGPT 审查并归档，合并仍须用户授权。本段为交付元数据补录，不改业务代码或测试。

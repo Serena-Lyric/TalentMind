@@ -61,7 +61,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest -m "not integration" -q
 ```
 
-新增测试全部使用合成数据、可注入分析器、临时 SQLite 与临时文件；fixture finally 自动关闭/删除并断言目录不存在。包含真正子进程 `os._exit` 中断、事务回滚及发布失败恢复。不得去掉 integration 排除条件后指向演示库；真实数据库与模型效果验证需另获许可。详细本轮通过数、干净检出时的合成配置及网络阻断回归命令见 `docs/review/M2-stage-A-implementation.md`（审查期间保留）；原因与教训见 [恢复陷阱](../../../docs/superpowers/traps/2026-10-15-m2-facts-and-recovery.md)。
+新增测试全部使用合成数据、可注入分析器、临时 SQLite 与临时文件；fixture finally 自动关闭/删除并断言目录不存在。包含真正子进程 `os._exit` 中断、事务回滚及发布失败恢复。不得去掉 integration 排除条件后指向演示库；真实数据库与模型效果验证需另获许可。详细本轮通过数、干净检出时的合成配置及网络阻断回归命令见 [历史实施报告](../../../docs/superpowers/archive/2026-10-15-M2-stage-A-implementation.md)（PR #4 审查存档）；原因与教训见 [恢复陷阱](../../../docs/superpowers/traps/2026-10-15-m2-facts-and-recovery.md)。
 
 ## 旧管道与既有交接
 

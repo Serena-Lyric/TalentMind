@@ -28,7 +28,7 @@ M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind
 
 M2 第一轮只读评估：[历史评估与源码证据](superpowers/archive/2026-10-15-M2-architecture-gap-assessment.md)（[PR #3](https://github.com/Serena-Lyric/TalentMind/pull/3)）；包含真实调用证据、24 项目标差距、阶段依赖、最小改造建议与待裁决项。仅用于后续设计参考，新方案尚未实施。
 
-M2 第一阶段 A：独立事实基础层的运行方式、范围和接入契约见 [M2 README](../backend/app/job_analysis/README.md)，本轮验证及未决见 [临时实施报告](review/M2-stage-A-implementation.md)（审查期间保留）。旧评估的“尚未实施”描述对应原评估时点。
+M2 第一阶段 A：独立事实基础层的运行方式、范围和接入契约见 [M2 README](../backend/app/job_analysis/README.md)，本轮验证及未决见 [历史实施报告](superpowers/archive/2026-10-15-M2-stage-A-implementation.md)（[PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 审查记录）。旧评估的“尚未实施”描述对应原评估时点。
 
 ## 分类子目录
 
