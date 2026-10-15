@@ -10,7 +10,7 @@ from ...collect.cleaner import is_valid_jd
 from ..foundation.inputs import canonical, parse_json
 from ..foundation.models import VersionName
 
-RULESET = "conservative-activity-v1"
+RULESET = "conservative-activity-v2"
 
 
 class ScopeDefinition(BaseModel):
@@ -72,7 +72,7 @@ NONTECH_TITLE = r"销售|行政|前台|厨师|服务员|搬运|人事|\b(?:sales
 QUALIFICATION = r"(?:熟悉|熟练|掌握|具备)[^。；;!?！？\n]*[\w\u4e00-\u9fff]|\b(?:proficient|experience\s+with|required\s+skills)\b"
 NON_RECRUITMENT = r"非招聘信息|无招聘意图|暂无招聘计划|仅供产品宣传|欢迎购买|培训招生|\b(?:not\s+(?:a\s+)?job\s+(?:posting|advertisement)|product\s+promotion)\b"
 AMBIGUOUS = r"不(?:负责|参与|开发|编写|设计|实现|维护|优化|构建|执行|分析|训练|部署|管理|监控)|无需|不需要|不涉及|并非|不是|不会|不要|不用|未参与|不承担|不要求|例如|举例|曾经|过去|\b(?:not|never|no|without|previously|example)\b"
-NON_JOB_CONTEXT = r"公司简介|公司介绍|关于我们|教程|本文介绍|(?:公司|我们|本公司)[^。；;!?！？\n]{0,16}(?:开发|设计|构建)的|\b(?:about\s+us|our\s+company|tutorial)\b"
+NON_JOB_CONTEXT = r"公司简介|公司介绍|关于我们|教程|本文介绍|(?:公司|我们|本公司|我司|本团队)[^。；;!?！？\n]{0,16}(?:开发|设计|构建)的|(?:向|给|为)客户(?:演示|介绍|展示)[^。；;!?！？\n]{0,24}(?:产品|软件|平台)|\b(?:about\s+us|our\s+company|tutorial)\b"
 
 
 def _matches(field, text, pattern, signal):
@@ -118,7 +118,7 @@ def screen(record, scope):
     elif not substantive and not is_valid_jd({"job_title": payload["job_title"], "raw_text": text}):
         validity, status, reason, explanation = "invalid", None, "no_job_content", "仅有可识别占位或元信息，无实质岗位内容。"
     elif non_job or ambiguous or context:
-        status, reason, explanation = "needs_review", "ambiguous_activity", "存在非招聘声明、否定、示例或历史语境，规则无法可靠裁决。"
+        status, reason, explanation = "needs_review", "ambiguous_activity", "存在非招聘声明、否定、示例、历史或产品归属/演示语境，规则无法可靠裁决。"
         if non_job or context:
             validity = "undetermined"
     elif (technical and other_titles) or (other and titles) or (technical and other):

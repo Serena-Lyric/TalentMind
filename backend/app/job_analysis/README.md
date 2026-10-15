@@ -24,9 +24,9 @@ cd backend
 .\.venv\Scripts\python.exe -m app.job_analysis.screening replay --run <run_id> --state ../data/local/m2-b1/state.sqlite3 --output ../data/local/m2-b1/replay
 ```
 
-无本地 venv 的独立工作树，可指定已安装 requirements 的 Python 绝对路径。状态/输出仅允许仓库内的 `data/local/` 或仓库外独立目录。配置/路径/存储错误返回 2；输入或筛选失败仍发布有错误的审计并返回 2；成功筛选运行（包括无效/范围外/待复核）返回 0。若未获得 stdout，可只读查询 `b1_runs` 的 `id,status,error`，再 resume。已完成的失败尝试通过新 run 重试；resume/replay 不改写旧判断或旧审计。
+无本地 venv 的独立工作树，可指定已安装 requirements 的 Python 绝对路径。状态/输出仅允许仓库内的 `data/local/` 或仓库外独立目录。输出目录允许包含状态库（同层或子目录），发布器只写 `<run_id>.json`；禁止把状态文件本身或其子路径当成输出目录。输入/范围文件必须位于输出目录之外，不以“目录隔离”暗示状态库也必须在目录外。配置/路径/存储错误返回 2；输入或筛选失败仍发布有错误的审计并返回 2；成功筛选运行（包括无效/范围外/待复核）返回 0。若未获得 stdout，可只读查询 `b1_runs` 的 `id,status,error`，再 resume。已完成的失败尝试通过新 run 重试；resume/replay 不改写旧判断或旧审计。
 
-范围配置为严格 JSON 对象：`scope_id/version/mode/description/activities`；mode 仅 `offline_experiment`。样例包含 software_development、software_testing、data、it_operations 四种工作活动。它们是规则证据组，不生成职业大类、标准岗位、方向或级别。可显式缩小 activities；未识别配置拒绝执行。更改配置的任意内容（即使 version 标签相同）也会产生新版本键。代码/语境规则变化应升级内部 RULESET；`--rules-version v2` 可另行标记试验修订。恢复要求原实现依赖一致，历史 replay 不需重新筛选。
+范围配置为严格 JSON 对象：`scope_id/version/mode/description/activities`；mode 仅 `offline_experiment`。样例包含 software_development、software_testing、data、it_operations 四种工作活动。它们是规则证据组，不生成职业大类、标准岗位、方向或级别。可显式缩小 activities；未识别配置拒绝执行。更改配置的任意内容（即使 version 标签相同）也会产生新版本键。代码/语境规则变化应升级内部 RULESET；`--rules-version v2` 可另行标记试验修订。当前实现 `conservative-activity-v2` 对“我司/本团队开发的产品”和向客户演示/介绍产品语境保守复核，不能将产品属性直接归给岗位。新 run 不复用 v1 判断，旧报告仍可 replay；旧运行 resume 要求原实现依赖一致，不自动改写历史。
 
 **分层判断**：validity 为 valid / invalid / undetermined；已完成判断的有效或待判断 JD 分别使用范围三态。无效 JD 的 scope_status 为 null；解析/执行错误的 validity 为 not_evaluated、scope_status 为 null。规则需要技术工作动作与对象关系，不能靠标题或 Python/Excel 单词纳入；明确非技术工作可排除。短文本无长度限制，无技能数量或实习限制。标题与正文冲突、混合活动、已识别否定/历史/教程/公司介绍语境、信息不足均保留复核。复用 M1 `is_valid_jd` 作为无实质内容信号；未知剩余文字不自动确认为有效招聘，M1 输入字段与状态原样保留，不回写。
 

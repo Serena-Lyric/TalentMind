@@ -15,6 +15,7 @@ def checkpoint(stage):
 
 def output_path(store, output, input_path):
     path = safe_destination(output)
+    # State may live inside output: publish writes only <run_id>.json, never the SQLite filename.
     if path == store.path or path.is_relative_to(store.path) or input_path == path or input_path.is_relative_to(path):
         raise ValueError("output must be separate from input and state")
     return path

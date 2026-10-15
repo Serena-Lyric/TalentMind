@@ -384,3 +384,89 @@ def test_truncated_jsonl_cannot_persist_unchecked_credentials(area):
     assert result["audit"]["input_failed"] == 1
     assert result["raw_input_retained"] is False
     assert b"synthetic-probe-credential" not in (area / "state.sqlite3").read_bytes()
+
+
+@pytest.mark.parametrize("owner", ["我司", "本团队", "该公司"])
+@pytest.mark.parametrize("field", ["raw_text", "duties", "requirements"])
+def test_customer_demonstration_of_owned_product_needs_review(area, owner, field):
+    text = f"岗位职责：负责向客户演示{owner}开发的软件产品。"
+    row = jd(job_title="客服专员", raw_text="具体工作见职责。") | {field: text}
+    member = run(area, [row])["members"][0]
+    assert member["execution_status"] == "completed"
+    assert member["scope_status"] == "needs_review"
+    assert "ambiguous_activity" in member["review_reasons"]
+    assert any(e["field"] == field and e["signal"] == "non_job_context" for e in member["evidence"])
+    for evidence in member["evidence"]:
+        assert row[evidence["field"]][evidence["start"]:evidence["end"]] == evidence["quote"]
+
+
+@pytest.mark.parametrize("text", [
+    "负责向客户演示自主开发的软件产品。",
+    "负责向客户介绍自研软件产品。",
+    "负责给客户展示合作方开发的软件产品。",
+])
+def test_product_demonstration_without_known_owner_needs_review(area, text):
+    member = run(area, [jd(job_title="客服专员", raw_text=text)])["members"][0]
+    assert member["scope_status"] == "needs_review"
+    assert "ambiguous_activity" in member["review_reasons"]
+
+
+@pytest.mark.parametrize("text", [
+    "负责开发软件服务。",
+    "负责开发我司的软件产品。",
+    "负责为本团队开发软件服务。",
+    "负责开发软件服务，并向客户演示。",
+])
+def test_current_job_development_stays_in_scope(area, text):
+    member = run(area, [jd(raw_text=text)])["members"][0]
+    assert (member["validity"], member["scope_status"]) == ("valid", "in_scope")
+    assert member["reason_codes"] == ["technical_activity"]
+
+
+def test_product_context_rule_upgrade_replaces_cached_decision_without_rewriting_history(area, monkeypatch):
+    import app.job_analysis.screening.rules as rules
+    import app.job_analysis.screening.runner as runner
+    from app.job_analysis.screening.store import ScreeningStore
+    row = jd(job_title="客服专员", raw_text="岗位职责：负责向客户演示我司开发的软件产品。")
+    # Reproduce the reviewed v1 rule through the real runner and SQLite, then upgrade it.
+    with monkeypatch.context() as legacy:
+        legacy.setattr(rules, "RULESET", "conservative-activity-v1")
+        legacy.setattr(runner, "RULESET", "conservative-activity-v1")
+        legacy.setattr(rules, "NON_JOB_CONTEXT",
+            r"公司简介|公司介绍|关于我们|教程|本文介绍|(?:公司|我们|本公司)[^。；;!?！？\n]{0,16}(?:开发|设计|构建)的|\b(?:about\s+us|our\s+company|tutorial)\b")
+        first = run(area, [row])
+    assert first["members"][0]["scope_status"] == "in_scope"
+    second = run(area, [row])
+    assert second["members"][0]["scope_status"] == "needs_review"
+    assert second["members"][0]["snapshot_id"] == first["members"][0]["snapshot_id"]
+    assert second["members"][0]["decision_id"] != first["members"][0]["decision_id"]
+    assert second["screening_version"] != first["screening_version"]
+    with ScreeningStore(area / "state.sqlite3") as store:
+        assert runner.replay(store, first["run_id"]) == first
+        with pytest.raises(ValueError, match="original B1 rule implementation"):
+            runner.resume(store, first["run_id"])
+
+
+@pytest.mark.parametrize("state_relative", ["state.sqlite3", "nested/state.sqlite3"])
+def test_output_directory_may_contain_state_without_overwriting_it(area, state_relative):
+    from app.job_analysis.screening.runner import execute, replay, resume
+    from app.job_analysis.screening.store import ScreeningStore
+    path = area / "input.json"
+    path.write_text(json.dumps([jd()]), encoding="utf-8")
+    original_input = path.read_bytes()
+    output = area / "artifacts"
+    state = output / state_relative
+    with ScreeningStore(state) as store:
+        result = execute(store, path, "fixture-b1", scope=SCOPE, output=output)
+        assert resume(store, result["run_id"], output=output) == result
+        assert store.conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        assert store.conn.execute("SELECT count(*) FROM b1_decisions WHERE status='completed'").fetchone()[0] == 1
+        assert json.loads((output / (result["run_id"] + ".json")).read_text(encoding="utf-8")) == result
+    with ScreeningStore(state) as store:
+        assert replay(store, result["run_id"]) == result
+        from app.job_analysis.screening.runner import output_path
+        with pytest.raises(ValueError):
+            output_path(store, state, path)
+        with pytest.raises(ValueError):
+            output_path(store, state / "child", path)
+    assert path.read_bytes() == original_input

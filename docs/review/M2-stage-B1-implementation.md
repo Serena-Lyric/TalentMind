@@ -97,7 +97,7 @@ raise SystemExit(result or bool(denied))
 $b1TestCode | .\.venv\Scripts\python.exe -X utf8 -
 ```
 
-最终实际结果：**500 passed / 2 skipped / 23 deselected / 0 failed**，190 项既有依赖弃用警告；**Blocked external/service attempts: 0**。两项 skipped 为 test_m2_return_package.py:15/:26，原因是私有 input 原回包未随干净检出提供；23 项真实服务 integration 测试未运行。修复审查问题前的一次完整回归为 496 passed，本报告采用修复后新增四项回归的 500，不沿用 PR #4 的 440。
+首次交付实际结果：**500 passed / 2 skipped / 23 deselected / 0 failed**，190 项既有依赖弃用警告；**Blocked external/service attempts: 0**。两项 skipped 为 test_m2_return_package.py:15/:26，原因是私有 input 原回包未随干净检出提供；23 项真实服务 integration 测试未运行。修复内部检查问题前的一次完整回归为 496 passed，首次交付采用新增四项回归后的 500，不沿用 PR #4 的 440。本次 ChatGPT 审查修复后的新结果见下节。
 
 所有新增 fixture 均在 finally 关闭/删除临时目录并断言不存在；子进程终止后核对无 running、成功判断不重复。未进行真实 MySQL/Neo4j 集成测试，未写入生产库，因而没有生产库夹具残留查询或“生产数据计数不变”的声称。原工作区唯一未提交资产文档 SHA-256 开发前后均为 F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B，未带入提交。
 
@@ -107,6 +107,28 @@ $b1TestCode | .\.venv\Scripts\python.exe -X utf8 -
 - 增补语境/来源/硬退出/输出异常/凭据/证据校验，发现教程语境和旧成员来源引用两项失败，修复后 56 passed。
 - 按 requesting-code-review 做一次只读子代理检查，合成探针发现三项 Important：直接否定、公司产品属性误作职责、截断 JSONL 凭据字节落盘。增加四项回归，实际 4 failed 后修复至 60 passed；没有未处理的 Critical/Important，也没有提出后延期的 Minor。
 - 上述是 Codex 内部检查，不能替代用户要求的交付后 ChatGPT 独立审查；没有声称已获 ChatGPT 最终验收。
+
+## PR #5 ChatGPT 独立审查的定向修复（2026-10-15）
+
+完整读取 [审查正文](https://github.com/Serena-Lyric/TalentMind/pull/5#pullrequestreview-5535552540)（针对 head a62db3f）。该次独立审查有 1 项 Important 和 1 项非阻塞输出路径建议；以下为修复及自检证据，等待 ChatGPT 复审，不将自检当作复审通过。
+
+**Important**：审查样例“客服专员 / 负责向客户演示我司开发的软件产品”确实会命中“开发的软件”并错误 in_scope。rules.py 扩展我司/本团队的产品归属保护，并独立识别向/给/为客户演示/介绍/展示产品语境；现记 needs_review，保留 ambiguous_activity 与 non_job_context 原文位置，不依据客服标题强制排除。明确“负责开发软件服务”“负责开发我司的软件产品”“负责为本团队开发软件服务”“负责开发软件服务，并向客户演示”仍为 valid/in_scope。
+
+RULESET 升为 conservative-activity-v2；测试先用审查版本 v1 的实际规则/runner/SQLite 保存旧 in_scope，再使用新实现对同一快照运行，验证新 decision_id/版本和 needs_review、旧报告不变且可 replay。旧 v1 运行不能以 v2 静默 resume，沿用原依赖校验；没有重写旧判断或使阶段 A 技能事实失效。
+
+**输出路径建议评估**：保留允许状态库在输出目录同层或子目录的既有行为。发布器只写 run_id.json，状态库扩展名和锁文件不成为输出目标；没有必要仅因输出父目录包含状态库而收紧 API。runner.py 增加说明注释，README 明确此约定；两项真实执行测试分别验证同层及嵌套状态库经过 execute/resume/replay 后，SQLite integrity_check=ok、成功判断仅一份、输入字节不变。状态文件本身及其子路径仍不能作为输出目录，输入/范围文件仍在输出目录之外。未修改 foundation 或 CLI 路径行为。
+
+RED→GREEN 与本轮回归（命令工作目录 backend，Python 版本和网络阻断方法同上）：
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_screening.py -q --tb=short -k 'owned_product or without_known_owner or current_job_development or rule_upgrade or output_directory_may'
+# 修复前：10 failed / 9 passed / 60 deselected
+# 修复后：19 passed / 60 deselected / 0 failed
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_screening.py tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py -q --tb=short
+# 178 passed / 0 failed / 0 skipped（B1 79 + A 99，含既有技术岗位正向及恢复/重放）
+```
+
+按上节完整合成配置/网络阻断命令重新执行，实际 **519 passed / 2 skipped / 23 deselected / 0 failed**，190 项既有警告，**外部/服务连接尝试 0**；跳过/排除原因与首次交付相同。临时目录仍由 fixture finally 删除并断言不存在；未使用真实服务、模型或生产数据。新增 [本次陷阱记录](../superpowers/traps/2026-10-15-m2-b1-product-owner-review.md)。仅修改 B1 两处源码（规则与路径注释）、测试、M2 README、本报告、资产记录及陷阱文档；不新增产品裁决，不动 B2/B3/B4。
 
 ## 风险、后续依赖与交付
 
