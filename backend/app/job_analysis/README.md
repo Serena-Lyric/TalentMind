@@ -46,7 +46,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py -q
 ```
 
-只用合成 JD、临时 SQLite 和 finally 清理的临时目录；包含真实子进程硬退出、输出失败恢复和 A/B1 共库重放。本轮实际计数与完整非集成回归的合成环境/网络阻断命令见 [B1 实施报告](../../../docs/review/M2-stage-B1-implementation.md)。合成回归不能证明真实岗位分类准确率；复杂否定、转述、跨句指代、多职位拆分和最终范围目录仍需后续人工/语义验证，B1 不承担 B2/B3/B4。
+只用合成 JD、临时 SQLite 和 finally 清理的临时目录；包含真实子进程硬退出、输出失败恢复和 A/B1 共库重放。本轮实际计数与完整非集成回归的合成环境/网络阻断命令见 [B1 实施报告](../../../docs/superpowers/archive/2026-10-15-M2-stage-B1-implementation.md)。合成回归不能证明真实岗位分类准确率；复杂否定、转述、跨句指代、多职位拆分和最终范围目录仍需后续人工/语义验证，B1 不承担 B2/B3/B4。
 
 ## 第一阶段 A：独立离线事实基础层
 
