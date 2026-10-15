@@ -1,5 +1,53 @@
 # job_analysis
 
+## 阶段 B1：JD 有效性与分析范围的离线筛选
+
+入口 `python -m app.job_analysis.screening` 与 A/旧管道分离，不调用模型或服务，不写技能事实。所有路径必须显式提供；可以使用已有阶段 A SQLite（只增 B1 表、共享不可变 snapshots），也可用新的独立库。旧 StateDB 仍拒绝打开，不迁移。
+
+先在 Git 忽略的 `data/local/m2-b1/input.json` 准备合成数据：
+
+```json
+[
+  {"id":1,"source":"synthetic","job_title":"开发实习生","raw_text":"负责开发软件，只要求 Python。","crawled_at":"2026-10-15"},
+  {"id":2,"source":"synthetic","job_title":"行政助理","raw_text":"负责整理行政报表，使用 Excel。"},
+  {"id":3,"source":"synthetic","job_title":"助理","raw_text":"具体工作待定。"}
+]
+```
+
+从仓库根进入 backend：
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m app.job_analysis.screening run --input ../data/local/m2-b1/input.json --dataset synthetic-b1 --state ../data/local/m2-b1/state.sqlite3 --output ../data/local/m2-b1/results --scope app/job_analysis/screening/software-related.offline.json
+# 使用 stdout 的 run_id：
+.\.venv\Scripts\python.exe -m app.job_analysis.screening resume --run <run_id> --state ../data/local/m2-b1/state.sqlite3 --output ../data/local/m2-b1/results
+.\.venv\Scripts\python.exe -m app.job_analysis.screening replay --run <run_id> --state ../data/local/m2-b1/state.sqlite3 --output ../data/local/m2-b1/replay
+```
+
+无本地 venv 的独立工作树，可指定已安装 requirements 的 Python 绝对路径。状态/输出仅允许仓库内的 `data/local/` 或仓库外独立目录。配置/路径/存储错误返回 2；输入或筛选失败仍发布有错误的审计并返回 2；成功筛选运行（包括无效/范围外/待复核）返回 0。若未获得 stdout，可只读查询 `b1_runs` 的 `id,status,error`，再 resume。已完成的失败尝试通过新 run 重试；resume/replay 不改写旧判断或旧审计。
+
+范围配置为严格 JSON 对象：`scope_id/version/mode/description/activities`；mode 仅 `offline_experiment`。样例包含 software_development、software_testing、data、it_operations 四种工作活动。它们是规则证据组，不生成职业大类、标准岗位、方向或级别。可显式缩小 activities；未识别配置拒绝执行。更改配置的任意内容（即使 version 标签相同）也会产生新版本键。代码/语境规则变化应升级内部 RULESET；`--rules-version v2` 可另行标记试验修订。恢复要求原实现依赖一致，历史 replay 不需重新筛选。
+
+**分层判断**：validity 为 valid / invalid / undetermined；已完成判断的有效或待判断 JD 分别使用范围三态。无效 JD 的 scope_status 为 null；解析/执行错误的 validity 为 not_evaluated、scope_status 为 null。规则需要技术工作动作与对象关系，不能靠标题或 Python/Excel 单词纳入；明确非技术工作可排除。短文本无长度限制，无技能数量或实习限制。标题与正文冲突、混合活动、已识别否定/历史/教程/公司介绍语境、信息不足均保留复核。复用 M1 `is_valid_jd` 作为无实质内容信号；未知剩余文字不自动确认为有效招聘，M1 输入字段与状态原样保留，不回写。
+
+**输入**：沿用 A 的 JSON 数组/JSONL、InputRecord 必填字段及完整指纹；B1 对坏行/缺字段/重复身份逐条保留 input_failed，不使后续合法行消失。JSONL position 为物理行号，空白行不算输入；整个容器损坏、空文件/空数组或根类型不符记 position=0 的一个失败单元，无法推测损坏容器内的记录数。解析失败无不可变 JD 快照时，用源文件 SHA-256、原始身份（能可靠获取时）和位置引用；任一输入单元失败时均不保存整文件原始字节，合法成员仍保存完整快照。禁止凭据字段的行只保存安全原因与位置。输入文件本身始终只读。
+
+**输出**：每个 run_id 一份不可覆盖的 JSON，含 members 和 audit。每条保存数据集/JD/snapshot/fingerprint、来源、有效性/范围/执行、原因与说明、原文 field/start/end/quote（Python 字符偏移、左闭右开）、版本、决策 ID/时间及真实来源文件运行引用。源文件字节、完整快照、观察值与完整配置保存在 SQLite；只改观察时间复用原决定，另存观察。
+
+audit 的顶层 validity_counts、scope_counts、reason_counts、input_failed、screening_failed 针对**冻结的 B1 数据集最后可解析成员 + 本次输入失败单元**；member_total 等于两组状态计数各自之和。current_input 使用同一口径仅核对本次输入，member_total 等于 input_total。not_applicable 包含无效和未执行判断；needs_review 包含有效性待判断，不与失败混算。增量缺席的旧成员继续纳入数据集审计，保留原输入文件引用；无法解析的更新不抹掉此前可解析快照，本次失败仍单独可见。范围/规则变化重判整个已登记 B1 数据集，历史决定保留。首次 B1 使用共享 A 库时，必须显式输入需要纳入 B1 的 JD；不从 A heads 隐式扩展范围。
+
+B1 独立表为 b1_versions/runs/heads/observations/members/decisions/reports；A 的 application_id/user_version=1 和既有表结构不变。只复用 snapshots；不写 A 的任务、尝试、事实、观察、heads 或聚合。A 原有执行与重放可继续运行。结果事务提交后再原子发布文件；未提交判断中断后重做，已提交判断不重复；输出失败可 resume。单进程文件锁及终态/版本/报告历史保护复用 A 的安全机制。输出固定 `formal_statistics_eligible=false`，`analysis_status=not_executed_by_b1`，不生成技能统计或独立职位计数。
+
+### B1 测试
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_screening.py -q
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py -q
+```
+
+只用合成 JD、临时 SQLite 和 finally 清理的临时目录；包含真实子进程硬退出、输出失败恢复和 A/B1 共库重放。本轮实际计数与完整非集成回归的合成环境/网络阻断命令见 [B1 实施报告](../../../docs/review/M2-stage-B1-implementation.md)。合成回归不能证明真实岗位分类准确率；复杂否定、转述、跨句指代、多职位拆分和最终范围目录仍需后续人工/语义验证，B1 不承担 B2/B3/B4。
+
 ## 第一阶段 A：独立离线事实基础层
 
 新入口为 `python -m app.job_analysis.foundation`，与下方旧管道隔离。新库跨运行持久化，不读取或升级旧 StateDB，不连接数据库服务或外部模型；要求显式输入/状态/输出。仓库内运行产物只允许位于 Git 忽略的 `data/local/`，也可使用仓库外的独立目录。

@@ -1,0 +1,12 @@
+{
+  "scope_id": "software-related-offline",
+  "version": "2026-10-15-v1",
+  "mode": "offline_experiment",
+  "description": "软件开发及相关技术岗位；覆盖软件研发、软件测试、数据和运维工作活动的离线试验，不是最终职业目录。",
+  "activities": [
+    "software_development",
+    "software_testing",
+    "data",
+    "it_operations"
+  ]
+}
