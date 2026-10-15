@@ -37,6 +37,46 @@ def save_rows(db, rows: list[dict], batch_size: int = 1000) -> int:
     return len(rows)
 
 
+def save_incremental_jd_rows(db, rows: list[dict], *, created_ids: set[int], allow_updates: bool = False) -> int:
+    """逐条提交，返回新增数；详情只补本轮新增行或可识别的历史纯列表行。
+
+    不提供并发唯一性保证（既有契约无唯一键）；调用方须串行采集。
+    """
+    saved = 0
+    for row in rows:
+        params = build_insert_params(row)
+        try:
+            existing = db.execute(text(
+                "SELECT id, raw_text, duties FROM jd_pool "
+                "WHERE source=:source AND source_detail=:source_detail ORDER BY id LIMIT 1"
+            ), params).mappings().first()
+            if existing is None:
+                result = db.execute(INSERT_STMT, params)
+                db.commit()
+                created_ids.add(result.lastrowid)
+                saved += 1
+                continue
+            old_text = existing["raw_text"] or ""
+            has_description = "职位描述:" in params["raw_text"] or "职位描述：" in params["raw_text"]
+            metadata_keys = {"公司", "薪资", "地点", "经验", "学历", "公司规模", "公司阶段", "行业", "技能标签", "福利"}
+            metadata_only = bool(old_text.strip()) and all(
+                line.strip().replace("：", ":", 1).partition(":")[0] in metadata_keys
+                for line in old_text.splitlines() if line.strip()
+            )
+            if (allow_updates and has_description and params["raw_text"] != old_text
+                    and (existing["id"] in created_ids or (metadata_only and not existing["duties"]))):
+                db.execute(text(
+                    "UPDATE jd_pool SET job_title=:job_title, raw_text=:raw_text, duties=:duties, "
+                    "experience=:experience, quality=:quality, dup_group=:dup_group "
+                    "WHERE id=:id AND source=:source AND source_detail=:source_detail AND raw_text=:old_text"
+                ), {**params, "id": existing["id"], "old_text": existing["raw_text"]})
+                db.commit()
+        except Exception:
+            db.rollback()
+            raise
+    return saved
+
+
 TALENT_INSERT_STMT = text(
     "INSERT INTO talent_raw (source, identity_hint, raw_text, skills_hint, "
     "experience_hint, quality, dup_group, crawled_at, status) VALUES "

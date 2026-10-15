@@ -39,9 +39,13 @@ def run_pipeline(
     raws,
     job_skill_map: dict[str, list[str]] | None = None,
     skill_map: dict[str, str] | None = None,
+    *,
+    jd_saver=save_rows,
 ) -> dict:
     """按元素类型分流：RawJD 走岗位链(jd_pool)，RawTalent 走人才链(talent_raw)。
-    raws 可混合两种类型；Fetcher.fetch() 的返回类型本身即路由依据。"""
+    raws 可混合两种类型；Fetcher.fetch() 的返回类型本身即路由依据。
+    jd_saver 可替换岗位持久化方式，返回实际新增数；清洗、过滤、评分仍共用。
+    """
     jd_raws = [r for r in raws if isinstance(r, RawJD)]
     talent_raws = [r for r in raws if isinstance(r, RawTalent)]
 
@@ -64,7 +68,7 @@ def run_pipeline(
 
         rows = assign_dup_groups(rows)
         total_groups += _assign_quality(rows)
-        jd_saved = save_rows(db, rows)
+        jd_saved = jd_saver(db, rows)
 
     if talent_raws:
         rows = [clean_talent(r) for r in talent_raws]

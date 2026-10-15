@@ -819,6 +819,7 @@ AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
 内容: 症状 → 根因 → 修复 → 教训。
 
 已有陷阱:
+- 2026-10-15 BOSS 整轮缓冲与采集中断保护（`docs/superpowers/traps/2026-10-15-boss-interruption.md`）
 - 2026-10-15 三平台元信息误当有效 JD、短 JD 保留边界（`docs/superpowers/traps/2026-10-15-cn-jd-validity.md`）
 - 2026-10-14 备份清理 junction 指向原工作区与 VHDX 挂载/审批/权限阻断（`docs/superpowers/traps/2026-10-14-backup-cleanup-junction-and-mounted-vhd.md`）
 - 2026-10-14 备份 tar 硬链接遗漏与 Neo4j 无网络恢复启动退出（`docs/superpowers/traps/2026-10-14-backup-hardlinks-and-neo4j-network.md`）

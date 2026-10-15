@@ -745,6 +745,7 @@ m
 - 初始项目需求（仅溯源）: `docs/superpowers/archive/2026-08-20/legacy/项目需求.txt`
 - 详细 AI 行为准则: `AGENTS.md`（按需读取）
 - 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
+- BOSS 中断保护与详情补全边界: `docs/superpowers/traps/2026-10-15-boss-interruption.md`（智联/猎聘仍待专项处理）
 - 三平台有效 JD 判定边界: `docs/superpowers/traps/2026-10-15-cn-jd-validity.md`（只改 M1 规则，短 JD 不按字数拒绝）
 - 文档地图与未决跟踪: `docs/README.md`、`docs/superpowers/历史时间线.md`、`docs/superpowers/未决问题清单.md`
 - **资产清单与已知限制: `docs/superpowers/资产与状态.md`（工作前必读，变更后必更新）**

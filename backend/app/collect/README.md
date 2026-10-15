@@ -146,6 +146,14 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 
 ## 五、测试
 
+### BOSS 中断保护（2026-10-15）
+
+每页列表结束后通过公共管道保存有效 JD，每条成功详情后再次提交。无效列表可以在本轮详情成功后入库；详情失败不重试该条、不写入空卡片，已提交的数据保留。列表保存不会挡住同 URL 的详情补全：本轮新增行可精确更新，跨轮仅补全可明确识别的纯元信息列表行；未知历史文本和已有详情保留。列表不会覆盖已有详情，详情重定向不改变列表稳定 URL。写库异常回滚当前记录并上报。
+
+`listed/new/skipped/details` 保留原接口，`new` 只计新增行，更新不重复计数，`details` 计详情尝试。串行 URL 查重依赖现有字段，不保证并发采集唯一性。智联/猎聘仍使用原整轮缓冲，本轮未修改，浏览器中断丢失风险待专项验证。
+
+离线验证：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_boss_interruption.py -q`。仅用合成卡片和临时 SQLite，fixture 自动关闭并删除测试文件；不连接正式 MySQL。
+
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
 - `test_collect_integration.py` / `test_talent_pipeline_integration.py`：管道集成（D37 精确清理）；
 - 三平台有效 JD 离线回归：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_pipeline.py tests/test_cleaner.py tests/test_boss_fetcher.py tests/test_cn_job_fetchers.py tests/test_collect_repo.py -q`（内存数据库替身，不联网、不写真实数据库）；
