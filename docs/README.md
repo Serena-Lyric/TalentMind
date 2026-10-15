@@ -26,7 +26,7 @@
 
 M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)（临时报告合并前移除；长期结论分别写入正式文档和陷阱记录）。
 
-M2 第一轮只读评估：[架构差距临时报告](review/M2-architecture-gap-assessment.md)；包括真实调用证据、24 项目标差距、阶段依赖、最小改造建议与待裁决项，未实施新方案。合并前依 D62 处理长期结论与临时报告链接。
+M2 第一轮只读评估：[历史评估与源码证据](superpowers/archive/2026-10-15-M2-architecture-gap-assessment.md)（[PR #3](https://github.com/Serena-Lyric/TalentMind/pull/3)）；包含真实调用证据、24 项目标差距、阶段依赖、最小改造建议与待裁决项。仅用于后续设计参考，新方案尚未实施。
 
 ## 分类子目录
 
