@@ -114,4 +114,4 @@ $b1TestCode | .\.venv\Scripts\python.exe -X utf8 -
 
 B2 后续需要在独立授权下处理技能五态、未知候选及独立标注评测；B3 才裁决完整职业目录/主辅/级别；B4 才涉及真实模型、预算与外发。B1 没有启动上述工作，未给人工复核建设 UI/改写 API，也没有将筛选接入旧生产管道。
 
-交付分支：`codex/m2-stage-b1-scope-screening`，面向 master；提交及 PR 链接在交付后补录。独立审查通过并经用户授权后再由 ChatGPT 合并；本轮不合并、不删除工作树/分支。长期规则与使用说明已沉淀正式文档，临时报告合并前按 AGENTS 处理。
+交付分支：`codex/m2-stage-b1-scope-screening`，实现提交 `ebe978a`；[PR #5](https://github.com/Serena-Lyric/TalentMind/pull/5) 面向 master，已推送，未合并。独立审查通过并经用户授权后再由 ChatGPT 合并；本轮不合并、不删除工作树/分支。长期规则与使用说明已沉淀正式文档，临时报告合并前按 AGENTS 处理。
