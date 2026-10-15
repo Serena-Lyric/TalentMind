@@ -135,10 +135,20 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - **日志文件**：`data/local/logs/collect_daily-YYYYMMDD.log`（每日 02:00 定时任务自动落盘，gitignore）；
 - **定时任务**：`schtasks /Query /TN TalentMindCollect /V`（状态/上次运行/结果）。
 
+## 四·七、三平台有效 JD 判定（2026-10-15）
+
+- BOSS、智联、猎聘在已有详情合并后，经 `run_pipeline()` 清洗，再由 `cleaner.is_valid_jd()` 判定，通过后才参与去重、质量评分与写入；其他来源保持原行为，平台 URL/DOM 身份处理仍由各自适配器负责。
+- 不设置最低字数、不要求完整职责与任职要求同时出现、不用质量分作门槛；公司、薪资、地点缺失不影响判定。简短职责、技能要求或技能标签可保留，例如“熟悉 Java、Spring Boot、MySQL”。
+- 判定副本中排除公司介绍段、带标签的薪资/地点/公司/经验/学历/福利行、仅重复岗位名、已识别的学历年限、福利及“暂无／面议”等占位。排除后没有文字或数字则拒绝；原始入库文本不被这些判定规则改写。
+- 验收修复：按完整片段排除“详情请咨询”“招聘中”“欢迎投递简历”“岗位长期招聘”“投递简历请联系 HR”“待遇优厚”“工作轻松”、K/千/万薪资及北京/上海/广州/深圳/杭州/成都地点名；与技能或职责混合时保留其余内容，不要求命中固定岗位词表。公司介绍仅在行首或句末/冒号边界，且标题后有冒号或换行时识别，不截断“公司简介页面开发”“公司介绍页的开发”等正文。
+- 命中扫码领券、扫码加群、加微信咨询、限时促销、欢迎购买、培训招生、包就业、刷单返佣、招商加盟或明确无招聘意图的已知短语时，先按标点分句排除命中这些短语的句子；其余句子没有“熟悉／熟练／掌握／具备／负责／参与／承担／协助 + 内容”则拒绝。广告开发岗位、正常岗前培训不按单个“广告／培训”词拒绝。
+- 未识别的剩余内容保守放行，因此不是完整的招聘意图识别器；陌生广告话术、未标记的公司宣传或福利仍可能漏放。只剩元信息的卡片本轮不入库，不自动追加详情请求或重试。
+
 ## 五、测试
 
 - `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
 - `test_collect_integration.py` / `test_talent_pipeline_integration.py`：管道集成（D37 精确清理）；
+- 三平台有效 JD 离线回归：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_pipeline.py tests/test_cleaner.py tests/test_boss_fetcher.py tests/test_cn_job_fetchers.py tests/test_collect_repo.py -q`（内存数据库替身，不联网、不写真实数据库）；
 - 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（历史记录 221 passed；2026-09-04 collect-only=237：unit 214 / integration 23，实际通过数以全量运行为准）。
 
 ## 六、设计参考（crawl4ai 评估，2026-08-17）

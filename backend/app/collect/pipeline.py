@@ -1,4 +1,4 @@
-from app.collect.cleaner import clean
+from app.collect.cleaner import clean, is_valid_jd
 from app.collect.talent_cleaner import clean_talent
 from app.collect.dedup import assign_dup_groups, quality_score
 from app.collect.repository import save_rows, save_talent_rows
@@ -53,6 +53,8 @@ def run_pipeline(
         rows = []
         for r in jd_raws:
             row = clean(r)
+            if r.source in {"boss", "zhaopin", "liepin"} and not is_valid_jd(row):
+                continue
             if r.job_id:
                 row["_job_id"] = r.job_id  # 临时传递，enrich 后删除
             rows.append(row)
