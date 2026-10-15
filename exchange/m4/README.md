@@ -6,6 +6,8 @@
 - 文本解析入口：`ResumeParser`；匹配入口：`ResumeJobMatcher.match` / `quick_match`
 
 ## MVP API（A 集成层 routers/mvp.py）
+
+下表保留 MVP 接口形态。2026-10-15 核查：上传 API 已扩展为自动多岗位推荐，返回 `recommendedJobs` 及真实 `raw_score` / 演示展示分；不是必须手选单个目标岗位。学习路径由 `backend/app/routers/learning.py` 提供，M4 独立 pathfinder 仍未回包。详情与限制见仓库根 `backend/app/matching/README.md`。
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | POST | /api/resume/upload | FormData `file`（PDF/DOCX，依赖未装时失败）或表单 `content`（纯文本）；返回 `{profile, matchResult}`，matchResult 含 score/matched/missing/strengths/target_job |
