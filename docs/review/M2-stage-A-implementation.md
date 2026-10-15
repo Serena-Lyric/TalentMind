@@ -142,4 +142,4 @@ CLI 端到端测试真实启动包入口，检查 run/replay 的 JSON 业务内�
 
 最终静态检查：21 文件范围准确；新增 12 个本地 Markdown 链接存在，围栏配对、git diff --cached --check 通过；M2-01～24 与 D1～63 原决策行保持，SQLite/旁置锁/运行 JSON 忽略规则生效。原工作区仍在 codex/m1-stage-02，仅原有资产状态文件有改动；收尾核对其 SHA-256 为 F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B，与本轮提交前记录一致。
 
-提交/PR：待推送后补录。目标 master；不自动合并，保留临时报告与工作树供 ChatGPT 集中审查。
+实现提交：`aeb7a37`（21 文件）。分支 `codex/m2-stage-a` 已推送；[PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 面向 master，已关联当前任务。未合并；保留临时报告与工作树供 ChatGPT 集中审查。本段为交付元数据补录，不改业务代码或测试。
