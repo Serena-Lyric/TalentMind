@@ -1,69 +1,9 @@
-# CLAUDE.md — TalentMind 项目
+# CLAUDE.md — Claude 补充入口
 
-> **2026-10-15 当前工作方式（D60）**：M1 分阶段开发、自检、独立提交后推送临时分支，ChatGPT 集中审查；发现问题交 Codex 补修，复审通过并依用户授权由 ChatGPT 合并。Codex 不得未经审查直接合并 master，禁止擅自清理真实数据、迁移数据库或大规模真实采集；集成测试仅用隔离库。首轮审查记录见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。
+本仓库通用工作规则统一维护于 [AGENTS.md](AGENTS.md)，开始按 [AGENT_START_HERE.md](AGENT_START_HERE.md) 选择阅读范围；本文件不复制产品决策、历史基线或安全清单。
 
+- Claude 同样遵守 AGENTS 的私有文件、未提交修改、隔离测试、契约及高风险操作许可规则；工具自动批准不等于用户授权迁移或删除真实数据。
+- 产品讨论与审查以 [当前产品决策](docs/PRODUCT_DECISIONS.md) 为入口；发现未决或冲突应向用户说明，不能用模型建议填成已确认规则。是否已实现须核对实际代码与测试。
+- 作为 ChatGPT 审查流程的协作者时，按 [AGENTS 的 GitHub 流程](AGENTS.md#3-github-协作流程)提供定向修改或证据，不把自身自检写成 ChatGPT 已复审通过，也不代替用户授权合并。
 
-> **第二轮精简策略（D59，已完成）**：GitHub 补充审查通过的历史资料于 `docs/archive/competition-v1/`，资料提交 `65a6b01fdf36945b870e549c70f24190962d4e7f`；`archive/competition-v1` 不变。私有备份最终 9 文件约 0.967 GB，只保留两版 SQL、Neo4j dump、必要原始/未入库资料及配置，800 路径/729 内容对象 SHA 去重压缩；移除 64 项旧副本，净释放约 27.207 GB。原资料和当前 Docker 数据不清理。工具 `scripts/backup_assets.py` 默认只核验、恢复只写新目录；公开资料例外只覆盖已审查导出件，不解除原私有目录保护。报告 `docs/GitHub资产补全与备份精简报告-2026-10-14.md`；清理陷阱 `docs/superpowers/traps/2026-10-14-backup-cleanup-junction-and-mounted-vhd.md`。
-
-> **2026-10-14 冻结与恢复交接**：V1 分支 `archive/competition-v1` 固定在 `4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`，master 后续开发。私有备份 `D:\backup\TalentMind-2026-10-14` 已恢复核验，但尚无离机私有副本；当前冷卷 JD=2988、竞赛 SQL=2984，两版保留，其他分析层仍 717/717/275、图谱 7845/11412。见 `docs/仓库冻结与资产保全报告-2026-10-14.md`、`docs/V1恢复手册.md` 与 `docs/superpowers/traps/2026-10-14-backup-hardlinks-and-neo4j-network.md`。恢复/测试使用新卷，原库不重建。
-
-> **2026-09-05 演示提交基线（历史快照）**：演示口径数据已全量对齐。MySQL `job_definition/job_skill/job_change_log=717/717/275`（新一代 342 / 现有 375；已删除 AI 测试开发工程师与博士后共 2 条，含 32 条演示日志；job_id NULL=3）；原始层 `jd_pool=2984`（BOSS 1133/智联 1088/猎聘 763）、`signal=1540`、`resume=0`；Neo4j=**7845 节点/11412 关系**（Job 717/Skill 4671/Industry 2457；REQUIRES 8866/APPLIES_TO 2539/RELATED_TO 7），与 `exchange/m3/graph.json` 一致；后端全量测试 **246 passed**（Python 3.14.5）。完整交接见 `docs/superpowers/archive/2026-09-05/2026-09-05-提交基线对齐与部署交接.md`，部署/导入见 `docs/部署与导入说明.md`。
-
-> **陷阱提醒（2026-09-05）**：`import_all()`/`import_change_logs()` 默认读取 `input/岗位数据-新一代与现有/`（719/243 原回包），直接运行会覆盖 717/275 演示库；从提交物复现请按 `docs/部署与导入说明.md`（SQL 快照或对 `exchange/m2` 显式路径导入）。历史默认导入测试会重建分析层为 719/243；集成测试须指向隔离库，禁止以演示库运行后再恢复的方式测试。
-
-## AI 编码铁律
-
-1. **不臆测** — 明确陈述假设；不确定就问。存在多种解释时列出选项而非悄悄选一个。遇到不清楚的地方停下来指出困惑点。不确定平台/API 行为时先查证而非从其他语言类推。
-
-2. **简洁优先** — 用最少代码解决问题。不添加未要求的功能，不为一次性用途创建抽象层，不为不可能发生的场景写错误处理。如果写了 200 行而其实 50 行就够——重写。优先使用平台原生 API（如 `Get-NetTCPConnection`）而非文本解析（如 `netstat`）。
-
-3. **精准修改** — 不要"改进"相邻的代码、注释或格式。不要重构没坏的东西。匹配现有代码风格。每一行修改都应能追溯到用户的具体请求。你留下的孤儿代码（无用 import/变量/函数）由你负责清理。
-
-4. **闭环追踪** — 用户提出跨多轮的全局需求时，确认所有子项处理完毕再切换方向。每次回复前检查是否有用户已确认但未执行的协议。
-
-5. **测试数据清理（D37）** — 测试写入数据库/文件的数据必须在测试后自动清理（finally/teardown，按测试夹具特征精确删除，禁止按 source 等宽泛条件 DELETE）；运行集成测试后必须查询数据库验证无测试残留且生产数据完好。详见 AGENTS.md「测试数据清理」与 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`。
-
-## 参考文档
-
-- 现行设计: `docs/superpowers/specs/2026-08-03-team-plan-design.md`（团队基础设计，后续决策与现行契约优先）
-- 仓库整理设计: `docs/superpowers/specs/2026-08-11-repository-organization-design.md`
-- 实施计划: `docs/superpowers/plans/`（按已裁决状态与适用任务选取；日期较新不等于已批准，旧版见 archive/）
-- 决策与未决: `docs/superpowers/决策跟踪.md`
-- 历史版本: `docs/superpowers/specs/archive/`、`docs/superpowers/plans/archive/`（仅供参考溯源，不作为当前依据）
-- 历史有效信息汇总（仅溯源）: `docs/superpowers/archive/2026-08-20/legacy/旧文档有效信息汇总.md`
-- 初始项目需求（仅溯源）: `docs/superpowers/archive/2026-08-20/legacy/项目需求.txt`
-- 详细 AI 行为准则: `AGENTS.md`（按需读取）
-- 历史陷阱记录: `docs/superpowers/traps/`（AI 修复 bug 后在此记录）
-- Markdown 单字符损坏与历史口径边界: `docs/superpowers/traps/2026-10-15-markdown-single-character.md`
-- BOSS 中断保护与详情补全边界: `docs/superpowers/traps/2026-10-15-boss-interruption.md`（智联/猎聘仍待专项处理）
-- 三平台有效 JD 判定边界: `docs/superpowers/traps/2026-10-15-cn-jd-validity.md`（只改 M1 规则，短 JD 不按字数拒绝）
-- 文档地图与未决跟踪: `docs/README.md`、`docs/superpowers/历史时间线.md`、`docs/superpowers/未决问题清单.md`
-- **资产清单与已知限制: `docs/superpowers/资产与状态.md`（工作前必读，变更后必更新）**
-- **Agent 新对话起始路线: `AGENT_START_HERE.md`（通用必读）；A 角色另读 `A_AGENT_HANDOVER.md`**
-
-## 资产与当前状态（工作前必读）
-
-权威清单与维护规则见 `docs/superpowers/资产与状态.md`。摘要：
-
-- 已交付、整合中模块（D26/D53）：原始对照包 `图谱模块/`、`岗位能力图谱前端系统/`、`人岗匹配/` 保留在 `input/`（gitignore 保护）；旧 `input/jd-filter-package/` 已于 2026-08-30 被新 M2 回包替代并删除。正式位置为 M2 → `backend/app/job_analysis/`（已接入完整 719 回包，当前主库含中英文来源）、M3 → `backend/app/graph/`、M5 → `frontend/`、M4 → `backend/app/matching/`（脱敏入库暂缓 D36）
-- 关键裁决（2026-08-13/16，详见决策跟踪 D26–D37）：统一响应 code=0（D29）；M2 接入 skill_dict 约束（D31）；`experience` 已扩容 VARCHAR(255)、`change_type` 已扩容 VARCHAR(32)（D32/D33 已执行，通知随全队会议）；421MB seed SQL 已删除（D27）；中英文展示字段已按 M2 完整 719 回包接入（API title 中文 + name_en）；D56 覆盖 D55 的英文结构化目录限制；测试数据自动清理与验证（D37，2026-08-16）
-- 2026-08-31 用户确认前端方案 A：正式 `frontend/` 已按设计稿重新整合，导航包含 9 个业务页面；图谱默认 Career Nebula；采集控制台通过 `backend/app/collect/control.py` 调用既有 M1 循环；新增 `/api/collection/*` 与 `/api/evolution/*`。
-- 协作按 docs/superpowers/plans/2026-08-14-module-roundtrip.md 回发闭环执行（schema 校验 → diff 门禁 → 单测/集成 → 导入+冒烟）；旧实施计划（08-08 六份 + 08-13 整合计划）已归档 `docs/superpowers/plans/archive/`
-- 未决事项见 `docs/superpowers/决策跟踪.md`（P1 测试集 / P2 里程碑 / P3 部署演示；P5 关联已随 D56 M2 完整导入关闭）；禁止 `git add -A`（`input/人岗匹配/` 含真实简历，D36 暂缓）
-
-- 历史记录（2026-09-02，含 2026-09-04 修订；当前交接数字以 09-05 基线及资产表为准）：用户授权完整导入 M2 719 岗位，MySQL 分析层现为 717/717/275（719 导入后删除 AI 测试开发工程师与博士后(61322) 共 2 条定义+技能、新增 32 条演示变更日志）、Neo4j 7852/11423；每日采集任务已暂停；采集历史日志兼容 UTF-8/GBK，采集控制支持 BOSS/智联/猎聘；简历自动推荐固定至少 3 张且展示分至少 90，Learning 绑定推荐岗位；图谱支持岗位/技能/行业节点和独立滚动详情栏。
-## 项目决策要点（2026-08-03 汇总）
-
-权威清单与最新状态见 `docs/superpowers/决策跟踪.md`；详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md`。
-
-- 协作模式：5 人 5 机；主库与 API 在 A；**文件交接 + A 唯一集成**；技术栈自选、效果优先
-- 模块：M1 采集 / M2 岗位分析 / M3 图谱 / M4 简历+匹配 / M5 前端；对接只走数据契约与 API
-- 规划顺序：需求 → 模块 → 产出-消费矩阵 → 数据契约 → API（v2 API 清单作废）
-- 数据契约：原始层 jd_pool/talent_raw/signal；分析层 skill_dict/job_definition/job_skill/job_change_log/resume（DDL 见 `backend/app/contracts/ddl.sql`）
-- 岗位定义字段：岗位名称/核心职责/必备技能/加分技能/典型行业应用场景 + source(仅平台)/quality/collected_at；无 status
-- 图谱：Neo4j；M3 只交 graph.json 由 A 导入
-- 仓库双重角色：本仓库既是 A 的 M1 数据采集开发仓，也是 M1–M5 集成后的完整系统唯一主仓
-- 目录边界：后端正式源码只放 `backend/app/`，前端只放 `frontend/`；交接文件和小型 Mock 放 `exchange/`；大型本地数据放 Git 忽略的 `data/local/`
-- 旧代码策略：不整体删除现有 `backend`；M1 采集管道继续复用。重复目录必须在迁移、测试和集成验证通过后才清理，Git 历史负责追溯
-- M4 原型迁移：`input/人岗匹配/` 当前暂缓迁移（原根目录交付目录已归档 `input/`），保持原状，待用户另行确认后处理
-
+模块状态见 [资产与状态](docs/superpowers/资产与状态.md)，历史裁决见 [决策跟踪](docs/superpowers/决策跟踪.md)；无需在这里重复维护摘要。

@@ -1,26 +1,28 @@
 # TalentMind 文档地图（docs/ 导航）
 
-> 整理日期：2026-09-03（仓库文档整理）。权威与最新状态以本地图列出的“主文档”为准；历史与早期记录统一归档于 `docs/superpowers/历史时间线.md`，不作为当前依据（D21）。
+> 更新：2026-10-15。本文负责导航；产品方案、实际实现、历史记录和 Agent 规则分别维护，按下表及明确替代关系读取。历史材料仅供溯源，不自动授权执行。
 
-## 主文档（必读入口）
+## 主文档（按任务选择）
 
 | 文件 | 内容 / 用途 |
 |---|---|
-| 根目录 `README.md` | 项目总览、模块状态、启动/测试、目录边界 |
-| 根目录 `AGENT_START_HERE.md` | 新对话必读路线（#0–#10） |
-| 根目录 `AGENTS.md` | AI Agent 行为准则（细则权威） |
-| 根目录 `CLAUDE.md` | AI 协作铁律与参考文档入口 |
+| [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案的主要依据；M2 14 项原则、相关 M1 输入原则与待决策；已确认不等于已实现 |
+| [README.md](../README.md) | 项目总览、带日期的模块状态、启动/测试、目录边界 |
+| [AGENT_START_HERE.md](../AGENT_START_HERE.md) | 少量核心阅读 + M1–M5 选读，不要求逐文件复述 |
+| [AGENTS.md](../AGENTS.md) | 通用规则、安全边界、分阶段开发/审查/授权合并的唯一维护入口 |
+| [CLAUDE.md](../CLAUDE.md) | Claude 补充约束，避免复制 AGENTS |
 | 根目录 `A_AGENT_HANDOVER.md` | A 角色（M1 + 集成）专属路线与交接 |
-| `superpowers/决策跟踪.md` | 已决策 D1–D60 + 未决 P1–P6（裁决依据） |
-| `superpowers/资产与状态.md` | 资产位置 / 整合状态 / 已知限制 / 工程经验 / 维护规则（工作前必读） |
-| `superpowers/未决问题清单.md` | 全部未决/待办问题的集中跟踪清单 |
+| [决策跟踪](superpowers/决策跟踪.md) | 保留 D1–D60 历史 + D61/D62 变更索引与旧 P 表；当前产品规则查主文档 |
+| [DDL](../backend/app/contracts/ddl.sql)及同目录契约 | 当前源码契约，接口/存储/集成任务必读；产品更新不直接授权迁移 |
+| [资产与状态](superpowers/资产与状态.md) | 按任务模块读资产/已知限制/证据日期；实现仍须核对代码与测试 |
+| [未决问题清单](superpowers/未决问题清单.md) | 历史遗留/待办；新 M2 产品未决统一查 PRODUCT_DECISIONS 第 5 节 |
 | `superpowers/历史时间线.md` | 历史核验/交接/采集日志归档（仅溯源） |
 | [仓库冻结与资产保全报告-2026-10-14.md](仓库冻结与资产保全报告-2026-10-14.md) | V1 分支、资产清单、备份/恢复证据及离机副本缺口 |
 | [V1恢复手册.md](V1恢复手册.md) | 新电脑恢复来源、步骤与覆盖风险 |
 | [archive/competition-v1/README.md](archive/competition-v1/README.md) | 第二轮审查补全的设计、接口、开发/交接、演示与小型测试资料（历史归档） |
 | [GitHub资产补全与备份精简报告-2026-10-14.md](GitHub资产补全与备份精简报告-2026-10-14.md) | 最新备份策略、公开新增资产、实际删除与空间核验 |
 
-2026-10-15 入口核查：`笔记.md` 及 `output/` 仅本地存在，新检出不要求恢复这些私有目录；公开历史材料见 `archive/competition-v1/`，现行约束以决策跟踪/DDL 为准。
+2026-10-15 入口核查：`笔记.md` 及 `output/` 仅本地存在，新检出不要求恢复这些私有目录；公开历史材料见 `archive/competition-v1/`；当前产品规则见 PRODUCT_DECISIONS，源码契约见 DDL，历史替代关系见决策跟踪。
 
 M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)（临时报告合并前移除；长期结论分别写入正式文档和陷阱记录）。
 
@@ -32,12 +34,13 @@ M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind
 | `superpowers/plans/` | 实施计划（按已裁决状态与任务选择，`plans/archive/` 仅溯源） |
 | `superpowers/traps/` | AI 修复 bug 的陷阱记录（症状→根因→修复→教训） |
 | `superpowers/archive/` | 已归档的工作报告与历史块（含 2026-09-04 全仓库文档核验与勘误报告，见 `archive/2026-09-04/`） |
-| `review/` | 临时阶段审查报告，验收前保留 |
+| `review/` | 临时阶段报告；开发/审查期间保留，合并前沉淀长期结论并移除，修正链接 |
 | `prototypes/` | UI 原型（如 M4 matching 原型） |
 | `submit/`、`originalfile/`、`前端卡通图片/` | 参赛/便利文件，**仅本地，不同步 GitHub（D57）** |
 
-## 仓库边界速查（D57）
+## 仓库边界速查（D57/D59）
 
 - **进 GitHub**：`backend/`、`frontend/`、`exchange/`、`scripts/`、根文档、`docs/` 正式文档（本地图所列）。
 - **仅本地（不同步 GitHub）**：`input/`、`output/`、`docs/submit/`、`docs/originalfile/`、`docs/前端卡通图片/`、`笔记.md`、`data/local/`、`.superpowers/`。
-- 修改资产/契约/目录后：更新 `资产与状态.md`；决策变更更新 `决策跟踪.md`；目录变更同步本地图。
+- D59 仅允许已审查导出件进入 `archive/competition-v1/`，原私有目录继续隔离。
+- 资产/契约/目录变更更新资产与状态；产品决策分批更新主文档与历史索引；行为流程在 AGENTS 维护；导航变化同步本地图。

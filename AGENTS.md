@@ -1,147 +1,48 @@
-# AGENTS.md — TalentMind AI Agent 行为准则
+# AGENTS.md — TalentMind Agent 协作规范
 
-> **2026-10-15 当前工作方式（D60）**：M1 分阶段开发、自检、独立提交后推送临时分支，ChatGPT 集中审查；发现问题交 Codex 补修，复审通过并依用户授权由 ChatGPT 合并。Codex 不得未经审查直接合并 master，禁止擅自清理真实数据、迁移数据库或大规模真实采集；集成测试仅用隔离库。首轮审查记录见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。
+语言：简体中文。先核实证据，区分已确认、待决策、历史与实现状态；发现冲突说明依据，不替用户作产品裁决。
 
+## 1. 文档入口与权威
 
-language: 简体中文
+先按 [AGENT_START_HERE.md](AGENT_START_HERE.md) 阅读少量核心文件，其余按模块选读；不要求每次逐文件复述。
 
-> **2026-09-05 演示提交基线（历史快照）**：演示口径数据已全量对齐。MySQL `job_definition/job_skill/job_change_log=717/717/275`（新一代 342 / 现有 375；已删除 AI 测试开发工程师与博士后共 2 条，含 32 条演示日志；job_id NULL=3）；原始层 `jd_pool=2984`（BOSS 1133/智联 1088/猎聘 763）、`signal=1540`、`resume=0`；Neo4j=**7845 节点/11412 关系**（Job 717/Skill 4671/Industry 2457；REQUIRES 8866/APPLIES_TO 2539/RELATED_TO 7），与 `exchange/m3/graph.json` 一致；后端全量测试 **246 passed**（Python 3.14.5）。完整交接见 `docs/superpowers/archive/2026-09-05/2026-09-05-提交基线对齐与部署交接.md`，部署/导入见 `docs/部署与导入说明.md`。
+- [当前产品决策](docs/PRODUCT_DECISIONS.md)：已确认产品方案的主要依据，优先于已被替代的历史产品设计。未决细节不能自行补成已确认规则。
+- [资产与状态](docs/superpowers/资产与状态.md)：资产位置、已知限制与带日期的实现证据。是否已实现，须依据对应代码、配置和测试判断。
+- [决策跟踪](docs/superpowers/决策跟踪.md)：D1–D60 历史记录、后续变更索引和历史未决项；按明确替代范围读取，文件较新不等于方案已获批准。
+- [源代码契约](backend/app/contracts/ddl.sql)及同目录文件：当前接口与存储约束。产品目标不直接改变契约；加表/字段可按授权开发，改/删冻结字段须通知全队，数据库迁移另需用户许可。
+- [文档地图](docs/README.md)：模块设计、计划、恢复与历史入口。历史指令、测试数字和旧授权不自动成为当前任务。
 
-> **陷阱提醒（2026-09-05）**：`import_all()`/`import_change_logs()` 默认读取 `input/岗位数据-新一代与现有/`（719/243 原回包），直接运行会覆盖 717/275 演示库；从提交物复现请按 `docs/部署与导入说明.md`（SQL 快照或对 `exchange/m2` 显式路径导入）。历史默认导入测试会重建分析层为 719/243；集成测试须指向隔离库，禁止以演示库运行后再恢复的方式测试。
+## 2. 工作与安全规则
 
-## 项目决策要点（2026-08-03）
+- 开始先查看 Git 分支、状态和 diff；保护用户未提交修改，不擅自覆盖、回滚、清理或夹带提交，不强推。只暂存明确文件，禁止 `git add -A`。
+- 保持精准修改：优先不做、复用、标准库、原生平台 API、已有依赖，再写最小实现；不顺手改无关代码或格式。保留信任边界校验与防数据丢失的错误处理。
+- 正式后端仅 `backend/app/`，前端仅 `frontend/`，`exchange/` 仅交接文件/接口自述/小型 Mock，大型本地数据放忽略的 `data/local/`。不整体删除旧 `backend`；重复源码须迁移、测试、集成验证后才可清理。
+- 私有边界：`input/`、`output/`、`data/local/`、`docs/submit/`、`docs/originalfile/`、`docs/前端卡通图片/`、`笔记.md`、`.superpowers/` 不同步 GitHub；`.env`、密钥、Cookie、数据库卷和真实简历不提交。D59 只允许已审查导出件进入公开历史目录，不解除原目录保护。
+- `input/人岗匹配/` 迁移/脱敏入库仍暂缓；`input/图谱模块/` 等未入库原件先查未决状态。未经用户明确授权，不迁移、移动或删除真实数据/原始交付物，不运行大规模真实采集；不以测试或恢复为由清空原库/原卷。
+- 不绕过登录、验证码或反爬；人工登录与注销由用户完成，不索取或导出凭据。采集操作按本次授权范围执行。
+- 集成测试只用隔离实例；运行前核对实际连接，禁止在演示库测试后再恢复。测试写入 DB/文件的数据按夹具唯一标记、`job_title`/`identity_hint` 等精确清理，放在 `finally`/fixture teardown，断言失败也要清理；禁止按 `source` 等宽泛条件 DELETE。运行后查询确认夹具计数为 0、生产数据未误删，并报告证据（D37）。
+- 导入可能破坏现有数据：`import_all()`/`import_change_logs()` 默认读本地旧回包；图谱导入先全量删除。执行前读 [部署与导入说明](docs/部署与导入说明.md)及 [integration 说明](backend/app/integration/README.md)，核对显式路径、目标实例与许可；不得直接覆盖已核验交接文件。
 
-与 CLAUDE.md 同源，权威清单与最新状态见 `docs/superpowers/决策跟踪.md`，详细设计见 `docs/superpowers/specs/2026-08-03-team-plan-design.md` 和 `docs/superpowers/specs/2026-08-11-repository-organization-design.md`。核心：5 机协作、文件交接 + A 唯一集成、技术栈自选；数据契约冻结于 `backend/app/contracts/ddl.sql`（加表/加字段自由，改/删字段须全队通知）；岗位定义不含 status，source 仅记录来源平台；D56 已覆盖 D55 的英文结构化目录限制。
+## 3. GitHub 协作流程
 
-仓库边界：`TalentMind` 同时是 A 的 M1 数据采集开发仓和 M1–M5 完整系统唯一主仓。正式后端源码只放 `backend/app/`，前端只放 `frontend/`；`exchange/` 只存交接文件、接口自述和小型 Mock；大型本地数据放 Git 忽略的 `data/local/`。旧 `backend` 不整体删除，重复代码只有在迁移、测试和集成验证通过后才清理，Git 历史负责追溯。
+1. 用户与 ChatGPT 讨论并确认产品决策；积累后分批整理入库，不要求每项决策单独提交。
+2. Codex 在用户授权范围内按阶段连续开发、自检与测试，形成独立提交，在临时分支推送并创建面向 `master` 的 PR；阶段内不重复索要已有授权。
+3. ChatGPT 直接审查 GitHub 代码与验证证据；发现问题交 Codex 定向修改，再由 ChatGPT 复审。Codex 自检不能代替这一审查。
+4. 开发期间保留 `docs/review/` 临时阶段报告，记录范围、提交、验证、遗留与未决事项；合并前把长期结论写入正式文档、保留 PR 审查证据并移除临时报告，修正相关链接。
+5. 复审通过并经用户授权，由 ChatGPT 合并 `master`；Codex 不自行合并或启用自动合并。合并后的临时分支由用户清理，Agent 不擅自删除。
+6. 数据库迁移、真实数据删除等高风险操作额外获得用户许可；开发/提交/PR 授权不包含这些操作。
 
-当前例外：`input/人岗匹配/` 的 M4 原型迁移暂缓（原根目录交付目录已归档 `input/`，2026-08-16 确认），未经用户再次确认不得移动或删除其中内容。
+## 4. 验证与维护
 
-完整资产清单与已知限制（按轻重分类）见 `docs/superpowers/资产与状态.md`，**工作前必读**。
+- 按改动范围验证并如实报告。纯 Markdown 维护检查内容、相对链接、格式、diff 和文件范围；不为文档任务启动应用、数据库、采集或模型管道，不声称运行了业务测试。
+- 业务改动核对需求到实际执行路径，运行相关测试与必要集成/构建；字段、提示词或测试名称存在不能单独证明功能完成。历史通过数、演示分数和合成历史数据都要保留来源与日期。
+- 新增/移动/删除资产、修改契约/目录/交接文档后及时更新 [资产与状态](docs/superpowers/资产与状态.md)；产品决策写主文档并更新决策索引；按需同步 README/导航，CLAUDE 仅维护补充约束。
+- AI 修复业务/脚本 bug 后，在 `docs/superpowers/traps/YYYY-MM-DD-简述.md` 记录“症状 → 根因 → 修复 → 教训”；按模块阅读既有陷阱，不在根指引复制完整索引。
+- 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
-## 脚本编码规则
+## 5. Windows 与编码
 
-### PowerShell (.ps1)
-- 注释: `#` 单行，`<# ... #>` 块注释
-- 编码: **UTF-8 with BOM**（无 BOM 则中文 Windows 上乱码）
-- 函数文档写在函数上方用 `#`，**不要放在函数体内**
-- `"""..."""` 是字符串字面量，不是注释，会污染函数输出流
-- 端口检测用 `Get-NetTCPConnection -LocalPort <port>`，不用文本解析
-
-### Windows Batch (.bat / .cmd)
-- **只含 ASCII 字符**，禁止中文、Unicode 框线、emoji
-- 只做最少引导（管理员检查 + 调起 pwsh），所有业务逻辑放 .ps1
-- 顶部加 `chcp 65001 >nul`
-
-## 文件操作规范
-
-### Edit 工具
-- `old_string` 必须在当前文件中唯一且逐字符匹配（含缩进和空行）
-- 修改大段代码时，先 Read 确认文件内容，再构造 old_string
-
-### Write 工具
-- 写 .bat / .cmd 后确认不含非 ASCII 字符
-- 写 .ps1 后用 PowerShell 转存为 UTF-8 BOM:
-  ```powershell
-  $path = "..."; $content = [System.IO.File]::ReadAllText($path)
-  $utf8Bom = New-Object System.Text.UTF8Encoding $true
-  [System.IO.File]::WriteAllText($path, $content, $utf8Bom)
-  ```
-
-## 平台 API 优先级 (Windows)
-
-| 场景 | 优先 | 禁止 |
-|------|------|------|
-| 端口检测 | `Get-NetTCPConnection` | `netstat -ano \| findstr` |
-| 进程操作 | `Get-Process`, `Stop-Process` | `tasklist` / `taskkill` 文本解析 |
-| 文件编码 | `[System.IO.File]::ReadAllBytes` 检查 BOM | 文本启发式猜测 |
-
-## 行为准则
-
-### 不臆测
-从其他语言类推语法是 bug 的首要来源。
-- 明确陈述假设，不确定就问
-- 存在多种解释时列出选项而非悄悄选一个
-- 遇到不清楚的地方停下来指出困惑点
-- 实例：PowerShell 注释是 `#` 不是 `"""`；cmd.exe 默认 GBK 不是 UTF-8
-
-### 简洁优先（ponytail 7 级决策阶梯）
-在写任何代码前，按顺序判断：
-1. **YAGNI** — 这东西需要存在吗？不需要就跳过
-2. **复用** — 代码库里已经有了就别重写
-3. **标准库** — 标准库能做就别自己写
-4. **原生平台** — 平台有 API（如 `Get-NetTCPConnection`）就别文本解析
-5. **已装依赖** — 能复用已安装的依赖就别引入新的
-6. **一行** — 能一行解决就别建函数
-7. **以上都不行** → 才写最小能工作的代码
-
-安全底线不偷懒：信任边界的输入验证、防数据丢失的错误处理、用户明确要求的功能。
-
-### 精准修改
-- 不要"改进"相邻的代码、注释或格式
-- 不要重构没坏的东西
-- 匹配现有代码风格，即使你更想用另一种写法
-- diff 中每一行都应能追溯到用户请求
-- 你留下的孤儿代码（无用 import/变量/函数）自己清理
-- 发现无关问题 → 指出但不擅自修改
-
-### 闭环追踪
-- 用户提出跨多轮的全局需求时，确认所有子项处理完毕再切换方向
-- 每次回复前检查是否有用户已确认但未执行的协议
-- 大方向切换前，显式确认上一个需求的未完成子项
-
-### 测试数据清理（强制，D37）
-- 测试写入数据库/文件的数据必须在测试后自动清理：按测试夹具特征（job_title / identity_hint / 唯一标记）精确删除，**禁止按 source 等宽泛条件 DELETE**（曾因 `DELETE WHERE source='dataset'` 误删 jd_pool 5000 条，见 `docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）。
-- 清理必须放在 `finally` 或 fixture teardown 中，断言失败也不得残留。
-- 运行集成测试后，agent 必须查询数据库验证测试产出数据已真实清理（夹具行计数为 0）且生产数据未被误删，并把核查结果写入回复。
-
-### 工作前状态同步（强制）
-- 开始任何任务前，**先读根目录 `AGENT_START_HERE.md`（通用了解路线）并按路线顺序阅读全部必读文件**（第一条回复须逐文件给出要点证明）；A 角色（M1/集成）任务另读 `A_AGENT_HANDOVER.md`。核心必读：`docs/superpowers/资产与状态.md` + `决策跟踪.md` + `backend/app/contracts/ddl.sql`，确认当前资产位置、契约与未决事项后再动手。
-- 新增、移动、删除、迁移资产，修改契约 / 目录 / 交接文件后，必须**及时更新** `docs/superpowers/资产与状态.md`；涉及决策时同步更新 `决策跟踪.md`。
-- 未入库模块（`input/人岗匹配/`、`input/图谱模块/`、`input/岗位能力图谱前端系统/`，原根目录交付物已统一归档 `input/`）的迁移 / 清理，先确认未决项状态；未裁决前不擅自动作，禁止 `git add -A`（`input/` 内含大型数据与真实简历，已整目录 gitignore 保护）。
-- 处理已知限制前先查证 `docs/superpowers/资产与状态.md` 中的记录，不臆测、不重复踩坑。
-
-## 陷阱记录
-
-AI 修复 bug 后，必须在 `docs/superpowers/traps/` 创建记录文件。
-命名: `YYYY-MM-DD-<简短描述>.md`。
-内容: 症状 → 根因 → 修复 → 教训。
-
-已有陷阱:
-- 2026-10-15 Markdown 校正段落单字符损坏（`docs/superpowers/traps/2026-10-15-markdown-single-character.md`）
-- 2026-10-15 BOSS 整轮缓冲与采集中断保护（`docs/superpowers/traps/2026-10-15-boss-interruption.md`）
-- 2026-10-15 三平台元信息误当有效 JD、短 JD 保留边界（`docs/superpowers/traps/2026-10-15-cn-jd-validity.md`）
-- 2026-10-14 备份清理 junction 指向原工作区与 VHDX 挂载/审批/权限阻断（`docs/superpowers/traps/2026-10-14-backup-cleanup-junction-and-mounted-vhd.md`）
-- 2026-10-14 备份 tar 硬链接遗漏与 Neo4j 无网络恢复启动退出（`docs/superpowers/traps/2026-10-14-backup-hardlinks-and-neo4j-network.md`）
-- 2026-09-03 前端重整后 JD 岗位详情技能增删丢失（`docs/superpowers/traps/2026-09-03-jobs-skill-edit-restore.md`）
-- 2026-09-04 简历预览页 项目经历/竞赛与荣誉/自我评价 空内容与错误占位（`docs/superpowers/traps/2026-09-04-resume-preview-empty-sections.md`）
-- 2026-09-02 图谱岗位节点点击后详情栏空白：列表字段以 JSON 字符串返回（`docs/superpowers/traps/2026-09-02-graph-job-node-detail-render-crash.md`）
-- 2026-09-02 整体系统修复与回归门禁（`docs/superpowers/traps/2026-09-02-overall-system-repair.md`）
-- 2026-09-02 M2 完整回包导入与历史日志识别失效（`docs/superpowers/traps/2026-09-02-m2-full-import-and-legacy-log.md`）
-- 2026-08-14 job_change_log 导入字段与 DDL/M2 语义不一致（`docs/superpowers/traps/2026-08-14-import-change-log-mismatch.md`）
-- 2026-08-16 集成测试误删 jd_pool（`docs/superpowers/traps/2026-08-16-integration-test-wiped-jd-pool.md`）
-- 2026-08-16 cleaner experience 单行描述捕获整段致 1406（`docs/superpowers/traps/2026-08-16-cleaner-experience-overlength.md`）
-- 2026-08-17 HN 岗位评论 HTML 未剥离污染 job_title/raw_text（`docs/superpowers/traps/2026-08-17-hn-html-not-stripped.md`）
-- 2026-08-17 HN 采集“当日先清后写”误删历史月份岗位（`docs/superpowers/traps/2026-08-17-hn-idempotency-wiped-history.md`）
-- 2026-08-20 Edge CDP 动态端口与过期 DevToolsActivePort（`docs/superpowers/traps/2026-08-20-edge-cdp-active-port-stale.md`）
-- 2026-08-20 Edge CDP 端口落入 Windows 排除段（`docs/superpowers/traps/2026-08-20-edge-cdp-port-excluded.md`）
-- 2026-08-20 BOSS 详情字段合并后丢失（`docs/superpowers/traps/2026-08-20-boss-detail-fields-dropped.md`）
-- 2026-08-20 BOSS 中文职责标题未抽取（`docs/superpowers/traps/2026-08-20-boss-duties-not-extracted.md`）
-- 2026-08-23 智联/猎聘登录页选择器字符串多一层引号（`docs/superpowers/traps/2026-08-23-cn-job-login-selector-quote.md`）
-- 2026-08-23 智联/猎聘 DOM 回归测试自身引号错误（`docs/superpowers/traps/2026-08-23-cn-job-test-quote.md`）
-- 2026-08-23 智联动态卡片标题未就绪导致空批次（`docs/superpowers/traps/2026-08-23-cn-job-dynamic-title.md`）
-- 2026-08-27 图谱前端适配后画布空白与视图无数据（`docs/superpowers/traps/2026-08-27-graph-panorama-api-adapter.md`）
-- 2026-08-30 简历上传 422：UploadFile 包装对象未取 raw（`docs/superpowers/traps/2026-08-30-resume-upload-uploadfile-wrapper.md`）
-- 2026-08-31 前端完整重整误把原版 SFC 当正式源码（docs/superpowers/traps/2026-08-31-frontend-reintegration-legacy-sfc.md）
-
-- 2026-09-02 本轮状态：用户按 D56 授权完整导入 M2 719 岗位（含 LinkedIn/HN）；【2026-09-04 复核：MySQL 分析层 717/717/275（删除 AI 测试开发工程师与博士后(61322) 共 2 条定义+技能、新增 32 条演示变更），Neo4j 7852/11423，原始层 jd_pool=2984 中文三平台、HN=0；每日采集任务已暂停（PAUSE_COLLECT）】；采集历史日志兼容 UTF-8/GBK，控制台支持 BOSS/智联/猎聘，简历推荐至少 3 张且展示分至少 90，学习路径绑定推荐岗位。
-## 维护约定
-
-1. 发现新陷阱 → 新建 `docs/superpowers/traps/<日期>-<描述>.md` → 更新上方"已有陷阱"索引
-2. 修改项目约束 → 同步更新 CLAUDE.md 对应章节
-3. 遇到编码/平台/脚本不确定 → 先查阅本文件和 `docs/superpowers/traps/`
-4. 资产 / 目录 / 交接文件变更 → 及时更新 `docs/superpowers/资产与状态.md`，并同步 README / CLAUDE.md 相关章节
-
-
-
-
+- 端口用 `Get-NetTCPConnection -LocalPort`；进程用 `Get-Process`/`Stop-Process`，不用 `netstat`/`tasklist`/`taskkill` 文本解析。
+- `.ps1` 用 UTF-8 BOM；注释用 `#`/`<# #>`，函数文档写在函数上方；三引号字符串不是注释，会污染输出流。BOM 用 `[System.IO.File]::ReadAllBytes` 核查。
+- `.bat`/`.cmd` 仅 ASCII，顶部 `chcp 65001 >nul`，只做最少引导并调起 PowerShell；业务逻辑放 `.ps1`。
+- 编辑前读当前内容，替换定位须唯一、逐字匹配；递归移动/删除前核对绝对路径及 junction 目标，涉及真实数据先遵守额外许可规则。
