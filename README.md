@@ -11,6 +11,8 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
+2026-10-15 M2 阶段 A：新增独立 SQLite 事实基础层和显式离线入口，支持完整输入/版本失效、逐 JD 引文核对、增量复用与中断恢复、固定成员重放。见 [M2 运行与测试说明](backend/app/job_analysis/README.md)。当前 CLI 为 Python 字面规则演示；未替换旧管道/交接/API，不代表五态识别、独立职位需求率或模型效果已完成。
+
 2026-10-15 产品归档：当前确认方案以 [PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md) 为主要依据；本轮 M2 单条事实、技能语义与岗位分层等规则是产品目标，尚未完成新方案实现验收。Agent 从 [AGENT_START_HERE.md](AGENT_START_HERE.md) 按任务选读，GitHub 分阶段提交、ChatGPT 审查及授权合并统一见 [AGENTS.md](AGENTS.md)。
 
 2026-10-15：M1 第二阶段完成离线开发并经过集中审查；记录见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。三平台有效 JD v2 已通过离线回归；BOSS 增加逐页列表与逐条详情提交，智联/猎聘中断保护待后续完成。未启动真实采集，未操作正式数据库。

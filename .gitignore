@@ -29,6 +29,13 @@ frontend/pnpm-debug.log*
 
 # M2 checkpoint 中间产物
 backend/app/job_analysis/data/
+# M2 independent analysis databases, journals and ownership locks
+*.sqlite*
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.db.lock
 
 # 队员提交原版模块（input/ 含真实简历，禁止入库；仅作对比参考）
 input/
