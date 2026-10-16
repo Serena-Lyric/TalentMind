@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "source": "synthetic",
+    "job_title": "合成硬件岗 / FPGA",
+    "duties": "核心职责：开发FPGA逻辑并交付验证结果",
+    "raw_text": "核心职责：开发FPGA逻辑并交付验证结果"
+  },
+  {
+    "id": 2,
+    "source": "synthetic",
+    "job_title": "合成跨界岗",
+    "duties": "核心职责：开发FPGA逻辑并交付验证结果。核心职责：开发嵌入式驱动并交付固件",
+    "raw_text": "核心职责：开发FPGA逻辑并交付验证结果。核心职责：开发嵌入式驱动并交付固件"
+  },
+  {
+    "id": 3,
+    "source": "synthetic",
+    "job_title": "FPGA工程师",
+    "duties": "负责销售芯片产品并进行操作培训",
+    "raw_text": "负责销售芯片产品并进行操作培训"
+  }
+]

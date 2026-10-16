@@ -1,0 +1,51 @@
+{
+  "schema_version": "b31-family-taxonomy-1",
+  "revision": "families-v2",
+  "mode": "confirmed_families",
+  "scope": "核心技术岗位八类目录；与 B1 范围筛选独立。按实际核心交付职责判断，软硬跨界主次不明保留多个候选和 unresolved；不是正式标准岗位名单。",
+  "job_family": [
+    {
+      "id": "software_engineering",
+      "label": "软件研发",
+      "scope": "以软件研发技术职责为核心；词面命中仅是候选线索。"
+    },
+    {
+      "id": "test_quality_engineering",
+      "label": "测试与质量工程",
+      "scope": "以测试与质量工程技术职责为核心；词面命中仅是候选线索。"
+    },
+    {
+      "id": "data_ai",
+      "label": "数据与人工智能",
+      "scope": "以数据与人工智能技术职责为核心；词面命中仅是候选线索。"
+    },
+    {
+      "id": "infrastructure_operations",
+      "label": "基础设施与运维",
+      "scope": "以基础设施与运维技术职责为核心；词面命中仅是候选线索。"
+    },
+    {
+      "id": "network_information_security",
+      "label": "网络与信息安全",
+      "scope": "以网络与信息安全技术职责为核心；词面命中仅是候选线索。"
+    },
+    {
+      "id": "embedded_system_software",
+      "label": "嵌入式与系统软件",
+      "scope": "以嵌入式与系统软件技术职责为核心；词面命中仅是候选线索。"
+    },
+    {
+      "id": "technical_services_delivery",
+      "label": "技术服务与交付",
+      "scope": "核心为技术实施、复杂故障诊断、架构或技术方案设计、系统交付等实际技术责任。销售转化、普通客服、商务维护、简单产品演示、纯操作培训为主不能仅凭标题纳入；混合或职责不明待复核。"
+    },
+    {
+      "id": "hardware_integrated_circuits",
+      "label": "硬件与集成电路",
+      "scope": "以硬件电路、FPGA、芯片/数字 IC 设计及相关工程交付为核心；与嵌入式与系统软件并列。软硬跨界按实际核心职责判断，多个核心或主次不明待复核，不能凭标题、技术词、销售演示或培训纳入。"
+    }
+  ],
+  "canonical_job": [],
+  "technology_tracks": [],
+  "seniority": []
+}

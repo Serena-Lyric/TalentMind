@@ -1,0 +1,198 @@
+{
+  "schema_version": "b32-submission-1",
+  "revision": "synthetic-eight-v1",
+  "mode": "synthetic_only",
+  "annotations": [
+    {
+      "namespace": "synthetic-b33",
+      "jd_id": "1",
+      "fingerprint": "3ec93ac7fbbffd05139895e1c936f81e7925165e89f11c8efe47fb8706de6d5e",
+      "candidates": [
+        {
+          "id": "hardware-example",
+          "raw_name": "合成硬件岗",
+          "proposed_name": null,
+          "kind": "job",
+          "origin": "synthetic_assertion",
+          "proposer": "Codex synthetic fixture",
+          "synthetic_only": true,
+          "responsibility": "core",
+          "family_candidates": [
+            "hardware_integrated_circuits"
+          ],
+          "review_status": "pending_review",
+          "unresolved_reason": "纯合成主张，仅验证八类版本路径；非正式岗位名单或人类真值",
+          "name_evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "1",
+              "fingerprint": "3ec93ac7fbbffd05139895e1c936f81e7925165e89f11c8efe47fb8706de6d5e",
+              "field": "job_title",
+              "start": 0,
+              "end": 5,
+              "quote": "合成硬件岗"
+            }
+          ],
+          "evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "1",
+              "fingerprint": "3ec93ac7fbbffd05139895e1c936f81e7925165e89f11c8efe47fb8706de6d5e",
+              "field": "duties",
+              "start": 0,
+              "end": 20,
+              "quote": "核心职责：开发FPGA逻辑并交付验证结果"
+            }
+          ]
+        },
+        {
+          "id": "fpga-direction",
+          "raw_name": "FPGA",
+          "proposed_name": null,
+          "kind": "technology_stack",
+          "origin": "synthetic_assertion",
+          "proposer": "Codex synthetic fixture",
+          "synthetic_only": true,
+          "responsibility": "unspecified",
+          "family_candidates": [],
+          "review_status": "pending_review",
+          "unresolved_reason": "纯合成主张，仅验证八类版本路径；非正式岗位名单或人类真值",
+          "name_evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "1",
+              "fingerprint": "3ec93ac7fbbffd05139895e1c936f81e7925165e89f11c8efe47fb8706de6d5e",
+              "field": "job_title",
+              "start": 8,
+              "end": 12,
+              "quote": "FPGA"
+            }
+          ],
+          "evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "1",
+              "fingerprint": "3ec93ac7fbbffd05139895e1c936f81e7925165e89f11c8efe47fb8706de6d5e",
+              "field": "duties",
+              "start": 0,
+              "end": 20,
+              "quote": "核心职责：开发FPGA逻辑并交付验证结果"
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "id": "fpga-track-of-hardware",
+          "source_id": "fpga-direction",
+          "target_id": "hardware-example",
+          "kind": "technology_direction_of",
+          "proposer": "Codex synthetic fixture",
+          "basis": "显式合成方向关系待审，不是正式映射",
+          "evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "1",
+              "fingerprint": "3ec93ac7fbbffd05139895e1c936f81e7925165e89f11c8efe47fb8706de6d5e",
+              "field": "job_title",
+              "start": 8,
+              "end": 12,
+              "quote": "FPGA"
+            }
+          ],
+          "review_status": "pending_review"
+        }
+      ],
+      "material_kind": "undetermined",
+      "material_evidence": [],
+      "conflicts": [],
+      "notes": "纯合成八类兼容样例"
+    },
+    {
+      "namespace": "synthetic-b33",
+      "jd_id": "2",
+      "fingerprint": "2bcf36282e8f077f243e5d1cd6807a355878e0cc09f1c816adca854feaf86b56",
+      "candidates": [
+        {
+          "id": "cross-hardware",
+          "raw_name": "合成跨界岗",
+          "proposed_name": null,
+          "kind": "job",
+          "origin": "synthetic_assertion",
+          "proposer": "Codex synthetic fixture",
+          "synthetic_only": true,
+          "responsibility": "core",
+          "family_candidates": [
+            "hardware_integrated_circuits"
+          ],
+          "review_status": "pending_review",
+          "unresolved_reason": "纯合成主张，仅验证八类版本路径；非正式岗位名单或人类真值",
+          "name_evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "2",
+              "fingerprint": "2bcf36282e8f077f243e5d1cd6807a355878e0cc09f1c816adca854feaf86b56",
+              "field": "job_title",
+              "start": 0,
+              "end": 5,
+              "quote": "合成跨界岗"
+            }
+          ],
+          "evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "2",
+              "fingerprint": "2bcf36282e8f077f243e5d1cd6807a355878e0cc09f1c816adca854feaf86b56",
+              "field": "duties",
+              "start": 0,
+              "end": 38,
+              "quote": "核心职责：开发FPGA逻辑并交付验证结果。核心职责：开发嵌入式驱动并交付固件"
+            }
+          ]
+        },
+        {
+          "id": "cross-embedded",
+          "raw_name": "合成跨界岗",
+          "proposed_name": null,
+          "kind": "job",
+          "origin": "synthetic_assertion",
+          "proposer": "Codex synthetic fixture",
+          "synthetic_only": true,
+          "responsibility": "core",
+          "family_candidates": [
+            "embedded_system_software"
+          ],
+          "review_status": "pending_review",
+          "unresolved_reason": "纯合成主张，仅验证八类版本路径；非正式岗位名单或人类真值",
+          "name_evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "2",
+              "fingerprint": "2bcf36282e8f077f243e5d1cd6807a355878e0cc09f1c816adca854feaf86b56",
+              "field": "job_title",
+              "start": 0,
+              "end": 5,
+              "quote": "合成跨界岗"
+            }
+          ],
+          "evidence": [
+            {
+              "namespace": "synthetic-b33",
+              "jd_id": "2",
+              "fingerprint": "2bcf36282e8f077f243e5d1cd6807a355878e0cc09f1c816adca854feaf86b56",
+              "field": "duties",
+              "start": 0,
+              "end": 38,
+              "quote": "核心职责：开发FPGA逻辑并交付验证结果。核心职责：开发嵌入式驱动并交付固件"
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "material_kind": "undetermined",
+      "material_evidence": [],
+      "conflicts": [],
+      "notes": "纯合成八类兼容样例"
+    }
+  ]
+}

@@ -15,3 +15,9 @@
 ## B3-2 合成候选治理示例
 
 `governance.input.json` 为三条纯合成 JD；`governance.submission.json` 为 Codex 编写、待人类复核的显式候选主张，namespace=`synthetic-b32`。含多个核心、待核查的复合候选与纯技术栈，4 个候选/1 条 related_to 关系；不是正式岗位名单或人工真值。正式目录使用源码包 `governance/catalog.empty.v1.json`，始终为空。CLI 用法见 M2 README。
+
+## B3-3 八类版本与历史保全
+
+`families-v2.input.json` 为三条合成 JD：FPGA 交付、FPGA/嵌入式同等核心、销售培训反例。`families-v2.submission.json` 是显式待审主张，namespace=`synthetic-b33`，4 个候选与 1 条 technology_direction_of 关系；技术方向不充当主岗位。正式名单未发布，名称只用于示例。使用源码 `families.v2.json`，两条 B31/B32 CLI 路径见 M2 README；B32 省略 family-taxonomy 仍为 v1，不能引用第八类。
+
+`history.families-v1.json` 在修改源码前由 master `bbe5309` 实际执行纯合成 B31/B32 并导出 SQLite 行生成。包含原快照、输入字节、版本清单、结果、报告、具名合成审核和审核截面；不含生产数据。嵌套正文是原始 JSON 字符串，测试恢复为临时 SQLite 后逐行核对、原样 replay；源码升级后新运行即使正文相同也追加新版本/结果，不继承旧审核。此文件是兼容性基线，不是语义标注真值，后续不得用新源码重生并冒充旧历史。
