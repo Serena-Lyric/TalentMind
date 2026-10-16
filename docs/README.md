@@ -26,7 +26,7 @@
 
 M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)（临时报告合并前移除；长期结论分别写入正式文档和陷阱记录）。
 
-M2 B3-0（Issue #8）：[四维岗位基础使用说明](../backend/app/job_analysis/README.md)、[工程计划](superpowers/plans/2026-10-16-m2-b3-0-role-foundation.md)、[临时执行报告](review/M2-stage-B3-0.md)。仅显式离线断言/证据/版本持久化，不代表正式目录、自动分类或真实准确率完成；本轮不追加未经确认的产品决策。
+M2 B3-0（Issue #8）：[四维岗位基础使用说明](../backend/app/job_analysis/README.md)、[工程计划](superpowers/plans/2026-10-16-m2-b3-0-role-foundation.md)、[归档实施与复审报告](superpowers/archive/2026-10-16-M2-stage-B3-0-implementation.md)（[PR #9](https://github.com/Serena-Lyric/TalentMind/pull/9)）。仅显式离线断言/证据/版本持久化，不代表正式目录、自动分类或真实准确率完成；本轮不追加未经确认的产品决策。
 
 M2 第一轮只读评估：[历史评估与源码证据](superpowers/archive/2026-10-15-M2-architecture-gap-assessment.md)（[PR #3](https://github.com/Serena-Lyric/TalentMind/pull/3)）；包含真实调用证据、24 项目标差距、阶段依赖、最小改造建议与待裁决项。仅用于后续设计参考，新方案尚未实施。
 
