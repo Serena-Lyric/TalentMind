@@ -25,24 +25,30 @@
 Files: proposals/models.py、rules.py、families.v1.json、__init__.py；tests/test_job_analysis/test_role_proposals.py。
 Interfaces: load_taxonomy(path) -> dict；suggest(record, taxonomy) -> dict；validate_proposal(record, body, taxonomy) -> dict。
 
-- [ ] 写七类正例、技术服务反例、目录非法/重复、主辅不足/冲突/多职位/全栈及跨 JD 证据测试。
-- [ ] 运行 pytest tests/test_job_analysis/test_role_proposals.py -q，观察 RED。
-- [ ] 实现严格目录、精确动作/对象/交付句式、原文证据及保守 family 主辅提示。标题线索绝不单独生成候选。
-- [ ] 同命令 GREEN，提交本任务。
+- [x] 写七类正例、技术服务反例、目录非法/重复、主辅不足/冲突/多职位/全栈及跨 JD 证据测试。
+- [x] 运行 pytest tests/test_job_analysis/test_role_proposals.py -q，观察 RED。
+- [x] 实现严格目录、精确动作/对象/交付句式、原文证据及保守 family 主辅提示。标题线索绝不单独生成候选。
+- [x] 同命令 GREEN，提交本任务。
 
 ## Task 2：持久化及 CLI
 
 Files: proposals/store.py、runner.py、__main__.py；同测试文件。
 Interfaces: ProposalStore(path)；execute(store, batch, taxonomy, revision="v1", output=None, input_paths=())；replay(store, run_id)。
 
-- [ ] 写真实 run/replay、观察/内容/规则/目录/源码失效、全部旧表隔离、输入伪造、失败原子性/硬退出、输出恢复和保护测试。
-- [ ] 观察 RED；实现 b31_versions/inputs/results/reports，只追加共享不可变 snapshots，不调用旧分析执行。
-- [ ] GREEN；旧 B3-0 manifest 与解析/replay 完全不变；提交本任务。
+- [x] 写真实 run/replay、观察/内容/规则/目录/源码失效、全部旧表隔离、输入伪造、失败原子性/硬退出、输出恢复和保护测试。
+- [x] 观察 RED；实现 b31_versions/inputs/results/reports，只追加共享不可变 snapshots，不调用旧分析执行。
+- [x] GREEN；旧 B3-0 manifest 与解析/replay 完全不变；提交本任务。
 
 ## Task 3：验证与交付
 
 Files: PRODUCT_DECISIONS、决策跟踪、M2 README、资产与状态、docs/review/M2-stage-B3-1.md；发现业务缺陷时补陷阱。
-- [ ] 追加 M2-41～43 与 D80 后实际可用索引；不把试验句式写成产品规则。
-- [ ] 跑完整阻网非集成回归，报告 skipped/deselected/警告/连接尝试与 finally 清理。
-- [ ] 独立只读内部代码审查，定向 RED→GREEN 修复，保留 ChatGPT 外部复审。
-- [ ] 检查链接/diff/原工作区；独立提交推送，创建 master PR 并附实施报告。
+- [x] 追加 M2-41～43 与 D80 后实际可用索引；不把试验句式写成产品规则。
+- [x] 跑完整阻网非集成回归，报告 skipped/deselected/警告/连接尝试与 finally 清理。
+- [x] 独立只读内部代码审查，定向 RED→GREEN 修复，保留 ChatGPT 外部复审。
+- [x] 检查链接/diff/原工作区；独立提交推送，创建 master PR 并附实施报告。
+
+## 执行记录
+
+任务1：d8de211，52 failed/1 passed → 53 passed。任务2：1d53545，17 failed/53 passed → 70 passed，B3-0合跑119 passed。任务3：独立审查2项Important，14 failed/1 passed后修复；源码实字节测试发现Windows短长路径问题1 failed/86 passed后修复，最终B3-1 87 passed，完整阻网849 passed/2 skipped/23 deselected/0连接。交付PR链接与最新验证见实施报告。
+
+工程选择：新子包避免改变旧B3-0源码manifest；主辅仅family层提示，canonical_job保持未知。代价：封闭句式覆盖窄，不代表开放域准确率；产品未决项不补定。

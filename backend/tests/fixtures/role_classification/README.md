@@ -5,3 +5,9 @@
 数据集必须显式使用 `synthetic-b30`，以匹配标注中的 namespace。fingerprint 是 A InputRecord 的完整 payload SHA-256，不包含 id/crawled_at；修改来源字段后须显式重建标注指纹，不能改证据来迁就旧输入。多方向/主辅/冲突/多职位案例在合成单元测试中，词值只有 family-a/role-a/track-a/level-a 等占位符。
 
 运行命令与事务/重放语义见 [M2 README](../../../app/job_analysis/README.md)。位置通过只证明引文对应，不证明岗位语义正确。
+
+## B3-1 职责建议示例
+
+`proposals.input.json` 为十条手写合成材料：七类简单核心技术交付、客户演示反例、标题职责冲突、疑似多职位。使用独立入口 `app.job_analysis.role_classification.proposals`、显式目录 `families.v1.json` 与 dataset=synthetic-b31；不消费 annotations.json，不改变上述 B3-0 示例。
+
+这些句式只作程序回归与使用演示，不是人工真值或真实 JD。预期仅为待审 family 线索，canonical_job/技术方向/级别均不定案，正式统计资格关闭。
