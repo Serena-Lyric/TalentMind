@@ -1,0 +1,60 @@
+# M2 B3-0 Implementation Plan
+
+> **For agentic workers:** Use executing-plans to implement task by task with TDD and one fresh whole-branch review.
+
+**Goal:** 实现 Issue #8 已授权的四维分类标注、证据校验与不可变离线历史。
+
+**Architecture:** 独立 role_classification 包消费 A InputBatch 与显式 annotations/taxonomy，不调用分类器。追加 b30_* SQLite 表，共享不可变 snapshots；整轮事务提交后发布，失败可 replay，无长期 running/resume 状态。
+
+**Tech Stack:** 现有 Python/Pydantic/SQLite 与标准库，无新依赖。
+
+**Spec:** GitHub Issue #8；docs/PRODUCT_DECISIONS.md M2-07～11、25～40。
+
+## Global Constraints
+
+- 仅合成 JD / 人工待审离线断言；taxonomy 为空或显式合成示例，不能作为正式目录。
+- 无模型、网络、生产数据、正式迁移、B4/M3/M4 或旧事实改写。
+- formal_statistics_eligible=false；引文校验不等于语义正确。
+- 仅追加版本，输入/标注/目录/实际实现摘要变化失效；观察独立保存。
+
+## Review Focus
+
+- 伪造跨 JD/指纹/偏移及空白引文拒绝，不把引文匹配当语义复核。
+- 部分标注及完全未知仍保存；缺标注成员可见，不能冒充完整分类。
+- 多方向、主辅关联及多职位待审不产生独立职位数量。
+- 事务/硬退出/发布失败后可重跑或重放，无历史覆盖。
+- 共库打开不能恢复或改写旧 A/B1/B2 的运行状态。
+
+### Task 1: 严格模型与证据验证
+
+**Files:** role_classification/models.py, validation.py; tests/test_job_analysis/test_role_classification.py。
+**Interfaces:** validate_annotation(record, annotation, taxonomy) -> dict；Taxonomy 严格四维合法值，Annotation 显式身份/指纹。
+
+- [x] 写四维未知、多方向、主辅、冲突、多职位、非法身份/位置/值/结构测试，运行确认 RED。
+- [x] 实现严格输入及逐字原文字段/字符偏移核验；已知值要求证据，冲突维度保留 unresolved。
+- [x] 局部测试通过，提交本任务。
+
+### Task 2: 持久化、复用与恢复
+
+**Files:** role_classification/store.py, runner.py, __main__.py, __init__.py；foundation/store.py 仅增加默认兼容的 recover 开关；同测试文件。
+**Interfaces:** execute(store,batch,annotations,taxonomy,revision='v1',output=None) -> report；replay(store,run_id) -> 原报告。
+
+- [ ] 先写追加版本/复用/历史保护/旧运行隔离/事务/子进程硬退出/发布失败/CLI 测试并确认 RED。
+- [ ] 复用 A 路径/锁/快照/原子发布；B3 打开不触发旧 A 恢复。每轮一次事务，无未提交运行；replay 不加载新目录或规则。
+- [ ] 相关 A/B1/B2/B3 离线回归通过，提交本任务。
+
+### Task 3: 交付与独立审查
+
+**Files:** M2 README、根 README、docs/README、资产与状态、docs/review/M2-stage-B3-0.md；合成输入示例。
+
+- [ ] 同步边界、命令、版本失效、事务语义和未决产品项。
+- [ ] 阻断网络、合成配置运行完整非集成回归；确认临时目录清理及原工作区保护。
+- [ ] 独立只读审查，重要问题按 RED→GREEN 修复，明确暂存、提交、推送并创建 PR；不合并。
+
+## Execution ledger
+
+- Task 1: 29 failed（模块缺失）→29 passed；候选需要直接原文依据，修正一处合成 fixture 补齐候选引用。没有真实识别或语义复核结论。
+
+- 2026-10-16：用户已明确授权立即实施并交付独立 PR；不再等待产品目录定稿。工程实现自行完成，最终按 requesting-code-review 派独立审查。
+- 工程选择：已知分类值仍为未语义复核的输入断言；人工输入只能 pending_review，合成输入不当准确率真值。
+- 工程选择：全轮事务，无长期 running；提交前中断重跑，提交后 replay 恢复发布。不隐式展开增量成员范围。
