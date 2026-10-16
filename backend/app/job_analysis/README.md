@@ -51,7 +51,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_governance.py tests/test_job_analysis/test_governance_evaluation.py -q --tb=short
 ```
 
-实际回归、样例差异与遗留见 [本轮阶段报告](../../../docs/review/M2-stage-B2-2.md)。不开发正式词典自动准入、审核前端、生产迁移、市场统计、B3/B4、M3 图谱或 M4 匹配。
+实际回归、样例差异与遗留见 [本轮阶段报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B2-2-implementation.md)。不开发正式词典自动准入、审核前端、生产迁移、市场统计、B3/B4、M3 图谱或 M4 匹配。
 
 ## 阶段 B2 第一轮：离线技能要求语义
 
