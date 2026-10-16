@@ -44,7 +44,7 @@
 - [x] 完整阻网非集成回归；检查 skip/警告、临时文件清理与 v1/历史归档字节。
 - [x] 追加 M2-45～47 / D84～86（核实无重号）；同步 README、资产、导航与 `docs/review/M2-stage-B3-3.md`。
 - [x] 独立只读审查并修复实际阻塞问题，记录 RED→GREEN 证据。
-- [ ] 只暂存本轮明确文件，提交并推送独立分支，创建面向 master 的 PR、附到当前聊天，核查未合并/未启用自动合并。
+- [x] 只暂存本轮明确文件，提交并推送独立分支，创建面向 master 的 PR、附到当前聊天，核查未合并/未启用自动合并。
 
 ## 执行记录
 
@@ -53,3 +53,4 @@
 - 工程选择：实现少量封闭硬件职责句式，提供可执行 B31 建议及 B32 显式候选路径；不建立正式岗位名单。
 - Task 1/2 complete：首组 RED 26 failed / 8 passed，最小实现后旧七类冒充 v2 的测试改为真正 v2；最终 B3 定向 258 passed。实现提交 eb90780。
 - Task 3 验证：完整阻网非集成 971 passed / 2 skipped / 23 deselected，连接尝试 0；独立审查 209 passed，最终补充 39 passed，无已知延期缺陷。两入口实际模块 smoke 及审核截面 replay 通过，临时文件剩余 0。
+- Task 3 complete：[PR #15](https://github.com/Serena-Lyric/TalentMind/pull/15) 已附到聊天，目标 master，实查 OPEN/MERGEABLE、未合并/未启用自动合并，无远端 CI 结果；保留报告、工作树和分支等待复审。

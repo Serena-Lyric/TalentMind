@@ -92,4 +92,6 @@ $b33Regression | python -X utf8 -
 
 ## 交付核查
 
-提交与 PR 链接将在创建并核实远端状态后补录；不把本地通过等同 ChatGPT 验收。
+- 实现提交 `eb90780`，文档与实施证据提交 `59096e3`；本节及计划/资产交付状态另以收尾文档提交补录。
+- [PR #15](https://github.com/Serena-Lyric/TalentMind/pull/15) 已创建并附到当前聊天，base=master，head=codex/m2-stage-b3-3-eight-families。创建后实际查询 OPEN/MERGEABLE、mergedAt=null、autoMergeRequest=null，statusCheckRollup 为空，没有远端 CI 结果可引用。
+- 保留实施报告、独立工作树与分支供 ChatGPT 复审；不合并、不启用自动合并、不删除分支。正式标准岗位名单仍待产品讨论，本地测试与内部审查不等同 ChatGPT 验收。
