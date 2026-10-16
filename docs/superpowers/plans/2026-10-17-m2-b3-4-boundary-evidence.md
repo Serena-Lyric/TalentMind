@@ -43,7 +43,7 @@
 - [x] 核实编号追加 M2-48～51 / D87～90，更新待决、M2 README、资产、导航、必要陷阱与实施报告。
 - [x] 完整非集成阻网回归，记录通过/跳过/排除/连接尝试和清理证据。
 - [x] 独立只读审查；实质修复均 RED→GREEN，核对源码/历史字节与文档链接。
-- [ ] 仅暂存明确文件，提交推送独立分支，创建并附 PR，确认未合并/自动合并关闭。
+- [x] 仅暂存明确文件，提交推送独立分支，创建并附 PR，确认未合并/自动合并关闭。
 
 ## 执行记录
 
@@ -54,3 +54,5 @@
 - Task 1/2 complete：目录 16 RED、主张 26 RED、生命周期 21 RED 后逐组 GREEN；重复证据 2 RED→GREEN。B3 联合 337 passed。
 - Final review：fresh reviewer 独立 79/209 passed；同名不同编号目标误拒 Important 经 1 failed / 1 passed→GREEN 修复，署名遗漏 1 failed→GREEN。最终全量阻网 1057 passed / 2 skipped / 23 deselected、连接尝试 0。
 - Ruling：结构门禁只验证显式主张与原文位置，不证明开放自然语言语义；生产目录/职位发布/人数统计保持关闭，代价为真实材料仍需后续人工复核及授权。
+
+- Task 3 complete：实现 7bbe8a2 已推送，[PR #17](https://github.com/Serena-Lyric/TalentMind/pull/17) 已附当前聊天，实查 OPEN/MERGEABLE、未合并/未启用自动合并；远端暂无 CI。保留原工作树/分支等待 ChatGPT 集中复审。

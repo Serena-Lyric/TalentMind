@@ -70,8 +70,8 @@ v1/v2 Git blob 分别保持 `2d1c49c820ccea7a84c5c6137f71e574fbdf149e`、`a89efd
 
 审查没有判定显式自然语言主张的真实语义、正式目录/人数/发布，因其明确属于本轮未授权范围；对此工程裁决是保留原文与未审状态、准入/统计恒 false，代价是仍需人工复核，不能承诺真实效果。该审查优先代码，最终文档由主执行者单独核验；不替代交付后的 ChatGPT 集中复审。无其他已知延期缺陷。
 
-最终源码专项复核 **86 passed（4.23s）**。文件 UTF-8/Python AST/JSON 解析及 134 个本地 Markdown 链接核验通过；`git diff --check` 通过。原工作树仍仅保留原资产文档修改，其 SHA-256 为 `F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B`。
+最终源码专项复核 **86 passed（4.23s）**。文件 UTF-8/Python AST/JSON 解析及 135 个本地 Markdown 链接核验通过；`git diff --check` 通过。原工作树仍仅保留原资产文档修改，其 SHA-256 为 `F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B`。
 
 ## 交付状态
 
-实现和验证完成，待提交并创建独立 PR。保留临时报告供 ChatGPT 独立复审；PR 面向 master，不启用自动合并，不自行合并或清理分支/工作树。
+实现提交 `7bbe8a25d70fdfa70b4d47fe4a65050558dd38d3` 已推送；[PR #17](https://github.com/Serena-Lyric/TalentMind/pull/17) 已创建并附到当前聊天，base=master、head=codex/m2-stage-b3-4-boundary-evidence。实查 OPEN/MERGEABLE、mergedAt=null、autoMergeRequest=null，远端 statusCheckRollup 为空，无远端 CI 结果可引用。此后提交仅补录交付文档，不改实现。保留临时报告供 ChatGPT 独立复审；不自行合并或清理分支/工作树。
