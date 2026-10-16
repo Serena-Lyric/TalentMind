@@ -46,7 +46,7 @@ M2 B3-4（Issue #16）：[工程范围与结构化材料证据](../backend/app/j
 
 ## 分类子目录
 
-M2 B3-5（Issue #18）：[候选目录与离线准入使用说明](../backend/app/job_analysis/README.md)、[工程计划](superpowers/plans/2026-10-17-m2-b3-5-canonical-catalog.md)、[临时实施报告](review/M2-stage-B3-5.md)。八类 19 个草案全部未确认，正式目录零条；具名审核与独立 manifest 可追溯，非合成只输出待现实授权发布提案，synthetic_only 准入模拟不发布职业、不分类 JD。
+M2 B3-5（Issue #18）：[候选目录与离线准入使用说明](../backend/app/job_analysis/README.md)、[工程计划](superpowers/plans/2026-10-17-m2-b3-5-canonical-catalog.md)、[归档实施与独立复审报告](superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)（[PR #19](https://github.com/Serena-Lyric/TalentMind/pull/19)）。八类 19 个草案全部未确认，正式目录零条；具名审核与独立 manifest 可追溯，非合成只输出待现实授权发布提案，synthetic_only 准入模拟不发布职业、不分类 JD。
 
 M2 B3-3（Issue #14）：[八类版本与候选兼容](../backend/app/job_analysis/README.md)、[实施计划](superpowers/plans/2026-10-16-m2-b3-3-eight-families.md)、[归档实施与独立复审报告](superpowers/archive/2026-10-16-M2-stage-B3-3-implementation.md)（[PR #15](https://github.com/Serena-Lyric/TalentMind/pull/15)）。七类历史只读，显式八类目录追加结果版本；正式标准岗位名单未发布；复审已完成，实际合并状态以 PR 为准。
 
