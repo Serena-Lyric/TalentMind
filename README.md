@@ -11,9 +11,9 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
-2026-10-16 M2 B2 第一轮：新增离线技能五态、简单组合、陈述级程度与冲突的保守语义扩展，支持持久化、增量复用和恢复；入口与限制见 [M2 README](backend/app/job_analysis/README.md)。仅支持确定性语法子集，未做真实准确率评测，不启用词典准入、后续阶段或正式统计；独立 PR 待审查。
+2026-10-16 M2 B2 第一轮：新增离线技能五态、简单组合、陈述级程度与冲突的保守语义扩展，支持持久化、增量复用和恢复；入口与限制见 [M2 README](backend/app/job_analysis/README.md)。仅支持确定性语法子集，未做真实准确率评测，不启用词典准入、后续阶段或正式统计；[PR #6](https://github.com/Serena-Lyric/TalentMind/pull/6) 已完成 ChatGPT 独立静态审查并获用户合并授权，实际状态以 PR 为准。
 
-2026-10-15 M2 阶段 B1：新增显式范围配置的离线 JD 分层筛选与审计，保留无效、范围外、待复核及执行错误，支持版本复用、历史追溯和恢复；使用方式见 [M2 README](backend/app/job_analysis/README.md)。不写技能事实、正式数据库或既有交接，不代表 B2/B3/B4 或正式统计已完成；待独立 PR 审查验收。
+2026-10-15 M2 阶段 B1：新增显式范围配置的离线 JD 分层筛选与审计，保留无效、范围外、待复核及执行错误，支持版本复用、历史追溯和恢复；使用方式见 [M2 README](backend/app/job_analysis/README.md)。不写技能事实、正式数据库或既有交接，不代表 B2/B3/B4 或正式统计已完成；[PR #5](https://github.com/Serena-Lyric/TalentMind/pull/5) 已审查并合并。
 
 2026-10-15 M2 阶段 A：新增独立 SQLite 事实基础层和显式离线入口，支持完整输入/版本失效、逐 JD 引文核对、增量复用与中断恢复、固定成员重放。见 [M2 运行与测试说明](backend/app/job_analysis/README.md)。当前 CLI 为 Python 字面规则演示；未替换旧管道/交接/API，不代表五态识别、独立职位需求率或模型效果已完成。
 
