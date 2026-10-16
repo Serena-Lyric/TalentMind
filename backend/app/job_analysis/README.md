@@ -1,5 +1,29 @@
 # job_analysis
 
+## 阶段 B3-3：八类目录版本与候选兼容
+
+依据 [Issue #14](https://github.com/Serena-Lyric/TalentMind/issues/14) 和产品 M2-45～47，新增 `role_classification/proposals/families.v2.json`。保留原七类 `families.v1.json` 字节与历史报告，新版只追加稳定 ID `hardware_integrated_circuits` /「硬件与集成电路」，其余七个 ID/中文名不变。沿用 schema `b31-family-taxonomy-1`，按 revision 的注册表精确检查集合：families-v1 必须七类、families-v2 必须八类；缺项、重复、错误标签/ID、未知 revision 或把七类改标签成 v2 均拒绝。scope 文字可调整但全文参与版本摘要。
+
+标准岗位按核心职责/技术交付/职业功能区分，技术栈为独立可多选方向；八类同步建设基础目录是产品原则，**具体正式名单仍待讨论**。两版配置的 canonical_job、technology_tracks、seniority 值集保持空，B3-2 formal_jobs 也为空；合成「合成硬件岗」等名称只是演示候选，不是目录条目或人工真值。
+
+工作目录 backend，以下三个样例 JD、四个显式待审主张、一个方向关系可离线执行；namespace 必须为 synthetic-b33：
+
+```powershell
+python -m app.job_analysis.role_classification.proposals run --input tests/fixtures/role_classification/families-v2.input.json --dataset synthetic-b33 --taxonomy app/job_analysis/role_classification/proposals/families.v2.json --state ../data/local/m2-b33/state.sqlite3 --output ../data/local/m2-b33/proposals
+python -m app.job_analysis.role_classification.governance run --input tests/fixtures/role_classification/families-v2.input.json --dataset synthetic-b33 --submission tests/fixtures/role_classification/families-v2.submission.json --catalog app/job_analysis/role_classification/governance/catalog.empty.v1.json --family-taxonomy app/job_analysis/role_classification/proposals/families.v2.json --state ../data/local/m2-b33/state.sqlite3 --output ../data/local/m2-b33/candidates
+python -m app.job_analysis.role_classification.proposals replay --run <proposal_run_id> --state ../data/local/m2-b33/state.sqlite3 --output ../data/local/m2-b33/proposal-replay
+python -m app.job_analysis.role_classification.governance replay --run <candidate_run_id> --state ../data/local/m2-b33/state.sqlite3 --output ../data/local/m2-b33/candidate-replay
+python -m pytest tests/test_job_analysis/test_role_family_versions.py tests/test_job_analysis/test_role_proposals.py tests/test_job_analysis/test_role_governance.py tests/test_job_analysis/test_role_governance_storage.py tests/test_job_analysis/test_role_classification.py -q --tb=short
+```
+
+B3-2 新增可选 `--family-taxonomy`（Python `execute/validate_submission` 的 `taxonomy=`）；省略时明确加载原 v1，历史提交无需重写。新 ID 必须显式提供已验证 v2；v1 不接受第八类 ID。完整 family_taxonomy 与正式空 catalog 分开存入 manifest，绑定 submission revision/全文、源码和 result_version。配置文件不能位于输出目录内；输入错位/配置非法整轮拒绝。审核仍绑定具体结果版本，不能跨目录升级继承；接受只保存意见，formal_admitted 不变。
+
+v2 的硬件提示仅支持三条完整动作/对象/成果句式：「设计硬件电路并交付电路原理图」「开发FPGA逻辑并交付验证结果」「设计数字IC并交付RTL」，沿用下文 core/auxiliary/unspecified 前缀和原始字符偏移。硬件/FPGA/数字IC标题只作对照线索，SoC、芯片或技术栈词面不直接赋类。与嵌入式职责同时核心、责任不明、标题冲突或未解析职责保留候选/unresolved；公司介绍、历史、培训、销售/产品演示不能凭硬件术语获得职责候选。规则不是开放自然语言算法，未覆盖表达保留原文与待审原因。B3-2 不执行自动语义识别，只核对显式主张及证据；technology_stack 排除在主岗位候选集合之外，不回写 B2 技能事实。
+
+两版可在同一临时 SQLite 混合运行，继续使用原 B31/B32 表和不可变历史保护，无数据库迁移。共享验证/规则源码变化会使**后续新运行**的 B31/B32 manifest 摘要变化，即使使用 v1 也保守追加新结果；v1 职责输出保持兼容，不伪装成旧源码版本复用。旧版本条目、报告/审核/导出截面逐字段保留，replay 只读已保存报告与原输入字节，不加载新目录、不重新解释规则。历史夹具来自 master `bbe5309` 上升级前的合成实际执行，覆盖旧清单/结果/审核/导出重放。A/B1/B2/B22/B30 源码未改、既有表不写。
+
+所有自动建议始终 pending_review、classification_complete=false、formal_statistics_eligible=false，候选与关系 formal_admitted=false；没有正式发布、vacancy 数、需求率、真实 JD/模型评测或 B4。验证和独立内部审查见 [B3-3 实施报告](../../../docs/review/M2-stage-B3-3.md)；内部审查不替代交付后 ChatGPT 集中复审。
+
 ## 阶段 B3-2：标准岗位候选与关系治理（离线）
 
 依据 [Issue #12](https://github.com/Serena-Lyric/TalentMind/issues/12)，新增独立 `role_classification/governance/`，只录入**显式候选主张**，不运行自然语言岗位提取器。`catalog.empty.v1.json` 的正式目录恒空，候选、待审关系、审核事件和正式发布分别表达；没有正式发布或自动准入接口。产品仅追加用户已确认的 M2-44 多核心未决原则，具体名单、粒度、复合边界、发布条件仍待决策。
