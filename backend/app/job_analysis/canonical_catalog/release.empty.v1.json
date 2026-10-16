@@ -1,0 +1,7 @@
+{
+  "schema_version": "c35-formal-release-1",
+  "revision": "formal-empty-v1",
+  "formal_jobs": [],
+  "approval_status": "no_individual_user_approvals",
+  "policy": "M2-60: individual user confirmation and controlled repository release required"
+}

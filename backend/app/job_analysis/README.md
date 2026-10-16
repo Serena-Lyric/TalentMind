@@ -1,5 +1,70 @@
 # job_analysis
 
+## 阶段 B3-5：八类候选目录与逐项人工准入
+
+依据 [Issue #18](https://github.com/Serena-Lyric/TalentMind/issues/18)、产品 M2-52～60，新包 `canonical_catalog/` 独立于 B3-2/B3-4 的 JD 候选治理。`candidates.v1.json` 是八类 **19 个 AI 草案**，所有规范名、精确定义及别名均 `unconfirmed`。定义依据是产品规则的精确引文与原字节摘要，表示起草依据，不证明用户已经认可具体定义；嵌入式、系统软件、交付、硬件等细节尤须逐项讨论。草案非等量，可扩展，无市场数量/级别/熟练度推断。`release.empty.v1.json` 正式目录始终为空。
+
+| family | 草案稳定 ID（待审） |
+|---|---|
+| 软件研发 | backend-development、frontend-development |
+| 测试与质量工程 | automation-test、sdet |
+| 数据与人工智能 | data-analyst、bi-engineer、data-engineer、ml-engineer、algorithm-research |
+| 基础设施与运维 | devops、sre |
+| 网络与信息安全 | security-development、secops |
+| 嵌入式与系统软件 | embedded-development、system-software |
+| 技术服务与交付 | technical-implementation、technical-solution |
+| 硬件与集成电路 | hardware-development、digital-ic |
+
+每条含主要责任、技术交付、排除项、相邻候选与区分原则、定义来源、待审别名及状态。候选 ID 独立于名称，跨类同名允许各自职责定义；同类重名/别名冲突拒绝，不能静默建立映射。原 JD 标题保留在原阶段，不导入/改写本目录；同工具不合并职业，不按语言拆职业。未审核候选相互引用只帮助界定草案边界。
+
+### 运行与审核
+
+工作目录 backend；使用已安装 requirements 的 Python，显式指定本工作树根作来源根。CLI 不加载旧 .env，不读正式 JD，也不调用模型。所有输出和 SQLite 放仓库内 `data/local/` 或独立仓库外目录。
+
+```powershell
+python -m app.job_analysis.canonical_catalog run --catalog app/job_analysis/canonical_catalog/candidates.v1.json --source-root .. --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/snapshots
+python -m app.job_analysis.canonical_catalog review --snapshot <snapshot_id> --event <review.json> --source-root <source_root> --state ../data/local/m2-b35/state.db
+python -m app.job_analysis.canonical_catalog export --snapshot <snapshot_id> --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/reviews
+python -m app.job_analysis.canonical_catalog export --snapshot <snapshot_id> --manifest <release-manifest.json> --source-root <source_root> --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/proposals
+python -m app.job_analysis.canonical_catalog replay --artifact <artifact_id> --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/replay
+```
+
+`run` 返回 artifact_id，快照中 `candidate_versions` 给出每条完整定义摘要。`review` 的严格 `c35-review-1` 输入包括 snapshot_id、candidate_id、candidate_sha256、decision（reviewed_accepted/rejected/deferred）、reviewer、basis、source、confirmed_responsibilities/confirmed_boundaries/confirmed_family 三个布尔确认、mode（manual_pending/synthetic_only）及 supersedes。只有三个确认全真才能记录接受；首次 supersedes=null，后续必须明确引用该快照该候选的最新事件。事件不修改原候选状态，不自动发布。
+
+`source` 为 `{path, sha256, quote}`，path 是显式 source_root 下 POSIX 相对路径，拒绝越界（含 symlink/junction 解析）、错误 hash/引文。review 的引文须含 candidate ID、完整 candidate_sha256 和 snapshot_id，不能用一般产品原则或旧版本记录代替。程序冻结来源原字节与输入 JSON，再按同一字节解析，重放不依赖原文件继续存在。**这只验证结构和字节，不验证署名身份、语义或授权真实性。**
+
+候选依据的产品文档通过根 `.gitattributes` 固定 LF 检出，保证 Windows/Linux 使用同一原字节摘要。以后更新产品文档须显式维护新候选版本/来源，旧 SQLite 快照仍按原字节 replay；其他源码字节变化按依赖摘要保守生成新版本。
+
+独立 `c35-release-manifest-1` 输入如下（占位符须来自实际快照与审核记录；本轮没有真实逐项批准，不提供已批准样例）：
+
+```json
+{
+  "schema_version": "c35-release-manifest-1",
+  "revision": "release-proposal-v1",
+  "snapshot_id": "<snapshot_id>",
+  "mode": "release_proposal",
+  "previous_release_id": null,
+  "approvals": [{
+    "candidate_id": "<candidate_id>",
+    "candidate_sha256": "<full_candidate_sha256>",
+    "review_id": "<current_accepted_review_id>",
+    "confirmation_source": {"path": "individual-confirmation.md", "sha256": "<source_sha256>", "quote": "<逐项用户确认记录中的 candidate_id、candidate_sha256 和 snapshot_id 及确认正文>"}
+  }]
+}
+```
+
+确认来源必须独立于候选定义、候选输入、审核依据、审核事件 JSON 及其副本、旧审核记录和 manifest 本身；按路径和原字节摘要排除，必须明确指向本快照、本完整定义。审核与 manifest 模式严格对应，不能将 synthetic 审核包装成真实发布提案。manifest 版本不可对应两个不同内容；有前版时显式 previous_release_id，新版须重新提供每项批准，不隐式继承/删除。定义、family、别名、边界、依赖/规则版本改变均绑定新快照；相同候选 revision 不得原地修改。
+
+### 发布边界与恢复
+
+候选 → reviewed_accepted/rejected/deferred → release_proposal 的状态可审计；非合成最终为 `awaiting_external_approval`、identity_verified=false、formal_jobs=[]，**工具不会认定用户已批准或写正式 release**。只有未来用户逐项真实确认、受控 PR 审核和显式目录变更才能形成正式发布。该政策已确认不等于本草案获批。synthetic_only 只在临时输出 `simulated_jobs`/admitted，仍 formal_jobs=[]，不能写入仓库正式 release。
+
+真实 JD 样本不是初次收录强制前置；目录定义不自动生成任何 JD canonical_job，不改变四维独立性。未知/竞争/跨类一体化职责继续 unknown/unresolved/pending，不新增分类器、vacancy 或正式统计资格。旧 B3-2 reviewed_accepted、B3-4 pending_review、family 七/八类版本与旧报告均原样保全，不参与自动准入。
+
+c35_artifacts 保存不可变快照/事件/导出及依赖图，c35_revisions 绑定命名目录/发布版本与摘要；AnalysisStore(recover=false) 只复用锁和基础 schema，不恢复上游 running。整轮事务提交前异常/硬退出回滚，提交后输出故障可以 `SELECT id,kind FROM c35_artifacts ORDER BY rowid` 找到 artifact_id 再 replay；不用重审当前输入。输出先校验与所有输入/来源/状态文件隔离，再用暂存、fsync 和原子发布；已有不同内容拒绝覆盖，遗留暂存只清理同 artifact。
+
+验证：`python -m pytest tests/test_job_analysis/test_canonical_catalog.py tests/test_job_analysis/test_canonical_catalog_storage.py -q`。全部合成临时目录 finally 清理；包含真实子进程硬退出、输出故障、CLI 和旧混合历史共库。完整阻网回归与内部独立审查见 [归档实施与 ChatGPT 独立复审报告](../../../docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)，合成通过不能证明真实语义准确率。
+
 ## 阶段 B3-4：工程范围与独立材料证据层
 
 依据 [Issue #16](https://github.com/Serena-Lyric/TalentMind/issues/16) 与产品 M2-48～51，新增八类 `proposals/families.v3.json`：ID/标签不变，硬件与集成电路范围明确包括工艺、封装、制造与良率工程技术；普通产线/重复设备操作不能凭产业背景入类，设备维护及生产技术支持仍按实际责任与 B1 范围复核。v1/v2 文件原字节保全，不回写旧报告。
