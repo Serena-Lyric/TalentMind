@@ -52,8 +52,11 @@
 
 - [x] 父/子进程阻网执行完整非集成测试，报告 passed/skipped/deselected/连接尝试及临时清理。
 - [x] 独立只读 reviewer 审查并对阻塞项 RED→GREEN 修复，核查 diff/字节保全。
-- [ ] 提交明确文件、推送独立分支、创建关联 Issue #18 的 PR，附报告并验证未合并/未自动合并。
+- [x] 提交明确文件、推送独立分支、创建关联 Issue #18 的 PR，附报告并验证未合并/未自动合并。
 
 ## 执行记录
 
 - 已核对原工作树资产文档为用户未提交修改，实施仅在新工作树。Issue 提供完整已确认产品描述，本计划细化工程，不新增产品裁决。
+- Task 1 complete：26 RED→GREEN；Task 2 complete：39 RED→GREEN，后续来源/版本/原字节补测修复；最终专项 75 passed。
+- Task 3 complete：fresh reviewer 一项 Important，两模式 RED→GREEN 修复；完整阻网 1132 passed / 2 skipped / 23 deselected，连接尝试 0；原临时目录清理。实现 26deedc，独立 PR #19 已创建，未合并/未自动合并。
+- 工程裁决：非合成工具只生成待现实授权发布提案，不认证人、不写正式目录；首次授权政策已明确，不重复请求产品审批。代价是后续具体定义仍需用户逐项确认。来源产品文档固定 LF，避免强原字节摘要依赖 Windows 检出换行；旧 family/DDL 不变。

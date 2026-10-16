@@ -40,7 +40,7 @@
 
 没有生产连接/写入，所以没有执行或声称执行生产夹具行数查询；临时 SQLite、文件与阻网 guard 清理单独核查。原工作树仍只有资产文档原修改，SHA-256 保持 `F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B`。
 
-收尾核验覆盖变更文件的 UTF-8、Python AST/JSON 解析及全部本地 Markdown 链接；`git diff --check` 通过。families.v1/v2/v3、DDL、技能词典按 Git checkout 过滤规则计算 blob，与基线完全一致（Windows 检出换行为 CRLF，不能拿工作树字节直接与 `git show` 的 LF 比较）。仅新增独立目录层、当前产品来源文件的 LF 规则及相应测试/文档；没有前端变更，不运行前端构建或生产服务测试。
+收尾核验 18 个变更文件的 UTF-8、Python AST/JSON 解析、153 个本地 Markdown 链接通过；`git diff --check` 通过。families.v1/v2/v3、DDL、技能词典按 Git checkout 过滤规则计算 blob，与基线完全一致（Windows 检出换行为 CRLF，不能拿工作树字节直接与 `git show` 的 LF 比较）。仅新增独立目录层、当前产品来源文件的 LF 规则及相应测试/文档；没有前端变更，不运行前端构建或生产服务测试。临时 guard、脚本、日志和 pycache 已逐文件精确清理，实查 guard_remaining=false；测试目录由 fixture finally 清理。
 
 ## 独立内部只读审查
 
@@ -50,4 +50,4 @@
 
 ## 交付状态
 
-提交、PR 与最终核查待补。本阶段保留独立分支/工作树；不自动合并，不抢先发布具体标准岗位。
+实现提交 **`26deedc6f47d9a01d88d7094ba6de4dc311933e4`** 已普通推送；[PR #19](https://github.com/Serena-Lyric/TalentMind/pull/19) 已创建并附到本聊天，base=master、head=codex/m2-stage-b3-5-canonical-catalog。创建后实查 OPEN/MERGEABLE、mergedAt=null、autoMergeRequest=null；statusCheckRollup 为空，没有远端 CI 结果可引用。此后补录仅修改报告/计划/资产状态，不改受测实现或来源资产。本阶段保留独立分支/工作树，等待 ChatGPT 复审与用户再次明确授权；不自动合并、不抢先发布具体标准岗位。
