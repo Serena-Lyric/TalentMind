@@ -22,7 +22,7 @@ v2 的硬件提示仅支持三条完整动作/对象/成果句式：「设计硬
 
 两版可在同一临时 SQLite 混合运行，继续使用原 B31/B32 表和不可变历史保护，无数据库迁移。共享验证/规则源码变化会使**后续新运行**的 B31/B32 manifest 摘要变化，即使使用 v1 也保守追加新结果；v1 职责输出保持兼容，不伪装成旧源码版本复用。旧版本条目、报告/审核/导出截面逐字段保留，replay 只读已保存报告与原输入字节，不加载新目录、不重新解释规则。历史夹具来自 master `bbe5309` 上升级前的合成实际执行，覆盖旧清单/结果/审核/导出重放。A/B1/B2/B22/B30 源码未改、既有表不写。
 
-所有自动建议始终 pending_review、classification_complete=false、formal_statistics_eligible=false，候选与关系 formal_admitted=false；没有正式发布、vacancy 数、需求率、真实 JD/模型评测或 B4。验证和独立内部审查见 [B3-3 实施报告](../../../docs/review/M2-stage-B3-3.md)；内部审查不替代交付后 ChatGPT 集中复审。
+所有自动建议始终 pending_review、classification_complete=false、formal_statistics_eligible=false，候选与关系 formal_admitted=false；没有正式发布、vacancy 数、需求率、真实 JD/模型评测或 B4。验证和独立内部审查见 [B3-3 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-3-implementation.md)；内部审查不替代交付后 ChatGPT 集中复审。
 
 ## 阶段 B3-2：标准岗位候选与关系治理（离线）
 
