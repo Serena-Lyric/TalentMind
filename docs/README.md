@@ -44,7 +44,7 @@ M2 B3-2（Issue #12）：[候选治理使用说明](../backend/app/job_analysis/
 
 ## 分类子目录
 
-M2 B3-3（Issue #14）：[八类版本与候选兼容](../backend/app/job_analysis/README.md)、[实施计划](superpowers/plans/2026-10-16-m2-b3-3-eight-families.md)、[临时实施报告](review/M2-stage-B3-3.md)。七类历史只读，显式八类目录追加结果版本；正式标准岗位名单未发布，等待 ChatGPT 集中复审。
+M2 B3-3（Issue #14）：[八类版本与候选兼容](../backend/app/job_analysis/README.md)、[实施计划](superpowers/plans/2026-10-16-m2-b3-3-eight-families.md)、[归档实施与独立复审报告](superpowers/archive/2026-10-16-M2-stage-B3-3-implementation.md)（[PR #15](https://github.com/Serena-Lyric/TalentMind/pull/15)）。七类历史只读，显式八类目录追加结果版本；正式标准岗位名单未发布；复审已完成，实际合并状态以 PR 为准。
 
 | 目录 | 内容 |
 |---|---|
