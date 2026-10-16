@@ -5,7 +5,7 @@
 ## 基线与交付范围
 
 - 从已 fetch 的最新 `origin/master` **327c5349413b5d566db0257cf8b612c6b4e3f576**（PR #11 合并）建立独立工作树、分支 `codex/m2-stage-b3-2-canonical-governance`。原仓库 `codex/m1-stage-02` 的未提交资产文档未改动、未夹带；本轮仅显式暂存列出的文件。
-- 新增 `role_classification/governance/`：严格候选/关系/审核契约、证据验证、版本、SQLite、run/replay/review/export-reviews CLI、空正式目录配置。复用 A 的输入规范、快照、锁与发布；无新依赖，无生产契约迁移。实现提交见本 PR commits；本报告与验证材料随同提交。
+- 新增 `role_classification/governance/`：严格候选/关系/审核契约、证据验证、版本、SQLite、run/replay/review/export-reviews CLI、空正式目录配置。复用 A 的输入规范、快照、锁与发布；无新依赖，无生产契约迁移。实现提交 **6d57ba0596766962d255f0827b80cb2f0c90d4ec**；本报告与验证材料随同提交，交付状态补录另为文档提交。
 - 新增两份测试和三条纯合成 JD/四个显式候选/一条 related_to 关系。样例不是标准岗位名单、人工真值或真实招聘材料。
 - 产品主文档只追加用户在 Issue 中确认的 M2-44 多核心未决原则，索引 D83；名单/粒度/成熟复合边界/正式发布仍未决。同步 M2 README、根 README、导航、资产和陷阱。
 
@@ -76,3 +76,7 @@ $b32Regression | python -X utf8 -
 - 所有主岗位候选都保守 unresolved，本轮不选择单核心主岗；无岗位语义提取、自动标题矛盾检测或成熟职业判定。具体名单、命名粒度、复合职业边界、跨职能细则与正式审核/发布准入由用户与 ChatGPT 继续决定。
 - 未验证真实 JD 语义准确率、自然语言覆盖率、真实模型、生产迁移、前端/图谱/匹配、断电/损坏/网络盘恢复；不输出需求率、独立职位数量或匹配分数。
 - 不合并 master、不启用自动合并、不启动 B4/M3/M4，不用生产数据/真实模型/付费 API，不覆盖 exchange，不删除原分支/工作树。PR 交付后等待 ChatGPT 独立复审与用户授权。
+
+## PR 交付核查
+
+[PR #13](https://github.com/Serena-Lyric/TalentMind/pull/13) 已创建并附到当前聊天，base=master、head=codex/m2-stage-b3-2-canonical-governance。创建后独立查询 state=OPEN、mergeable=MERGEABLE、mergedAt=null、autoMergeRequest=null；远端没有可引用的 CI 检查结果，本报告测试为本地执行证据。源码/测试实现提交 6d57ba0，最终补录仅修改本报告、计划状态与资产索引；不因此重跑业务测试。工作树与分支保留，等待 ChatGPT 复审；未自行合并。
