@@ -63,7 +63,7 @@ python -m app.job_analysis.canonical_catalog replay --artifact <artifact_id> --s
 
 c35_artifacts 保存不可变快照/事件/导出及依赖图，c35_revisions 绑定命名目录/发布版本与摘要；AnalysisStore(recover=false) 只复用锁和基础 schema，不恢复上游 running。整轮事务提交前异常/硬退出回滚，提交后输出故障可以 `SELECT id,kind FROM c35_artifacts ORDER BY rowid` 找到 artifact_id 再 replay；不用重审当前输入。输出先校验与所有输入/来源/状态文件隔离，再用暂存、fsync 和原子发布；已有不同内容拒绝覆盖，遗留暂存只清理同 artifact。
 
-验证：`python -m pytest tests/test_job_analysis/test_canonical_catalog.py tests/test_job_analysis/test_canonical_catalog_storage.py -q`。全部合成临时目录 finally 清理；包含真实子进程硬退出、输出故障、CLI 和旧混合历史共库。完整阻网回归与内部独立审查见 [临时实施报告](../../../docs/review/M2-stage-B3-5.md)，合成通过不能证明真实语义准确率。
+验证：`python -m pytest tests/test_job_analysis/test_canonical_catalog.py tests/test_job_analysis/test_canonical_catalog_storage.py -q`。全部合成临时目录 finally 清理；包含真实子进程硬退出、输出故障、CLI 和旧混合历史共库。完整阻网回归与内部独立审查见 [归档实施与 ChatGPT 独立复审报告](../../../docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)，合成通过不能证明真实语义准确率。
 
 ## 阶段 B3-4：工程范围与独立材料证据层
 
