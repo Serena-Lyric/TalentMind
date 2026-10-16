@@ -243,7 +243,8 @@ def test_statement_resolution_does_not_promote_other_evidence(text):
         assert result["statements"][0]["state"] == "preferred"
         assert states(result) == ["mentioned"]
     elif text.startswith("必须掌握"):
-        assert states(result) == ["uncertain"] and result["effective"][0]["conflict"]
+        assert states(result) == ["required", "preferred"]
+        assert not any(e["conflict"] for e in result["effective"])
     elif text.startswith("不要求"):
         assert [(e["degree"], e["state"]) for e in result["effective"]] == [("expert", "not_required"), ("basic", "required")]
     else:
@@ -447,3 +448,97 @@ def test_conditional_context_is_not_lost_at_field_boundary():
     result = analyze("仅适用于实习生。", requirements="必须掌握 Python。")
     assert states(result) == ["uncertain"]
     assert result["statements"][0]["condition"]
+
+
+@pytest.mark.parametrize("text", [
+    "必须掌握 Python。Python 经验优先。", "Python 经验优先。必须掌握 Python。",
+])
+def test_capability_and_experience_are_distinct_objects_in_sqlite(area, text):
+    from app.job_analysis.semantics.store import SemanticStore
+    result = execute(area, [row(text)])
+    member = result["members"][0]
+    assert member["status"] == "completed"
+    with SemanticStore(area / "state.sqlite3") as store:
+        body = json.loads(store.conn.execute("SELECT body FROM b2_attempts WHERE id=?", (member["attempt_id"],)).fetchone()[0])
+    assert body == member["body"]
+    assert not any(e["conflict"] for e in body["effective"])
+    assert {(s["requirement_object"], s["state"], s["degree"]) for s in body["statements"]} == {
+        ("capability", "required", None), ("experience", "preferred", None)}
+    assert {(e["requirement_object"], e["state"]) for e in body["effective"]} == {
+        ("capability", "required"), ("experience", "preferred")}
+    assert all(not e["conflict"] and len(e["statement_ids"]) == 1 for e in body["effective"])
+
+
+def test_requirement_object_does_not_replace_capability_degree(area):
+    result = execute(area, [row("必须精通 Python。Python 经验优先。")])
+    body = result["members"][0]["body"]
+    assert {(e["requirement_object"], e["degree"], e["state"]) for e in body["effective"]} == {
+        ("capability", "expert", "required"), ("experience", None, "preferred")}
+    assert body["statements"][0]["degree_evidence"]["quote"] == "精通"
+
+
+@pytest.mark.parametrize("text", [
+    "必须掌握 Python。不要求掌握 Python。", "不要求掌握 Python。必须掌握 Python。",
+])
+def test_mutually_exclusive_capability_requirements_still_conflict_in_sqlite(area, text):
+    from app.job_analysis.semantics.store import SemanticStore
+    result = execute(area, [row(text)])
+    with SemanticStore(area / "state.sqlite3") as store:
+        body = json.loads(store.conn.execute("SELECT body FROM b2_attempts").fetchone()[0])
+    assert body == result["members"][0]["body"]
+    assert len(body["effective"]) == 1
+    effective = body["effective"][0]
+    assert effective["state"] == "uncertain" and effective["conflict"]
+    assert effective["requirement_object"] == "capability"
+    assert effective["statement_ids"] == ["s1", "s2"]
+    assert {s["state"] for s in body["statements"]} == {"required", "not_required"}
+    assert {s["evidence"]["quote"] for s in body["statements"]} == {"必须掌握 Python", "不要求掌握 Python"}
+
+
+def test_unparsed_project_experience_is_not_a_false_capability_conflict(area):
+    result = execute(area, [row("任职要求：\n熟悉 Java；有 Java 项目经验者优先。")])
+    body = result["members"][0]["body"]
+    assert body["coverage"] == "incomplete"
+    assert body["statements"][1]["state"] == "uncertain"
+    assert body["statements"][1]["requirement_object"] == "unresolved"
+    assert not any(e["conflict"] for e in body["effective"])
+
+
+def test_duplicate_group_references_are_unique_but_original_members_remain(area):
+    result = execute(area, [row("必须掌握 Java 和 Java 和 Python。")])
+    body = result["members"][0]["body"]
+    assert [s["name"] for s in body["statements"][0]["skills"]] == ["java", "java", "python"]
+    assert [e["group_ids"] for e in body["effective"]] == [["s1"], ["s1"]]
+    assert all(e["state"] == "mentioned" and not e["statement_ids"] for e in body["effective"])
+
+
+def test_b2_schema_upgrade_invalidates_old_conflict_without_rewriting_history(area):
+    from app.job_analysis.foundation.inputs import canonical
+    from app.job_analysis.foundation.store import now
+    from app.job_analysis.semantics.store import SemanticStore
+    from app.job_analysis.semantics.runner import execute as run, build_report, replay, resume
+    history = json.loads((Path(__file__).resolve().parents[1] / "fixtures/semantics/b2-1-capability-experience-history.json").read_text(encoding="utf-8"))
+    batch = load(area, [history["input"]])
+    with SemanticStore(area / "state.sqlite3") as store:
+        # Load the captured original output as immutable history; no old grammar is emulated.
+        identity = store.prepare(batch, history["manifest"])
+        snapshot = store.conn.execute("SELECT snapshot_id FROM b2_members WHERE run_id=?", (identity,)).fetchone()[0]
+        version = store.conn.execute("SELECT version_id FROM b2_runs WHERE id=?", (identity,)).fetchone()[0]
+        with store.conn:
+            old_attempt = store.conn.execute("INSERT INTO b2_attempts(run_id,snapshot_id,version_id,status,started_at,finished_at,body) VALUES (?,?,?,'completed',?,?,?)",
+                (identity, snapshot, version, now(), now(), canonical(history["body"]))).lastrowid
+            store.conn.execute("UPDATE b2_members SET attempt_id=? WHERE run_id=?", (old_attempt, identity))
+        build_report(store, identity)
+        original = replay(store, identity)
+        newer = run(store, batch)
+        assert newer["version_id"] != version
+        assert newer["members"][0]["snapshot_id"] == snapshot
+        assert newer["members"][0]["attempt_id"] != old_attempt
+        assert states(newer["members"][0]["body"]) == ["required", "preferred"]
+        assert replay(store, identity) == original
+        assert original["members"][0]["body"]["schema_version"] == "b2-1"
+        assert original["members"][0]["body"]["effective"][0]["conflict"]
+        with pytest.raises(ValueError, match="dependencies"):
+            resume(store, identity)
+        reused = run(store, batch)
+        assert reused["members"][0]["attempt_id"] == newer["members"][0]["attempt_id"]

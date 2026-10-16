@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 State = Literal["required", "preferred", "mentioned", "not_required", "uncertain"]
 Degree = Literal["basic", "familiar", "proficient", "expert"]
+RequirementObject = Literal["capability", "experience", "unresolved"]
 
 
 class StrictModel(BaseModel):
@@ -31,6 +32,7 @@ class Statement(StrictModel):
     skills: list[Skill] = Field(min_length=1)
     state: State
     relation: Literal["any_of", "all_of"] | None
+    requirement_object: RequirementObject
     degree: Degree | None
     degree_evidence: Evidence | None
     target: str
@@ -44,6 +46,7 @@ class Statement(StrictModel):
 
 class Effective(StrictModel):
     skill: str
+    requirement_object: RequirementObject
     degree: Degree | None
     target: str
     condition: str | None
@@ -60,7 +63,7 @@ class Issue(StrictModel):
 
 
 class Document(StrictModel):
-    schema_version: Literal["b2-1"]
+    schema_version: Literal["b2-2"]
     coverage: Literal["complete", "incomplete"]
     coverage_scope: Literal["known_aliases_and_supported_clauses_only"]
     outcome: Literal["skills_identified", "no_recognized_skills"]
@@ -75,18 +78,18 @@ def resolve(statements):
     buckets = {}
     for statement in statements:
         for skill in statement["skills"]:
-            key = (skill["name"], statement["degree"], statement["target"], statement["condition"])
+            key = (skill["name"], statement["requirement_object"], statement["degree"], statement["target"], statement["condition"])
             buckets.setdefault(key, []).append(statement)
     result = []
-    for (skill, degree, target, condition), entries in buckets.items():
+    for (skill, requirement_object, degree, target, condition), entries in buckets.items():
         singles = [s for s in entries if s["relation"] is None]
-        groups = [s["id"] for s in entries if s["relation"] is not None]
+        groups = list(dict.fromkeys(s["id"] for s in entries if s["relation"] is not None))
         asserted = {s["state"] for s in singles} - {"mentioned"}
         definite = asserted - {"uncertain"}
         conflict = len(definite) > 1
         state = ("uncertain" if conflict or "uncertain" in asserted else
                  next(iter(definite)) if definite else "mentioned")
-        result.append(dict(skill=skill, degree=degree, target=target, condition=condition,
+        result.append(dict(skill=skill, requirement_object=requirement_object, degree=degree, target=target, condition=condition,
             state=state, conflict=conflict, statement_ids=[s["id"] for s in singles], group_ids=groups,
             reason="conflicting_statements" if conflict else "group_membership_only" if not singles else "statement_resolution"))
     return result

@@ -2,6 +2,8 @@
 
 日期：2026-10-16；基线 master `e40d40b`（PR #5）。用户已授权独立完成开发、离线测试、文档与 PR，不合并、不清理分支、不启动 B2 第二轮/B3/B4。
 
+本报告依时间保留首次交付证据；PR #6 ChatGPT Review #5541520990 的定向修复、b2-2 结构与最新验证见文末。首次交付的 84/603 及延期 Minor 不是当前最终状态。
+
 ## 设计与执行计划
 
 **目标**：单条 JD 的五态、基本组合、程度与冲突可以一起保存、复用、恢复、重放。
@@ -107,3 +109,39 @@ Reviewer 未列阻塞的事项及处理依据：英文/任意编号/开放词汇
 暂存范围只含 B2 包、合成测试、M2/根 README、产品决策/索引、资产、两份陷阱和本临时报告。正式 DDL、foundation、screening、skills、旧 M2 源码、exchange 及本地原工作区均未修改。
 
 实现提交 `737e97447abded34876f34827047d08cc0e6bb11`，分支 `codex/m2-stage-b2-1-skill-semantics` 已推送；[PR #6](https://github.com/Serena-Lyric/TalentMind/pull/6) 目标 master，创建后实查 OPEN、mergeCommit=null、autoMergeRequest=null。本次后续仅补文档交付记录，不改已测试代码。开发分支与隔离工作区保留供定向修改，未合并、未启动后续阶段；等待 ChatGPT 独立审查和用户后续授权。
+
+## ChatGPT Review #5541520990 定向修复（2026-10-16）
+
+完整读取 [独立审查正文](https://github.com/Serena-Lyric/TalentMind/pull/6#pullrequestreview-5541520990)，审查 head 为 `0b882eba8a48`。其 Important 指出：“必须掌握 Python。Python 经验优先。”被错误合并为同对象冲突，旧测试也错误认可冲突；按用户本轮授权修复，提交到同一 PR，不合并、不启动后续阶段。
+
+### 实际修改
+
+- `models.py` 的 Statement/Effective 新增严格 `requirement_object=capability/experience/unresolved`；冲突键增加此维度。target 继续表示面向的主体，degree 继续表示能力程度，两者均不能代替要求对象。
+- `rules.py` 对已支持的“技能经验优先/加分/为加分项”单独给出 experience 对象；支持范围内的能力陈述为 capability，未可靠解析为 unresolved。没有扩写通用经验/项目识别；例如“有 Java 项目经验者优先”仍为 uncertain/incomplete，不与明确能力要求伪冲突。
+- 同一 Python 的能力 required 与经验 preferred 两种顺序均分别保存、conflict=false；真正同对象的“必须掌握 Python／不要求掌握 Python”仍为 conflict=true、effective uncertain，保留两条证据。明确“精通”仍绑定 capability 的 expert，经验优先不推断程度。
+- 非阻塞 group_ids 问题采用一行稳定去重，不删除原组合里的重复技能词及位置，不把成员升格独立 required；原延期 Minor 在本次关闭。
+- 结构升为 `b2-2`、RULESET 升为 `bounded-skill-clauses-v2`、Analyzer configuration 同步；实际规则/结构源码摘要仍参与依赖。SQLite 表和 A/B1/legacy 结构/事实不改写。
+
+### 历史与验证路径
+
+修改实现前，用真实旧 B2 execute→validate→SQLite 路径在临时目录运行审查样例，捕获其 manifest 与 body 至 `backend/tests/fixtures/semantics/b2-1-capability-experience-history.json`（约 5.3KB，纯合成；注明 origin_commit 与非语义真值用途），随后自动关闭并删除临时 SQLite 目录。
+
+版本回归把该原始输出装入受不可变保护的临时历史，验证新 run 使用同 snapshot、不同 version/attempt，产出能力与经验两条正确结果；旧 b2-1 报告仍逐字段一致且保留当时的错误冲突，不能以新规则 resume。再次相同新 run 可复用新 attempt。不是给旧结果补字段或迁移旧库。
+
+两种顺序、真冲突、程度独立、未解析经验和重复引用均经过真实当前 B2 execute/validate/SQLite，并读取 b2_attempts.body 核对。共库回归核对 A legacy_required 原样 unreviewed、A facts/B1 decisions 不变、A/B1 replay/再次执行及 user_version=1；既有 A/legacy 回归全部执行。
+
+### RED→GREEN 与实际结果
+
+命令工作目录 backend；沿用上文 Python 3.14.5 环境，独立工作树使用已有 Python 绝对路径。修改前关键组（含原错误断言修正及新增 8 项）为 **9 failed / 4 passed / 79 deselected**；其中两种顺序均因 conflict=true 直接失败，重复引用因出现 `[s1,s1]` 失败，历史版本因旧结果仍复用失败。修改后 B2 全部 **92 passed**。
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_semantics.py -q --tb=short -k "capability or requirement_object or duplicate_group or schema_upgrade or unparsed_project or statement_resolution"
+# RED: 9 failed / 4 passed / 79 deselected
+# GREEN: 13 passed / 79 deselected
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py tests/test_job_analysis/test_semantics.py -q --tb=short
+# 270 passed（A 99 + B1 79 + B2 92）
+```
+
+再次按上文合成环境与 socket 阻断命令执行完整非集成回归，实际 **611 passed / 2 skipped / 23 deselected / 0 failed**，190 项既有依赖警告，**Blocked external/service attempts: 0**。两项 skipped 仍因私有 M2 回包缺失，23 项真实服务 integration 未运行。所有临时 SQLite/文件由 finally/fixture teardown 清理，无生产写入，因此不声称执行生产库残留查询。没有真实 JD 质量评测或准确率门槛。
+
+本次只改两份 B2 源码、合成回归/历史夹具、M2 README、本报告、资产和新陷阱；不改 DDL、foundation/screening/skills、旧管道、exchange、生产配置或原工作区。复杂作用域的保守边界保持原样，未开启 B2 第二轮/B3/B4。推送后交由 ChatGPT 定向复审，不能把 Codex 自检当作已验收。

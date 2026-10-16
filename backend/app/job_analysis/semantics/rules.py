@@ -9,7 +9,7 @@ from ..foundation.models import AnalyzerSpec
 from ..foundation.runner import dictionary
 from .models import resolve
 
-RULESET = "bounded-skill-clauses-v1"
+RULESET = "bounded-skill-clauses-v2"
 HEADINGS = {"任职要求": "requirements", "岗位要求": "requirements", "技能要求": "requirements",
     "加分项": "preferred", "优先条件": "preferred", "加分条件": "preferred",
     "技术栈": "stack", "工作职责": "duties", "岗位职责": "duties"}
@@ -93,7 +93,9 @@ def classify(template, section, risky):
         return "uncertain", None, "unsupported_context"
     if full(r"(?:不要求|无需|不需要)(?:" + VERB + r")?S(?:基础)?"):
         return "not_required", None, "explicit_negation"
-    if full(r"S(?:经验|者)?(?:优先|加分|为加分项)"):
+    if full(r"S经验(?:优先|加分|为加分项)"):
+        return "preferred", None, "explicit_experience_preference"
+    if full(r"S(?:者)?(?:优先|加分|为加分项)"):
         return "preferred", None, "explicit_preference"
     if full(r"(?:" + MODAL + r")?S(?:或S)+(?:至少|需至少)?(?:掌握|熟悉|了解)一种") or full(
             r"(?:" + MODAL + r")?" + VERB + r"S(?:或S)+(?:中的)?(?:至少一种|任意一种|任选其一)"):
@@ -161,6 +163,8 @@ def extract(record, aliases):
                 statements.append(dict(id=f"s{len(statements) + 1}",
                     skills=[dict(name=name, evidence=evidence(record, field, start + a, start + b)) for a, b, name in selected],
                     state=state, relation=relation, degree=DEGREES[degree_hit[0]] if degree_hit else None,
+                    requirement_object="unresolved" if state == "uncertain" else
+                        "experience" if reason == "explicit_experience_preference" else "capability",
                     degree_evidence=evidence(record, field, start + degree_hit.start(), start + degree_hit.end()) if degree_hit else None,
                     target="unresolved:" + condition if condition else "candidate",
                     condition=condition, section=section, reason=reason,
@@ -169,7 +173,7 @@ def extract(record, aliases):
     if not statements and not issues:
         # No result is observable without inventing an uncertain skill or negative assertion.
         issues.append(dict(reason="no_supported_skill_content", evidence=evidence(record, "raw_text", 0, len(record.payload["raw_text"]))))
-    return dict(schema_version="b2-1", coverage="incomplete" if issues else "complete",
+    return dict(schema_version="b2-2", coverage="incomplete" if issues else "complete",
         coverage_scope="known_aliases_and_supported_clauses_only",
         outcome="skills_identified" if statements else "no_recognized_skills",
         semantic_validation="deterministic_rules_only", statements=statements,
@@ -181,7 +185,7 @@ class SkillSemanticAnalyzer:
     def __init__(self):
         self.seed = dictionary()
         self.aliases = build_alias_map(self.seed)
-        self.spec = AnalyzerSpec(extractor=RULESET, prompt="none", model="offline-rules", configuration="b2-1")
+        self.spec = AnalyzerSpec(extractor=RULESET, prompt="none", model="offline-rules", configuration="b2-2")
 
     def analyze(self, record):
         return extract(record, self.aliases)

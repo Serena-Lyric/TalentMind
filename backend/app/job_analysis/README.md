@@ -22,10 +22,11 @@ run 可用 `--rules-version v2` 追加试验修订；不覆盖旧结果。无 ve
 
 ### 结果结构与保守规则
 
-- `statements` 是原始陈述，含 id、skills（canonical 与逐次原词位置）、五态 state、relation、degree/degree_evidence、target、condition、section、reason、evidence/context/scope_evidence。原文字段的 Python 字符 `[start,end)`、namespace/jd_id/fingerprint 可确定性核对；重复引文保存各自位置。上下文保存章节到当前/相邻行的原文，不翻译改写；scope_evidence 另存可能跨字段作用的对象/条件限定证据。
-- relation 为 null / any_of / all_of。组合保存自己的 state；成员通过 group_ids 引用，只有组关系时 effective 为 mentioned，reason=group_membership_only，不能投影成独立 required（all_of 也保留组合，不隐式展开）。另有独立陈述时分别保存，绝不覆盖组合证据。重复同一 canonical 不伪造两个候选。
+- `statements` 是原始陈述，含 id、skills（canonical 与逐次原词位置）、五态 state、relation、requirement_object、degree/degree_evidence、target、condition、section、reason、evidence/context/scope_evidence。原文字段的 Python 字符 `[start,end)`、namespace/jd_id/fingerprint 可确定性核对；重复引文保存各自位置。上下文保存章节到当前/相邻行的原文，不翻译改写；scope_evidence 另存可能跨字段作用的对象/条件限定证据。
+- relation 为 null / any_of / all_of。组合保存自己的 state；成员通过 group_ids 引用，只有组关系时 effective 为 mentioned，reason=group_membership_only，不能投影成独立 required（all_of 也保留组合，不隐式展开）。另有独立陈述时分别保存，绝不覆盖组合证据。重复同一 canonical 不伪造两个候选；有效组合中的重复原词仍保留各自位置，但 group_ids 稳定去重。
 - degree 为 basic / familiar / proficient / expert 或 null，对应基础了解/了解、熟悉、熟练掌握/熟练、精通。仅“掌握”不推断程度，年限不换算。未可靠解析的多技能句不把唯一程度词分发给全部技能，程度字段为空，原文仍保留。`不要求精通 Python` 是 expert 程度的 not_required，**不是整个技能不要求**；须按完整 effective 的 degree/target/condition 读取，不能按技能名粗暴折叠。
-- `effective` 按同 canonical + 同 degree + 同 target + 同 condition 比较独立陈述。mentioned 不与明确要求冲突；同作用域 required/preferred/not_required 互异则标 conflict=true、state=uncertain，保留 statement_ids 全部证据。任一未解陈述可令该组 uncertain，但不伪造冲突标记。不按强弱或顺序选句，不推断历史修订。不同程度可共存。
+- `requirement_object` 区分 capability（技能掌握能力）、experience（相关经验）与 unresolved（未可靠判断）。明确“Python 经验优先/加分/为加分项”保存为经验对象；未支持的“有 Java 项目经验者优先”等变体仍可 uncertain/incomplete。target 表示面向的主体，degree 表示能力程度，均独立管理；不能用 candidate 或空程度代替要求对象。
+- `effective` 按同 canonical + 同 requirement_object + 同 degree + 同 target + 同 condition 比较独立陈述。mentioned 不与明确要求冲突；同作用域 required/preferred/not_required 互异则标 conflict=true、state=uncertain，保留 statement_ids 全部证据。“必须掌握 Python。Python 经验优先。”按能力 required 与经验 preferred 分别保存，两种顺序均不冲突；“必须掌握 Python。不要求掌握 Python”仍是真实能力冲突。不同对象或程度可共存，调用者不得再按技能名折叠。任一未解陈述可令其所在组 uncertain，但不伪造冲突标记。不按强弱或顺序选句，不推断历史修订。
 - 支持明确“必须/需要/要求/需/须/应 + [能力动词] + 技能”，任职要求章节的能力动词句，加分章节与明确“经验优先/加分”，明确“不要求/无需/不需要”，简单全部掌握及“至少掌握一种/任选其一”。已知章节支持带冒号及独立标题行（含方括号）；未知标题保留为未解析证据，不吞掉冒号前文字。裸列表、技术栈和工作使用只记 mentioned。完整匹配语法才给确定状态，不根据技能次数或相邻岗位结果推断。
 - 复杂条件/多对象/嵌套/否定不清/公司属性/示例/教程/可能/待定等保留 uncertain 和原文。条件与对象未可靠解析时保存完整作用原文为 unresolved target/condition，不认定为同对象冲突，也不生成无条件 required。已识别“仅适用于/仅限/限于/仅对/当…时/不必满足”等限定时，保守影响本 JD 的所有技能陈述（包括独立 requirements 字段），作用范围无法可靠裁决时可能过度 uncertain。未解释的无技能正文片段阻断当前字段后续的旧章节继承，可靠新标题可重新建立章节；这是防误升的保守屏障，不是开放语义解析。唯一实现的跨分句程度对比是“不要求…，但需/需要/必须…”；其他复杂逻辑不建树。
 
@@ -38,6 +39,8 @@ run 可用 `--rules-version v2` 追加试验修订；不覆盖旧结果。无 ve
 `SkillSemanticAnalyzer` 符合 A 的 Analyzer 调用协议，但返回独立 B2 Document，由 B2 runner/validation 处理。复用 InputRecord、不可变 snapshots、SQLite 文件锁/身份/触发器和原子 publish；附加 b2_versions/runs/heads/observations/members/attempts/reports，不改 A/B1 历史、heads、观察或事实。A user_version=1 不变，旧 StateDB 不迁移。A 原枚举（含 legacy_required/legacy_bonus）原样保持 unreviewed；B2 五态不回填或隐式升级旧事实。这是兼容扩展，不把 B2 响应送进 A 的旧 FactClaim 校验器。
 
 完整输入、规则修订、实际词典/别名内容和 B2 源码（规则/结构/验证/执行）、所用 A 公共源码摘要共同参与版本。同输入同版本的 completed/partial 可精确复用，partial 不提升资格；失败通过新 run 重试。观察时间独立追加。B2 heads 仅来自显式输入，不隐式采用 A/B1 范围；增量缺项仍保留 B2 已登记成员。每 run 冻结范围与依赖，输入变化和新规则追加结果；旧结果 replay 不调用新规则，resume 则要求原依赖。B1 规则变化不因其标签直接使 B2 失效。
+
+PR #6 审查修复后当前结构为 `b2-2`、规则为 `bounded-skill-clauses-v2`，显式标签及实际源码摘要均改变。旧 b2-1 文档不补字段、不重新解释；可 replay 旧结果，使用新实现 resume 旧运行会拒绝，新 run 对同快照追加新尝试。合成历史夹具 `tests/fixtures/semantics/b2-1-capability-experience-history.json` 捕获自修复前 `0b882eb` 的真实 runner 输出，仅证明历史兼容，不是语义真值。正式 SQLite 表结构/user_version 与 A/B1/legacy 保持不变。
 
 每条先持久化 running，完整文档与终态在一次事务提交；重开库把残留 running 标 retryable，恢复只重做未提交结果。报告不可变保存后才原子发布，发布失败可 resume，不重复已提交分析；八处真实进程硬退出有回归。沿用 A 单进程串行锁与本地文件限制，不声称断电/损坏/网络盘恢复能力。正式 DDL、词典、exchange、生产 API/数据库及旧管道保持原样。
 
