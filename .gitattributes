@@ -1,0 +1,2 @@
+# B3-5 definition provenance hashes must survive checkout on every platform.
+docs/PRODUCT_DECISIONS.md text eol=lf
