@@ -21,7 +21,7 @@
 2. [x] `semantics/models.py` 定义严格结构、证据与冲突解析；`rules.py` 实现 `SkillSemanticAnalyzer.analyze(InputRecord)`；`validation.py` 核对证据位置、成员、结构与规则判断，不把引文匹配当语义真值。
 3. [x] `semantics/store.py` 与 `runner.py` 提供 execute/resume/replay，完整输入/观察分离、独立增量 heads、每 JD 原子提交、报告不可变；`__main__.py` 显式 CLI。
 4. [x] 验证版本变化、旧历史、A/B1 共库、失败与零结果、真实进程中断及发布失败；执行阻断网络的后端非集成回归。
-5. [ ] 产品决策追加五项、决策索引、M2 README、资产记录；记录限制与实测结果，完整分支检查、独立提交、推送并建 PR（文档及检查已完成，提交交付待下节补录）。
+5. [x] 产品决策追加五项、决策索引、M2 README、资产记录；记录限制与实测结果，完整分支检查、独立提交、推送并建 PR。
 
 接口依赖核对：rules 产生严格语义文档 → validation 验证 → runner 将终态与完整 body 原子写入 b2_attempts → report/replay 引用不可变快照与版本。A/B1 只共享 snapshots，其他表互不写入。
 
@@ -104,4 +104,6 @@ Reviewer 未列阻塞的事项及处理依据：英文/任意编号/开放词汇
 
 按上面的完整合成配置/网络阻断命令再次执行，最终 **603 passed / 2 skipped / 23 deselected / 0 failed**，190 项既有依赖警告；**Blocked external/service attempts: 0**。新增 B2 为 **84 passed**，包含修复后全部语义、A/B1 兼容及真实恢复用例。跳过/排除原因同上；没有运行真实服务 integration、标注评测、模型或旧正式管道，没有生产写入。
 
-暂存范围只含 B2 包、合成测试、M2/根 README、产品决策/索引、资产、两份陷阱和本临时报告。正式 DDL、foundation、screening、skills、旧 M2 源码、exchange 及本地原工作区均未修改。提交与 PR 创建后补记，不自动合并或删除分支。
+暂存范围只含 B2 包、合成测试、M2/根 README、产品决策/索引、资产、两份陷阱和本临时报告。正式 DDL、foundation、screening、skills、旧 M2 源码、exchange 及本地原工作区均未修改。
+
+实现提交 `737e97447abded34876f34827047d08cc0e6bb11`，分支 `codex/m2-stage-b2-1-skill-semantics` 已推送；[PR #6](https://github.com/Serena-Lyric/TalentMind/pull/6) 目标 master，创建后实查 OPEN、mergeCommit=null、autoMergeRequest=null。本次后续仅补文档交付记录，不改已测试代码。开发分支与隔离工作区保留供定向修改，未合并、未启动后续阶段；等待 ChatGPT 独立审查和用户后续授权。
