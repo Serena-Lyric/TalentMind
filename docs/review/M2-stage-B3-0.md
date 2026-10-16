@@ -76,7 +76,7 @@ $b30Regression | python -X utf8 -
 
 审查提出两项非阻断覆盖建议，本轮未额外扩测：B3 CLI专门覆盖标注/目录位于输出目录下的拒绝路径（实现已检查）；显式覆盖疑似多职位附主辅断言、方向集合未决含部分已知项的组合。后者已在README说明输入断言共存仍须待审，不能当作已确认混合岗位或完整分类。审查确认这些组合完整保留未决状态，不构成当前实现缺陷。
 
-PR待创建；目标master，不启用自动合并、不自行合并、不删除分支或工作树。推送后实查状态及链接将在此补录。
+[PR #9](https://github.com/Serena-Lyric/TalentMind/pull/9) 已创建并附到当前聊天，目标master，head为`codex/m2-stage-b3-0-role-foundation`；创建后实查state=OPEN、mergedAt=null、autoMergeRequest=null，statusCheckRollup为空（没有远端CI结果可引用）。本地验证与内部审查证据如上，后续由用户/ChatGPT集中审查；不删除分支或工作树、不自行合并。
 
 ## 待产品确认与未验证项
 
