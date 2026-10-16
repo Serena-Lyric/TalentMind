@@ -14,7 +14,7 @@ target=candidate 仅表示面向候选人，不表示要求的是能力还是经
 
 结构升为 b2-2，规则升为 bounded-skill-clauses-v2，实际源码摘要继续参与失效。用真实旧 runner 捕获的合成历史 JSON 验证新尝试不复用旧误判，旧报告原样重放、旧运行不能用新依赖静默 resume。A/B1/legacy 不迁移或改写。
 
-关键回归从 9 failed / 4 passed 变为 13 passed / 79 deselected；B2 92 passed，相关回归 270 passed，完整离线回归 611 passed / 2 skipped / 23 deselected、外部连接尝试 0。命令见 [阶段报告](../../review/M2-stage-B2-1.md) 的本次定向修复节。测试覆盖两种顺序、真实 SQLite、程度独立、真冲突、未解析经验、版本历史与重复引用。
+关键回归从 9 failed / 4 passed 变为 13 passed / 79 deselected；B2 92 passed，相关回归 270 passed，完整离线回归 611 passed / 2 skipped / 23 deselected、外部连接尝试 0。命令见 [阶段报告](../archive/2026-10-16-M2-stage-B2-1-implementation.md) 的本次定向修复节。测试覆盖两种顺序、真实 SQLite、程度独立、真冲突、未解析经验、版本历史与重复引用。
 
 ## 教训
 
