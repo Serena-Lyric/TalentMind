@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "duties": "开发前端页面；开发后端服务；统一负责完整应用上线。",
+    "job_title": "软件开发工程师 / 全栈",
+    "raw_text": "负责前端页面与后端服务的共同设计、实现、联调和上线交付。",
+    "requirements": "熟悉 Java 和 Python。",
+    "source": "synthetic"
+  },
+  {
+    "id": 2,
+    "duties": "开发前端页面；开发后端服务；统一负责完整应用上线。",
+    "job_title": "软件开发工程师 / 全栈",
+    "raw_text": "负责前端页面与后端服务的共同设计、实现、联调和上线交付。",
+    "requirements": "熟悉 Java 和 Python。",
+    "source": "synthetic"
+  },
+  {
+    "id": 3,
+    "duties": "开发前端页面；开发后端服务；统一负责完整应用上线。",
+    "job_title": "独立职位招聘材料",
+    "raw_text": "职位甲【A01】\n职责：开发甲系统\n要求：掌握甲技术\n职位乙【B02】\n职责：测试乙系统\n要求：掌握乙技术",
+    "requirements": "熟悉 Java 和 Python。",
+    "source": "synthetic"
+  },
+  {
+    "id": 4,
+    "duties": "开发前端页面；开发后端服务；统一负责完整应用上线。",
+    "job_title": "软件开发工程师 / 全栈",
+    "raw_text": "负责前端页面与后端服务的共同设计、实现、联调和上线交付。",
+    "requirements": "熟悉 Java 和 Python。",
+    "source": "synthetic"
+  }
+]

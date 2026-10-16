@@ -1,0 +1,504 @@
+{
+  "schema_version": "b34-submission-1",
+  "revision": "synthetic-v1",
+  "mode": "synthetic_only",
+  "annotations": [
+    {
+      "namespace": "synthetic-b34",
+      "jd_id": "1",
+      "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+      "family_assertions": [
+        {
+          "id": "jd1-family-a",
+          "family_id": "software_engineering",
+          "responsibility": "core",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "1",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "technology_tracks": [
+        {
+          "id": "jd1-track-a",
+          "value": "Java",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "1",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "requirements",
+              "start": 3,
+              "end": 7,
+              "quote": "Java"
+            }
+          ]
+        }
+      ],
+      "seniority": [],
+      "assessments": [
+        {
+          "id": "jd1-assessment-a",
+          "kind": "family_identifiable_job_unknown",
+          "origin": "synthetic_assertion",
+          "proposer": "fixture-author",
+          "basis": "显式合成待审主张",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "1",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ],
+          "components": [],
+          "shared_delivery": null,
+          "position_targets": []
+        }
+      ],
+      "conflicts": [],
+      "notes": "synthetic only",
+      "origin": "synthetic_assertion",
+      "proposer": "fixture-author"
+    },
+    {
+      "namespace": "synthetic-b34",
+      "jd_id": "2",
+      "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+      "family_assertions": [
+        {
+          "id": "jd2-family-a",
+          "family_id": "software_engineering",
+          "responsibility": "core",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "2",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "technology_tracks": [
+        {
+          "id": "jd2-track-a",
+          "value": "Java",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "2",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "requirements",
+              "start": 3,
+              "end": 7,
+              "quote": "Java"
+            }
+          ]
+        }
+      ],
+      "seniority": [],
+      "assessments": [
+        {
+          "id": "jd2-assessment-a",
+          "kind": "integrated_composite_candidate",
+          "origin": "synthetic_assertion",
+          "proposer": "fixture-author",
+          "basis": "显式合成待审主张",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "2",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ],
+          "components": [
+            {
+              "domain": "前端",
+              "responsibility": "core",
+              "evidence": [
+                {
+                  "namespace": "synthetic-b34",
+                  "jd_id": "2",
+                  "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+                  "field": "duties",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发前端页面"
+                }
+              ]
+            },
+            {
+              "domain": "后端",
+              "responsibility": "core",
+              "evidence": [
+                {
+                  "namespace": "synthetic-b34",
+                  "jd_id": "2",
+                  "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+                  "field": "duties",
+                  "start": 7,
+                  "end": 13,
+                  "quote": "开发后端服务"
+                }
+              ]
+            }
+          ],
+          "shared_delivery": {
+            "namespace": "synthetic-b34",
+            "jd_id": "2",
+            "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+            "field": "raw_text",
+            "start": 0,
+            "end": 28,
+            "quote": "负责前端页面与后端服务的共同设计、实现、联调和上线交付。"
+          },
+          "position_targets": []
+        }
+      ],
+      "conflicts": [],
+      "notes": "synthetic only",
+      "origin": "synthetic_assertion",
+      "proposer": "fixture-author"
+    },
+    {
+      "namespace": "synthetic-b34",
+      "jd_id": "3",
+      "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+      "family_assertions": [
+        {
+          "id": "jd3-family-a",
+          "family_id": "software_engineering",
+          "responsibility": "core",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "3",
+              "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "technology_tracks": [
+        {
+          "id": "jd3-track-a",
+          "value": "Java",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "3",
+              "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+              "field": "requirements",
+              "start": 3,
+              "end": 7,
+              "quote": "Java"
+            }
+          ]
+        }
+      ],
+      "seniority": [],
+      "assessments": [
+        {
+          "id": "jd3-assessment-a",
+          "kind": "possible_multiple_positions",
+          "origin": "synthetic_assertion",
+          "proposer": "fixture-author",
+          "basis": "显式合成待审主张",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "3",
+              "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ],
+          "components": [],
+          "shared_delivery": null,
+          "position_targets": [
+            {
+              "id": "jd3-target-a",
+              "raw_title": "职位甲",
+              "title": {
+                "namespace": "synthetic-b34",
+                "jd_id": "3",
+                "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                "field": "raw_text",
+                "start": 0,
+                "end": 3,
+                "quote": "职位甲"
+              },
+              "identifier": {
+                "namespace": "synthetic-b34",
+                "jd_id": "3",
+                "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                "field": "raw_text",
+                "start": 4,
+                "end": 7,
+                "quote": "A01"
+              },
+              "section": {
+                "namespace": "synthetic-b34",
+                "jd_id": "3",
+                "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                "field": "raw_text",
+                "start": 0,
+                "end": 27,
+                "quote": "职位甲【A01】\n职责：开发甲系统\n要求：掌握甲技术\n"
+              },
+              "duties": [
+                {
+                  "namespace": "synthetic-b34",
+                  "jd_id": "3",
+                  "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                  "field": "raw_text",
+                  "start": 12,
+                  "end": 17,
+                  "quote": "开发甲系统"
+                }
+              ],
+              "requirements": [
+                {
+                  "namespace": "synthetic-b34",
+                  "jd_id": "3",
+                  "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                  "field": "raw_text",
+                  "start": 21,
+                  "end": 26,
+                  "quote": "掌握甲技术"
+                }
+              ]
+            },
+            {
+              "id": "jd3-target-b",
+              "raw_title": "职位乙",
+              "title": {
+                "namespace": "synthetic-b34",
+                "jd_id": "3",
+                "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                "field": "raw_text",
+                "start": 27,
+                "end": 30,
+                "quote": "职位乙"
+              },
+              "identifier": {
+                "namespace": "synthetic-b34",
+                "jd_id": "3",
+                "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                "field": "raw_text",
+                "start": 31,
+                "end": 34,
+                "quote": "B02"
+              },
+              "section": {
+                "namespace": "synthetic-b34",
+                "jd_id": "3",
+                "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                "field": "raw_text",
+                "start": 27,
+                "end": 53,
+                "quote": "职位乙【B02】\n职责：测试乙系统\n要求：掌握乙技术"
+              },
+              "duties": [
+                {
+                  "namespace": "synthetic-b34",
+                  "jd_id": "3",
+                  "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                  "field": "raw_text",
+                  "start": 39,
+                  "end": 44,
+                  "quote": "测试乙系统"
+                }
+              ],
+              "requirements": [
+                {
+                  "namespace": "synthetic-b34",
+                  "jd_id": "3",
+                  "fingerprint": "5ba58b27b82b9c4bedc26506508aa9614fc221cded722fe18628137abc387260",
+                  "field": "raw_text",
+                  "start": 48,
+                  "end": 53,
+                  "quote": "掌握乙技术"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conflicts": [],
+      "notes": "synthetic only",
+      "origin": "synthetic_assertion",
+      "proposer": "fixture-author"
+    },
+    {
+      "namespace": "synthetic-b34",
+      "jd_id": "4",
+      "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+      "family_assertions": [
+        {
+          "id": "jd4-family-a",
+          "family_id": "software_engineering",
+          "responsibility": "core",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "id": "jd4-candidate-a",
+          "raw_name": "软件开发工程师",
+          "proposed_name": null,
+          "kind": "job",
+          "origin": "synthetic_assertion",
+          "proposer": "fixture-author",
+          "synthetic_only": true,
+          "responsibility": "core",
+          "family_candidates": [
+            "software_engineering"
+          ],
+          "review_status": "pending_review",
+          "unresolved_reason": "合成候选，不发布职业名称",
+          "name_evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "job_title",
+              "start": 0,
+              "end": 7,
+              "quote": "软件开发工程师"
+            }
+          ],
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 6,
+              "quote": "开发前端页面"
+            }
+          ]
+        },
+        {
+          "id": "jd4-candidate-b",
+          "raw_name": "软件开发工程师",
+          "proposed_name": null,
+          "kind": "job",
+          "origin": "synthetic_assertion",
+          "proposer": "fixture-author",
+          "synthetic_only": true,
+          "responsibility": "core",
+          "family_candidates": [
+            "software_engineering"
+          ],
+          "review_status": "pending_review",
+          "unresolved_reason": "合成候选，不发布职业名称",
+          "name_evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "job_title",
+              "start": 0,
+              "end": 7,
+              "quote": "软件开发工程师"
+            }
+          ],
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 7,
+              "end": 13,
+              "quote": "开发后端服务"
+            }
+          ]
+        }
+      ],
+      "technology_tracks": [
+        {
+          "id": "jd4-track-a",
+          "value": "Java",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "requirements",
+              "start": 3,
+              "end": 7,
+              "quote": "Java"
+            }
+          ]
+        }
+      ],
+      "seniority": [],
+      "assessments": [
+        {
+          "id": "jd4-assessment-a",
+          "kind": "competing_canonical_candidates",
+          "origin": "synthetic_assertion",
+          "proposer": "fixture-author",
+          "basis": "显式合成待审主张",
+          "evidence": [
+            {
+              "namespace": "synthetic-b34",
+              "jd_id": "4",
+              "fingerprint": "178fd2441435a818689319c97575e9b70ea27a4bbae86b28cf010b66fc0b00d6",
+              "field": "duties",
+              "start": 0,
+              "end": 25,
+              "quote": "开发前端页面；开发后端服务；统一负责完整应用上线。"
+            }
+          ],
+          "components": [],
+          "shared_delivery": null,
+          "position_targets": []
+        }
+      ],
+      "conflicts": [],
+      "notes": "synthetic only",
+      "origin": "synthetic_assertion",
+      "proposer": "fixture-author"
+    }
+  ]
+}
