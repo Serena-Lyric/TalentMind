@@ -1,5 +1,56 @@
 # job_analysis
 
+## 阶段 B2 第二轮：离线名称、类别与候选治理
+
+入口 `python -m app.job_analysis.governance`；新增 `governance/`，只消费已保存的 B2 run 和原始 snapshots，不隐式重跑 B1/B2，不连接服务/模型。产品依据 M2-37～40。285 条 seed 和共享 normalizer 完全只读；旧 B2 文档（包括 b2-1 历史）原样保存为 original_semantics，五态、对象、程度、组合、上下文与 effective 不重算/覆写。
+
+```powershell
+cd backend
+# 先用下文 semantics 的显式输入命令生成 B2 run，再使用它的 run_id：
+.\.venv\Scripts\python.exe -m app.job_analysis.governance run --b2-run <b2_run_id> --state ../data/local/m2-b2/state.sqlite3 --output ../data/local/m2-b22/results
+# 保存失败时可只读查询 b22_reports 的 run_id，然后原样重放，无须当前规则：
+.\.venv\Scripts\python.exe -m app.job_analysis.governance replay --run <governance_run_id> --state ../data/local/m2-b2/state.sqlite3 --output ../data/local/m2-b22/replay
+# 基准的输入/namespace/完整快照必须与预测对应；此文件只供合成程序自检：
+.\.venv\Scripts\python.exe -m app.job_analysis.governance evaluate --run <governance_run_id> --benchmark tests/fixtures/governance/synthetic-reference.v1.json --state ../data/local/m2-b2/state.sqlite3 --output ../data/local/m2-b22/evaluation
+```
+
+工作树可用已安装 requirements 的 Python 绝对路径。run 的 `--rules-version` 默认 v1；状态和输出沿用 A 的路径保护、单进程锁和本地限制。输入不能位于输出目录下，状态文件可以在输出目录中。运行成功也必须检查 upstream_failed 和每条 body；失败上游保留 upstream_failed/body=null，不冒充零技能成功。治理始终 analysis_complete=false、formal_statistics_eligible=false。配置/存储/发布错误退出 2；已提交报告可 replay 恢复发布，若 stdout 丢失可查询 b22_reports。没有自动 resume 重跑旧 B2 的隐式动作。
+
+### 名称与关系
+
+- Catalog 保存 seed 每个 canonical/alias 出现位置，多目标、重复项/重复 canonical、未审别名及数字别名全部可审计。当前六个多目标名为 sass、js、ts、k8s、oop、敏捷开发；审计不修改原始数据。
+- `policy.v1.json` 是轻量审定关系/分类规则，不是正式词典或通用知识图谱。只有 synonym 边用于映射（例如 JS→javascript）；related_to、narrower_than、version_of 不产生互换、传递归一或替代关系。SQL/MySQL、Spring/Spring Boot、CSS/Sass 独立；未审的 cv/ci/angularjs/es6/optimization 等保留 baseline_matches 与复核原因。
+- 精确 seed canonical 默认保留；只对明确同义的 js/ts/k8s 等覆盖层改名，不大规模重写 canonical。少量数字版本语法仅为 Vue/Python/OAuth/Java 开启，保存 raw_name、canonical、version、key，如 Vue→vue、Vue 3→vue@3、Vue 3.x→vue@3.x。rc/beta/+/>=及范围等未支持表达整体保留为version_review候选，不截断到已知前缀；不解释范围或推断兼容/可替代。
+- skills 是逐次出现，不按名称抹掉重复位置。statement_ids 指向不变原陈述；位置/namespace/jd_id/fingerprint 经程序核对，canonical/版本不是原文证据替代品。
+
+### 分类与非技能事实
+
+明确技术类别或显式分类条目才给四类主类别，classification_basis 与辅助 tags 一起保存。旧 DevOps/运维粗类不整体投射technical_skill；Scrum/Agile/Kanban显式归engineering_practice，其余未审项待复核。未知类别为 null、classification_status=needs_review，不能因词典外而给 technical_skill。旧“专业领域”词在明确行业经验/领域知识语境中形成 non_skills，否则放 review_mentions，不擅自视作技能。
+
+非技能仅有限规则：领域词+行业经验/领域知识，本科/硕士/博士/大专学历，明确“X年以上工作经验”或“X年以上 Java 开发经验”，以及“持有/取得/具备 X 证书/认证/资格证”。结构带证据与完整字段上下文；constraint_state=needs_review，词面提取并未可靠解析否定/条件作用域，不直接断言无条件招聘要求。“三年以上 Java 开发经验”可同时给 java 与 work_years，后者 scope=skill_specific 并用 skill_ids 关联；不变成整份 JD 工作年限、不转成熟练程度。原 B2 的 requirement_object=experience 也不会自行生成 work_years。
+
+### 未知候选与审核接口
+
+开放词候选只从完整匹配的能力动词短句或显式技能/技术栈列表提取；当前开放词形为有限 ASCII 技术名/数字版本，任意中文新名和复杂混合句不作通用 NLP。每个候选含原词/位置、来源快照、statement 与 context 证据、旧词典比对、candidate_type/tier/review_reasons、版本及 pending_review。strong_context 表示直接能力动词格式依据；技能列表或旧别名争议为 disputed，等级不代表校准概率或已确认是技能。已识别公司后缀、公司描述/福利/证书条件不能凭陌生词变成候选。其他原文保存在 unresolved_fragments/original_semantics，不静默消失。
+
+`candidates.review_event()` 要求审查人、依据、证据引用，decision 为 reviewed_accepted/reviewed_rejected/deferred；`GovernanceStore.record_review(result_id,event)` 追加不可改事件，`store.reviews(result_id)` 可导出完整审查历史。原报告不被新审查改写。reviewed_accepted 只表示离线审查决定，不是正式词典收录；`validate_admission(candidate,review=None)` 永远 allowed=false，报告自动准入关闭/验证策略未定/独立证据未建立。本包没有写 seed 或正式词典的接口。同文跨平台、dup_group、cross_source 都不作为独立验证。
+
+### 持久化、版本与评测
+
+只新增 b22_versions/results/reports/reviews，不改 A/B1/B2 表/事实/heads/观察；原有 user_version=1。version_id 覆盖实际词典、完整策略、显式 revision、本包与所用公共源码摘要；每 result 绑定 source_attempt/source_snapshot/source_sha256。相同依赖复用结果，策略变化追加；整个新报告事务提交后原子发布，中断未提交则无新结果，发布失败可从已保存报告 replay。旧语义的 partial 不因治理层成功而升格。
+
+评测使用独立严格标注格式，见 [合成参考说明](../../tests/fixtures/governance/README.md)。`evaluation.evaluate(benchmark,predictions)` 不调用提取器；`project_predictions(report,benchmark)` 只投影保存的事实，不读取参考类别/状态来修补预测。输出 artifact 的 annotations、predictions、evaluation 分开，摘要可复核。投影对原组合保留组状态和独立有效成员状态；新名称的状态仍来自原陈述，不能把组 required 分发到成员。
+
+提取 P/R 按名称（含具体版本）+字段/字符区间一一配对；遗漏和误提逐条列出。五态/四类输出分母与混淆，必备误判分母为所有 predicted required；组合对关系/组状态/成员比较，成员状态另计。非技能被误提为技能、候选 P/R、候选 formal_admitted 和未知项直接提升技能均单独审计。程序引文位置通过与参考事实对应各计一项；可定位不等于事实正确。零分母返回 value=null/status=undefined_zero_denominator，缺预测按遗漏算、缺标注拒绝、不忽略重复预测；技能参考category必须显式给出，null表示类别待复核并从分类分母排除，独立计pending_reference_review；未覆盖类与小分母可见，无正式充分性或质量阈值。
+
+提交的 14 条合成参考由 Codex 手写、待人类复核，只可作为 synthetic_program_check，quality_claim_allowed=false；未经审核的模型输出不当真值。本轮只报告程序计数与差异，不报告真实语义准确率。真实语料评测模式要求合法使用及具名人类逐项审核声明，程序只能核验声明完整性，不能证明许可/审核真实性。正式阈值后定。
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_governance.py tests/test_job_analysis/test_governance_evaluation.py -q --tb=short
+```
+
+实际回归、样例差异与遗留见 [本轮阶段报告](../../../docs/review/M2-stage-B2-2.md)。不开发正式词典自动准入、审核前端、生产迁移、市场统计、B3/B4、M3 图谱或 M4 匹配。
+
 ## 阶段 B2 第一轮：离线技能要求语义
 
 新增独立入口 `python -m app.job_analysis.semantics`，采用现有 Python/Pydantic/SQLite，无新增依赖。产品依据为 M2-32～36；只处理技能语义，不隐式重跑 B1 或接入旧 M2/生产服务。合成数据通过显式文件进入，可与 A/B1 使用同一阶段 A SQLite，也可新建库。
@@ -49,7 +100,7 @@ PR #6 审查修复后当前结构为 `b2-2`、规则为 `bounded-skill-clauses-v
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py tests/test_job_analysis/test_semantics.py -q --tb=short
 ```
 
-新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B2-1-implementation.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；B2 第二轮才处理新本体/候选治理，B3/B4、真实标注评测和市场统计均未启动。
+新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B2-1-implementation.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；该句描述第一轮边界；第二轮治理与评测基础见上节，B3/B4、真实标注评测和市场统计仍未启动。
 
 ## 阶段 B1：JD 有效性与分析范围的离线筛选
 

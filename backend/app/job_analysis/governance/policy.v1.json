@@ -1,0 +1,34 @@
+{
+  "version": "b22-policy-1",
+  "relations": [
+    {"source": "js", "target": "javascript", "relation": "synonym", "basis": "JavaScript 的通用缩写；覆盖旧 js canonical 仅限本治理视图"},
+    {"source": "ts", "target": "typescript", "relation": "synonym", "basis": "TypeScript 的通用缩写；不回填旧语义"},
+    {"source": "k8s", "target": "kubernetes", "relation": "synonym", "basis": "Kubernetes 的通用缩写"},
+    {"source": "vue.js", "target": "vue", "relation": "synonym", "basis": "Vue 名称变体，不包含 Vue 的具体版本"},
+    {"source": "vuejs", "target": "vue", "relation": "synonym", "basis": "Vue 名称变体"},
+    {"source": "springboot", "target": "spring boot", "relation": "synonym", "basis": "Spring Boot 空格变体"},
+    {"source": "golang", "target": "go", "relation": "synonym", "basis": "Go 语言名称变体"},
+    {"source": "postgres", "target": "postgresql", "relation": "synonym", "basis": "PostgreSQL 名称变体"},
+    {"source": "sklearn", "target": "scikit-learn", "relation": "synonym", "basis": "scikit-learn 的导入包名称"},
+    {"source": "sql", "target": "mysql", "relation": "related_to", "basis": "查询语言与数据库产品有关联，不可互换"},
+    {"source": "spring boot", "target": "spring", "relation": "narrower_than", "basis": "生态内较具体技术，保留独立身份，不表示可替代"},
+    {"source": "sass", "target": "css", "relation": "related_to", "basis": "预处理语言与样式语言分开，拒绝旧 sass→css 合并"},
+    {"source": "vue 3", "target": "vue", "relation": "version_of", "basis": "明确数字主版本保留在 version 与 key"}
+  ],
+  "versioned_bases": ["vue", "python", "oauth", "java"],
+  "technical_categories": ["编程语言", "前端技术", "后端框架", "数据库", "AI/机器学习", "大数据/云"],
+  "classifications": [
+    {"name": "scrum", "category": "engineering_practice", "tags": ["agile"], "basis": "Scrum 是团队开发实践框架；旧 DevOps 粗类不足以支持技术技能分类"},
+    {"name": "agile", "category": "engineering_practice", "tags": [], "basis": "敏捷开发实践；不沿用旧 DevOps 粗分类"},
+    {"name": "kanban", "category": "engineering_practice", "tags": [], "basis": "看板工作流实践；不沿用旧 DevOps 粗分类"},
+    {"name": "系统设计", "category": "professional_skill", "tags": ["design"], "basis": "系统设计能力；不直接等同某种工具"},
+    {"name": "算法", "category": "professional_skill", "tags": [], "basis": "算法设计与求解能力"},
+    {"name": "数据结构", "category": "professional_skill", "tags": [], "basis": "数据组织与建模能力"},
+    {"name": "单元测试", "category": "engineering_practice", "tags": ["testing"], "basis": "明确的工程验证实践"},
+    {"name": "集成测试", "category": "engineering_practice", "tags": ["testing"], "basis": "明确的工程验证实践"},
+    {"name": "tdd", "category": "engineering_practice", "tags": ["testing"], "basis": "测试驱动开发实践"},
+    {"name": "ci/cd", "category": "engineering_practice", "tags": ["delivery"], "basis": "持续集成与交付实践；不等同单独持续集成"},
+    {"name": "团队协作", "category": "soft_skill", "tags": [], "basis": "团队合作能力"},
+    {"name": "沟通", "category": "soft_skill", "tags": [], "basis": "沟通能力"}
+  ]
+}
