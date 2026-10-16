@@ -41,7 +41,7 @@ review 格式沿 B32：target_kind（candidate/family_assertion/technology_track
 
 全轮单事务，错误或提交前硬退出回滚；提交后输出失败可查询 `SELECT run_id FROM b34_reports` 后 replay，不重载当前目录/源文件或重判语义。输入/配置/提交须位于输出目录外，沿用状态锁、硬链接与原子发布保护。新表不改变 user_version=1，无正式数据库迁移；不承诺断电、损坏或多机网络盘恢复。
 
-所有结果 classification_complete/formal_statistics_eligible/formal_admitted 恒 false，正式目录恒空。完整阻网回归、历史保全与独立内部审查证据见 [实施报告](../../../docs/review/M2-stage-B3-4.md)，不代替交付后 ChatGPT 集中复审；不启动 B4/M3/M4、不使用生产数据或真实模型。
+所有结果 classification_complete/formal_statistics_eligible/formal_admitted 恒 false，正式目录恒空。完整阻网回归、历史保全与独立内部审查证据见 [实施报告](../../../docs/superpowers/archive/2026-10-17-M2-stage-B3-4-implementation.md)，已完成 GitHub 独立静态复审，不代替本地全部回归重跑；不启动 B4/M3/M4、不使用生产数据或真实模型。
 
 ## 阶段 B3-3：八类目录版本与候选兼容
 
