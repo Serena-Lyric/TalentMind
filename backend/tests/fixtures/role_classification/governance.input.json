@@ -1,0 +1,24 @@
+[
+  {
+    "id": "synthetic-b32-a",
+    "source": "synthetic",
+    "job_title": "合成甲岗 / 合成乙岗",
+    "duties": "核心职责：负责甲系统交付；负责乙系统交付。",
+    "raw_text": "公司介绍：曾经演示甲系统。\n核心职责：负责甲系统交付；负责乙系统交付。\n明确不负责销售。",
+    "crawled_at": "2026-10-16T10:00:00+08:00"
+  },
+  {
+    "id": "synthetic-b32-b",
+    "source": "synthetic",
+    "job_title": "合成全栈岗",
+    "duties": "负责合成系统前后端交付。",
+    "raw_text": "这是人为构造的复合职业候选，不代表成熟边界已经确认。"
+  },
+  {
+    "id": "synthetic-b32-c",
+    "source": "synthetic",
+    "job_title": "Java / Python 方向",
+    "duties": "合成材料，未给出足够岗位职责。",
+    "raw_text": "技术栈：Java / Python。"
+  }
+]

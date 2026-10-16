@@ -11,3 +11,7 @@
 `proposals.input.json` 为十条手写合成材料：七类简单核心技术交付、客户演示反例、标题职责冲突、疑似多职位。使用独立入口 `app.job_analysis.role_classification.proposals`、显式目录 `families.v1.json` 与 dataset=synthetic-b31；不消费 annotations.json，不改变上述 B3-0 示例。
 
 这些句式只作程序回归与使用演示，不是人工真值或真实 JD。预期仅为待审 family 线索，canonical_job/技术方向/级别均不定案，正式统计资格关闭。
+
+## B3-2 合成候选治理示例
+
+`governance.input.json` 为三条纯合成 JD；`governance.submission.json` 为 Codex 编写、待人类复核的显式候选主张，namespace=`synthetic-b32`。含多个核心、待核查的复合候选与纯技术栈，4 个候选/1 条 related_to 关系；不是正式岗位名单或人工真值。正式目录使用源码包 `governance/catalog.empty.v1.json`，始终为空。CLI 用法见 M2 README。
