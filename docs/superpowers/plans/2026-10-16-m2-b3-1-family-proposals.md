@@ -41,7 +41,7 @@ Interfaces: ProposalStore(path)；execute(store, batch, taxonomy, revision="v1",
 
 ## Task 3：验证与交付
 
-Files: PRODUCT_DECISIONS、决策跟踪、M2 README、资产与状态、docs/review/M2-stage-B3-1.md；发现业务缺陷时补陷阱。
+Files: PRODUCT_DECISIONS、决策跟踪、M2 README、资产与状态、docs/superpowers/archive/2026-10-16-M2-stage-B3-1-implementation.md；发现业务缺陷时补陷阱。
 - [x] 追加 M2-41～43 与 D80 后实际可用索引；不把试验句式写成产品规则。
 - [x] 跑完整阻网非集成回归，报告 skipped/deselected/警告/连接尝试与 finally 清理。
 - [x] 独立只读内部代码审查，定向 RED→GREEN 修复，保留 ChatGPT 外部复审。
