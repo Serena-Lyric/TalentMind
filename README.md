@@ -11,6 +11,8 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
+2026-10-17 M2 B3-5（Issue #18）：独立八大类标准岗位目录**19 条未确认草案**与逐项人工审核/准入契约；正式 release **0 条**，非合成仅形成待现实批准的提案，synthetic_only 仅模拟准入。见 [M2 README](backend/app/job_analysis/README.md) 和 [归档实施及独立复审报告](docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)（[PR #19](https://github.com/Serena-Lyric/TalentMind/pull/19)）。Codex 报告阻网完整非集成 1132 passed / 2 skipped / 23 deselected，外部连接尝试 0；ChatGPT 独立静态复审通过，用户已授权归档/合并，状态以 GitHub 为准。不启动 B4。
+
 2026-10-17 M2 B3-4（Issue #16）：新增独立八类 families-v3 的硬件工程技术范围与待审材料证据层；宽泛、竞争、成熟复合和多职位分段主张均维持待审，不发布 canonical_job、职位拆分或招聘人数。见 [M2 README](backend/app/job_analysis/README.md)、[归档实施与复审报告](docs/superpowers/archive/2026-10-17-M2-stage-B3-4-implementation.md)、[PR #17](https://github.com/Serena-Lyric/TalentMind/pull/17)。Codex 报告完整阻网 1057 passed / 2 skipped / 23 deselected，外部服务连接 0；ChatGPT 独立静态复审通过并获用户归档/合并授权，状态以 PR 为准；尚未启动 B4。
 
 2026-10-16 M2 B3-3（Issue #14）：新增独立八类 `families-v2` 及 B3-1/B3-2 目录版本兼容，原七类 v1 与历史报告保留。B3-2 默认仍为 v1，显式 v2 才接受硬件与集成电路；目录升级追加结果与审核版本，不自动准入。见 [M2 README](backend/app/job_analysis/README.md) 和 [归档实施与复审报告](docs/superpowers/archive/2026-10-16-M2-stage-B3-3-implementation.md)（[PR #15](https://github.com/Serena-Lyric/TalentMind/pull/15)）。八类同步建设基础目录的产品原则已记录，正式名单继续讨论；仅合成离线验证，已完成 ChatGPT 独立静态复审及用户归档合并授权，最终状态以 PR 为准；不启动 B4。
