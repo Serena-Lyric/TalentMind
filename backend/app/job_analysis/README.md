@@ -49,7 +49,7 @@ PR #6 审查修复后当前结构为 `b2-2`、规则为 `bounded-skill-clauses-v
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py tests/test_job_analysis/test_semantics.py -q --tb=short
 ```
 
-新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](../../../docs/review/M2-stage-B2-1.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；B2 第二轮才处理新本体/候选治理，B3/B4、真实标注评测和市场统计均未启动。
+新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B2-1-implementation.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；B2 第二轮才处理新本体/候选治理，B3/B4、真实标注评测和市场统计均未启动。
 
 ## 阶段 B1：JD 有效性与分析范围的离线筛选
 
