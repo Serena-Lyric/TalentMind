@@ -47,8 +47,8 @@
 
 **Files:** M2 README、根 README、docs/README、资产与状态、docs/review/M2-stage-B3-0.md；合成输入示例。
 
-- [ ] 同步边界、命令、版本失效、事务语义和未决产品项。
-- [ ] 阻断网络、合成配置运行完整非集成回归；确认临时目录清理及原工作区保护。
+- [x] 同步边界、命令、版本失效、事务语义和未决产品项。
+- [x] 阻断网络、合成配置运行完整非集成回归；确认临时目录清理及原工作区保护。
 - [ ] 独立只读审查，重要问题按 RED→GREEN 修复，明确暂存、提交、推送并创建 PR；不合并。
 
 ## Execution ledger
@@ -56,6 +56,9 @@
 - Task 1: 29 failed（模块缺失）→29 passed；候选需要直接原文依据，修正一处合成 fixture 补齐候选引用。没有真实识别或语义复核结论。
 - Task 2: 新组 16 failed→45 passed；另修正 SQLite 测试连接关闭后清理通过。CLI/输入字节一致性新组 RED→GREEN，总计49 passed。五处真实 os._exit、历史不可变/REPLACE、共库旧表逐行对比与发布失败恢复均已执行。
 - Task 2 gate: A/B1/B2/B3 定向回归421 passed（42.12s）；原工作区资产文档SHA-256仍为F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B。
+- Task 3 verification: 完整非集成762 passed / 2 skipped / 23 deselected，外部连接0；合成CLI run/replay报告一致、临时SQLite及输出清理remaining=false。原工作区未提交文件保持原样。
+- Final gate: 交付树同命令762 passed / 2 skipped / 23 deselected（46.12s），外部连接0；新增文档链接/编码/暂存diff通过，远端master仍93508b0。
+- Final review: 独立只读审查93508b0..1f76348无Critical/Important/Minor；独立49 passed。两个非阻断覆盖建议留报告，未扩写产品规则；README明确不完整待审断言共存，不作完整分类或职位数量。
 
 - 2026-10-16：用户已明确授权立即实施并交付独立 PR；不再等待产品目录定稿。工程实现自行完成，最终按 requesting-code-review 派独立审查。
 - 工程选择：已知分类值仍为未语义复核的输入断言；人工输入只能 pending_review，合成输入不当准确率真值。

@@ -1,0 +1,41 @@
+{
+  "schema_version": "b30-annotations-1",
+  "annotations": [
+    {
+      "namespace": "synthetic-b30",
+      "jd_id": "synthetic-role-1",
+      "fingerprint": "73f42469ed65212b6a7356472bce3f212229e6a2a7c88e1558ca201bb45e1116",
+      "origin": "synthetic_assertion",
+      "author": "Codex synthetic fixture",
+      "review_status": "pending_review",
+      "job_family": {
+        "state": "unknown",
+        "value": null,
+        "candidates": [],
+        "evidence": [],
+        "reason": "未提供分类依据，保留未知"
+      },
+      "canonical_job": {
+        "state": "unknown",
+        "value": null,
+        "candidates": [],
+        "evidence": [],
+        "reason": "未提供分类依据，保留未知"
+      },
+      "technology_tracks": [],
+      "technology_tracks_status": "unknown",
+      "seniority": {
+        "state": "unknown",
+        "value": null,
+        "candidates": [],
+        "evidence": [],
+        "reason": "未提供分类依据，保留未知"
+      },
+      "auxiliary_roles": [],
+      "material_kind": "undetermined",
+      "material_evidence": [],
+      "conflicts": [],
+      "notes": "只证明离线表达、校验和保存，非人工真值或模型输出"
+    }
+  ]
+}

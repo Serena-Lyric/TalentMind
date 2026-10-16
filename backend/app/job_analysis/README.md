@@ -1,5 +1,40 @@
 # job_analysis
 
+## 阶段 B3-0：岗位四维证据与版本基础
+
+Issue [#8](https://github.com/Serena-Lyric/TalentMind/issues/8) 的独立基础包 `role_classification/` 只读取显式 JD 和显式分类断言，不运行自然语言分类器。依据当前产品 M2-07～11，职业大类 `job_family`、主标准岗位 `canonical_job`、多项 `technology_tracks`、独立 `seniority` 分开保存；不约束成单父树，不从 B1 范围或 B2 技能推导分类。
+
+工作目录 backend，可直接用仓库内的纯合成示例：
+
+```powershell
+python -m app.job_analysis.role_classification run --input tests/fixtures/role_classification/input.json --dataset synthetic-b30 --annotations tests/fixtures/role_classification/annotations.json --taxonomy tests/fixtures/role_classification/taxonomy.empty.json --state ../data/local/m2-b30/state.sqlite3 --output ../data/local/m2-b30/results
+python -m app.job_analysis.role_classification replay --run <run_id> --state ../data/local/m2-b30/state.sqlite3 --output ../data/local/m2-b30/replay
+python -m pytest tests/test_job_analysis/test_role_classification.py -q
+```
+
+无独立 venv 的工作树可使用已安装 requirements 的 Python 绝对路径。输入沿用 A 的严格 JSON 数组/JSONL；annotations 和 taxonomy 必须显式 UTF-8 JSON，拒绝重复键、额外字段、凭据字段和不合法结构。详见 [合成示例](../../tests/fixtures/role_classification/README.md)。所有输入原文件只读，输出沿用 A 的本地路径/锁/硬链接保护；输出不能包含 JD、标注或目录输入文件，状态可在输出目录中。
+
+### 保存与验证的范围
+
+- `Decision` 的 state 为 known / unknown / unresolved，value 与 candidates 的合法值限定于显式 taxonomy。known 只表示输入提供明确值，必须有本条 JD 原文证据；unknown 不造值，unresolved 可以保存有证据的候选。不是独立人工确认或模型识别结果。每项技术方向独立保存 evidence，多值不重复；方向集合也有独立的未知/未决状态。
+- `origin` 仅 synthetic_assertion / manual_pending；author 必填，review_status 只允许 pending_review。程序核对 namespace/jd_id/fingerprint、原始字段和 Python 字符 `[start,end)` 的逐字引文；不能用归一名、翻译或模型自述代替。标注与不可变快照完整绑定，标题和独立 duties 原文证据另存，完整 raw_text 等字段保留于 source_payload。
+- canonical_job 是主岗位，auxiliary_roles 保存主岗位引用、辅助岗位 Decision 和关系 evidence；不生成额外职位。无法明确主辅时保留 unresolved/候选/原文说明，不替产品定义主辅算法。material_kind 分别保存 undetermined / single_role / hybrid_role / possible_multiple_positions，具体解释需证据；疑似多职位仅待复核，不拆分、不输出职位数量。
+- conflicts 保存维度、标题引文、职责/正文引文及原因；冲突维度必须 unresolved，不能保留强制确认值或标题优先裁决。语义矛盾由用户显式标注，程序不承诺自动发现所有冲突。
+- 允许不完整待审断言共存：例如方向集合 unresolved 下保留部分 known 方向，或 possible_multiple_positions 材料同时附有待审主辅关联。这仅保留输入内容与歧义，不能据此认定多个真实职位或已确认混合岗位；消费方须同时读取集合/材料状态和审核状态。
+- 严格畸形、跨 JD、伪造位置或目录外值使整轮拒绝，退出2，不当作零分类成功；没有提供标注的合法输入仍保存为 not_annotated/body=null。已标注的 unknown/unresolved 完整保留。进程码0只说明本轮保存/发布完成，不表示分类完整或准确；每条 requires_review=true、classification_complete=false、semantic_validation=not_performed，正式统计资格恒 false。
+
+### 版本、事务与历史
+
+只追加 `b30_versions/inputs/results/reports`，共用 A 不可变 snapshots；不写 A/B1/B2 的运行、事实、heads、观察、正式 DDL、词典、exchange 或旧 StateDB。A 存储新增默认 recover=true 的兼容开关；B3 显式 recover=false，共库打开不会恢复旧 A 未完成运行，旧调用保持原行为。
+
+版本覆盖完整 taxonomy 内容/修订、显式 `--rules-version`、本包与所用公共源码 SHA-256。结果复用键为不可变 snapshot + 完整标注摘要 + version；输入、标注、目录或实现变化追加新结果。来源观察值独立存在每轮 member，只改观察时间可复用；不推断真实发布时间、独立职位或下架。本轮每个报告范围恰为显式输入，不隐式扩展到 A/B1/B2 或先前未出现的成员。
+
+每轮以单一 SQLite 事务保存全部快照/结果/源文件字节与摘要/不可变报告，没有长期 running 或隐式 resume：提交前失败/中断无本轮数据，原命令重跑；提交后发布失败，SELECT run_id FROM b30_reports ORDER BY rowid 可找回 ID，使用 replay 重新发布，不重新解释标注。replay 不需要当前目录配置或输入文件，不调用新验证器；原报告与源文件摘要经核对后原样发布，不覆盖不同内容的既有产物。已有结果同版本复用时核对存储正文和摘要；UPDATE/DELETE/REPLACE 被历史保护拒绝。
+
+完整输入源文件字节保存在 b30_inputs，标注与 taxonomy 保存的是经严格解析的完整结构，字段顺序/空白不作为分类依赖。报告保存原输入文件路径供发布保护，重放仍保护这些路径。单进程串行本地 SQLite 与原子文件发布沿用 A；本轮未验证断电/损坏/网络盘恢复能力。
+
+职业大类目录、标准岗位目录、技术方向/级别映射、主辅判定算法、成熟复合职业边界、多职位拆分与统计计数仍待用户和产品团队确认。本轮不修改 PRODUCT_DECISIONS 的已确认规则，不启动 B4/M3/M4、真实标注/模型评测或正式需求率。执行证据与内部审查见 [临时报告](../../../docs/review/M2-stage-B3-0.md)，合并前按 AGENTS 归档长期结论并移除临时报告。
+
 ## 阶段 B2 第二轮：离线名称、类别与候选治理
 
 入口 `python -m app.job_analysis.governance`；新增 `governance/`，只消费已保存的 B2 run 和原始 snapshots，不隐式重跑 B1/B2，不连接服务/模型。产品依据 M2-37～40。285 条 seed 和共享 normalizer 完全只读；旧 B2 文档（包括 b2-1 历史）原样保存为 original_semantics，五态、对象、程度、组合、上下文与 effective 不重算/覆写。
