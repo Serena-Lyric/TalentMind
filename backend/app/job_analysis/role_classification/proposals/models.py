@@ -10,7 +10,7 @@ from ..validation import validate_evidence
 from ...foundation.models import VersionName
 from ...semantics.models import Evidence
 
-FAMILIES = {
+FAMILIES_V1 = {
     "software_engineering": "软件研发",
     "test_quality_engineering": "测试与质量工程",
     "data_ai": "数据与人工智能",
@@ -18,6 +18,10 @@ FAMILIES = {
     "network_information_security": "网络与信息安全",
     "embedded_system_software": "嵌入式与系统软件",
     "technical_services_delivery": "技术服务与交付",
+}
+FAMILY_VERSIONS = {
+    "families-v1": FAMILIES_V1,
+    "families-v2": {**FAMILIES_V1, "hardware_integrated_circuits": "硬件与集成电路"},
 }
 
 
@@ -40,8 +44,9 @@ class FamilyTaxonomy(StrictModel):
     @model_validator(mode="after")
     def confirmed_only(self):
         ids = [f.id for f in self.job_family]
-        if len(ids) != len(set(ids)) or {f.id: f.label for f in self.job_family} != FAMILIES:
-            raise ValueError("exactly seven confirmed family IDs and labels required")
+        expected = FAMILY_VERSIONS.get(self.revision)
+        if expected is None or len(ids) != len(set(ids)) or {f.id: f.label for f in self.job_family} != expected:
+            raise ValueError("registered revision and its exact confirmed family IDs and labels required")
         if self.canonical_job or self.technology_tracks or self.seniority:
             raise ValueError("unconfirmed dimensions must remain empty")
         if any(text != text.strip() for f in self.job_family for text in (f.id, f.label, f.scope)):
@@ -56,6 +61,13 @@ def load_taxonomy(path):
     value = parse_json(path.read_text(encoding="utf-8-sig"))
     check_public(value)
     return FamilyTaxonomy.model_validate(value).model_dump()
+
+
+def resolve_taxonomy(taxonomy=None):
+    if taxonomy is None:
+        return load_taxonomy(Path(__file__).with_name("families.v1.json"))
+    check_public(taxonomy)
+    return FamilyTaxonomy.model_validate(taxonomy).model_dump()
 
 
 class Clue(StrictModel):

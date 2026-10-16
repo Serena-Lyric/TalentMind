@@ -10,6 +10,7 @@ from ...foundation.inputs import canonical, digest, parse_json
 from ...foundation.models import VersionName
 from ...foundation.runner import publish, _output_path as output_path
 from ...foundation.store import now
+from ..proposals.models import resolve_taxonomy
 from .models import Catalog, Submission
 from .store import result_version
 from .validation import validate_submission
@@ -19,24 +20,25 @@ def checkpoint(stage):
     """Lifecycle boundary for interruption instrumentation."""
 
 
-def version_manifest(catalog, revision):
+def version_manifest(catalog, revision, taxonomy=None):
     TypeAdapter(VersionName).validate_python(revision)
     root = Path(__file__).resolve().parents[2]
     paths = sorted(Path(__file__).resolve().parent.glob("*.py")) + [
         root / "role_classification" / name for name in ("models.py", "validation.py", "proposals/models.py")
     ] + [root / "foundation" / name for name in ("inputs.py", "models.py", "store.py", "runner.py")
     ] + [root / "semantics/models.py"]
-    return dict(schema_version="b32-manifest-1", revision=revision, catalog=catalog,
+    return dict(schema_version="b32-manifest-1", revision=revision, catalog=catalog, family_taxonomy=resolve_taxonomy(taxonomy),
         source_sha256={p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
         evidence_policy="exact-source-character-spans-v1", interpretation="explicit_pending_claims_only",
         formal_admission="disabled")
 
 
-def execute(store, batch, submission, catalog, *, revision="v1", output=None, input_paths=()):
-    bodies = validate_submission(batch, submission, catalog)
+def execute(store, batch, submission, catalog, *, taxonomy=None, revision="v1", output=None, input_paths=()):
+    families = resolve_taxonomy(taxonomy)
+    bodies = validate_submission(batch, submission, catalog, taxonomy=families)
     config = Catalog.model_validate(catalog).model_dump()
     marks = Submission.model_validate(submission).model_dump()
-    manifest = version_manifest(config, revision)
+    manifest = version_manifest(config, revision, families)
     version, run_id = digest(manifest), uuid4().hex
     protected = [str(Path(p).resolve()) for p in (batch.path, *input_paths)]
     destination = output_path(store, output, batch.path) if output is not None else None

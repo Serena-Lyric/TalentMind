@@ -216,8 +216,7 @@ def test_reuse_observation_content_identity_rules_and_catalog_changes_append(are
         for changed in (dict(raw_text="不同正文"), dict(id=2), dict(requirements="Python")):
             result = run(store, batch(area, **changed))
             assert result["members"][0]["result_id"] != first["members"][0]["result_id"]
-        cat = config()
-        cat["revision"] = "families-v2"
+        cat = json.loads(CATALOG.with_name("families.v2.json").read_text(encoding="utf-8"))
         revised = run(store, source, taxonomy=cat)
         assert revised["version_id"] != first["version_id"]
         cat["job_family"][0]["scope"] += " 版本边界说明"

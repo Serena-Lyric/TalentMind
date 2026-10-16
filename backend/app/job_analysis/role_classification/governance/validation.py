@@ -2,7 +2,7 @@
 from collections import defaultdict
 
 from ...foundation.inputs import InputRecord, check_public, parse_json
-from ..proposals.models import FAMILIES
+from ..proposals.models import resolve_taxonomy
 from ..validation import _field_evidence, validate_evidence
 from .models import Catalog, Submission
 
@@ -20,7 +20,8 @@ def validate_batch(batch):
         raise ValueError("snapshot bytes and records mismatch")
 
 
-def validate_submission(batch, submission, catalog):
+def validate_submission(batch, submission, catalog, *, taxonomy=None):
+    families = {f["id"] for f in resolve_taxonomy(taxonomy)["job_family"]}
     check_public(catalog)
     config = Catalog.model_validate(catalog)
     check_public(submission)
@@ -46,7 +47,7 @@ def validate_submission(batch, submission, catalog):
         else:
             ids = {c.id for c in mark.candidates}
             for claim in mark.candidates:
-                if len(set(claim.family_candidates)) != len(claim.family_candidates) or not set(claim.family_candidates) <= FAMILIES.keys():
+                if len(set(claim.family_candidates)) != len(claim.family_candidates) or not set(claim.family_candidates) <= families:
                     raise ValueError("invalid or duplicate family candidate")
                 if claim.synthetic_only != (claim.origin == "synthetic_assertion") or (marks.mode == "synthetic_only" and not claim.synthetic_only):
                     raise ValueError("synthetic claims must be isolated")

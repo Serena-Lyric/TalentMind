@@ -7,6 +7,7 @@ import sys
 
 from ...foundation.inputs import check_public, parse_json, read_snapshot
 from ...foundation.runner import publish, _output_path as output_path
+from ..proposals.models import load_taxonomy
 from .runner import execute, replay, review_export
 from .store import CanonicalStore
 
@@ -32,6 +33,7 @@ def main(argv=None):
             for field in ("input", "dataset", "submission", "catalog"):
                 command.add_argument("--" + field, required=True)
             command.add_argument("--rules-version", default="v1")
+            command.add_argument("--family-taxonomy")
         elif name == "review":
             command.add_argument("--result", required=True)
             command.add_argument("--event", required=True)
@@ -42,10 +44,12 @@ def main(argv=None):
         if args.command == "run":
             batch = read_snapshot(args.input, args.dataset)
             marks, catalog = load_json(args.submission), load_json(args.catalog)
+            taxonomy = load_taxonomy(args.family_taxonomy) if args.family_taxonomy else None
         with CanonicalStore(args.state) as store:
             if args.command == "run":
                 result = execute(store, batch, marks, catalog, revision=args.rules_version, output=args.output,
-                                 input_paths=(args.submission, args.catalog))
+                                 taxonomy=taxonomy,
+                                 input_paths=(args.submission, args.catalog, *((args.family_taxonomy,) if args.family_taxonomy else ())))
             elif args.command == "review":
                 identity = store.record_review(args.result, load_json(args.event))
                 print(json.dumps(dict(review_id=identity, formal_admitted=False)))

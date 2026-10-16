@@ -30,6 +30,11 @@ PREFIX = re.compile(r"^(核心职责[：:]|主要职责[：:]|主要负责|负�
 MULTIPLE = re.compile(r"招聘(?:两|多|[2-9])个(?:岗位|职位)|岗位[一二三1-9][：:]|职位[一二三1-9][：:]")
 COMPOUND = re.compile(r"全栈|复合岗位|混合岗位")
 RULESET = "closed-delivery-clauses-v2"
+HARDWARE_DELIVERIES = {
+    "hardware_integrated_circuits": (
+        "设计硬件电路并交付电路原理图", "开发FPGA逻辑并交付验证结果", "设计数字IC并交付RTL"),
+}
+HARDWARE_TITLES = {"hardware_integrated_circuits": ("硬件工程师", "FPGA工程师", "数字IC工程师")}
 
 
 def _evidence(record, field, start, end):
@@ -38,7 +43,10 @@ def _evidence(record, field, start, end):
 
 
 def suggest(record, taxonomy):
-    FamilyTaxonomy.model_validate(taxonomy)
+    config = FamilyTaxonomy.model_validate(taxonomy)
+    deliveries, title_terms = DELIVERIES, TITLES
+    if config.revision == "families-v2":
+        deliveries, title_terms = DELIVERIES | HARDWARE_DELIVERIES, TITLES | HARDWARE_TITLES
     candidates, title_clues, context, reasons = {}, [], [], []
 
     def flag(reason):
@@ -46,7 +54,7 @@ def suggest(record, taxonomy):
             reasons.append(reason)
 
     title = record.payload["job_title"]
-    for family, titles in TITLES.items():
+    for family, titles in title_terms.items():
         for term in titles:
             start = title.find(term)
             if start >= 0:
@@ -85,12 +93,13 @@ def suggest(record, taxonomy):
             matched = False
             if prefix:
                 work = clause[prefix.end():].strip()
-                for family, productions in DELIVERIES.items():
+                for family, productions in deliveries.items():
                     if work not in productions:
                         continue
                     kind = ("core" if prefix[1] in ("核心职责：", "核心职责:", "主要职责：", "主要职责:", "主要负责")
                             else "auxiliary" if prefix[1] in ("协助", "辅助", "配合") else "unspecified")
-                    clue = dict(kind=kind, rule=RULESET + ":" + family, evidence=_evidence(record, field, start, end))
+                    rule = "closed-hardware-delivery-v1" if family in HARDWARE_DELIVERIES else RULESET
+                    clue = dict(kind=kind, rule=rule + ":" + family, evidence=_evidence(record, field, start, end))
                     candidates.setdefault(family, []).append(clue)
                     matched = True
             if not matched:
