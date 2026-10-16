@@ -33,6 +33,8 @@ cd backend
 
 开放词候选只从完整匹配的能力动词短句或显式技能/技术栈列表提取；当前开放词形为有限 ASCII 技术名/数字版本，任意中文新名和复杂混合句不作通用 NLP。每个候选含原词/位置、来源快照、statement 与 context 证据、旧词典比对、candidate_type/tier/review_reasons、版本及 pending_review。strong_context 表示直接能力动词格式依据；技能列表或旧别名争议为 disputed，等级不代表校准概率或已确认是技能。已识别公司后缀、公司描述/福利/证书条件不能凭陌生词变成候选。其他原文保存在 unresolved_fragments/original_semantics，不静默消失。
 
+任职要求/岗位要求/技能要求标题支持同行能力句、独立标题换行及纯词列表；正文索引直接对应原字段，context 包含章节标题。未知冒号标题、公司介绍/福利等已知独立标题与职责章节阻止新增开放词锚点，后续明确招聘标题可重新建立上下文，字段间不继承章节。有限“不要求/无需/不需要”或“如果/若…，则…”前缀可保留具体候选，但只记 disputed + unresolved_requirement_context，不推断确定要求状态；复杂句仍保留未解析。旧 B2 语义不重算，治理实际源码哈希变化使旧结果失效并追加新版本，历史仍可重放。
+
 `candidates.review_event()` 要求审查人、依据、证据引用，decision 为 reviewed_accepted/reviewed_rejected/deferred；`GovernanceStore.record_review(result_id,event)` 追加不可改事件，`store.reviews(result_id)` 可导出完整审查历史。原报告不被新审查改写。reviewed_accepted 只表示离线审查决定，不是正式词典收录；`validate_admission(candidate,review=None)` 永远 allowed=false，报告自动准入关闭/验证策略未定/独立证据未建立。本包没有写 seed 或正式词典的接口。同文跨平台、dup_group、cross_source 都不作为独立验证。
 
 ### 持久化、版本与评测

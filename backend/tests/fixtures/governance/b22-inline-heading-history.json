@@ -1,0 +1,363 @@
+{
+  "origin_commit": "1961261c90f4074be8529f197458315d224afc82",
+  "purpose": "Captured pre-fix synthetic execution history, not semantic truth",
+  "input_rows": [
+    {
+      "id": 1,
+      "source": "synthetic-1",
+      "job_title": "工程师",
+      "raw_text": "任职要求：必须掌握 UnlistedLang。",
+      "dup_group": "same-job",
+      "cross_source": 1
+    },
+    {
+      "id": 2,
+      "source": "synthetic-2",
+      "job_title": "工程师",
+      "raw_text": "技能要求：熟悉 UnlistedLang。",
+      "dup_group": "same-job",
+      "cross_source": 1
+    }
+  ],
+  "manifest": {
+    "revision": "v1",
+    "schema": "b22-1",
+    "dictionary": "8e23e618f81244e8c15d75c28426a6b38577807622938a14566871c195dac7ad",
+    "policy": {
+      "version": "b22-policy-1",
+      "relations": [
+        {
+          "source": "js",
+          "target": "javascript",
+          "relation": "synonym",
+          "basis": "JavaScript 的通用缩写；覆盖旧 js canonical 仅限本治理视图"
+        },
+        {
+          "source": "ts",
+          "target": "typescript",
+          "relation": "synonym",
+          "basis": "TypeScript 的通用缩写；不回填旧语义"
+        },
+        {
+          "source": "k8s",
+          "target": "kubernetes",
+          "relation": "synonym",
+          "basis": "Kubernetes 的通用缩写"
+        },
+        {
+          "source": "vue.js",
+          "target": "vue",
+          "relation": "synonym",
+          "basis": "Vue 名称变体，不包含 Vue 的具体版本"
+        },
+        {
+          "source": "vuejs",
+          "target": "vue",
+          "relation": "synonym",
+          "basis": "Vue 名称变体"
+        },
+        {
+          "source": "springboot",
+          "target": "spring boot",
+          "relation": "synonym",
+          "basis": "Spring Boot 空格变体"
+        },
+        {
+          "source": "golang",
+          "target": "go",
+          "relation": "synonym",
+          "basis": "Go 语言名称变体"
+        },
+        {
+          "source": "postgres",
+          "target": "postgresql",
+          "relation": "synonym",
+          "basis": "PostgreSQL 名称变体"
+        },
+        {
+          "source": "sklearn",
+          "target": "scikit-learn",
+          "relation": "synonym",
+          "basis": "scikit-learn 的导入包名称"
+        },
+        {
+          "source": "sql",
+          "target": "mysql",
+          "relation": "related_to",
+          "basis": "查询语言与数据库产品有关联，不可互换"
+        },
+        {
+          "source": "spring boot",
+          "target": "spring",
+          "relation": "narrower_than",
+          "basis": "生态内较具体技术，保留独立身份，不表示可替代"
+        },
+        {
+          "source": "sass",
+          "target": "css",
+          "relation": "related_to",
+          "basis": "预处理语言与样式语言分开，拒绝旧 sass→css 合并"
+        },
+        {
+          "source": "vue 3",
+          "target": "vue",
+          "relation": "version_of",
+          "basis": "明确数字主版本保留在 version 与 key"
+        }
+      ],
+      "versioned_bases": [
+        "vue",
+        "python",
+        "oauth",
+        "java"
+      ],
+      "technical_categories": [
+        "编程语言",
+        "前端技术",
+        "后端框架",
+        "数据库",
+        "AI/机器学习",
+        "大数据/云"
+      ],
+      "classifications": [
+        {
+          "name": "scrum",
+          "category": "engineering_practice",
+          "tags": [
+            "agile"
+          ],
+          "basis": "Scrum 是团队开发实践框架；旧 DevOps 粗类不足以支持技术技能分类"
+        },
+        {
+          "name": "agile",
+          "category": "engineering_practice",
+          "tags": [],
+          "basis": "敏捷开发实践；不沿用旧 DevOps 粗分类"
+        },
+        {
+          "name": "kanban",
+          "category": "engineering_practice",
+          "tags": [],
+          "basis": "看板工作流实践；不沿用旧 DevOps 粗分类"
+        },
+        {
+          "name": "系统设计",
+          "category": "professional_skill",
+          "tags": [
+            "design"
+          ],
+          "basis": "系统设计能力；不直接等同某种工具"
+        },
+        {
+          "name": "算法",
+          "category": "professional_skill",
+          "tags": [],
+          "basis": "算法设计与求解能力"
+        },
+        {
+          "name": "数据结构",
+          "category": "professional_skill",
+          "tags": [],
+          "basis": "数据组织与建模能力"
+        },
+        {
+          "name": "单元测试",
+          "category": "engineering_practice",
+          "tags": [
+            "testing"
+          ],
+          "basis": "明确的工程验证实践"
+        },
+        {
+          "name": "集成测试",
+          "category": "engineering_practice",
+          "tags": [
+            "testing"
+          ],
+          "basis": "明确的工程验证实践"
+        },
+        {
+          "name": "tdd",
+          "category": "engineering_practice",
+          "tags": [
+            "testing"
+          ],
+          "basis": "测试驱动开发实践"
+        },
+        {
+          "name": "ci/cd",
+          "category": "engineering_practice",
+          "tags": [
+            "delivery"
+          ],
+          "basis": "持续集成与交付实践；不等同单独持续集成"
+        },
+        {
+          "name": "团队协作",
+          "category": "soft_skill",
+          "tags": [],
+          "basis": "团队合作能力"
+        },
+        {
+          "name": "沟通",
+          "category": "soft_skill",
+          "tags": [],
+          "basis": "沟通能力"
+        }
+      ]
+    },
+    "implementation": {
+      "__init__.py": "798b1a73f1151dabe5f9d4ed4ed815ba6fa58393b128431c74ccff59ee7c3d92",
+      "__main__.py": "6e663638809240306331e1fb93907076a30ccf7c2dcc22e2c5d539ae39138588",
+      "candidates.py": "77c85347e99bb3323b90a45a263c48574f83c55672899a8cf8795df106b22953",
+      "catalog.py": "dfb8f7c52680e2dfbebb12c40910ab0426bae5a082fc718b486d2a65852f2d46",
+      "evaluation.py": "0f7ce0010fe4ef92625d18bf9b025160cdd9c837ef6c73bc3d3c8de82bce1abe",
+      "extract.py": "554af62099850e022136ed5ad2b74427712ea67af0a111b34c535d3e21f30b19",
+      "runner.py": "558ced76ffdfa281edae92ff85be5b214b56f722e649eb745bdc70af5cf26037",
+      "store.py": "98711ba738d56b3104a2eb43782f8738b3fccd792f2b7a7ce89257253c2051e6",
+      "foundation/inputs.py": "27854fe05f6895d83c881cdcc6db23a6ba54fc3c361fb7e687fe7ab5458e4891",
+      "foundation/models.py": "a7b23c051e972abf3b70beab7d9de7a8f9237c63278f33a5d84a141b158df8f1",
+      "foundation/store.py": "5894f894a59f02eadc74b98500a149b25a4a1479aab2fb986b6568e3ac7d29ff",
+      "foundation/runner.py": "d1de5bae3a6b7e042c2bd4ba1bb25cdcec43897684de50f25cd6076056a8c960",
+      "semantics/rules.py": "bc02bd9c623471a20ed02dd786e193820ff82e5dc4311e23d3e76740cd74dd6e",
+      "semantics/models.py": "3ed4b7e5418f0881f14f0abc682df72f1ee9a37d8562adcfb09f762294046dcb",
+      "semantics/runner.py": "04dd362b371ddd94aec83c3a42e3cb05e11a38f3c93d5a098f60586a6d677748"
+    }
+  },
+  "bodies": [
+    {
+      "schema_version": "b22-1",
+      "source_payload": {
+        "cross_source": 1,
+        "dup_group": "same-job",
+        "job_title": "工程师",
+        "raw_text": "任职要求：必须掌握 UnlistedLang。",
+        "source": "synthetic-1"
+      },
+      "original_semantics": {
+        "coverage": "incomplete",
+        "coverage_scope": "known_aliases_and_supported_clauses_only",
+        "effective": [],
+        "issues": [
+          {
+            "evidence": {
+              "end": 22,
+              "field": "raw_text",
+              "fingerprint": "ff5081ee014e710214bb271b874a090344c470fe8b4c8cb442dff0954f119cd8",
+              "jd_id": "1",
+              "namespace": "fixture",
+              "quote": "必须掌握 UnlistedLang",
+              "start": 5
+            },
+            "reason": "unparsed_text_or_unknown_skill"
+          }
+        ],
+        "outcome": "no_recognized_skills",
+        "schema_version": "b2-2",
+        "semantic_validation": "deterministic_rules_only",
+        "statements": []
+      },
+      "skills": [],
+      "non_skills": [],
+      "candidates": [],
+      "review_mentions": [],
+      "unresolved_fragments": [
+        {
+          "reason": "bounded_governance_does_not_claim_clause_completeness",
+          "evidence": {
+            "namespace": "fixture",
+            "jd_id": "1",
+            "fingerprint": "ff5081ee014e710214bb271b874a090344c470fe8b4c8cb442dff0954f119cd8",
+            "field": "raw_text",
+            "start": 0,
+            "end": 22,
+            "quote": "任职要求：必须掌握 UnlistedLang"
+          }
+        },
+        {
+          "reason": "bounded_governance_does_not_claim_clause_completeness",
+          "evidence": {
+            "namespace": "fixture",
+            "jd_id": "1",
+            "fingerprint": "ff5081ee014e710214bb271b874a090344c470fe8b4c8cb442dff0954f119cd8",
+            "field": "job_title",
+            "start": 0,
+            "end": 3,
+            "quote": "工程师"
+          }
+        }
+      ],
+      "analysis_complete": false,
+      "coverage_scope": "bounded_name_classification_and_candidate_overlay",
+      "formal_statistics_eligible": false,
+      "evidence_validation": "offsets_checked_not_semantic_truth"
+    },
+    {
+      "schema_version": "b22-1",
+      "source_payload": {
+        "cross_source": 1,
+        "dup_group": "same-job",
+        "job_title": "工程师",
+        "raw_text": "技能要求：熟悉 UnlistedLang。",
+        "source": "synthetic-2"
+      },
+      "original_semantics": {
+        "coverage": "incomplete",
+        "coverage_scope": "known_aliases_and_supported_clauses_only",
+        "effective": [],
+        "issues": [
+          {
+            "evidence": {
+              "end": 20,
+              "field": "raw_text",
+              "fingerprint": "53f74831b0ff38fdb7e0fef21ea67539b2f966fb874bd261a7c38aa2aa54063d",
+              "jd_id": "2",
+              "namespace": "fixture",
+              "quote": "熟悉 UnlistedLang",
+              "start": 5
+            },
+            "reason": "unparsed_text_or_unknown_skill"
+          }
+        ],
+        "outcome": "no_recognized_skills",
+        "schema_version": "b2-2",
+        "semantic_validation": "deterministic_rules_only",
+        "statements": []
+      },
+      "skills": [],
+      "non_skills": [],
+      "candidates": [],
+      "review_mentions": [],
+      "unresolved_fragments": [
+        {
+          "reason": "bounded_governance_does_not_claim_clause_completeness",
+          "evidence": {
+            "namespace": "fixture",
+            "jd_id": "2",
+            "fingerprint": "53f74831b0ff38fdb7e0fef21ea67539b2f966fb874bd261a7c38aa2aa54063d",
+            "field": "raw_text",
+            "start": 0,
+            "end": 20,
+            "quote": "技能要求：熟悉 UnlistedLang"
+          }
+        },
+        {
+          "reason": "bounded_governance_does_not_claim_clause_completeness",
+          "evidence": {
+            "namespace": "fixture",
+            "jd_id": "2",
+            "fingerprint": "53f74831b0ff38fdb7e0fef21ea67539b2f966fb874bd261a7c38aa2aa54063d",
+            "field": "job_title",
+            "start": 0,
+            "end": 3,
+            "quote": "工程师"
+          }
+        }
+      ],
+      "analysis_complete": false,
+      "coverage_scope": "bounded_name_classification_and_candidate_overlay",
+      "formal_statistics_eligible": false,
+      "evidence_validation": "offsets_checked_not_semantic_truth"
+    }
+  ]
+}

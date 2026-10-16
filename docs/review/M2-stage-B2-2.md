@@ -135,3 +135,40 @@ Reviewer考虑但排除：开放中文/复杂句/英文完整语法、通用版�
 ### GitHub交付
 
 实现提交 `980c44f43ad36b9b318b521d8346f8f816ee1d9e` 已推送分支 `codex/m2-stage-b2-2-skill-governance`，创建并附加 [PR #7](https://github.com/Serena-Lyric/TalentMind/pull/7)，目标master。创建后实际核验OPEN、isDraft=false、mergeCommit=null、autoMergeRequest=null；本次后续仅补文档交付记录，源代码与已测试提交一致，无须重复业务回归。工作区与分支保留，未合并或启用自动合并、未启动B3/B4；等待ChatGPT独立审查，经用户明确授权后再合并。
+
+## ChatGPT Review #5541830781 定向修复（2026-10-16）
+
+已完整读取 [独立审查正文](https://github.com/Serena-Lyric/TalentMind/pull/7#pullrequestreview-5541830781)，审查 head=`1961261c90f4`，结论为1项Important：同行招聘标题后的未知能力词未进入候选池。用户授权在原PR定向修复、验证并推送，保持未合并，不启动B3/B4。
+
+### 最小实现与历史边界
+
+- 正式代码只改 `governance/extract.py`：复用 B2 标题及风险提示，区分章节标题与正文并调整匹配基准偏移，原文不清洗、不替换。支持任职要求/岗位要求/技能要求同行能力句、换行及列表；保留从标题到当前行的上下文。
+- 未知冒号标题、公司介绍/福利等明确独立标题和职责等非招聘章节不提供开放词锚点，直到新明确招聘标题；章节按字段隔离。有限否定/条件前缀可定位词名，但候选 disputed + unresolved_requirement_context，不能当作正式五态判断；任意复杂句仍保留未解析。
+- 正式seed/normalizer、A/B1/B2源码/表结构/语义历史、正式DDL/旧管道/交接/评测逻辑均未修改，自动准入仍关闭。原 B2 五态、程度、对象、组合/effective与全部证据逐字段保留。
+- 在改代码前，以真实 B2→治理→SQLite 路径捕获两条重点样例的旧结果到 `tests/fixtures/governance/b22-inline-heading-history.json`（12,070字节），注明 origin_commit=1961261；candidates均为空，临时库在finally删除并断言不存在。它是实际历史夹具，不是人工真值。
+- 回归将原捕获 manifest/body 装入受不可变保护的临时 b22_results，核对与原B2文档逐字段一致；新真实execute因源码摘要改变而追加不同version/result，旧零候选body不变，再次新版执行复用新result。未伪造旧语义输出或给旧结果补字段。
+
+### RED→GREEN 与执行路径
+
+工作目录 backend，Python 3.14.5，复用已安装依赖的绝对路径Python；全部输入为合成JD，临时SQLite/文件由finally fixture teardown清理。
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_governance.py -q --tb=short -k heading
+# RED: 14 failed / 5 passed / 59 deselected
+# 两条重点样例均在 SELECT b22_results.body 后因 candidates=[] 失败。
+# 首轮修复: 19 passed / 59 deselected
+# 补充独立公司介绍/福利标题: 2 failed / 22 passed / 59 deselected
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_governance.py tests/test_job_analysis/test_governance_evaluation.py tests/test_job_analysis/test_semantics.py -q --tb=short
+# GREEN: 194 passed（治理83 + 评测19 + 原B2 92）
+```
+
+新增24项参数展开用例覆盖同行/换行、空格与ASCII冒号/方括号标题、emoji前缀字符定位、列表、多行候选、公司/福利/教程/职责排除与标题重新建立、否定/条件原因、JS/cv别名及捕获旧历史。正例同时调用实际analyze和真实B2→治理runner→SQLite SELECT，核对原始字段/区间/身份/指纹、original_semantics不变、旧b2_attempts逐行不变、候选pending_review/formal_admitted=false、准入接口allowed=false及replay一致。
+
+陷阱与长期限制见 [同行标题候选陷阱](../superpowers/traps/2026-10-16-m2-b22-inline-heading-candidates.md)。本次属于既有已支持句式的格式修复，不新增产品决策、词典准入、真实语料质量结论或后续阶段功能。
+
+
+### 本次最终回归与交付边界
+
+按本报告可复现命令的同一合成环境和socket阻断方式执行全量离线非集成回归：**713 passed / 2 skipped / 23 deselected / 0 failed**，190项既有依赖警告，36.15s；Blocked external/service attempts: **0**。其中治理/评测合计102项，原A/B1/B2第一轮270项均在全量执行中通过。2项跳过为缺私有回包的test_m2_return_package.py:15/:26；23项真实服务integration按边界排除。测试临时目录/SQLite由finally清理并断言不存在，历史捕获目录也已删除；未操作生产库，所以不声称生产数据残留查询或真实语料效果。
+
+本次只改1份治理源码、定向测试、纯合成历史夹具及其说明、M2 README、资产记录、本报告和新陷阱。旧B2/词典/normalizer、A/B1、DDL/交接对审查head的diff为空。无需新增产品决策或执行迁移；未调用真实模型/外部收费API，不合并、不启动B3/B4，推送后等待ChatGPT定向复审。

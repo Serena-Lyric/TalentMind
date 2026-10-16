@@ -362,3 +362,116 @@ def test_store_cannot_bypass_review_attribution_validation(area, changes):
         with pytest.raises(ValueError):
             store.record_review(member["result_id"], event | changes)
         assert store.reviews(member["result_id"]) == []
+
+
+@pytest.mark.parametrize("text,names", [
+    ("任职要求：必须掌握 UnlistedLang。", ["UnlistedLang"]),
+    ("技能要求：熟悉 UnlistedLang。", ["UnlistedLang"]),
+    ("岗位要求:  必须掌握 UnlistedLang。", ["UnlistedLang"]),
+    ("任职要求\n必须掌握 UnlistedLang。", ["UnlistedLang"]),
+    ("技能要求：\n熟悉 UnlistedLang。", ["UnlistedLang"]),
+    ("任职要求\n熟悉 UnlistedLang。\n掌握 OtherRuntime。", ["UnlistedLang", "OtherRuntime"]),
+    ("🙂\n【任职要求】：必须掌握 UnlistedLang。", ["UnlistedLang"]),
+    ("技能要求\nUnlistedLang、OtherRuntime。", ["UnlistedLang", "OtherRuntime"]),
+    ("公司介绍：掌握 UnlistedLang。\n任职要求：熟悉 OtherRuntime。", ["OtherRuntime"]),
+    ("技能要求：UnlistedLang、OtherRuntime。", ["UnlistedLang", "OtherRuntime"]),
+    ("技术栈：UnlistedLang、OtherRuntime。", ["UnlistedLang", "OtherRuntime"]),
+])
+def test_recruitment_heading_candidates_survive_real_b2_sqlite_path(area, text, names):
+    from app.job_analysis.governance.candidates import validate_admission
+    from app.job_analysis.governance.runner import execute, replay
+    from app.job_analysis.governance.store import GovernanceStore
+    # Also exercise analyze directly; runner must persist that exact overlay and untouched B2.
+    direct = govern(text)
+    batch, original = stage_b2(area, [text])
+    with GovernanceStore(area / "state.sqlite3") as store:
+        before = [tuple(r) for r in store.conn.execute("SELECT * FROM b2_attempts")]
+        report = execute(store, original["run_id"])
+        member = report["members"][0]
+        saved = json.loads(store.conn.execute("SELECT body FROM b22_results WHERE id=?", (member["result_id"],)).fetchone()[0])
+        assert [c["raw_name"] for c in saved["candidates"]] == names
+        assert saved["original_semantics"] == original["members"][0]["body"]
+        assert [tuple(r) for r in store.conn.execute("SELECT * FROM b2_attempts")] == before
+        for c in saved["candidates"]:
+            ev = c["evidence"]
+            assert (ev["field"], ev["start"], ev["end"], ev["quote"]) == ("raw_text", text.index(c["raw_name"]), text.index(c["raw_name"]) + len(c["raw_name"]), c["raw_name"])
+            assert (ev["namespace"], ev["jd_id"], ev["fingerprint"]) == ("fixture", "1", batch.records[0].fingerprint)
+            assert "：" in c["context"]["quote"] or "要求" in c["context"]["quote"]
+            assert c["governance_status"] == "pending_review" and c["formal_admitted"] is False
+            assert validate_admission(c)["allowed"] is False
+        assert replay(store, report["run_id"]) == report
+        assert [c["raw_name"] for c in direct["candidates"]] == names
+
+
+@pytest.mark.parametrize("text", [
+    "公司介绍：掌握 UnlistedLang。", "公司介绍：\n掌握 UnlistedLang。",
+    "福利待遇：\n熟悉 UnlistedLang。", "技术教程：熟悉 UnlistedLang。",
+    "岗位职责：熟悉 UnlistedLang。", "公司介绍：掌握 UnlistedLang。熟悉 OtherRuntime。",
+    "公司介绍\n掌握 UnlistedLang。", "福利待遇\n熟悉 UnlistedLang。",
+])
+def test_non_recruitment_headings_do_not_create_unknown_candidates_in_sqlite(area, text):
+    from app.job_analysis.governance.runner import execute
+    from app.job_analysis.governance.store import GovernanceStore
+    _, original = stage_b2(area, [text])
+    with GovernanceStore(area / "state.sqlite3") as store:
+        body = execute(store, original["run_id"])["members"][0]["body"]
+        assert body["candidates"] == []
+        assert body["original_semantics"] == original["members"][0]["body"]
+        assert body["unresolved_fragments"]
+
+
+@pytest.mark.parametrize("text", [
+    "任职要求：不要求掌握 UnlistedLang。",
+    "技能要求：如果参与项目，则必须掌握 UnlistedLang。",
+    "任职要求：\n如果参与项目\n熟悉 UnlistedLang。",
+])
+def test_qualified_heading_candidates_keep_unresolved_requirement_context(area, text):
+    from app.job_analysis.governance.runner import execute
+    from app.job_analysis.governance.store import GovernanceStore
+    _, original = stage_b2(area, [text])
+    with GovernanceStore(area / "state.sqlite3") as store:
+        body = execute(store, original["run_id"])["members"][0]["body"]
+        assert len(body["candidates"]) == 1
+        candidate = body["candidates"][0]
+        assert candidate["raw_name"] == candidate["evidence"]["quote"] == "UnlistedLang"
+        assert candidate["tier"] == "disputed"
+        assert "unresolved_requirement_context" in candidate["review_reasons"]
+        assert "不要求" in candidate["context"]["quote"] or "如果" in candidate["context"]["quote"]
+        assert body["original_semantics"] == original["members"][0]["body"]
+        assert candidate["formal_admitted"] is False
+
+
+def test_heading_alias_mapping_and_ambiguous_alias_review_do_not_change_b2(area):
+    from app.job_analysis.governance.runner import execute
+    from app.job_analysis.governance.store import GovernanceStore
+    _, original = stage_b2(area, ["任职要求：必须掌握 JS。", "技能要求：熟悉 cv。"])
+    with GovernanceStore(area / "state.sqlite3") as store:
+        report = execute(store, original["run_id"])
+        assert report["members"][0]["body"]["skills"][0]["canonical"] == "javascript"
+        candidate = report["members"][1]["body"]["candidates"][0]
+        assert candidate["raw_name"] == "cv" and candidate["comparison"]["baseline_matches"] == ["opencv"]
+        assert candidate["tier"] == "disputed" and candidate["formal_admitted"] is False
+        assert [m["body"]["original_semantics"] for m in report["members"]] == [m["body"] for m in original["members"]]
+
+
+def test_heading_fix_appends_new_overlay_without_reusing_or_rewriting_captured_history(area):
+    from app.job_analysis.foundation.inputs import canonical, digest
+    from app.job_analysis.foundation.store import now
+    from app.job_analysis.governance.runner import execute
+    from app.job_analysis.governance.store import GovernanceStore
+    history = json.loads((Path(__file__).resolve().parents[1] / "fixtures/governance/b22-inline-heading-history.json").read_text(encoding="utf-8"))
+    _, original = stage_b2(area, [row["raw_text"] for row in history["input_rows"]])
+    version = digest(history["manifest"])
+    with GovernanceStore(area / "state.sqlite3") as store:
+        with store.conn:
+            store.conn.execute("INSERT INTO b22_versions VALUES (?,?)", (version, canonical(history["manifest"])))
+            for i, (source, body) in enumerate(zip(original["members"], history["bodies"])):
+                assert body["original_semantics"] == source["body"] and body["candidates"] == []
+                store.conn.execute("INSERT INTO b22_results VALUES (?,?,?,?,?,?,?,?)", (f"captured-{i}", source["attempt_id"],
+                    source["snapshot_id"], digest(source["body"]), version, canonical(body), digest(body), now()))
+        old = [tuple(r) for r in store.conn.execute("SELECT * FROM b22_results")]
+        result = execute(store, original["run_id"])
+        assert result["version_id"] != version
+        assert all(len(m["body"]["candidates"]) == 1 for m in result["members"])
+        assert [tuple(r) for r in store.conn.execute("SELECT * FROM b22_results WHERE version_id=?", (version,))] == old
+        assert [m["result_id"] for m in execute(store, original["run_id"])["members"]] == [m["result_id"] for m in result["members"]]

@@ -3,13 +3,15 @@ import copy
 import re
 
 from ..foundation.inputs import digest
-from ..semantics.rules import evidence, occurrences
+from ..semantics.rules import HEADINGS, RISK, SCOPE_RISK, evidence, occurrences
 
 FIELDS = ("raw_text", "requirements", "duties", "experience", "job_title")
 VERSION_TEXT = r"(?:v|[<>=~^]+)?\s*\d[^\s、,，。；;()（）]*(?:\s+[-~～至到]\s*\d[^\s、,，。；;()（）]*)?"
 TERM = r"[A-Za-z][A-Za-z0-9_.+#/-]{1,63}(?:\s+" + VERSION_TEXT + r")?"
 CAPABILITY = re.compile(r"(?:必须|需要|要求|需|须)?\s*(?:掌握|熟悉|精通|了解|熟练掌握)\s*(?P<term>" + TERM + r")\s*(?:基础)?")
-LIST = re.compile(r"(?:技能要求|技术栈|技能)[:：]\s*(?P<items>.+)")
+HEADING = re.compile(r"(?:[【\[])?([^:：\]】]+)(?:[】\]])?[:：]\s*")
+NON_RECRUITMENT_HEADINGS = {"公司介绍", "企业介绍", "福利待遇", "技术教程", "教程", "示例"}
+QUALIFIER = re.compile(r"(?:不要求|无需|不需要)\s*|(?:如果|若)[^，,]+[，,]\s*(?:则)?\s*")
 YEAR = r"(?:\d{1,2}|[一二三四五六七八九十两])"
 YEARS = re.compile(r"(?<![0-9一二三四五六七八九十百千万零〇两.\-~～至到])(?P<years>" + YEAR + r")年以上\s*(?:(?P<skill>" + TERM + r")\s*开发经验|(?P<job>工作经验))")
 EDUCATION = re.compile(r"(?:要求)?(?P<level>本科|硕士|博士|大专)(?:及以上)?学历")
@@ -72,6 +74,7 @@ def analyze(record, original, catalog):
 
     for field in FIELDS:
         text = record.payload.get(field, "")
+        section, section_start = {"raw_text": "unspecified", "job_title": "title"}.get(field, field), None
         for unit in re.finditer(r"[^\n。；;]+", text):
             ca, cb = unit.span()
             while ca < cb and text[ca].isspace():
@@ -81,7 +84,15 @@ def analyze(record, original, catalog):
             if ca == cb:
                 continue
             clause = text[ca:cb]
-            context = evidence(record, field, text.rfind("\n", 0, ca) + 1, (text.find("\n", cb) if "\n" in text[cb:] else len(text)))
+            body_start = ca
+            heading = HEADING.match(clause)
+            label = heading[1].strip() if heading else clause.strip("#【】[] ")
+            if heading or label in HEADINGS or label == "技能" or label in NON_RECRUITMENT_HEADINGS:
+                section, section_start = HEADINGS.get(label, "requirements" if label == "技能" else "unknown_section"), ca
+                body_start = ca + heading.end() if heading else cb
+            body = text[body_start:cb]
+            context = evidence(record, field, section_start if section_start is not None else text.rfind("\n", 0, ca) + 1,
+                (text.find("\n", cb) if "\n" in text[cb:] else len(text)))
             # All known terms are considered, but only old evidence or explicit new formats admit them.
             found = [(ca + a, ca + b) for a, b, _ in occurrences(clause, {k: k for k in catalog.index})]
             # Extend the raw occurrence BEFORE resolution; never lose concrete version text.
@@ -90,15 +101,19 @@ def analyze(record, original, catalog):
                 if suffix:
                     found[i] = (a, b + suffix.end())
             explicit = []
-            capability = CAPABILITY.fullmatch(clause)
+            qualifier = QUALIFIER.match(body)
+            capability_start = body_start + (qualifier.end() if qualifier else 0)
+            eligible = section in ("unspecified", "requirements", "preferred", "stack")
+            capability = CAPABILITY.fullmatch(text[capability_start:cb]) if eligible else None
+            qualified = bool(qualifier or RISK.search(context["quote"]) or SCOPE_RISK.search(context["quote"]) or
+                             re.search(r"不要求|无需|不需要", context["quote"]))
             if capability:
-                explicit.append((ca + capability.start("term"), ca + capability.end("term"), "explicit_capability"))
-            listing = LIST.fullmatch(clause)
-            if listing:
-                for part in re.finditer(r"[^、,，]+", listing["items"]):
+                explicit.append((capability_start + capability.start("term"), capability_start + capability.end("term"), "explicit_capability"))
+            if section in ("requirements", "stack"):
+                for part in re.finditer(r"[^、,，]+", body):
                     raw = part[0].strip()
                     if re.fullmatch(TERM, raw):
-                        a = ca + listing.start("items") + part.start() + len(part[0]) - len(part[0].lstrip())
+                        a = body_start + part.start() + len(part[0]) - len(part[0].lstrip())
                         explicit.append((a, a + len(raw), "explicit_skill_list"))
             for a, b, _ in explicit:
                 # A complete explicit token supersedes a known prefix inside its version/name.
@@ -136,8 +151,8 @@ def analyze(record, original, catalog):
                         statement=dict(evidence=evidence(record, field, ca, cb), basis=anchor),
                         comparison=normalized, candidate_type="version_review" if reason == "unsupported_version_expression" else
                             "alias_review" if normalized["baseline_matches"] else "possible_skill",
-                        tier="strong_context" if anchor == "explicit_capability" and not normalized["baseline_matches"] else "disputed",
-                        category=None, classification_status="needs_review", review_reasons=[reason, anchor],
+                        tier="strong_context" if anchor == "explicit_capability" and not normalized["baseline_matches"] and not qualified else "disputed",
+                        category=None, classification_status="needs_review", review_reasons=[reason, anchor] + (["unresolved_requirement_context"] if qualified else []),
                         governance_status="pending_review", review_basis=None, independent_validation="not_established", formal_admitted=False)
                     candidates.append(candidate)
             # Preserve all clauses, including arbitrary unknown prose which is not a candidate.
