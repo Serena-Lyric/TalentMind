@@ -1,0 +1,150 @@
+{
+  "origin_commit": "0b882eba8a48cb04aa28b2006c95e8ebff59cf85",
+  "purpose": "Historical output of the real B2 runner, not expected semantic truth.",
+  "input": {
+    "id": 1,
+    "source": "synthetic",
+    "job_title": "工程师",
+    "raw_text": "必须掌握 Python。Python 经验优先。"
+  },
+  "manifest": {
+    "aliases": "cc29528d77fce65fd9dad8bb78dcdf82573eb8e1ba376665690773ad5c946a20",
+    "dictionary": "8e23e618f81244e8c15d75c28426a6b38577807622938a14566871c195dac7ad",
+    "implementation": {
+      "../skills/normalizer.py": "c3b09ee33c7f841f230f795e381a077410cdbe8980d37b4fa1bf6fa55f525a31",
+      "__init__.py": "c417f4e07d7e755b59f3ae9046f120cad5f138d37ce22592e5a01bfa9e2a9a42",
+      "__main__.py": "346854a8b2c8c9c3a6b71706e4e40ab8686e1193a08456db8be4c74616313fee",
+      "foundation/inputs.py": "27854fe05f6895d83c881cdcc6db23a6ba54fc3c361fb7e687fe7ab5458e4891",
+      "foundation/models.py": "a7b23c051e972abf3b70beab7d9de7a8f9237c63278f33a5d84a141b158df8f1",
+      "foundation/runner.py": "d1de5bae3a6b7e042c2bd4ba1bb25cdcec43897684de50f25cd6076056a8c960",
+      "foundation/store.py": "5894f894a59f02eadc74b98500a149b25a4a1479aab2fb986b6568e3ac7d29ff",
+      "models.py": "261f66ae8f70d28d788068c4cb33132aa8650b53ddd58fa6d42d402cc7a538ea",
+      "rules.py": "de4be3a8ca39cacf8a5527f712c388a251e02f4fe8b6e745600d3936a26285b9",
+      "runner.py": "886480be14d67aa5610138026c33c1139b40a5a401939b814e62b23b345beb52",
+      "store.py": "1e7cda28bc7a54093e14f1c6b814c1d9e9923eec7815ceaabc53968e46942a53",
+      "validation.py": "8a7455ca62f4518a1741e7bec8f68354409908fe3843d4bbabd61c544fd2e23d"
+    },
+    "input": "foundation-strict-json-v1",
+    "revision": "v1",
+    "spec": {
+      "configuration": "b2-1",
+      "extractor": "bounded-skill-clauses-v1",
+      "model": "offline-rules",
+      "prompt": "none"
+    }
+  },
+  "body": {
+    "coverage": "complete",
+    "coverage_scope": "known_aliases_and_supported_clauses_only",
+    "effective": [
+      {
+        "condition": null,
+        "conflict": true,
+        "degree": null,
+        "group_ids": [],
+        "reason": "conflicting_statements",
+        "skill": "python",
+        "state": "uncertain",
+        "statement_ids": [
+          "s1",
+          "s2"
+        ],
+        "target": "candidate"
+      }
+    ],
+    "issues": [],
+    "outcome": "skills_identified",
+    "schema_version": "b2-1",
+    "semantic_validation": "deterministic_rules_only",
+    "statements": [
+      {
+        "condition": null,
+        "context": {
+          "end": 24,
+          "field": "raw_text",
+          "fingerprint": "2bba4bda436c6167516cc2242cded72e98811d9f561ccc5cc6875eed5c77a760",
+          "jd_id": "1",
+          "namespace": "fixture",
+          "quote": "必须掌握 Python。Python 经验优先。",
+          "start": 0
+        },
+        "degree": null,
+        "degree_evidence": null,
+        "evidence": {
+          "end": 11,
+          "field": "raw_text",
+          "fingerprint": "2bba4bda436c6167516cc2242cded72e98811d9f561ccc5cc6875eed5c77a760",
+          "jd_id": "1",
+          "namespace": "fixture",
+          "quote": "必须掌握 Python",
+          "start": 0
+        },
+        "id": "s1",
+        "reason": "explicit_requirement",
+        "relation": null,
+        "scope_evidence": [],
+        "section": "unspecified",
+        "skills": [
+          {
+            "evidence": {
+              "end": 11,
+              "field": "raw_text",
+              "fingerprint": "2bba4bda436c6167516cc2242cded72e98811d9f561ccc5cc6875eed5c77a760",
+              "jd_id": "1",
+              "namespace": "fixture",
+              "quote": "Python",
+              "start": 5
+            },
+            "name": "python"
+          }
+        ],
+        "state": "required",
+        "target": "candidate"
+      },
+      {
+        "condition": null,
+        "context": {
+          "end": 24,
+          "field": "raw_text",
+          "fingerprint": "2bba4bda436c6167516cc2242cded72e98811d9f561ccc5cc6875eed5c77a760",
+          "jd_id": "1",
+          "namespace": "fixture",
+          "quote": "必须掌握 Python。Python 经验优先。",
+          "start": 0
+        },
+        "degree": null,
+        "degree_evidence": null,
+        "evidence": {
+          "end": 23,
+          "field": "raw_text",
+          "fingerprint": "2bba4bda436c6167516cc2242cded72e98811d9f561ccc5cc6875eed5c77a760",
+          "jd_id": "1",
+          "namespace": "fixture",
+          "quote": "Python 经验优先",
+          "start": 12
+        },
+        "id": "s2",
+        "reason": "explicit_preference",
+        "relation": null,
+        "scope_evidence": [],
+        "section": "unspecified",
+        "skills": [
+          {
+            "evidence": {
+              "end": 18,
+              "field": "raw_text",
+              "fingerprint": "2bba4bda436c6167516cc2242cded72e98811d9f561ccc5cc6875eed5c77a760",
+              "jd_id": "1",
+              "namespace": "fixture",
+              "quote": "Python",
+              "start": 12
+            },
+            "name": "python"
+          }
+        ],
+        "state": "preferred",
+        "target": "candidate"
+      }
+    ]
+  }
+}
