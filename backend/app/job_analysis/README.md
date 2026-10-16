@@ -32,7 +32,7 @@ python -m pytest tests/test_job_analysis/test_role_governance.py tests/test_job_
 
 整轮单事务：提交前错误/硬退出无本轮结果，重跑原命令；提交后发布失败可 replay，不重读当前目录或重新解释主张。历史 UPDATE/DELETE/REPLACE 拒绝。所有输入必须在输出目录外；状态可以与输出共目录，沿用硬链接保护。CLI 退出 0 只表示本轮保存/发布成功，不等于分类完成或真实准确率。仅验证本机临时 SQLite 的进程中断，不承诺断电/损坏/网络盘恢复。未读取或改写 B3-0/1 建议报告；如需用作候选来源，调用者须另行显式提交原文证据，不能提升 primary_family_hint。
 
-验证证据、内部审查与边界见 [B3-2 实施报告](../../../docs/review/M2-stage-B3-2.md)。未接生产服务/真实模型/真实 JD，未启动 B4/M3/M4，不替代用户与 ChatGPT 的产品裁决及集中复审。
+验证证据、内部审查与边界见 [B3-2 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-2-implementation.md)。未接生产服务/真实模型/真实 JD，未启动 B4/M3/M4，不替代用户与 ChatGPT 的产品裁决及集中复审。
 
 ## 阶段 B3-1：七类目录与有限职责建议
 
