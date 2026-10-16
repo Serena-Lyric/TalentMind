@@ -40,7 +40,7 @@ M2 阶段 B1：JD 分层筛选的运行方式及输入输出契约见 [M2 README
 
 M2 第一阶段 A：独立事实基础层的运行方式、范围和接入契约见 [M2 README](../backend/app/job_analysis/README.md)，本轮验证及未决见 [历史实施报告](superpowers/archive/2026-10-15-M2-stage-A-implementation.md)（[PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 审查记录）。旧评估的“尚未实施”描述对应原评估时点。
 
-M2 B3-2（Issue #12）：[候选治理使用说明](../backend/app/job_analysis/README.md)、[实施计划](superpowers/plans/2026-10-16-m2-b3-2-canonical-governance.md)、[临时实施报告](review/M2-stage-B3-2.md)。正式目录为空，显式主张、关系与审核分开保存；不自动准入、分类或拆分职位。
+M2 B3-2（Issue #12）：[候选治理使用说明](../backend/app/job_analysis/README.md)、[实施计划](superpowers/plans/2026-10-16-m2-b3-2-canonical-governance.md)、[归档实施与复审报告](superpowers/archive/2026-10-16-M2-stage-B3-2-implementation.md)（[PR #13](https://github.com/Serena-Lyric/TalentMind/pull/13)）。正式目录为空，显式主张、关系与审核分开保存；不自动准入、分类或拆分职位。
 
 ## 分类子目录
 
