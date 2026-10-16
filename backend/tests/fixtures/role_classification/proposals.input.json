@@ -1,0 +1,72 @@
+[
+  {
+    "id": "software",
+    "source": "synthetic",
+    "job_title": "软件工程师",
+    "duties": "核心职责：开发后端接口并交付服务",
+    "raw_text": "核心职责：开发后端接口并交付服务"
+  },
+  {
+    "id": "quality",
+    "source": "synthetic",
+    "job_title": "测试工程师",
+    "duties": "核心职责：设计测试用例并交付测试报告",
+    "raw_text": "核心职责：设计测试用例并交付测试报告"
+  },
+  {
+    "id": "data",
+    "source": "synthetic",
+    "job_title": "算法工程师",
+    "duties": "核心职责：训练机器学习模型并交付预测模型",
+    "raw_text": "核心职责：训练机器学习模型并交付预测模型"
+  },
+  {
+    "id": "infra",
+    "source": "synthetic",
+    "job_title": "运维工程师",
+    "duties": "核心职责：维护云基础设施并保障系统可用性",
+    "raw_text": "核心职责：维护云基础设施并保障系统可用性"
+  },
+  {
+    "id": "security",
+    "source": "synthetic",
+    "job_title": "安全工程师",
+    "duties": "核心职责：排查网络安全漏洞并交付修复方案",
+    "raw_text": "核心职责：排查网络安全漏洞并交付修复方案"
+  },
+  {
+    "id": "embedded",
+    "source": "synthetic",
+    "job_title": "嵌入式工程师",
+    "duties": "核心职责：开发嵌入式驱动并交付固件",
+    "raw_text": "核心职责：开发嵌入式驱动并交付固件"
+  },
+  {
+    "id": "delivery",
+    "source": "synthetic",
+    "job_title": "实施工程师",
+    "duties": "核心职责：实施客户系统并交付集成方案",
+    "raw_text": "核心职责：实施客户系统并交付集成方案"
+  },
+  {
+    "id": "demo",
+    "source": "synthetic",
+    "job_title": "技术支持",
+    "duties": "负责向客户演示我司开发的软件产品，促进销售转化",
+    "raw_text": "负责向客户演示我司开发的软件产品，促进销售转化"
+  },
+  {
+    "id": "conflict",
+    "source": "synthetic",
+    "job_title": "软件工程师",
+    "duties": "核心职责：设计测试用例并交付测试报告",
+    "raw_text": "核心职责：设计测试用例并交付测试报告"
+  },
+  {
+    "id": "multiple",
+    "source": "synthetic",
+    "job_title": "工程师",
+    "duties": "招聘两个岗位：\n核心职责：开发后端接口并交付服务\n核心职责：设计测试用例并交付测试报告",
+    "raw_text": "招聘两个岗位：\n核心职责：开发后端接口并交付服务\n核心职责：设计测试用例并交付测试报告"
+  }
+]

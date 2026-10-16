@@ -1,5 +1,46 @@
 # job_analysis
 
+## 阶段 B3-1：七类目录与有限职责建议
+
+依据 [Issue #10](https://github.com/Serena-Lyric/TalentMind/issues/10) 与产品 M2-41～43，新增独立 `role_classification/proposals/`。只输出待审 family 候选、核心/辅助/未明确职责线索、标题对照与未决原因；不把程序建议写成 B3-0 的 known 断言。B1 范围、B2 技能和 B3 职业目录仍分层，入口不隐式运行其他阶段。
+
+工作目录 backend，显式合成输入、目录、数据集、状态和输出：
+
+```powershell
+python -m app.job_analysis.role_classification.proposals run --input tests/fixtures/role_classification/proposals.input.json --dataset synthetic-b31 --taxonomy app/job_analysis/role_classification/proposals/families.v1.json --state ../data/local/m2-b31/state.sqlite3 --output ../data/local/m2-b31/results
+python -m app.job_analysis.role_classification.proposals replay --run <run_id> --state ../data/local/m2-b31/state.sqlite3 --output ../data/local/m2-b31/replay
+python -m pytest tests/test_job_analysis/test_role_proposals.py tests/test_job_analysis/test_role_classification.py -q
+```
+
+`families.v1.json` 为独立 `b31-family-taxonomy-1` schema、revision=families-v1。七个 ID 与中文名成对冻结，拒绝缺项/重复/未知值；scope 文字与修订纳入内容版本。canonical_job、technology_tracks、seniority 目录仍为空。B3-0 的 empty/synthetic_example 解析、报告与源码完全不改；新增子包不进入旧 manifest 的顶层 *.py glob。
+
+| Stable ID | 显示名 | 首批试验动作/对象/成果（均非标准岗位名） |
+|---|---|---|
+| software_engineering | 软件研发 | 开发后端接口并交付服务；开发软件服务并交付应用；开发前端页面并交付应用 |
+| test_quality_engineering | 测试与质量工程 | 设计测试用例并交付测试报告 |
+| data_ai | 数据与人工智能 | 训练机器学习模型并交付预测模型；建设数据管道并交付数据集 |
+| infrastructure_operations | 基础设施与运维 | 维护云基础设施并保障系统可用性 |
+| network_information_security | 网络与信息安全 | 排查网络安全漏洞并交付修复方案 |
+| embedded_system_software | 嵌入式与系统软件 | 开发嵌入式驱动并交付固件 |
+| technical_services_delivery | 技术服务与交付 | 实施客户系统并交付集成方案；诊断客户系统复杂故障并交付修复方案；设计客户系统技术架构并交付技术方案；部署客户生产系统并完成系统验收 |
+
+### 试验语法与审核提示
+
+这是**封闭中文句式子集**，不作开放域匹配：整条分句须为上表动作/对象/成果之一，加“核心职责：/主要职责：/主要负责”（core）、“协助/辅助/配合”（auxiliary）或“负责”（unspecified）。中英文冒号均支持；句号、分号、换行分句，保留 Python 字符偏移与原字段，不搜索嵌套字符串或改写原文。单纯标题、技术词、“部署/演示/技术支持”不生成 family 候选。职责条数与词频不参与主辅判断。
+
+只给 family 层的 `primary_family_hint`，**不是 canonical_job 主岗位裁决**。一项显式核心家族且其余已识别工作均明确辅助、没有冲突或未解析职责时可提出 proposed；没有核心/多个核心/未明确主辅/标题冲突/未解析职责时 unresolved，hint=null。所有 proposed 也只 pending_review，不能当作已确认分类。全栈/复合词和有限多职位标记只提示复核，不拆分、不造 canonical_job 或独立职位数。未知材料允许完全没有 family 候选。
+
+公司介绍、历史项目、培训内容、示例、任职/技能要求、福利等已识别章节不用于当前职责候选；否定、条件、他人动作、产品演示及未覆盖句式保存未解析上下文，阻断主岗提示。duties 与 raw_text 均检查，正文相同则不重复处理；一个字段的候选分句若逐字出现在另一字段的排除/未解析语境内，撤销该分句候选并保留跨字段冲突，不能靠摘录丢掉来源语境。标题与唯一核心家族对照，不能因标题恰好对应辅助家族而消除冲突。原始 payload、标题线索、全部候选引文/身份/完整指纹与字段字符区间保存并逐字核验；未理解语境也保留原文。引文校验通过不能证明语义准确，复杂语境与未知章节仍有漏识别边界。
+
+### 版本、保存与恢复
+
+只追加 `b31_versions/inputs/results/reports` 及缺失的共享不可变 snapshots；不写 A/B1/B2/B3-0 运行、事实、heads、观察或四维断言。ProposalStore 打开时 recover=false，不恢复旧 A running 状态。明确输入的每条材料对应一个 member，保存 input_position、来源、观察与指纹；不隐式吸收历史未出现在本轮输入的 JD。
+
+复用键为完整 snapshot + version。版本包含目录全文/修订、显式 --rules-version、本子包及所调用公共源码 SHA-256；内容/身份/目录/源码/规则变化追加，纯观察时间变化可复用提取，但每轮观察独立留存。UPDATE/DELETE/REPLACE 被拒绝；整轮单事务，无隐式 resume。提交前失败重跑；提交后发布失败可 SELECT run_id FROM b31_reports 找回，replay 不加载当前目录或重新解释规则，核对报告与输入字节摘要后原样发布。输入和目录不能位于输出目录内；路径/锁/硬链接/原子发布沿用 A 的保护，状态库可以与输出共目录。
+
+分类始终 incomplete，正式统计资格恒 false；不输出岗位占比、需求率、匹配评分或 vacancy 数。只验证合成材料/临时 SQLite，真实 JD/模型效果未评测，生产迁移、B4/M3/M4 未执行；完整标准岗位目录、技术方向、级别、混合岗位细则与审核流程仍待确认。开发验证与遗留见 [B3-1 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-1-implementation.md)。
+
+
 ## 阶段 B3-0：岗位四维证据与版本基础
 
 Issue [#8](https://github.com/Serena-Lyric/TalentMind/issues/8) 的独立基础包 `role_classification/` 只读取显式 JD 和显式分类断言，不运行自然语言分类器。依据当前产品 M2-07～11，职业大类 `job_family`、主标准岗位 `canonical_job`、多项 `technology_tracks`、独立 `seniority` 分开保存；不约束成单父树，不从 B1 范围或 B2 技能推导分类。
