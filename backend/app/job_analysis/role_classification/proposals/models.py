@@ -136,4 +136,3 @@ def validate_proposal(record, body, taxonomy):
     elif hint is not None:
         raise ValueError("unresolved/unknown cannot propose a primary family")
     return item.model_dump()
-

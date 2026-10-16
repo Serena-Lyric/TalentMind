@@ -193,3 +193,213 @@ def test_proposal_boundary_rejects_foreign_or_fabricated_evidence(change):
     with pytest.raises(ValueError):
         validate_proposal(item, body, config())
 
+def batch(area, **changes):
+    return load(area, [dict(id=1, source="synthetic", job_title="工程师",
+        duties="核心职责：开发后端接口并交付服务", raw_text="核心职责：开发后端接口并交付服务") | changes])
+
+
+def run(store, source, **kwargs):
+    from app.job_analysis.role_classification.proposals.runner import execute
+    return execute(store, source, kwargs.pop("taxonomy", config()), **kwargs)
+
+
+def test_reuse_observation_content_identity_rules_and_catalog_changes_append(area, monkeypatch):
+    from app.job_analysis.role_classification.proposals import runner
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    with ProposalStore(area / "state.db") as store:
+        source = batch(area)
+        first = run(store, source)
+        reused = run(store, batch(area, crawled_at="2026-10-17"))
+        assert reused["members"][0]["result_id"] == first["members"][0]["result_id"]
+        assert reused["members"][0]["observation"] == "2026-10-17"
+        assert reused["members"][0]["input_position"] == 1
+        assert reused["members"][0]["reused"] is True
+        for changed in (dict(raw_text="不同正文"), dict(id=2), dict(requirements="Python")):
+            result = run(store, batch(area, **changed))
+            assert result["members"][0]["result_id"] != first["members"][0]["result_id"]
+        cat = config()
+        cat["revision"] = "families-v2"
+        revised = run(store, source, taxonomy=cat)
+        assert revised["version_id"] != first["version_id"]
+        cat["job_family"][0]["scope"] += " 版本边界说明"
+        assert run(store, source, taxonomy=cat)["version_id"] != revised["version_id"]
+        assert run(store, source, revision="v2")["version_id"] != first["version_id"]
+        manifest = runner.version_manifest
+        monkeypatch.setattr(runner, "version_manifest", lambda t, r: manifest(t, r) | dict(changed_source="simulation"))
+        assert run(store, source)["members"][0]["result_id"] != first["members"][0]["result_id"]
+        assert runner.replay(store, first["run_id"]) == first
+
+
+def test_manifest_hashes_rules_catalog_validation_and_transitive_sources():
+    from app.job_analysis.role_classification.proposals.runner import version_manifest
+    value = version_manifest(config(), "v1")
+    assert value["taxonomy"] == config()
+    hashes = value["source_sha256"]
+    for name in ("role_classification/proposals/rules.py", "role_classification/proposals/models.py",
+                 "role_classification/validation.py", "role_classification/models.py",
+                 "foundation/inputs.py", "foundation/models.py", "foundation/store.py", "foundation/runner.py",
+                 "semantics/models.py"):
+        assert len(hashes[name]) == 64
+
+
+def test_new_proposal_does_not_mutate_any_existing_layer_or_b30_manifest(area):
+    from app.job_analysis.foundation.store import AnalysisStore
+    from app.job_analysis.foundation.__main__ import LiteralDemoAnalyzer
+    from app.job_analysis.foundation.runner import execute as a
+    from app.job_analysis.screening.store import ScreeningStore
+    from app.job_analysis.screening.runner import execute as b1
+    from app.job_analysis.semantics.store import SemanticStore
+    from app.job_analysis.semantics.runner import execute as b2
+    from app.job_analysis.governance.store import GovernanceStore
+    from app.job_analysis.governance.runner import execute as b22
+    from app.job_analysis.role_classification.store import RoleStore
+    from app.job_analysis.role_classification.runner import execute as b30, replay as replay30, version_manifest
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    from test_role_classification import taxonomy, annotation
+    state, source = area / "state.db", batch(area)
+    old_manifest = version_manifest(taxonomy(), "v1")
+    with AnalysisStore(state) as store:
+        a(store, source, LiteralDemoAnalyzer())
+        with store.conn:
+            store.conn.execute("UPDATE runs SET status='running'")
+    with ScreeningStore(state) as store:
+        scope = json.loads((CATALOG.parents[2] / "screening/software-related.offline.json").read_text(encoding="utf-8"))
+        b1(store, source.path, source.namespace, scope=scope)
+    with SemanticStore(state) as store:
+        old_b2 = b2(store, source)
+    with GovernanceStore(state) as store:
+        b22(store, old_b2["run_id"])
+    with RoleStore(state) as store:
+        old = b30(store, source, [annotation(source.records[0])], taxonomy())
+        tables = [r[0] for r in store.conn.execute("SELECT name FROM sqlite_master WHERE type='table'")]
+        before = {t: [tuple(r) for r in store.conn.execute(f'SELECT * FROM "{t}"')] for t in tables}
+    with ProposalStore(state) as store:
+        new = run(store, source)
+        assert new["members"][0]["body"]["candidates"][0]["family_id"] == "software_engineering"
+        for table, rows in before.items():
+            assert [tuple(r) for r in store.conn.execute(f'SELECT * FROM "{table}"')] == rows, table
+        assert replay30(store, old["run_id"]) == old
+        assert version_manifest(taxonomy(), "v1") == old_manifest
+        assert store.conn.execute("PRAGMA user_version").fetchone()[0] == 1
+
+
+@pytest.mark.parametrize("kind", ["bytes", "records", "namespace", "duplicate"])
+def test_forged_batch_is_rejected_atomically(area, kind):
+    from dataclasses import replace
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    source = batch(area)
+    source = (replace(source, raw_bytes=b"[]") if kind == "bytes" else
+              replace(source, records=(record("伪造"),)) if kind == "records" else
+              replace(source, namespace="other") if kind == "namespace" else
+              replace(source, records=source.records * 2))
+    with ProposalStore(area / "state.db") as store:
+        with pytest.raises(ValueError):
+            run(store, source)
+        for table in ("snapshots", "b31_inputs", "b31_results", "b31_reports", "b31_versions"):
+            assert store.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
+
+
+@pytest.mark.parametrize("stage", ["after_result", "before_commit", "after_commit"])
+def test_interruption_rolls_back_or_replays_exact_saved_report(area, monkeypatch, stage):
+    from app.job_analysis.role_classification.proposals import runner
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    def fail(point):
+        if point == stage:
+            raise RuntimeError("interrupted")
+    with ProposalStore(area / "state.db") as store:
+        monkeypatch.setattr(runner, "checkpoint", fail)
+        with pytest.raises(RuntimeError):
+            run(store, batch(area))
+        count = int(stage == "after_commit")
+        for table in ("b31_inputs", "b31_results", "b31_versions", "b31_reports", "snapshots"):
+            assert store.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == count
+        monkeypatch.setattr(runner, "checkpoint", lambda _: None)
+        again = run(store, batch(area))
+        assert again["members"][0]["reused"] is bool(count)
+
+
+def test_immutable_tables_and_publication_recovery_without_current_rules(area, monkeypatch):
+    import sqlite3
+    from app.job_analysis.role_classification.proposals import runner
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    from app.job_analysis.foundation.runner import publish
+    with ProposalStore(area / "state.db") as store:
+        def fail(*args):
+            raise OSError("output interrupted")
+        monkeypatch.setattr(runner, "publish", fail)
+        with pytest.raises(OSError):
+            run(store, batch(area), output=area / "out")
+        run_id = store.conn.execute("SELECT run_id FROM b31_reports").fetchone()[0]
+        monkeypatch.setattr(runner, "suggest", lambda *args: (_ for _ in ()).throw(AssertionError("must not reinterpret")))
+        saved = runner.replay(store, run_id)
+        artifact = publish(saved, area / "out", run_id)
+        assert json.loads(artifact.read_text(encoding="utf-8")) == saved
+        artifact.write_text("different", encoding="utf-8")
+        with pytest.raises(ValueError):
+            publish(saved, area / "out", run_id)
+        for table in ("b31_inputs", "b31_results", "b31_versions", "b31_reports"):
+            for sql in (f"DELETE FROM {table}", f"UPDATE {table} SET rowid=rowid", f"INSERT OR REPLACE INTO {table} SELECT * FROM {table}"):
+                with pytest.raises(sqlite3.IntegrityError):
+                    with store.conn:
+                        store.conn.execute(sql)
+
+
+def test_cli_run_replay_and_output_protection(area):
+    from app.job_analysis.role_classification.proposals.__main__ import main
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    source = batch(area)
+    cat = area / "families.json"
+    cat.write_text(json.dumps(config()), encoding="utf-8")
+    state, out = area / "state.db", area / "out"
+    args = ["run", "--input", str(source.path), "--dataset", "fixture", "--taxonomy", str(cat),
+            "--state", str(state), "--output", str(out)]
+    assert main(args) == 0
+    original = json.loads(next(out.glob("*.json")).read_text(encoding="utf-8"))
+    source.path.unlink()
+    cat.unlink()
+    assert main(["replay", "--run", original["run_id"], "--state", str(state), "--output", str(area / "replay")]) == 0
+    assert json.loads(next((area / "replay").glob("*.json")).read_text(encoding="utf-8")) == original
+    source = batch(area)
+    cat.write_text(json.dumps(config()), encoding="utf-8")
+    assert main(args[:-1] + [str(area)]) == 2
+    assert main(["replay", "--run", original["run_id"], "--state", str(state), "--output", str(area)]) == 2
+    with ProposalStore(state) as store:
+        assert store.conn.execute("SELECT COUNT(*) FROM b31_reports").fetchone()[0] == 1
+
+
+@pytest.mark.parametrize("stage", ["after_result", "before_commit", "after_commit", "after_stage_output", "after_output"])
+def test_real_process_exit_preserves_transaction_and_output_replay(area, stage):
+    import subprocess
+    import sys
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    from app.job_analysis.role_classification.proposals.runner import replay
+    from app.job_analysis.foundation.runner import publish
+    source = batch(area)
+    script = """
+import os, socket, sys
+def blocked(*args, **kwargs): raise AssertionError("network forbidden")
+socket.socket.connect = socket.socket.connect_ex = blocked
+from app.job_analysis.foundation.inputs import read_snapshot
+from app.job_analysis.role_classification.proposals import runner
+from app.job_analysis.role_classification.proposals.models import load_taxonomy
+from app.job_analysis.foundation import runner as publication
+from app.job_analysis.role_classification.proposals.store import ProposalStore
+def stop(point):
+    if point == sys.argv[2]: os._exit(73)
+runner.checkpoint = publication.checkpoint = stop
+with ProposalStore(sys.argv[3]) as store:
+    runner.execute(store, read_snapshot(sys.argv[1], "fixture"), load_taxonomy(sys.argv[5]), output=sys.argv[4])
+"""
+    state, out = area / "state.db", area / "out"
+    proc = subprocess.run([sys.executable, "-c", script, str(source.path), stage, str(state), str(out), str(CATALOG)], capture_output=True)
+    assert proc.returncode == 73, proc.stderr
+    with ProposalStore(state) as store:
+        rows = store.conn.execute("SELECT run_id FROM b31_reports").fetchall()
+        assert len(rows) == int(stage not in ("after_result", "before_commit"))
+        if rows:
+            saved = replay(store, rows[0][0])
+            publish(saved, out, saved["run_id"])
+            assert json.loads(next(out.glob("*.json")).read_text(encoding="utf-8")) == saved
+            assert not list(out.glob("*.tmp"))
+        else:
+            assert store.conn.execute("SELECT COUNT(*) FROM b31_results").fetchone()[0] == 0

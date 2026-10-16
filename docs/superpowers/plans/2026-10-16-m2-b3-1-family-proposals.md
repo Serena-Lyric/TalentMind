@@ -46,4 +46,3 @@ Files: PRODUCT_DECISIONS、决策跟踪、M2 README、资产与状态、docs/rev
 - [ ] 跑完整阻网非集成回归，报告 skipped/deselected/警告/连接尝试与 finally 清理。
 - [ ] 独立只读内部代码审查，定向 RED→GREEN 修复，保留 ChatGPT 外部复审。
 - [ ] 检查链接/diff/原工作区；独立提交推送，创建 master PR 并附实施报告。
-

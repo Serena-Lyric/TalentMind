@@ -116,4 +116,3 @@ def suggest(record, taxonomy):
         classification_complete=False, formal_statistics_eligible=False,
         semantic_validation="finite_deterministic_suggestions_only")
     return validate_proposal(record, body, taxonomy)
-
