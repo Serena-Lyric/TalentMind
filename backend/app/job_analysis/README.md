@@ -38,7 +38,7 @@ python -m pytest tests/test_job_analysis/test_role_proposals.py tests/test_job_a
 
 复用键为完整 snapshot + version。版本包含目录全文/修订、显式 --rules-version、本子包及所调用公共源码 SHA-256；内容/身份/目录/源码/规则变化追加，纯观察时间变化可复用提取，但每轮观察独立留存。UPDATE/DELETE/REPLACE 被拒绝；整轮单事务，无隐式 resume。提交前失败重跑；提交后发布失败可 SELECT run_id FROM b31_reports 找回，replay 不加载当前目录或重新解释规则，核对报告与输入字节摘要后原样发布。输入和目录不能位于输出目录内；路径/锁/硬链接/原子发布沿用 A 的保护，状态库可以与输出共目录。
 
-分类始终 incomplete，正式统计资格恒 false；不输出岗位占比、需求率、匹配评分或 vacancy 数。只验证合成材料/临时 SQLite，真实 JD/模型效果未评测，生产迁移、B4/M3/M4 未执行；完整标准岗位目录、技术方向、级别、混合岗位细则与审核流程仍待确认。开发验证与遗留见 [B3-1 实施报告](../../../docs/review/M2-stage-B3-1.md)。
+分类始终 incomplete，正式统计资格恒 false；不输出岗位占比、需求率、匹配评分或 vacancy 数。只验证合成材料/临时 SQLite，真实 JD/模型效果未评测，生产迁移、B4/M3/M4 未执行；完整标准岗位目录、技术方向、级别、混合岗位细则与审核流程仍待确认。开发验证与遗留见 [B3-1 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-1-implementation.md)。
 
 
 ## 阶段 B3-0：岗位四维证据与版本基础
