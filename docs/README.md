@@ -6,13 +6,13 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
-| [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案的主要依据；M2-01～43、相关 M1 输入原则与待决策；已确认不等于已实现 |
+| [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案的主要依据；M2-01～44、相关 M1 输入原则与待决策；已确认不等于已实现 |
 | [README.md](../README.md) | 项目总览、带日期的模块状态、启动/测试、目录边界 |
 | [AGENT_START_HERE.md](../AGENT_START_HERE.md) | 少量核心阅读 + M1–M5 选读，不要求逐文件复述 |
 | [AGENTS.md](../AGENTS.md) | 通用规则、安全边界、分阶段开发/审查/授权合并的唯一维护入口 |
 | [CLAUDE.md](../CLAUDE.md) | Claude 补充约束，避免复制 AGENTS |
 | 根目录 `A_AGENT_HANDOVER.md` | A 角色（M1 + 集成）专属路线与交接 |
-| [决策跟踪](superpowers/决策跟踪.md) | 保留历史决策并追加至 D82（含阶段 A、B1、B2 两轮与 B3-1）；当前产品规则查主文档 |
+| [决策跟踪](superpowers/决策跟踪.md) | 保留历史决策并追加至 D83（含阶段 A、B1、B2 两轮与 B3）；当前产品规则查主文档 |
 | [DDL](../backend/app/contracts/ddl.sql)及同目录契约 | 当前源码契约，接口/存储/集成任务必读；产品更新不直接授权迁移 |
 | [资产与状态](superpowers/资产与状态.md) | 按任务模块读资产/已知限制/证据日期；实现仍须核对代码与测试 |
 | [未决问题清单](superpowers/未决问题清单.md) | 历史遗留/待办；新 M2 产品未决统一查 PRODUCT_DECISIONS 第 5 节 |
@@ -39,6 +39,8 @@ M2 B2 第一轮：技能要求语义离线实现及限制见 [M2 README](../back
 M2 阶段 B1：JD 分层筛选的运行方式及输入输出契约见 [M2 README](../backend/app/job_analysis/README.md)，[历史实施与复审报告](superpowers/archive/2026-10-15-M2-stage-B1-implementation.md)（[PR #5](https://github.com/Serena-Lyric/TalentMind/pull/5)）。轻规则与合成测试不能代替真实 JD 准确率验证。
 
 M2 第一阶段 A：独立事实基础层的运行方式、范围和接入契约见 [M2 README](../backend/app/job_analysis/README.md)，本轮验证及未决见 [历史实施报告](superpowers/archive/2026-10-15-M2-stage-A-implementation.md)（[PR #4](https://github.com/Serena-Lyric/TalentMind/pull/4) 审查记录）。旧评估的“尚未实施”描述对应原评估时点。
+
+M2 B3-2（Issue #12）：[候选治理使用说明](../backend/app/job_analysis/README.md)、[实施计划](superpowers/plans/2026-10-16-m2-b3-2-canonical-governance.md)、[临时实施报告](review/M2-stage-B3-2.md)。正式目录为空，显式主张、关系与审核分开保存；不自动准入、分类或拆分职位。
 
 ## 分类子目录
 

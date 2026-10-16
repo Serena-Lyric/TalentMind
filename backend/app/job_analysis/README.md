@@ -1,5 +1,39 @@
 # job_analysis
 
+## 阶段 B3-2：标准岗位候选与关系治理（离线）
+
+依据 [Issue #12](https://github.com/Serena-Lyric/TalentMind/issues/12)，新增独立 `role_classification/governance/`，只录入**显式候选主张**，不运行自然语言岗位提取器。`catalog.empty.v1.json` 的正式目录恒空，候选、待审关系、审核事件和正式发布分别表达；没有正式发布或自动准入接口。产品仅追加用户已确认的 M2-44 多核心未决原则，具体名单、粒度、复合边界、发布条件仍待决策。
+
+工作目录 backend；示例为纯合成 JD 与待审核的 Codex 标注，不能当作正式目录或人工真值：
+
+```powershell
+python -m app.job_analysis.role_classification.governance run --input tests/fixtures/role_classification/governance.input.json --dataset synthetic-b32 --submission tests/fixtures/role_classification/governance.submission.json --catalog app/job_analysis/role_classification/governance/catalog.empty.v1.json --state ../data/local/m2-b32/state.sqlite3 --output ../data/local/m2-b32/results
+python -m app.job_analysis.role_classification.governance replay --run <run_id> --state ../data/local/m2-b32/state.sqlite3 --output ../data/local/m2-b32/replay
+python -m app.job_analysis.role_classification.governance review --result <result_id> --event <explicit-review.json> --state ../data/local/m2-b32/state.sqlite3
+python -m app.job_analysis.role_classification.governance export-reviews --run <original_run_id> --state ../data/local/m2-b32/state.sqlite3 --output ../data/local/m2-b32/reviews
+python -m pytest tests/test_job_analysis/test_role_governance.py tests/test_job_analysis/test_role_governance_storage.py -q --tb=short
+```
+
+无独立 venv 的工作树可使用已安装 requirements 的 Python 绝对路径。输入沿用 A 的显式 JSON/JSONL；submission/catalog/review 为严格 JSON（拒绝重复键、额外字段和凭据字段）。所有身份、完整指纹、字段及 Python 字符 `[start,end)` 逐字核验；原名必须有完全相同的原文引文，可能规范名只是主张。每条保存完整 source_payload、标题/职责引文及候选所引字段的完整上下文。否定、历史、公司介绍等语境不丢失，但**不作自动语义判断**；可定位的引文仍只是待审核主张，不升级为当前招聘事实。
+
+候选有稳定 ID、raw_name/proposed_name、来源类型/提议人、synthetic_only、外部声明的 core/auxiliary/unspecified、零个或多个 family 候选及未决原因。ID 在本轮所有候选/关系中唯一，跨版本以 result_id/result_version 区分，旧版本不覆盖。family 只校验七类 ID，不决定单一归属。技术栈 `technology_stack` 不进入主岗位候选集合；复合职业只标 `mature_composite_candidate`，不认定成熟、不拆岗位。主岗位有候选时保守 unresolved，没有则 unknown；不从单个候选自动裁决。多个 core 全部保留，possible_multiple_positions 也须显式标注及证据，不生成 vacancy 数、需求率、岗位占比或匹配分。
+
+关系只支持 synonym、related_to、specialization_of、technology_direction_of、possible_composite_of 的**待复核提案**，目标必须是同一来源/本轮候选，不能跨快照偷换名称。即使 synonym 也不建立生产映射；其余关系不作同义、传递或替代。名称比较仅用于审计，不修改原词：逐 JD 与整轮目录均保留同名/多目标，多个 synonym 目标单独审计，不用字典覆盖顺序裁决。跨 JD 关系尚未支持，不能用本轮关系结构当正式职业本体。
+
+### 审核契约与准入门禁
+
+显式 review JSON 包含：`target_kind`（candidate/relation）、`target_id`、`result_version`、`decision`（reviewed_accepted/reviewed_rejected/deferred/withdrawn）、`reviewer`、`basis`、`evidence_refs`（本条完整 Evidence 数组）、`supersedes`（先前事件 ID 或 null）、`formal_admitted:false`。result_id 与 result_version 从原报告 members 取得；后者绑定目录/规则/实际源码、完整提交与结果正文，候选内容或依赖变更后不能复用旧审核。撤回必须指向同结果/同目标/同版本的先前事件；其他变更也可显式关联 supersedes。非空归因和本 JD 证据必须通过检查；程序不能证明署名身份或依据的语义真实性。
+
+审核事件只追加，不修改候选或原报告的 pending_review。接受是离线审查意见，formal_admitted 永远 false、正式目录仍空。`store.reviews(result_id)` 返回顺序事件，不把最后一条事件自动解释成最终准入。`export-reviews` 保存一个不可变的事件截面，含旧候选正文和历史；stdout 给 export_id，后续可用 `replay --run <export_id>` 原样恢复该截面，后来的审核不改变旧导出。发布失败可查询 b32_reports/b32_exports 找回 ID 再 replay。
+
+### 存储与版本边界
+
+复用 A 的 AnalysisStore（recover=false）、不可变 snapshots、锁、路径保护及原子发布；共库只追加 b32_versions/inputs/results/reports/reviews/exports，不恢复旧 A running，不写旧层的事实、观察、报告或 heads。独立子包不进入旧 B3-0/1 源码 glob，旧版本清单及 replay 保持。全轮原始输入字节、完整提交、目录/显式 revision/实际源码 SHA-256 及报告均保存；结果按 snapshot + 完整 submission 摘要 + 版本精确复用。提交任意变化保守使本轮结果失效，不做未经确认的细粒度裁剪。只改观察时间可复用结果，各轮 observation 独立保存。
+
+整轮单事务：提交前错误/硬退出无本轮结果，重跑原命令；提交后发布失败可 replay，不重读当前目录或重新解释主张。历史 UPDATE/DELETE/REPLACE 拒绝。所有输入必须在输出目录外；状态可以与输出共目录，沿用硬链接保护。CLI 退出 0 只表示本轮保存/发布成功，不等于分类完成或真实准确率。仅验证本机临时 SQLite 的进程中断，不承诺断电/损坏/网络盘恢复。未读取或改写 B3-0/1 建议报告；如需用作候选来源，调用者须另行显式提交原文证据，不能提升 primary_family_hint。
+
+验证证据、内部审查与边界见 [B3-2 实施报告](../../../docs/review/M2-stage-B3-2.md)。未接生产服务/真实模型/真实 JD，未启动 B4/M3/M4，不替代用户与 ChatGPT 的产品裁决及集中复审。
+
 ## 阶段 B3-1：七类目录与有限职责建议
 
 依据 [Issue #10](https://github.com/Serena-Lyric/TalentMind/issues/10) 与产品 M2-41～43，新增独立 `role_classification/proposals/`。只输出待审 family 候选、核心/辅助/未明确职责线索、标题对照与未决原因；不把程序建议写成 B3-0 的 known 断言。B1 范围、B2 技能和 B3 职业目录仍分层，入口不隐式运行其他阶段。
