@@ -28,7 +28,7 @@ M1 第二阶段验收记录：[PR #1](https://github.com/Serena-Lyric/TalentMind
 
 M2 第一轮只读评估：[历史评估与源码证据](superpowers/archive/2026-10-15-M2-architecture-gap-assessment.md)（[PR #3](https://github.com/Serena-Lyric/TalentMind/pull/3)）；包含真实调用证据、24 项目标差距、阶段依赖、最小改造建议与待裁决项。仅用于后续设计参考，新方案尚未实施。
 
-M2 B2 第二轮：名称/类别/候选与评测基础见 [M2 README](../backend/app/job_analysis/README.md)，[临时阶段报告](review/M2-stage-B2-2.md)；正式准入关闭，合成程序自检不等于人工真值或真实效果。
+M2 B2 第二轮：名称/类别/候选与评测基础见 [M2 README](../backend/app/job_analysis/README.md)，[归档实施与复审报告](superpowers/archive/2026-10-16-M2-stage-B2-2-implementation.md)（[PR #7](https://github.com/Serena-Lyric/TalentMind/pull/7)）；正式准入关闭，合成程序自检不等于人工真值或真实效果。
 
 M2 B2 第一轮：技能要求语义离线实现及限制见 [M2 README](../backend/app/job_analysis/README.md)，[审查与验证归档](superpowers/archive/2026-10-16-M2-stage-B2-1-implementation.md)（[PR #6](https://github.com/Serena-Lyric/TalentMind/pull/6)）；独立复审通过，不代表真实 JD 语料效果已验证。
 
