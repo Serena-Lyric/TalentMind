@@ -1,0 +1,480 @@
+{
+  "schema_version": "b22-benchmark-1",
+  "dataset_id": "synthetic-b22-v1",
+  "corpus_kind": "synthetic",
+  "reference": {
+    "method": "synthetic_test_oracle",
+    "review_status": "pending_human_review",
+    "reviewer": null,
+    "legal_use": null,
+    "version": "v1",
+    "note": "Codex authored literal synthetic expectations, individually source-checked; pending human review. Calculator/adapter self-test only, never semantic truth or real-corpus accuracy."
+  },
+  "samples": [
+    {
+      "id": "synonym",
+      "input_row": {
+        "id": "synonym",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须掌握 JS。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "javascript",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 7,
+              "quote": "JS"
+            },
+            "state": "required",
+            "category": "technical_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "version",
+      "input_row": {
+        "id": "version",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须掌握 Vue 3。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "vue@3",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 10,
+              "quote": "Vue 3"
+            },
+            "state": "required",
+            "category": "technical_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "conditions",
+      "input_row": {
+        "id": "conditions",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "三年以上 Java 开发经验。本科及以上学历。具备金融行业经验。持有 PMP 证书。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "java",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 9,
+              "quote": "Java"
+            },
+            "state": "required",
+            "category": "technical_skill",
+            "requirement_object": "experience"
+          }
+        ],
+        "non_skills": [
+          {
+            "name": "work_years",
+            "evidence": {
+              "field": "raw_text",
+              "start": 0,
+              "end": 14,
+              "quote": "三年以上 Java 开发经验"
+            }
+          },
+          {
+            "name": "education",
+            "evidence": {
+              "field": "raw_text",
+              "start": 15,
+              "end": 22,
+              "quote": "本科及以上学历"
+            }
+          },
+          {
+            "name": "domain_experience",
+            "evidence": {
+              "field": "raw_text",
+              "start": 25,
+              "end": 31,
+              "quote": "金融行业经验"
+            }
+          },
+          {
+            "name": "credential",
+            "evidence": {
+              "field": "raw_text",
+              "start": 32,
+              "end": 41,
+              "quote": "持有 PMP 证书"
+            }
+          }
+        ],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "candidate",
+      "input_row": {
+        "id": "candidate",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须掌握 UnlistedLang。"
+      },
+      "annotations": {
+        "skills": [],
+        "non_skills": [],
+        "candidates": [
+          {
+            "name": "UnlistedLang",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 17,
+              "quote": "UnlistedLang"
+            }
+          }
+        ],
+        "groups": []
+      }
+    },
+    {
+      "id": "fake-skills",
+      "input_row": {
+        "id": "fake-skills",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "公司名称：AcmeLabs。福利：五险一金。"
+      },
+      "annotations": {
+        "skills": [],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "any",
+      "input_row": {
+        "id": "any",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "Java 或 Python 至少掌握一种。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "java",
+            "evidence": {
+              "field": "raw_text",
+              "start": 0,
+              "end": 4,
+              "quote": "Java"
+            },
+            "state": "mentioned",
+            "category": "technical_skill"
+          },
+          {
+            "name": "python",
+            "evidence": {
+              "field": "raw_text",
+              "start": 7,
+              "end": 13,
+              "quote": "Python"
+            },
+            "state": "mentioned",
+            "category": "technical_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": [
+          {
+            "relation": "any_of",
+            "state": "required",
+            "members": [
+              "java",
+              "python"
+            ],
+            "member_states": {
+              "java": "mentioned",
+              "python": "mentioned"
+            },
+            "evidence": {
+              "field": "raw_text",
+              "start": 0,
+              "end": 20,
+              "quote": "Java 或 Python 至少掌握一种"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "all",
+      "input_row": {
+        "id": "all",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须同时掌握 Java 和 Python。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "java",
+            "evidence": {
+              "field": "raw_text",
+              "start": 7,
+              "end": 11,
+              "quote": "Java"
+            },
+            "state": "mentioned",
+            "category": "technical_skill"
+          },
+          {
+            "name": "python",
+            "evidence": {
+              "field": "raw_text",
+              "start": 14,
+              "end": 20,
+              "quote": "Python"
+            },
+            "state": "mentioned",
+            "category": "technical_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": [
+          {
+            "relation": "all_of",
+            "state": "required",
+            "members": [
+              "java",
+              "python"
+            ],
+            "member_states": {
+              "java": "mentioned",
+              "python": "mentioned"
+            },
+            "evidence": {
+              "field": "raw_text",
+              "start": 0,
+              "end": 20,
+              "quote": "必须同时掌握 Java 和 Python"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "professional",
+      "input_row": {
+        "id": "professional",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须掌握 系统设计。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "系统设计",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 9,
+              "quote": "系统设计"
+            },
+            "state": "required",
+            "category": "professional_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "engineering",
+      "input_row": {
+        "id": "engineering",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须掌握 单元测试。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "单元测试",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 9,
+              "quote": "单元测试"
+            },
+            "state": "required",
+            "category": "engineering_practice"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "soft",
+      "input_row": {
+        "id": "soft",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "必须具备 团队协作。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "团队协作",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 9,
+              "quote": "团队协作"
+            },
+            "state": "required",
+            "category": "soft_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "negative-degree",
+      "input_row": {
+        "id": "negative-degree",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "不要求精通 Python。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "python",
+            "evidence": {
+              "field": "raw_text",
+              "start": 6,
+              "end": 12,
+              "quote": "Python"
+            },
+            "state": "not_required",
+            "category": "technical_skill",
+            "degree": "expert",
+            "requirement_object": "capability"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "experience-object",
+      "input_row": {
+        "id": "experience-object",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "Python 经验优先。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "python",
+            "evidence": {
+              "field": "raw_text",
+              "start": 0,
+              "end": 6,
+              "quote": "Python"
+            },
+            "state": "preferred",
+            "category": "technical_skill",
+            "requirement_object": "experience"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "mentioned",
+      "input_row": {
+        "id": "mentioned",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "技术栈：Python。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "python",
+            "evidence": {
+              "field": "raw_text",
+              "start": 4,
+              "end": 10,
+              "quote": "Python"
+            },
+            "state": "mentioned",
+            "category": "technical_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    },
+    {
+      "id": "uncertain",
+      "input_row": {
+        "id": "uncertain",
+        "source": "synthetic",
+        "job_title": "工程师",
+        "raw_text": "可能要求 Python，具体待定。"
+      },
+      "annotations": {
+        "skills": [
+          {
+            "name": "python",
+            "evidence": {
+              "field": "raw_text",
+              "start": 5,
+              "end": 11,
+              "quote": "Python"
+            },
+            "state": "uncertain",
+            "category": "technical_skill"
+          }
+        ],
+        "non_skills": [],
+        "candidates": [],
+        "groups": []
+      }
+    }
+  ]
+}
