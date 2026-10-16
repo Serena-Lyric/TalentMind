@@ -1,5 +1,4 @@
 """Finite synthetic grammar checks, not real JD accuracy."""
-import copy
 import json
 import socket
 from pathlib import Path
@@ -298,6 +297,57 @@ def test_forged_batch_is_rejected_atomically(area, kind):
         for table in ("snapshots", "b31_inputs", "b31_results", "b31_reports", "b31_versions"):
             assert store.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
 
+def test_actual_source_bytes_change_appends_b31_but_does_not_change_b30_manifest(area, monkeypatch):
+    import shutil
+    from app.job_analysis.role_classification.proposals import runner
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    from app.job_analysis.role_classification.runner import version_manifest as b30_manifest
+    from test_role_classification import taxonomy
+    root = Path(runner.__file__).resolve().parents[2]
+    copied = area / "copied_job_analysis"
+    files = runner.version_manifest(config(), "v1")["source_sha256"]
+    for relative in files:
+        target = copied / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(root / relative, target)
+    before_b30 = b30_manifest(taxonomy(), "v1")
+    monkeypatch.setattr(runner, "__file__", str(copied / "role_classification/proposals/runner.py"))
+    source = batch(area)
+    with ProposalStore(area / "state.db") as store:
+        first = run(store, source)
+        path = copied / "role_classification/proposals/rules.py"
+        path.write_text(path.read_text(encoding="utf-8") + "\n# Simulated source revision\n", encoding="utf-8")
+        next_run = run(store, source)
+        assert next_run["version_id"] != first["version_id"]
+        assert next_run["members"][0]["result_id"] != first["members"][0]["result_id"]
+        assert runner.replay(store, first["run_id"]) == first
+    assert b30_manifest(taxonomy(), "v1") == before_b30
+
+
+def test_open_does_not_recover_running_a_and_rejects_legacy_state(area):
+    import sqlite3
+    from contextlib import closing
+    from app.job_analysis.foundation.store import AnalysisStore
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    path = area / "state.db"
+    source = batch(area)
+    with AnalysisStore(path) as store:
+        run_id = store.ingest(source)
+        with store.conn:
+            store.conn.execute("UPDATE runs SET status='running' WHERE id=?", (run_id,))
+        before = [tuple(r) for r in store.conn.execute("SELECT * FROM runs")]
+    with ProposalStore(path) as store:
+        run(store, source)
+        assert [tuple(r) for r in store.conn.execute("SELECT * FROM runs")] == before
+    legacy = area / "legacy.db"
+    with closing(sqlite3.connect(legacy)) as conn:
+        conn.execute("CREATE TABLE legacy (body TEXT)")
+        conn.commit()
+    before_bytes = legacy.read_bytes()
+    with pytest.raises(ValueError):
+        ProposalStore(legacy)
+    assert legacy.read_bytes() == before_bytes
+
 
 @pytest.mark.parametrize("stage", ["after_result", "before_commit", "after_commit"])
 def test_interruption_rolls_back_or_replays_exact_saved_report(area, monkeypatch, stage):
@@ -403,3 +453,52 @@ with ProposalStore(sys.argv[3]) as store:
             assert not list(out.glob("*.tmp"))
         else:
             assert store.conn.execute("SELECT COUNT(*) FROM b31_results").fetchone()[0] == 0
+
+@pytest.mark.parametrize("heading", ["公司介绍：", "历史项目：", "培训内容：", "示例：", "公司介绍\n", "历史项目\n"])
+@pytest.mark.parametrize("duties_first", [True, False])
+def test_extracted_duties_cannot_override_explicit_non_current_source_context(heading, duties_first):
+    clause = "核心职责：开发后端接口并交付服务"
+    item = record(clause if duties_first else heading + clause,
+                  raw_text=heading + clause if duties_first else clause)
+    body = suggest(item)
+    assert body["candidates"] == []
+    assert body["primary_family_hint"] is None
+    assert body["resolution"] == "unresolved"
+    assert "cross_field_context_conflict" in body["reasons"]
+    assert body["source_payload"] == item.payload
+
+
+def test_auxiliary_title_match_cannot_hide_title_core_responsibility_conflict():
+    body = suggest(record("核心职责：开发后端接口并交付服务。协助设计测试用例并交付测试报告", title="测试工程师"))
+    assert body["resolution"] == "unresolved"
+    assert body["primary_family_hint"] is None
+    assert "title_duties_conflict" in body["reasons"]
+    assert {c["family_id"] for c in body["candidates"]} == {"software_engineering", "test_quality_engineering"}
+
+
+def test_supported_current_work_with_same_company_background_keeps_candidates_but_no_primary():
+    clause = "核心职责：开发后端接口并交付服务"
+    body = suggest(record(clause, raw_text="公司介绍：" + clause + "\n岗位职责：" + clause))
+    assert [c["family_id"] for c in body["candidates"]] == ["software_engineering"]
+    assert body["resolution"] == "unresolved"
+    assert body["primary_family_hint"] is None
+    assert all(c["evidence"]["field"] == "raw_text" for c in body["candidates"][0]["clues"])
+
+
+def test_late_foreign_evidence_failure_rolls_back_whole_new_run(area, monkeypatch):
+    from app.job_analysis.role_classification.proposals import runner
+    from app.job_analysis.role_classification.proposals.store import ProposalStore
+    source = load(area, [dict(id=i, source="synthetic", job_title="工程师",
+        raw_text="核心职责：开发后端接口并交付服务") for i in (1, 2)])
+    original = runner.suggest
+    def forged(item, taxonomy):
+        body = original(item, taxonomy)
+        if item.jd_id == "2":
+            body["candidates"][0]["clues"][0]["evidence"]["jd_id"] = "1"
+        return body
+    monkeypatch.setattr(runner, "suggest", forged)
+    with ProposalStore(area / "state.db") as store:
+        with pytest.raises(ValueError):
+            run(store, source)
+        for table in ("b31_results", "b31_reports", "b31_inputs", "snapshots"):
+            assert store.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0

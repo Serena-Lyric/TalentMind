@@ -20,7 +20,7 @@ def checkpoint(stage):
 def version_manifest(taxonomy, revision):
     TypeAdapter(VersionName).validate_python(revision)
     root = Path(__file__).resolve().parents[2]
-    paths = sorted(Path(__file__).parent.glob("*.py")) + [
+    paths = sorted(Path(__file__).resolve().parent.glob("*.py")) + [
         root / "role_classification" / name for name in ("models.py", "validation.py")
     ] + [root / "foundation" / name for name in ("inputs.py", "models.py", "store.py", "runner.py")
     ] + [root / "semantics/models.py"]

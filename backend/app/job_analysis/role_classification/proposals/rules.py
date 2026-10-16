@@ -29,7 +29,7 @@ HEADINGS = re.compile(r"^(岗位职责|工作职责|职责|公司介绍|企业�
 PREFIX = re.compile(r"^(核心职责[：:]|主要职责[：:]|主要负责|负责|协助|辅助|配合)")
 MULTIPLE = re.compile(r"招聘(?:两|多|[2-9])个(?:岗位|职位)|岗位[一二三1-9][：:]|职位[一二三1-9][：:]")
 COMPOUND = re.compile(r"全栈|复合岗位|混合岗位")
-RULESET = "closed-delivery-clauses-v1"
+RULESET = "closed-delivery-clauses-v2"
 
 
 def _evidence(record, field, start, end):
@@ -97,9 +97,24 @@ def suggest(record, taxonomy):
                 flag("unsupported_duty_context")
                 context.append(dict(reason="unsupported_duty_context", evidence=_evidence(record, field, match.start(), match.end())))
 
+    # An extracted duty cannot shed a conflicting section/context in another source field.
+    for family, clues in list(candidates.items()):
+        kept = []
+        for clue in clues:
+            ref = clue["evidence"]
+            conflicts = [c for c in context if c["evidence"]["field"] != ref["field"]
+                         and ref["quote"] in c["evidence"]["quote"]]
+            if conflicts:
+                flag("cross_field_context_conflict")
+            else:
+                kept.append(clue)
+        if kept:
+            candidates[family] = kept
+        else:
+            del candidates[family]
     core = {family for family, clues in candidates.items() if any(c["kind"] == "core" for c in clues)}
     titles = {c["family_id"] for c in title_clues}
-    if candidates and titles and not titles <= set(candidates):
+    if candidates and titles and not titles <= (core if len(core) == 1 else set(candidates)):
         flag("title_duties_conflict")
     if len(core) > 1:
         flag("competing_core_responsibilities")

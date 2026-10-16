@@ -1,4 +1,4 @@
-"""B3-1 explicit run/replay. Does not import models, services or B1/B2 executors."""
+"""B3-1 explicit run/replay without model clients, services or B1/B2 executors."""
 import argparse
 import json
 from pathlib import Path
