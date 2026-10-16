@@ -1,5 +1,53 @@
 # job_analysis
 
+## 阶段 B2 第一轮：离线技能要求语义
+
+新增独立入口 `python -m app.job_analysis.semantics`，采用现有 Python/Pydantic/SQLite，无新增依赖。产品依据为 M2-32～36；只处理技能语义，不隐式重跑 B1 或接入旧 M2/生产服务。合成数据通过显式文件进入，可与 A/B1 使用同一阶段 A SQLite，也可新建库。
+
+```json
+[{"id":1,"source":"synthetic","job_title":"工程师","raw_text":"Java 或 Python 至少掌握一种。不要求精通 Python，但需了解 Python 基础。"}]
+```
+
+把样例保存到 `data/local/m2-b2/input.json`，从仓库根进入 backend：
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m app.job_analysis.semantics run --input ../data/local/m2-b2/input.json --dataset synthetic-b2 --state ../data/local/m2-b2/state.sqlite3 --output ../data/local/m2-b2/results
+# 使用 stdout 的 run_id：
+.\.venv\Scripts\python.exe -m app.job_analysis.semantics resume --run <run_id> --state ../data/local/m2-b2/state.sqlite3 --output ../data/local/m2-b2/results
+.\.venv\Scripts\python.exe -m app.job_analysis.semantics replay --run <run_id> --state ../data/local/m2-b2/state.sqlite3 --output ../data/local/m2-b2/replay
+```
+
+run 可用 `--rules-version v2` 追加试验修订；不覆盖旧结果。无 venv 的工作树可使用已有环境 Python 的绝对路径。沿用 A 严格 JSON 数组/JSONL 输入、必填 id/source/job_title/raw_text、可选 requirements/duties/experience 及完整 payload 指纹；坏批次在创建语义 run 前拒绝，退出 2，不把解析失败当零技能成功。状态与输出仅允许仓库内 data/local 或仓库外独立目录；输入必须在输出目录外。状态库可在输出目录中，发布器只写 run_id.json。配置/执行/验证/发布失败退出 2；包含 partial/uncertain 的成功执行返回 0，须检查每条状态与覆盖，不能以进程码代表完整分析。
+
+### 结果结构与保守规则
+
+- `statements` 是原始陈述，含 id、skills（canonical 与逐次原词位置）、五态 state、relation、degree/degree_evidence、target、condition、section、reason、evidence/context/scope_evidence。原文字段的 Python 字符 `[start,end)`、namespace/jd_id/fingerprint 可确定性核对；重复引文保存各自位置。上下文保存章节到当前/相邻行的原文，不翻译改写；scope_evidence 另存可能跨字段作用的对象/条件限定证据。
+- relation 为 null / any_of / all_of。组合保存自己的 state；成员通过 group_ids 引用，只有组关系时 effective 为 mentioned，reason=group_membership_only，不能投影成独立 required（all_of 也保留组合，不隐式展开）。另有独立陈述时分别保存，绝不覆盖组合证据。重复同一 canonical 不伪造两个候选。
+- degree 为 basic / familiar / proficient / expert 或 null，对应基础了解/了解、熟悉、熟练掌握/熟练、精通。仅“掌握”不推断程度，年限不换算。未可靠解析的多技能句不把唯一程度词分发给全部技能，程度字段为空，原文仍保留。`不要求精通 Python` 是 expert 程度的 not_required，**不是整个技能不要求**；须按完整 effective 的 degree/target/condition 读取，不能按技能名粗暴折叠。
+- `effective` 按同 canonical + 同 degree + 同 target + 同 condition 比较独立陈述。mentioned 不与明确要求冲突；同作用域 required/preferred/not_required 互异则标 conflict=true、state=uncertain，保留 statement_ids 全部证据。任一未解陈述可令该组 uncertain，但不伪造冲突标记。不按强弱或顺序选句，不推断历史修订。不同程度可共存。
+- 支持明确“必须/需要/要求/需/须/应 + [能力动词] + 技能”，任职要求章节的能力动词句，加分章节与明确“经验优先/加分”，明确“不要求/无需/不需要”，简单全部掌握及“至少掌握一种/任选其一”。已知章节支持带冒号及独立标题行（含方括号）；未知标题保留为未解析证据，不吞掉冒号前文字。裸列表、技术栈和工作使用只记 mentioned。完整匹配语法才给确定状态，不根据技能次数或相邻岗位结果推断。
+- 复杂条件/多对象/嵌套/否定不清/公司属性/示例/教程/可能/待定等保留 uncertain 和原文。条件与对象未可靠解析时保存完整作用原文为 unresolved target/condition，不认定为同对象冲突，也不生成无条件 required。已识别“仅适用于/仅限/限于/仅对/当…时/不必满足”等限定时，保守影响本 JD 的所有技能陈述（包括独立 requirements 字段），作用范围无法可靠裁决时可能过度 uncertain。未解释的无技能正文片段阻断当前字段后续的旧章节继承，可靠新标题可重新建立章节；这是防误升的保守屏障，不是开放语义解析。唯一实现的跨分句程度对比是“不要求…，但需/需要/必须…”；其他复杂逻辑不建树。
+
+`coverage` 为 complete/incomplete，始终附 `coverage_scope=known_aliases_and_supported_clauses_only`。complete 只说明本轮语法子集内的正文/职责/条件片段已解析；不能作为完整通用 JD 语义样本或正式统计样本。未解析文字（含未知技能）及 uncertain 陈述记入 issues，coverage=incomplete，可靠的部分陈述仍保留。标题和年限作为上下文/元信息，不按年限制造技能或程度。词典外不建立新本体/候选准入，不写 skill_dict；outcome=no_recognized_skills 与 status=failed/body=null 分开。
+
+严格结构验证与逐次证据定位在 validation 完成；随后重新核对内置规则产出，不能仅凭引文匹配就接受任意 required。`semantic_validation=deterministic_rules_only` 不是独立人工语义验证；没有准确率阈值或真实 JD 评测结果。只有部分解析的任务为 partial，失败为 failed，支持范围内解析完为 completed；两者都没有正式统计资格。
+
+### A/B1 兼容、版本与恢复
+
+`SkillSemanticAnalyzer` 符合 A 的 Analyzer 调用协议，但返回独立 B2 Document，由 B2 runner/validation 处理。复用 InputRecord、不可变 snapshots、SQLite 文件锁/身份/触发器和原子 publish；附加 b2_versions/runs/heads/observations/members/attempts/reports，不改 A/B1 历史、heads、观察或事实。A user_version=1 不变，旧 StateDB 不迁移。A 原枚举（含 legacy_required/legacy_bonus）原样保持 unreviewed；B2 五态不回填或隐式升级旧事实。这是兼容扩展，不把 B2 响应送进 A 的旧 FactClaim 校验器。
+
+完整输入、规则修订、实际词典/别名内容和 B2 源码（规则/结构/验证/执行）、所用 A 公共源码摘要共同参与版本。同输入同版本的 completed/partial 可精确复用，partial 不提升资格；失败通过新 run 重试。观察时间独立追加。B2 heads 仅来自显式输入，不隐式采用 A/B1 范围；增量缺项仍保留 B2 已登记成员。每 run 冻结范围与依赖，输入变化和新规则追加结果；旧结果 replay 不调用新规则，resume 则要求原依赖。B1 规则变化不因其标签直接使 B2 失效。
+
+每条先持久化 running，完整文档与终态在一次事务提交；重开库把残留 running 标 retryable，恢复只重做未提交结果。报告不可变保存后才原子发布，发布失败可 resume，不重复已提交分析；八处真实进程硬退出有回归。沿用 A 单进程串行锁与本地文件限制，不声称断电/损坏/网络盘恢复能力。正式 DDL、词典、exchange、生产 API/数据库及旧管道保持原样。
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_semantics.py -q --tb=short
+.\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py tests/test_job_analysis/test_semantics.py -q --tb=short
+```
+
+新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](../../../docs/review/M2-stage-B2-1.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；B2 第二轮才处理新本体/候选治理，B3/B4、真实标注评测和市场统计均未启动。
+
 ## 阶段 B1：JD 有效性与分析范围的离线筛选
 
 入口 `python -m app.job_analysis.screening` 与 A/旧管道分离，不调用模型或服务，不写技能事实。所有路径必须显式提供；可以使用已有阶段 A SQLite（只增 B1 表、共享不可变 snapshots），也可用新的独立库。旧 StateDB 仍拒绝打开，不迁移。
