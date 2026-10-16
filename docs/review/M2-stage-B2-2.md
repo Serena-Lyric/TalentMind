@@ -40,7 +40,7 @@
 
 - [x] 运行 A/B1/B2 第一轮兼容及全量阻网非集成回归；记录实际通过/失败/跳过/排除及清理。
 - [x] 更新产品主文档、决策索引、M2 README、资产与陷阱；检查完整 diff。
-- [ ] 全分支内部检查，定向修复有失败回归；独立提交、推送及创建面向 master 的 PR，保留外部独立审查门禁。
+- [x] 全分支内部检查，定向修复有失败回归；独立提交、推送及创建面向 master 的 PR，保留外部独立审查门禁。
 
 ## 执行记录
 
@@ -130,3 +130,8 @@ Reviewer考虑但排除：开放中文/复杂句/英文完整语法、通用版�
 修复后按上文相同合成配置和socket阻断命令运行完整非集成回归：**689 passed / 2 skipped / 23 deselected / 0 failed**，190项既有依赖警告，26.24s；Blocked external/service attempts: **0**。新增治理/评测78项全部包含，原A/B1/B2第一轮270项全部执行。跳过/排除原因不变，无真实语料效果或生产库核验结论。
 
 正式seed/normalizer、foundation/screening/semantics源码与测试、DDL、旧管道及exchange对63c897b的diff为空；无真实数据、凭据或产出库纳入提交。新增资产、M2/根README、产品与索引、文档地图、陷阱和本报告为明确暂存范围。Markdown本地链接及git diff --check已通过；原工作区未提交资产文件哈希保持原值。工作树保留供PR定向修改，不合并、不删除分支，不启动B3/B4。
+
+
+### GitHub交付
+
+实现提交 `980c44f43ad36b9b318b521d8346f8f816ee1d9e` 已推送分支 `codex/m2-stage-b2-2-skill-governance`，创建并附加 [PR #7](https://github.com/Serena-Lyric/TalentMind/pull/7)，目标master。创建后实际核验OPEN、isDraft=false、mergeCommit=null、autoMergeRequest=null；本次后续仅补文档交付记录，源代码与已测试提交一致，无须重复业务回归。工作区与分支保留，未合并或启用自动合并、未启动B3/B4；等待ChatGPT独立审查，经用户明确授权后再合并。
