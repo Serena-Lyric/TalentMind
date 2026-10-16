@@ -11,6 +11,8 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
+2026-10-16 M2 B3-1（Issue #10）：新增七个受控职业大类与有限职责证据候选、独立不可变 SQLite 结果与历史重放；[PR #11](https://github.com/Serena-Lyric/TalentMind/pull/11) 已获 ChatGPT 独立静态复审及用户归档合并授权，状态以 PR 为准。见 [M2 README](backend/app/job_analysis/README.md) 与 [归档报告](docs/superpowers/archive/2026-10-16-M2-stage-B3-1-implementation.md)。全部 family 建议待人工审核，尚未开发标准岗位完整目录及真实 JD 分类准确率评测。
+
 2026-10-16 M2 B3-0（Issue #8）：新增显式离线岗位四维断言、原文证据验证与 SQLite 版本/历史重放基础，见 [M2 README](backend/app/job_analysis/README.md) 和 [归档实施与复审报告](docs/superpowers/archive/2026-10-16-M2-stage-B3-0-implementation.md)（[PR #9](https://github.com/Serena-Lyric/TalentMind/pull/9)）。taxonomy 为空或合成示例，全部待审核、正式统计资格关闭；未建立正式职业目录或自动分类器，不启动 B4/真实数据/生产迁移。
 
 2026-10-16 M2 B2 第二轮：新增只读词典审计、严格同义/版本视图、类别与候选治理，以及分离预测/参考/证据检查的离线评测基础；使用与限制见 [M2 README](backend/app/job_analysis/README.md)。正式词典自动准入关闭，Codex 合成参考待人类审核，不作为语义准确率；本轮仅独立 PR 交审，不启动 B3/B4 或生产迁移。
