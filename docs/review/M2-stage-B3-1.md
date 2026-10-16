@@ -107,4 +107,4 @@ $b31Regression | python -X utf8 -
 - 完整标准岗位名/别名、技术方向/级别、复杂混合岗位/同等核心细则、多职位拆分、目录外正式准入及人工审核流程仍未确认。
 - 未验证真实 JD 语义准确率、模型效果、生产迁移、前端、跨机/网络盘/断电恢复；仅本地合成 SQLite 与进程中断。
 - 未运行真实模型/收费 API/采集，未触碰生产数据，未启动 B4/M3/M4。
-- 创建独立 PR 面向 master，实施报告保留至 ChatGPT 复审；不启用自动合并，不删除工作树或分支。合并前归档与清理由后续明确授权处理。
+- [PR #11](https://github.com/Serena-Lyric/TalentMind/pull/11) 已创建并附到当前聊天，base=master、head=codex/m2-stage-b3-1-family-proposals；创建后核查 state=OPEN、mergedAt=null、autoMergeRequest=null，远端无 CI 检查结果可引用。实施报告保留至 ChatGPT 复审，不删除工作树或分支。合并前归档与清理由后续明确授权处理。
