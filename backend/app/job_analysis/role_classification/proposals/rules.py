@@ -35,6 +35,9 @@ HARDWARE_DELIVERIES = {
         "设计硬件电路并交付电路原理图", "开发FPGA逻辑并交付验证结果", "设计数字IC并交付RTL"),
 }
 HARDWARE_TITLES = {"hardware_integrated_circuits": ("硬件工程师", "FPGA工程师", "数字IC工程师")}
+ENGINEERING_DELIVERIES = {"hardware_integrated_circuits": (
+    *HARDWARE_DELIVERIES["hardware_integrated_circuits"],
+    "开发半导体工艺并交付验证报告", "优化封装工艺并交付工程方案", "改进制造良率并交付分析方案")}
 
 
 def _evidence(record, field, start, end):
@@ -47,6 +50,8 @@ def suggest(record, taxonomy):
     deliveries, title_terms = DELIVERIES, TITLES
     if config.revision == "families-v2":
         deliveries, title_terms = DELIVERIES | HARDWARE_DELIVERIES, TITLES | HARDWARE_TITLES
+    elif config.revision == "families-v3":
+        deliveries, title_terms = DELIVERIES | ENGINEERING_DELIVERIES, TITLES | HARDWARE_TITLES
     candidates, title_clues, context, reasons = {}, [], [], []
 
     def flag(reason):
@@ -98,7 +103,8 @@ def suggest(record, taxonomy):
                         continue
                     kind = ("core" if prefix[1] in ("核心职责：", "核心职责:", "主要职责：", "主要职责:", "主要负责")
                             else "auxiliary" if prefix[1] in ("协助", "辅助", "配合") else "unspecified")
-                    rule = "closed-hardware-delivery-v1" if family in HARDWARE_DELIVERIES else RULESET
+                    rule = ("closed-engineering-delivery-v1" if config.revision == "families-v3" else
+                            "closed-hardware-delivery-v1") if family in HARDWARE_DELIVERIES else RULESET
                     clue = dict(kind=kind, rule=rule + ":" + family, evidence=_evidence(record, field, start, end))
                     candidates.setdefault(family, []).append(clue)
                     matched = True

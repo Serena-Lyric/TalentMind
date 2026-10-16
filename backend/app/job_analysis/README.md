@@ -1,5 +1,48 @@
 # job_analysis
 
+## 阶段 B3-4：工程范围与独立材料证据层
+
+依据 [Issue #16](https://github.com/Serena-Lyric/TalentMind/issues/16) 与产品 M2-48～51，新增八类 `proposals/families.v3.json`：ID/标签不变，硬件与集成电路范围明确包括工艺、封装、制造与良率工程技术；普通产线/重复设备操作不能凭产业背景入类，设备维护及生产技术支持仍按实际责任与 B1 范围复核。v1/v2 文件原字节保全，不回写旧报告。
+
+v3 自动线索只增加三条封闭职责句式：「开发半导体工艺并交付验证报告」「优化封装工艺并交付工程方案」「改进制造良率并交付分析方案」，沿用 core/auxiliary/unspecified 前缀及上下文规则。其余工程范围可走显式证据路径；这三条句式不是正式标准岗位名，也不是开放域分类器。v2 不启用新增句式；v1/v2 新运行因共享源码更新保守追加版本，历史 replay 不重新解释范围。B1 范围筛选不因 v3 自动扩展。
+
+新增隔离子包 `role_classification/boundaries/` 与严格 schema `b34-submission-1`，选择独立 b34 层以保全 B30/B31/B32 schema、报告和审核截面。**当前只接收显式 source=synthetic 的输入与 synthetic_only 提交**；不是生产人工审核服务，不收真实 JD，不调用模型，也不消费 B31 hint 作为人工断言。
+
+工作目录 backend，以下四条材料全部为合成例子，提议人也是测试署名，不是已审人工真值；示例候选没有预置正式岗位名称：
+
+```powershell
+python -m app.job_analysis.role_classification.boundaries run --input tests/fixtures/role_classification/boundaries.input.json --dataset synthetic-b34 --submission tests/fixtures/role_classification/boundaries.submission.json --family-taxonomy app/job_analysis/role_classification/proposals/families.v3.json --state ../data/local/m2-b34/state.sqlite3 --output ../data/local/m2-b34/results
+python -m app.job_analysis.role_classification.boundaries replay --run <run_id> --state ../data/local/m2-b34/state.sqlite3 --output ../data/local/m2-b34/replay
+python -m app.job_analysis.role_classification.boundaries review --result <result_id> --event <explicit-review.json> --state ../data/local/m2-b34/state.sqlite3
+python -m app.job_analysis.role_classification.boundaries export-reviews --run <original_run_id> --state ../data/local/m2-b34/state.sqlite3 --output ../data/local/m2-b34/reviews
+python -m pytest tests/test_job_analysis/test_role_boundaries.py tests/test_job_analysis/test_role_boundary_claims.py tests/test_job_analysis/test_role_boundary_storage.py -q --tb=short
+```
+
+### 显式主张与门禁
+
+每条 annotation 绑定 namespace/jd_id/完整 fingerprint、synthetic_assertion 来源与非空 proposer（family/方向/级别断言继承该署名）；`family_assertions`、`candidates`（沿用 B32 候选格式）、`technology_tracks`、`seniority`、`assessments`、`conflicts` 与 notes 分开。全部 ID 在提交内唯一。family 只接受显式 taxonomy 中的 ID；family 的单一 core 职责引文可给 `pending_claim`，缺职责/责任不明/多核心或显式冲突为 unresolved，不会给已确认分类。技术方向与级别断言保留各自值和证据，不因 canonical_job 未知而清空，不用技术栈制造职业。
+
+| 待审主张 kind | 输出行为 |
+|---|---|
+| family_identifiable_job_unknown | 无具体职业证据则 canonical_job=unknown；有候选或冲突时另记门禁不足原因，不裁决职业。 |
+| competing_canonical_candidates | 多个显式具体岗位候选保留 unresolved；技术栈候选不进入 canonical_job.candidates。单个岗位候选也不自动确认。 |
+| integrated_composite_candidate | 须显式列至少两个不同 domain 的 core 责任组件、互不重复/重叠的职责引文，以及独立于组件引文的共同完整交付证据；程序只检查结构和出处。标题/技能罗列/辅助或冲突会保留为 composite_unproven；满足结构也只待审核。 |
+| possible_multiple_positions | 至少两个可区分的独立目标，每目标须有同一原文字段内、可定位且互不重叠的完整 section，含精确标题、各自职责和要求，编号可选但如有须唯一且在该段内；标题同名时必须各有不同的明确编号区分。各证据角色不能重用同一 span；整组一致且无已声明冲突才输出 position_target_proposals。缺项/重叠/竞争分段则 proposals 为空、材料 unresolved，原主张仍完整保存。 |
+
+多职位门禁只生成可审核的**分段主张**，不改写原 JD，不创建拆分实体；一体化复合候选也不生成两个职位。招聘人数没有默认值，不接收 headcount/vacancy_count/正式准入等额外字段，不根据目标数输出人数或需求率。真正自动拆分、发布契约与统计仍待确认。
+
+`submitted_claim` 保留原始主张；`gate_reasons` 解释结构不足。报告完整保存 source_payload、候选上下文及所有证据的 Python 字符 `[start,end)`、来源身份/指纹。**可定位和结构完整不证明语义正确**：显式导入者可能把历史、否定、技能或无关句错标为职责/完整交付；本层保留原文与显式 conflicts，不能自动识别全部隐含冲突。该情形须由复核者检查完整上下文，不能把 gate 通过当作独立招聘目标或复合职业已证实。
+
+### 持久化、审核与恢复
+
+只追加 b34_versions/inputs/results/reports/reviews/exports 和缺失的共享不可变 snapshots。AnalysisStore(recover=false) 不恢复旧 A running，不写其他层 heads/事实/观察/报告。输入原字节、完整提交、taxonomy 全文/revision、规则 revision 及实际调用源码摘要进入 manifest/result_version；源文、提交、目录或实现变化追加，纯观察时间变化可复用结果并逐轮保存 observation。规则 manifest 显示实验来源、scope、semantic_validation=not_performed、formal_admission=disabled、position_publication=disabled、formal_statistics_eligible=false。
+
+review 格式沿 B32：target_kind（candidate/family_assertion/technology_track/seniority/assessment/position_target）、target_id、原 result_version、decision、reviewer、basis、evidence_refs、supersedes、formal_admitted:false。事件只追加，撤回绑定同结果同目标的旧事件；程序验证署名非空而不验证身份。审核接受不改原 pending_review，也不发布候选；导出保存不可变事件截面，后续事件不改旧导出，可用 replay 重放 export_id。
+
+全轮单事务，错误或提交前硬退出回滚；提交后输出失败可查询 `SELECT run_id FROM b34_reports` 后 replay，不重载当前目录/源文件或重判语义。输入/配置/提交须位于输出目录外，沿用状态锁、硬链接与原子发布保护。新表不改变 user_version=1，无正式数据库迁移；不承诺断电、损坏或多机网络盘恢复。
+
+所有结果 classification_complete/formal_statistics_eligible/formal_admitted 恒 false，正式目录恒空。完整阻网回归、历史保全与独立内部审查证据见 [实施报告](../../../docs/review/M2-stage-B3-4.md)，不代替交付后 ChatGPT 集中复审；不启动 B4/M3/M4、不使用生产数据或真实模型。
+
 ## 阶段 B3-3：八类目录版本与候选兼容
 
 依据 [Issue #14](https://github.com/Serena-Lyric/TalentMind/issues/14) 和产品 M2-45～47，新增 `role_classification/proposals/families.v2.json`。保留原七类 `families.v1.json` 字节与历史报告，新版只追加稳定 ID `hardware_integrated_circuits` /「硬件与集成电路」，其余七个 ID/中文名不变。沿用 schema `b31-family-taxonomy-1`，按 revision 的注册表精确检查集合：families-v1 必须七类、families-v2 必须八类；缺项、重复、错误标签/ID、未知 revision 或把七类改标签成 v2 均拒绝。scope 文字可调整但全文参与版本摘要。

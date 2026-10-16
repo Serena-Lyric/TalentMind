@@ -22,6 +22,7 @@ FAMILIES_V1 = {
 FAMILY_VERSIONS = {
     "families-v1": FAMILIES_V1,
     "families-v2": {**FAMILIES_V1, "hardware_integrated_circuits": "硬件与集成电路"},
+    "families-v3": {**FAMILIES_V1, "hardware_integrated_circuits": "硬件与集成电路"},
 }
 
 
