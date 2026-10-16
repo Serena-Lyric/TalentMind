@@ -39,9 +39,9 @@
 **Files:** role_classification/store.py, runner.py, __main__.py, __init__.py；foundation/store.py 仅增加默认兼容的 recover 开关；同测试文件。
 **Interfaces:** execute(store,batch,annotations,taxonomy,revision='v1',output=None) -> report；replay(store,run_id) -> 原报告。
 
-- [ ] 先写追加版本/复用/历史保护/旧运行隔离/事务/子进程硬退出/发布失败/CLI 测试并确认 RED。
-- [ ] 复用 A 路径/锁/快照/原子发布；B3 打开不触发旧 A 恢复。每轮一次事务，无未提交运行；replay 不加载新目录或规则。
-- [ ] 相关 A/B1/B2/B3 离线回归通过，提交本任务。
+- [x] 先写追加版本/复用/历史保护/旧运行隔离/事务/子进程硬退出/发布失败/CLI 测试并确认 RED。
+- [x] 复用 A 路径/锁/快照/原子发布；B3 打开不触发旧 A 恢复。每轮一次事务，无未提交运行；replay 不加载新目录或规则。
+- [x] 相关 A/B1/B2/B3 离线回归通过，提交本任务。
 
 ### Task 3: 交付与独立审查
 
@@ -54,6 +54,8 @@
 ## Execution ledger
 
 - Task 1: 29 failed（模块缺失）→29 passed；候选需要直接原文依据，修正一处合成 fixture 补齐候选引用。没有真实识别或语义复核结论。
+- Task 2: 新组 16 failed→45 passed；另修正 SQLite 测试连接关闭后清理通过。CLI/输入字节一致性新组 RED→GREEN，总计49 passed。五处真实 os._exit、历史不可变/REPLACE、共库旧表逐行对比与发布失败恢复均已执行。
+- Task 2 gate: A/B1/B2/B3 定向回归421 passed（42.12s）；原工作区资产文档SHA-256仍为F640E0380932F5651BCAE1472E7327A7F8F482AE6C92B68A067FDE40053B571B。
 
 - 2026-10-16：用户已明确授权立即实施并交付独立 PR；不再等待产品目录定稿。工程实现自行完成，最终按 requesting-code-review 派独立审查。
 - 工程选择：已知分类值仍为未语义复核的输入断言；人工输入只能 pending_review，合成输入不当准确率真值。

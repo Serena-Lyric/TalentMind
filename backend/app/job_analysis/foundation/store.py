@@ -24,7 +24,7 @@ def safe_destination(path: Path | str) -> Path:
 
 
 class AnalysisStore:
-    def __init__(self, path: Path | str):
+    def __init__(self, path: Path | str, *, recover=True):
         self.path = safe_destination(path)
         if self.path.suffix not in (".db", ".sqlite", ".sqlite3"):
             raise ValueError("explicit SQLite filename required")
@@ -110,8 +110,9 @@ class AnalysisStore:
                     self.conn.execute(f"CREATE TRIGGER IF NOT EXISTS {table}_{operation} BEFORE {operation} ON {table} "
                                       "BEGIN SELECT RAISE(ABORT,'immutable analysis history'); END")
             # The OS lock proves the previous owner has exited; committed terminal facts stay intact.
-            self.conn.execute("UPDATE attempts SET status='retryable',error='process_interrupted',finished_at=? WHERE status='running'", (now(),))
-            self.conn.execute("UPDATE runs SET status='interrupted',error='process_interrupted' WHERE status='running'")
+            if recover:
+                self.conn.execute("UPDATE attempts SET status='retryable',error='process_interrupted',finished_at=? WHERE status='running'", (now(),))
+                self.conn.execute("UPDATE runs SET status='interrupted',error='process_interrupted' WHERE status='running'")
             self.conn.commit()
         except BaseException:
             if hasattr(self, "conn"):
