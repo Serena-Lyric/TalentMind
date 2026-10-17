@@ -89,4 +89,10 @@
 
 ## 交付补录
 
-最终提交、PR、进程与证据校验在推送后补录；本报告保留在 docs/review，等待 ChatGPT 审查和用户视觉验收。
+- 实现与全部真机证据提交：`76d19a7ab5f13a885f5d389029c8397eda44f719`，已推送独立分支；此后仅追加本节交付记录。当前最终 HEAD 可由 PR 的 headRefOid / 分支读取，避免报告自引用提交哈希。
+- [Draft PR #29](https://github.com/Serena-Lyric/TalentMind/pull/29)：base=master，OPEN / isDraft=true / mergedAt=null / autoMergeRequest=null；未配置远端 CI 结果，不能声称远端 CI 通过。已附到本聊天，等待 ChatGPT 审查。
+- 本地 URL `http://127.0.0.1:18126/` 保持运行；Node PID **22004**，命令 `node_modules/vite/bin/vite.js --host 127.0.0.1 --port 18126 --strictPort`，进程身份与监听端口已核对。原后端 18000 / PID 25160 保留。
+- 全部 7 张浏览器截图实为 JPEG、均为 1600×900；8 项图片/视频的 SHA-256 与证据清单一致，报告/README 本地链接核查通过。浏览器留下无 HUD 的正常入口，临时视口覆盖已重置；只关闭本轮自己创建的重复实验/参考标签，没有关闭用户原标签。
+- backend、exchange、frontend/src 与正式前端 package/lock 相对基线 diff 为空。正式 graph.json SHA-256 仍为 `6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2`。
+- PR #27 HEAD `41f9184f2e47a86df4fc86d60b93556e8a19e0db`、PR #28 HEAD `a2cbca41f849e06d2efa1629e55da98c5bbcf0ec` 均与开始核查一致，仍 Open Draft；没有合并、关闭或清理。P0.5 滚动条补修仍未完成。
+- 到此停止开发，保留实验服务、分支、工作树和 docs/review 报告，等待用户对真实画面的验收；不自动开始 P2/P3。
