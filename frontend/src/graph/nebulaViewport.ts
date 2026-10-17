@@ -1,10 +1,24 @@
-import type { GraphNode } from '../api/graph'
+import type { GraphNode, GraphEdge } from '../api/graph'
 import type { Point } from './nebulaLegacy'
+import type { Bounds } from './nebulaEdges'
 
 export interface Transform { x: number; y: number; scale: number }
 export interface Viewport { width: number; height: number }
 export function visibleInFocus(id: string, focus: Set<string>) {
   return !focus.size || focus.has(id)
+}
+export function resolveSelection(id: string | undefined, nodes: GraphNode[], edges: GraphEdge[]) {
+  const node = nodes.find(node => node.id === id) || null
+  const ids = new Set(node ? [node.id] : [])
+  if (node) {
+    const validIds = new Set(nodes.map(node => node.id))
+    for (const edge of edges) {
+      if (!validIds.has(edge.source) || !validIds.has(edge.target)) continue
+      if (edge.source === node.id) ids.add(edge.target)
+      if (edge.target === node.id) ids.add(edge.source)
+    }
+  }
+  return { node, ids }
 }
 export function toScreen(point: Point, view: Viewport, transform: Transform): Point {
   return { x: view.width / 2 + (point.x + transform.x) * transform.scale, y: view.height / 2 + (point.y + transform.y) * transform.scale }
@@ -15,16 +29,20 @@ export function toWorld(point: Point, view: Viewport, transform: Transform): Poi
 export function hitPoint(world: Point, center: Point, radius: number, scale: number) {
   return Math.hypot(world.x - center.x, world.y - center.y) * scale <= radius * Math.max(.72, scale) + 7
 }
-export function focusTransform(points: Point[], view: Viewport): Transform {
+export function focusTransform(points: Point[], view: Viewport, area?: Bounds): Transform {
   if (!points.length) return { x: 0, y: 0, scale: 1 }
   const xs = points.map(point => point.x); const ys = points.map(point => point.y)
   const minX = Math.min(...xs); const maxX = Math.max(...xs)
   const minY = Math.min(...ys); const maxY = Math.max(...ys)
-  const left = Math.min(300, view.width * .27); const right = Math.min(410, view.width * .34)
-  const width = Math.max(40, view.width - left - right - 48)
-  const height = Math.max(40, view.height - 72)
+  const bounds = area || { left: 276, right: view.width - 392, top: 24, bottom: view.height - 24 }
+  const width = Math.max(1, bounds.right - bounds.left - 40)
+  const height = Math.max(1, bounds.bottom - bounds.top - 40)
   const scale = Math.min(1, width / Math.max(1, maxX - minX), height / Math.max(1, maxY - minY))
-  return { scale, x: -(minX + maxX) / 2 + (left - right) / 2 / scale, y: -(minY + maxY) / 2 }
+  return {
+    scale,
+    x: -(minX + maxX) / 2 + ((bounds.left + bounds.right) / 2 - view.width / 2) / scale,
+    y: -(minY + maxY) / 2 + ((bounds.top + bounds.bottom) / 2 - view.height / 2) / scale,
+  }
 }
 export function searchNodes<T extends GraphNode>(nodes: T[], keyword: string, activeKinds: Set<GraphNode['kind']>): T[] {
   const word = keyword.trim().toLowerCase()

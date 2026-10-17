@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus } from '../src/graph/nebulaViewport.ts'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection } from '../src/graph/nebulaViewport.ts'
 import type { GraphNode } from '../src/api/graph.ts'
 
 test('缩放和平移后的屏幕/世界坐标互逆', () => {
@@ -40,4 +40,34 @@ test('聚焦时未绘制的非邻域节点不能进入命中候选', () => {
   assert.equal(visibleInFocus('other', new Set(['selected', 'neighbor'])), false)
   assert.equal(visibleInFocus('neighbor', new Set(['selected', 'neighbor'])), true)
   assert.equal(visibleInFocus('other', new Set()), true)
+})
+test('刷新从新数据恢复选中详情和全部新直连，移除选中节点则清除邻域', () => {
+  const node = (id: string, label: string): GraphNode => ({ id, label, kind: 'job', size: 12, color: '' })
+  const nodes = [node('a', 'updated'), node('new', 'new neighbor')]
+  const refreshed = resolveSelection('a', nodes, [{ source: 'a', target: 'new', kind: 'related_to' }, { source: 'a', target: 'missing', kind: 'requires' }])
+  assert.equal(refreshed.node?.label, 'updated')
+  assert.deepEqual([...refreshed.ids].sort(), ['a', 'new'])
+  const removed = resolveSelection('removed', nodes, [])
+  assert.equal(removed.node, null)
+  assert.equal(removed.ids.size, 0)
+  assert.equal(resolveSelection(undefined, nodes, []).ids.size, 0)
+})
+test('900px 画布的聚焦避让真实桌面面板，而不按百分比低估面板宽度', () => {
+  const points = [{ x: -2500, y: -100 }, { x: 2500, y: 100 }]
+  const view = { width: 900, height: 700 }
+  const transform = focusTransform(points, view)
+  for (const point of points) {
+    const screen = toScreen(point, view, transform)
+    assert.ok(screen.x > 260 && screen.x < 524)
+  }
+})
+test('聚焦可使用现有 DOM 实测的可用矩形', () => {
+  const points = [{ x: -1000, y: -1000 }, { x: 1000, y: 1000 }]
+  const view = { width: 900, height: 700 }
+  const area = { left: 280, right: 500, top: 30, bottom: 670 }
+  const transform = focusTransform(points, view, area)
+  for (const point of points) {
+    const screen = toScreen(point, view, transform)
+    assert.ok(screen.x > area.left && screen.x < area.right && screen.y > area.top && screen.y < area.bottom)
+  }
 })

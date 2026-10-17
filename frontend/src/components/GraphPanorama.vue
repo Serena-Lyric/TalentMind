@@ -73,12 +73,13 @@ import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
 import { selectEdges, dashedEdge, segmentInBounds } from '../graph/nebulaEdges'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus } from '../graph/nebulaViewport'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection } from '../graph/nebulaViewport'
 
 const query = new URLSearchParams(window.location.search)
 const experimental = query.get('nebula') === 'experimental'
 const debug = query.get('nebulaDebug') === '1'
 let layoutMs = 0
+let loadGeneration = 0
 interface DrawNode extends GraphNode { point: Point }
 
 const rootRef = ref<HTMLElement | null>(null)
@@ -123,13 +124,15 @@ function nodeLabel(node: GraphNode) {
   return node.label.length > maxChars ? `${node.label.slice(0, maxChars - 1)}…` : node.label
 }
 
-async function buildLayout() {
+async function buildLayout(data: GraphData, generation: number) {
   const start = performance.now()
-  const nodes = graphData.value.nodes
+  const nodes = data.nodes
   const layout = experimental
-    ? await buildRelationLayout(nodes, graphData.value.edges)
-    : buildLegacyLayout(nodes, graphData.value.edges)
+    ? await buildRelationLayout(nodes, data.edges)
+    : buildLegacyLayout(nodes, data.edges)
+  if (generation !== loadGeneration) return
   layoutMs = performance.now() - start
+  graphData.value = data
   drawNodes.value = nodes.map(node => ({ ...node, point: layout.get(node.id) || { x: 0, y: 0 } }))
   nodeById.clear()
   drawNodes.value.forEach(node => nodeById.set(node.id, node))
@@ -144,6 +147,7 @@ function resizeCanvas() {
   canvas.height = Math.floor(wrap.clientHeight * ratio)
   canvas.style.width = `${wrap.clientWidth}px`
   canvas.style.height = `${wrap.clientHeight}px`
+  if (experimental && selectedNode.value) focusNeighborhood()
   draw()
 }
 
@@ -242,6 +246,11 @@ function nodeAt(x: number, y: number) {
   })
 }
 function highlightNode(node: GraphNode | null) {
+  if (experimental) {
+    const selection = resolveSelection(node?.id, graphData.value.nodes, graphData.value.edges)
+    selectedNode.value = selection.node; highlightIds.value = selection.ids
+    return
+  }
   if (!node) { highlightIds.value = new Set(); return }
   const ids = new Set<string>([node.id])
   graphData.value.edges.forEach((edge) => {
@@ -254,15 +263,25 @@ function focusNeighborhood() {
   const canvas = canvasRef.value
   if (!experimental || !canvas || !selectedNode.value) return
   const points = drawNodes.value.filter(node => visibleNode(node) && highlightIds.value.has(node.id)).map(node => node.point)
-  Object.assign(transform, focusTransform(points, { width: canvas.clientWidth, height: canvas.clientHeight }))
+  const rect = canvas.getBoundingClientRect()
+  const control = rootRef.value?.querySelector('.nebula-control')?.getBoundingClientRect()
+  const detail = rootRef.value?.querySelector('.nebula-detail')?.getBoundingClientRect()
+  const area = { left: (control ? control.right - rect.left : 0) + 24, right: (detail ? detail.left - rect.left : rect.width) - 24, top: 24, bottom: rect.height - 24 }
+  if (area.right - area.left < 80) {
+    area.left = 24; area.right = rect.width - 24
+    area.top = Math.max(control?.bottom || rect.top, detail?.bottom || rect.top) - rect.top + 24
+    if (area.top >= area.bottom - 40) area.top = 24
+  }
+  Object.assign(transform, focusTransform(points, { width: canvas.clientWidth, height: canvas.clientHeight }, area))
 }
-function onCanvasClick(event: MouseEvent) {
+async function onCanvasClick(event: MouseEvent) {
   if (drag.moved) { drag.moved = false; return }
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   const node = nodeAt(event.clientX - rect.left, event.clientY - rect.top)
   selectedNode.value = node || null
   highlightNode(node || null)
+  if (experimental) await nextTick()
   focusNeighborhood()
   draw()
 }
@@ -286,18 +305,27 @@ function onWheel(event: WheelEvent) {
   transform.x += after.x - before.x; transform.y += after.y - before.y; draw()
 }
 function resetView() { transform.scale = 1; transform.x = 0; transform.y = 0; selectedNode.value = null; highlightIds.value = new Set(); draw() }
-function focusFirstMatch() {
+async function focusFirstMatch() {
   const node = searchMatches.value[0]
   if (!node) { ElMessage.warning('没有匹配节点'); return }
-  selectedNode.value = node; highlightNode(node); transform.x = -node.point.x; transform.y = -node.point.y; focusNeighborhood(); draw()
+  selectedNode.value = node; highlightNode(node); transform.x = -node.point.x; transform.y = -node.point.y
+  if (experimental) await nextTick()
+  focusNeighborhood(); draw()
 }
 async function loadGraph() {
+  const generation = ++loadGeneration
   loading.value = true
   try {
-    graphData.value = await getGraphData('2026', 'all')
-    await buildLayout(); await nextTick(); resizeCanvas()
-  } catch { ElMessage.error('图谱数据加载失败') }
-  finally { loading.value = false; draw() }
+    const data = await getGraphData('2026', 'all')
+    if (generation !== loadGeneration) return
+    await buildLayout(data, generation)
+    if (generation !== loadGeneration) return
+    if (experimental) highlightNode(selectedNode.value)
+    await nextTick()
+    if (experimental) focusNeighborhood()
+    resizeCanvas()
+  } catch { if (generation === loadGeneration) ElMessage.error('图谱数据加载失败') }
+  finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
 watch(activeKinds, () => {
   if (experimental && selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
@@ -307,7 +335,7 @@ watch(activeKinds, () => {
 }, { deep: true })
 watch(searchKeyword, () => draw())
 onMounted(() => { resizeObserver = new ResizeObserver(resizeCanvas); if (canvasWrapRef.value) resizeObserver.observe(canvasWrapRef.value); loadGraph() })
-onUnmounted(() => resizeObserver?.disconnect())
+onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect() })
 </script>
 
 <style scoped>
