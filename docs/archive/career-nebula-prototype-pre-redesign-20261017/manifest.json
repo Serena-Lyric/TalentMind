@@ -1,0 +1,273 @@
+{
+  "archive_branch": "archive/career-nebula-prototype-pre-redesign-20261017",
+  "baseline": "abb73eb9c2b35819ba0ac870ed4cbd8dd5d91e7f",
+  "source_branch": "codex/issue-24-r0",
+  "source_file_count": 35,
+  "source_bytes": 11122131,
+  "files": [
+    {
+      "path": "docs/review/M3-M5-issue-24-R0.md",
+      "bytes": 14537,
+      "sha256": "cd0c76c2981727001eef2cee92b4e4609c0fb4f09e1c17502c03a1a5212565ad",
+      "purpose": "未完成交付的原始研究报告，按历史草稿保存",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0-analysis.json",
+      "bytes": 10869,
+      "sha256": "cfef33ac87063edf026dcbb53b4b6b654fe794c3891650239d228db9af4eb68b",
+      "purpose": "真实快照拓扑/社区/参数/版本研究摘要",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/a-audit.json",
+      "bytes": 75607,
+      "sha256": "d52025f6aa81d61672ef0818690a4ce00163769e09dff7d3f6edc6bc5fe12912",
+      "purpose": "节点/关系来源与相机/耗时审计",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/a-community.png",
+      "bytes": 141285,
+      "sha256": "d9d5cb6cc8cc5c586a16eb9050afe04595470ad143b162827fb53e2487f00f78",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/a-interaction.webm",
+      "bytes": 2473530,
+      "sha256": "1407e10aae7f9e48dab56725fed880025f4079f327b6b7859f310ccc10ec1b6f",
+      "purpose": "上一轮真实画布交互录屏",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/a-near.png",
+      "bytes": 141218,
+      "sha256": "ab155137611f98eff4f781f2a0fdb339a3391a79db15979f19cec193e9396efb",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/a-overview.png",
+      "bytes": 120080,
+      "sha256": "4bb8c438da74d61e8e00d4a15a1816bb8710c8bdc7d3389a1ea2c2e106ddb239",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/a-python-all.png",
+      "bytes": 118599,
+      "sha256": "cfe4e9e33040debaff66dfb088c2c653c78e6e70838a2361bb0c38a5f3bba02c",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-audit.json",
+      "bytes": 75505,
+      "sha256": "b75e3a5e8f24b9366dc593ac19392b223d1157cc7f063f6c58240709969c41f0",
+      "purpose": "节点/关系来源与相机/耗时审计",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-community.png",
+      "bytes": 138605,
+      "sha256": "4f0e83518ff14dc605abaab6c2472dcb32fe58610005651728fd05661a39fb02",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-interaction.webm",
+      "bytes": 6974118,
+      "sha256": "b31c77ed4ceb870eaee9a185c57857c5bb99783e8a91239bba14d89193a52300",
+      "purpose": "上一轮真实画布交互录屏",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-near.png",
+      "bytes": 139045,
+      "sha256": "7267575de2d550cae4c98c0de46e0e2e9442ec1186a7724f31d80086215a753f",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-overview.png",
+      "bytes": 113098,
+      "sha256": "bc5096011e2fc44b89104aed71d8166ddff11f0227b856979db11a8174d4fc16",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-python-all.png",
+      "bytes": 141771,
+      "sha256": "00a0d1ef9731543cda3425d1e1f8b07b71434372bbbcf1cb968eea12b30de7a3",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-rotated.png",
+      "bytes": 122202,
+      "sha256": "a0f5e21150b98cd176acc718ea2cb36f4da413e4ae0018a6fb84076aee6ef91a",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/b-type-5px-no-dust.png",
+      "bytes": 143167,
+      "sha256": "8fa33478e2727da4165225d2a7ac347c85c9c8c566be4d3677c4208503d83343",
+      "purpose": "上一轮实际截图（保留原样，非本轮新截图）",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/review/issue-24-r0/observations.json",
+      "bytes": 13676,
+      "sha256": "6ab60e6fe19b230c3c4ec01fb7f166a858da39f3c5268ea114329221b6bde407",
+      "purpose": "上一轮浏览器观察记录，可能早于最后部分截帧",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/superpowers/traps/2026-10-17-r0-prototype-viewport-and-selection.md",
+      "bytes": 1912,
+      "sha256": "b1dccf0de55c80c882d24aa5b93db84f92e438edf71b5854f8be77e01adb651b",
+      "purpose": "原型视口/响应依赖/确定性问题记录",
+      "origin": "untracked"
+    },
+    {
+      "path": "docs/superpowers/资产与状态.md",
+      "bytes": 73419,
+      "sha256": "998ab1a552cce7b481c008804b548a7083689e47864079c7f40539a922e0cf21",
+      "purpose": "原型资产/验证状态的历史增量",
+      "origin": "modified_tracked"
+    },
+    {
+      "path": "frontend/README.md",
+      "bytes": 4855,
+      "sha256": "248b50d1b4163937e6db5934e208551dc6918f2a1d04c52478f43a217de03b56",
+      "purpose": "原型独立入口的历史文档增量",
+      "origin": "modified_tracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/.gitignore",
+      "bytes": 44,
+      "sha256": "f19cd343049d5a0b91dd8671ee4d3a4d372ee7c9b9a66fb243be00fba5306982",
+      "purpose": "排除依赖/缓存/生成数据",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/README.md",
+      "bytes": 4214,
+      "sha256": "448881e7a2222ab92b04bac7271e2b4c5c7616b5f2184c51d2e3d3e4723c2e86",
+      "purpose": "历史运行命令与协议/限制说明",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/index.html",
+      "bytes": 272,
+      "sha256": "2f791cb13b271d2da90aeaf5bd01fb8249784277e61f770532694e4fb3d9c6b0",
+      "purpose": "独立原型 HTML 入口",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/main.js",
+      "bytes": 24814,
+      "sha256": "0967cdf028837c3a2cb430ccdd4b6a0e972822c67889b9ab78e432e57cafbb3a",
+      "purpose": "Vue 原型页面、搜索/相机/详情/录屏交互",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/model.js",
+      "bytes": 4408,
+      "sha256": "efa89ecd01743c8d10048f3e49ffaa1263f564ab2f4725d493d78cb415c1ed7a",
+      "purpose": "共享空间协议、LOD、命中半径、标签与装饰生成",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/package.json",
+      "bytes": 345,
+      "sha256": "20166aa00c2b5e1d65cd959481fa5cb0641736abcaad0d0b367b564e74abfc8f",
+      "purpose": "原型独立 JavaScript 依赖与命令",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/pnpm-lock.yaml",
+      "bytes": 15109,
+      "sha256": "6ec9c63f3b92984bf4b035d1136679054969fbd301b5a787897014a58e673bc9",
+      "purpose": "精确 JavaScript 依赖锁",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/pnpm-workspace.yaml",
+      "bytes": 47,
+      "sha256": "683b2ab4e361bdd5f736ad10393f3bdbd414ee44f57702d219f561879d1959fa",
+      "purpose": "隔离原型依赖安装边界",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/renderers.js",
+      "bytes": 6759,
+      "sha256": "02f838150591f3bf7d787004bf7f68545d4aeb6fc8a73388c932e6a4bb582e98",
+      "purpose": "Canvas/Three Points 渲染器与 GLSL 着色器",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/requirements-research.txt",
+      "bytes": 27,
+      "sha256": "7ce2eeb6077adfc46bf346e01f3bbd3d3520e3816b2fa55d9591de6b4028d725",
+      "purpose": "固定 Python 研究依赖",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/style.css",
+      "bytes": 7718,
+      "sha256": "4cf456d50156ceab3438610f4b7b4bd83b17b64299774274849447c9b0cacd60",
+      "purpose": "独立实验页面样式",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/tests/model.test.js",
+      "bytes": 4022,
+      "sha256": "31081756feb1b325c19f42c1a1941ffadf4799532a719394e0e6584af8625e5b",
+      "purpose": "原型身份保全/LOD/标签/像素/搜索测试",
+      "origin": "untracked"
+    },
+    {
+      "path": "frontend/prototypes/nebula-r0/vite.config.js",
+      "bytes": 191,
+      "sha256": "69004a6e9e0244375d0134b8e94b09c8cf382506a41ea562cb95c86a13220643",
+      "purpose": "独立构建 feature flags",
+      "origin": "untracked"
+    },
+    {
+      "path": "scripts/nebula_r0.py",
+      "bytes": 14367,
+      "sha256": "b3da1d5a31706f288d4f69d77e452357edbfdaa7960ff56f5fd80abdb9b830d5",
+      "purpose": "只读二部图投影、群落比较、稳定布局与协议导出",
+      "origin": "untracked"
+    },
+    {
+      "path": "scripts/tests/test_nebula_r0.py",
+      "bytes": 2696,
+      "sha256": "49955212ccbb87f0030ca3621d72bd9dfb1ad38f1ec7c18f7c5f55c3185f5aaa",
+      "purpose": "研究算法和完整图跨进程确定性回归",
+      "origin": "untracked"
+    }
+  ],
+  "secret_pattern_findings": [],
+  "snapshot_commit": "473236db3e664b87894c35947ad1ae0c50acdf0b",
+  "status": "archived_terminated_prototype_not_product_baseline",
+  "files_preserved_byte_for_byte_at_snapshot_commit": true,
+  "preservation_verification": {
+    "verified_original_worktrees": 16,
+    "protected_file_records": 7626,
+    "unchanged_fields": [
+      "HEAD",
+      "branch",
+      "git_status",
+      "git_index_sha256",
+      "tracked_and_nonignored_untracked_file_sha256",
+      "private_config_sentinels"
+    ],
+    "source_snapshot_files_verified": 35,
+    "broken_local_links": [],
+    "no_prototype_execution": true
+  }
+}
