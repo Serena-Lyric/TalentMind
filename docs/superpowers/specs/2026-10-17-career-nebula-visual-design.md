@@ -68,6 +68,6 @@
 
 ## 7. 已知遗留与清理边界
 
-- [PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 保持 Open，实验布局与 legacy 可供对照；此前 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 原双路线无约束 A/B 开发**已停止（closed: not planned）**。终止后的本地工作树/文件/依赖需要**后续单独审计清理**；没有逐文件确认前不可一键删除/重置，不能把中止任务遗留与历史备份混淆。
+- [PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 保持 Open，实验布局与 legacy 可供对照；此前 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 原双路线无约束 A/B 开发**已停止（closed: not planned）**。终止后的 R0 实验成果已另存于 [历史归档分支](https://github.com/Serena-Lyric/TalentMind/tree/archive/career-nebula-prototype-pre-redesign-20261017)（HEAD `4caa2550`，35 项），可从源码与失败总结中汲取经验，但**不是新的技术架构/视觉验收基准**。原 worktree、依赖等仍待单独审计清理；没有确认前不可一键删除或重置。
 - README 创新章节与计划并存必须显式区分已确认、开发中、已实现、已验证。保留旧材料便于成员准备竞赛 PPT/视频；新稿未验证不当成系统截图。
 - 本文只记录截至 2026-10-17 的确认事项。未决问题继续在产品评审中逐项裁决；Codex 不能以“实现方便”为理由自行决定。
