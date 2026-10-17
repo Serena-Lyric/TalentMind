@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea } from '../src/graph/nebulaViewport.ts'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextZoomScale } from '../src/graph/nebulaViewport.ts'
 import type { GraphNode } from '../src/api/graph.ts'
 
 test('缩放和平移后的屏幕/世界坐标互逆', () => {
@@ -93,4 +93,17 @@ test('可用矩形不与左右/覆盖面板相交，空图和零尺寸仍有限'
   assert.deepEqual(area, availableGraphArea(view, [...panels].reverse()))
   assert.ok(Object.values(focusTransform([],view,area)).every(Number.isFinite))
   assert.ok(Object.values(focusTransform([{x:0,y:0}],{width:0,height:0})).every(Number.isFinite))
+})
+test('面板挤压后的极小聚焦比例向下滚轮不反向放大，允许从fit继续缩小', () => {
+  const view={width:900,height:700}
+  const points=[{x:-1e12,y:0},{x:1e12,y:0}]
+  const control={left:16,right:260,top:12,bottom:400}
+  const detail={left:524,right:884,top:12,bottom:660}
+  const overview=focusTransform(points,view,availableGraphArea(view,[control]))
+  const focus=focusTransform(points,view,availableGraphArea(view,[control,detail]))
+  assert.ok(focus.scale<overview.scale)
+  assert.ok(nextZoomScale(focus.scale,false,overview.scale)<=focus.scale)
+  assert.ok(nextZoomScale(focus.scale,false,focus.scale)<focus.scale)
+  assert.ok(nextZoomScale(focus.scale,true,focus.scale)>focus.scale)
+  assert.equal(nextZoomScale(2.7,true,.1),2.7)
 })

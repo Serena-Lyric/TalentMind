@@ -4,6 +4,9 @@ import type { Bounds } from './nebulaEdges'
 
 export interface Transform { x: number; y: number; scale: number }
 export interface Viewport { width: number; height: number }
+export function nextZoomScale(current: number, zoomIn: boolean, fittedScale: number): number {
+  return Math.min(2.7,Math.max(Math.min(.03,fittedScale/2,current),current*(zoomIn?1.1:.9)))
+}
 export function nextSearchIndex(current: number, count: number, direction: 1 | -1): number {
   if (!count) return -1
   if (current < 0 || current >= count) return direction === 1 ? 0 : count - 1

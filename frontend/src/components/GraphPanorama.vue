@@ -79,12 +79,12 @@ import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
 import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex } from '../graph/nebulaViewport'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale } from '../graph/nebulaViewport'
 
 import { nodeAppearance } from '../graph/nebulaPresentation'
 
 let overview = true
-let overviewScale = 1
+let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
@@ -258,7 +258,7 @@ function draw() {
     mode: experimental ? 'experimental' : 'legacy', totalEdges: graphData.value.edges.length,
     candidates: experimental ? edgePlan.candidates : undefined, visibleDirect: experimental ? edgePlan.visibleDirect : undefined,
     submitted, painted, selectedId: selectedNode.value?.id || null,
-    overview, lastFit, search: { index: searchIndex.value, count: searchMatches.value.length },
+    overview, lastFit, fittedScale, search: { index: searchIndex.value, count: searchMatches.value.length },
     activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
   })
 }
@@ -296,6 +296,7 @@ function fitPoints(points: Point[]) {
   const view = { width: canvas.clientWidth, height: canvas.clientHeight }
   const area = availableGraphArea(view, panels)
   Object.assign(transform, focusTransform(points, view, area))
+  fittedScale = transform.scale
   const outside = points.filter(point => {
     const screen = toScreen(point, view, transform)
     return screen.x < area.left || screen.x > area.right || screen.y < area.top || screen.y > area.bottom
@@ -304,7 +305,6 @@ function fitPoints(points: Point[]) {
 }
 function fitGraph() {
   fitPoints(drawNodes.value.filter(node => activeKinds.value.has(node.kind)).map(node => node.point))
-  overviewScale = transform.scale
 }
 function focusNeighborhood() {
   if (!experimental || !selectedNode.value) return
@@ -340,7 +340,8 @@ function onWheel(event: WheelEvent) {
   if (!rect) return
   if (experimental) overview = false
   const before = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
-  transform.scale = Math.min(2.7, Math.max(experimental ? Math.min(.03, overviewScale) : .45, transform.scale * (event.deltaY > 0 ? .9 : 1.1)))
+  transform.scale = experimental ? nextZoomScale(transform.scale, event.deltaY <= 0, fittedScale)
+    : Math.min(2.7, Math.max(.45, transform.scale * (event.deltaY > 0 ? .9 : 1.1)))
   const after = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
   transform.x += after.x - before.x; transform.y += after.y - before.y; draw()
 }
