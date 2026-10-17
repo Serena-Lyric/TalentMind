@@ -29,3 +29,11 @@ pnpm run dev
 - 图谱和采集控制台使用后端 API；`Collection.vue` 的平台统计仍有历史回退值，接口缺项时不能据此认定为实时数据。采集模块管理页的采集任务需**手动启动**（2026-09-03 起停用进入页面自动采集：不再自动准备 Edge/自动尝试单轮），系统不自动登录或绕过验证。
 - 简历推荐展示分仍包含演示口径：低于 90 的真实 `raw_score` 会映射为随机的 90–100 展示分；展示分及 `parseQuality` 不能作为实测准确率。相关源码本轮未改。
 - `pnpm run build` 同时执行 `vue-tsc --noEmit` 和 Vite 构建。
+
+## Career Nebula 开发期对照（Issue #22）
+
+默认仍为原版 legacy。需要审查关系布局时，完整刷新 `http://127.0.0.1:18080/?nebula=experimental#/graph`（独立 worktree 服务可改用 18081）；参数放在 hash 前。删除 `nebula=experimental` 后刷新即可回退，无新增永久工具栏。
+
+实验版复用已有 d3-force 固定迭代，按真实关联安排岗位/技能/场景；共享节点考虑全部关联岗位。普通连线采用视口、类型轮转和端点覆盖的稳定预算；选中节点展示所有可见类型的真实直连，scale >= 1.8 补全当前视口内关系。顶部关联数仍为数据总数。可额外用 `nebulaDebug=1` 查看根节点 `data-nebula` 开发期计数，无可见统计项。
+
+`pnpm test` 使用 Node 内置 TypeScript stripping（本轮验证 Node 24.15.0），无需新增测试框架；`pnpm run build` 执行类型检查与构建。只读固定 API 快照可运行 `node --experimental-strip-types scripts/check-nebula.ts <graph-api.json>`；检查器不连接服务或写文件。测试与检查均不写数据库。首次布局计算仍在主线程，完整图全景较密集，最终视觉效果待用户验收。
