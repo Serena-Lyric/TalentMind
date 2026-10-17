@@ -70,7 +70,10 @@ import { DataAnalysis, Loading, Refresh, RefreshRight, Search } from '@element-p
 import { ElMessage } from 'element-plus'
 import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 
-interface Point { x: number; y: number }
+import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
+import { buildRelationLayout } from '../graph/nebulaLayout'
+
+const experimental = new URLSearchParams(window.location.search).get('nebula') === 'experimental'
 interface DrawNode extends GraphNode { point: Point }
 
 const rootRef = ref<HTMLElement | null>(null)
@@ -86,7 +89,6 @@ const filters = reactive([
   { kind: 'industry' as const, label: '行业', color: '#c77dff', active: true },
 ])
 
-const layout = new Map<string, Point>()
 const nodeById = new Map<string, DrawNode>()
 const drawNodes = ref<DrawNode[]>([])
 const DEFAULT_EDGE_LIMIT = 900
@@ -115,54 +117,11 @@ function nodeLabel(node: GraphNode) {
   return node.label.length > maxChars ? `${node.label.slice(0, maxChars - 1)}…` : node.label
 }
 
-function buildLayout() {
-  layout.clear()
+async function buildLayout() {
   const nodes = graphData.value.nodes
-  const jobs = nodes.filter(node => node.kind === 'job').sort((a, b) => a.id.localeCompare(b.id))
-  const industries = nodes.filter(node => node.kind === 'industry').sort((a, b) => a.id.localeCompare(b.id))
-  const skills = nodes.filter(node => node.kind === 'skill').sort((a, b) => a.id.localeCompare(b.id))
-  const jobIds = new Set(jobs.map(node => node.id))
-  const skillIds = new Set(skills.map(node => node.id))
-  jobs.forEach((job, index) => {
-    const radius = 150 * Math.sqrt(index + .6)
-    const angle = index * 2.39996323
-    layout.set(job.id, { x: radius * Math.cos(angle), y: radius * Math.sin(angle) })
-  })
-  industries.forEach((node, index) => layout.set(node.id, { x: -420 + index * 110, y: -280 + (index % 2) * 70 }))
-
-  const skillLinks = new Map<string, string[]>()
-  graphData.value.edges.forEach((edge) => {
-    const jobId = jobIds.has(edge.source) ? edge.source : jobIds.has(edge.target) ? edge.target : ''
-    const skillId = skillIds.has(edge.source) ? edge.source : skillIds.has(edge.target) ? edge.target : ''
-    if (jobId && skillId) {
-      const list = skillLinks.get(jobId) || []
-      list.push(skillId)
-      skillLinks.set(jobId, list)
-    }
-  })
-  skillLinks.forEach((skillIds, jobId) => {
-    const parent = layout.get(jobId)
-    if (!parent) return
-    const unique = [...new Set(skillIds)].sort()
-    unique.forEach((skillId, index) => {
-      if (layout.has(skillId)) return
-      const ring = Math.floor(index / 14)
-      const slot = index % 14
-      const angle = (slot / 14) * Math.PI * 2 + ring * .42
-      const distance = 50 + ring * 28
-      layout.set(skillId, { x: parent.x + Math.cos(angle) * distance, y: parent.y + Math.sin(angle) * distance })
-    })
-  })
-  skills.forEach((node, index) => {
-    if (!layout.has(node.id)) {
-      const radius = 520 + (index % 4) * 90
-      const angle = index * 2.39996323
-      layout.set(node.id, { x: radius * Math.cos(angle), y: radius * Math.sin(angle) })
-    }
-  })
-  nodes.forEach((node, index) => {
-    if (!layout.has(node.id)) layout.set(node.id, { x: (index % 10) * 90, y: Math.floor(index / 10) * 90 })
-  })
+  const layout = experimental
+    ? await buildRelationLayout(nodes, graphData.value.edges)
+    : buildLegacyLayout(nodes, graphData.value.edges)
   drawNodes.value = nodes.map(node => ({ ...node, point: layout.get(node.id) || { x: 0, y: 0 } }))
   nodeById.clear()
   drawNodes.value.forEach(node => nodeById.set(node.id, node))
@@ -299,7 +258,7 @@ async function loadGraph() {
   loading.value = true
   try {
     graphData.value = await getGraphData('2026', 'all')
-    buildLayout(); await nextTick(); resizeCanvas()
+    await buildLayout(); await nextTick(); resizeCanvas()
   } catch { ElMessage.error('图谱数据加载失败') }
   finally { loading.value = false; draw() }
 }
