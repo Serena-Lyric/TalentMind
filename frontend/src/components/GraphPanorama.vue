@@ -65,22 +65,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { DataAnalysis, Loading, Refresh, RefreshRight, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
+import { selectEdges, dashedEdge, segmentInBounds } from '../graph/nebulaEdges'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus } from '../graph/nebulaViewport'
 
-const experimental = new URLSearchParams(window.location.search).get('nebula') === 'experimental'
+const query = new URLSearchParams(window.location.search)
+const experimental = query.get('nebula') === 'experimental'
+const debug = query.get('nebulaDebug') === '1'
+let layoutMs = 0
 interface DrawNode extends GraphNode { point: Point }
 
 const rootRef = ref<HTMLElement | null>(null)
 const canvasWrapRef = ref<HTMLElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const loading = ref(false)
-const graphData = ref<GraphData>({ nodes: [], edges: [], stats: { totalNodes: 0, totalEdges: 0, added: 0, removed: 0, changed: 0 } })
+const graphData = shallowRef<GraphData>({ nodes: [], edges: [], stats: { totalNodes: 0, totalEdges: 0, added: 0, removed: 0, changed: 0 } })
 const searchKeyword = ref('')
 const selectedNode = ref<GraphNode | null>(null)
 const filters = reactive([
@@ -90,7 +95,7 @@ const filters = reactive([
 ])
 
 const nodeById = new Map<string, DrawNode>()
-const drawNodes = ref<DrawNode[]>([])
+const drawNodes = shallowRef<DrawNode[]>([])
 const DEFAULT_EDGE_LIMIT = 900
 const highlightIds = ref<Set<string>>(new Set())
 const transform = reactive({ scale: 1, x: 0, y: 0 })
@@ -101,6 +106,7 @@ const activeKinds = computed(() => new Set(filters.filter(item => item.active).m
 const searchMatches = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase()
   if (!keyword) return []
+  if (experimental) return searchNodes(drawNodes.value, keyword, activeKinds.value)
   return drawNodes.value.filter(node => node.label.toLowerCase().includes(keyword) || node.id.toLowerCase().includes(keyword))
 })
 const connectedCount = computed(() => {
@@ -118,10 +124,12 @@ function nodeLabel(node: GraphNode) {
 }
 
 async function buildLayout() {
+  const start = performance.now()
   const nodes = graphData.value.nodes
   const layout = experimental
     ? await buildRelationLayout(nodes, graphData.value.edges)
     : buildLegacyLayout(nodes, graphData.value.edges)
+  layoutMs = performance.now() - start
   drawNodes.value = nodes.map(node => ({ ...node, point: layout.get(node.id) || { x: 0, y: 0 } }))
   nodeById.clear()
   drawNodes.value.forEach(node => nodeById.set(node.id, node))
@@ -142,16 +150,19 @@ function resizeCanvas() {
 function worldToScreen(point: Point) {
   const canvas = canvasRef.value
   if (!canvas) return { x: 0, y: 0 }
+  if (experimental) return toScreen(point, { width: canvas.clientWidth, height: canvas.clientHeight }, transform)
   return { x: canvas.clientWidth / 2 + (point.x + transform.x) * transform.scale, y: canvas.clientHeight / 2 + (point.y + transform.y) * transform.scale }
 }
 function screenToWorld(x: number, y: number) {
   const canvas = canvasRef.value
   if (!canvas) return { x: 0, y: 0 }
+  if (experimental) return toWorld({ x, y }, { width: canvas.clientWidth, height: canvas.clientHeight }, transform)
   return { x: (x - canvas.clientWidth / 2) / transform.scale - transform.x, y: (y - canvas.clientHeight / 2) / transform.scale - transform.y }
 }
-function visibleNode(node: DrawNode) { return activeKinds.value.has(node.kind) }
+function visibleNode(node: DrawNode) { return activeKinds.value.has(node.kind) && (!experimental || visibleInFocus(node.id, highlightIds.value)) }
 
 function draw() {
+  const start = performance.now()
   const canvas = canvasRef.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
@@ -162,29 +173,42 @@ function draw() {
   const nodes = drawNodes.value.filter(visibleNode)
   const highlights = highlightIds.value
   const hasHighlight = highlights.size > 0
+  const topLeft = screenToWorld(0, 0)
+  const bottomRight = screenToWorld(canvas.clientWidth, canvas.clientHeight)
+  const viewport = { left: topLeft.x, top: topLeft.y, right: bottomRight.x, bottom: bottomRight.y }
+  const positions = new Map(drawNodes.value.map(node => [node.id, node.point]))
+  const edges = experimental ? selectEdges(graphData.value.edges, graphData.value.nodes, positions, {
+    activeKinds: activeKinds.value, selectedId: selectedNode.value?.id, viewport, scale: transform.scale,
+  }) : graphData.value.edges
+  let submitted = 0; let painted = 0
   ctx.save()
   ctx.lineWidth = .7
-  graphData.value.edges.forEach((edge, index) => {
+  edges.forEach((edge, index) => {
     const source = nodeById.get(edge.source)
     const target = nodeById.get(edge.target)
     if (!source || !target || !visibleNode(source) || !visibleNode(target)) return
-    if (!hasHighlight && index >= DEFAULT_EDGE_LIMIT) return
-    if (hasHighlight && !(highlights.has(source.id) && highlights.has(target.id))) return
+    if (!experimental && !hasHighlight && index >= DEFAULT_EDGE_LIMIT) return
+    if (!experimental && hasHighlight && !(highlights.has(source.id) && highlights.has(target.id))) return
     const sourcePoint = worldToScreen(source.point)
     const targetPoint = worldToScreen(target.point)
+    submitted++
+    if (segmentInBounds(source.point, target.point, viewport)) painted++
+    const dashed = experimental ? dashedEdge(edge, nodeById) : edge.kind.includes('similar')
     const active = true
     ctx.beginPath(); ctx.moveTo(sourcePoint.x, sourcePoint.y); ctx.lineTo(targetPoint.x, targetPoint.y)
-    ctx.strokeStyle = active ? (edge.kind.includes('similar') ? 'rgba(142,137,196,.25)' : 'rgba(79,162,255,.27)') : 'rgba(75,79,128,.06)'
-    ctx.setLineDash(edge.kind.includes('similar') ? [4, 5] : [])
+    ctx.strokeStyle = active ? (dashed ? 'rgba(142,137,196,.25)' : 'rgba(79,162,255,.27)') : 'rgba(75,79,128,.06)'
+    ctx.setLineDash(dashed ? [4, 5] : [])
     ctx.stroke()
   })
   ctx.restore()
+  const matchIds = new Set(searchMatches.value.map(node => node.id))
   nodes.forEach(node => {
     const point = worldToScreen(node.point)
     const size = nodeSize(node) * Math.max(.72, transform.scale)
+    if (experimental && (point.x + size < 0 || point.y + size < 0 || point.x - size > canvas.clientWidth || point.y - size > canvas.clientHeight)) return
     const color = colors[node.kind]
     const active = !hasHighlight || highlights.has(node.id)
-    const match = searchKeyword.value && searchMatches.value.some(item => item.id === node.id)
+    const match = searchKeyword.value && matchIds.has(node.id)
     ctx.save()
     ctx.globalAlpha = active ? 1 : .12
     ctx.shadowColor = color
@@ -202,11 +226,17 @@ function draw() {
     }
     ctx.restore()
   })
+  if (debug && rootRef.value) rootRef.value.dataset.nebula = JSON.stringify({
+    mode: experimental ? 'experimental' : 'legacy', totalEdges: graphData.value.edges.length,
+    submitted, painted, selectedId: selectedNode.value?.id || null,
+    activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
+  })
 }
 
 function nodeAt(x: number, y: number) {
   const world = screenToWorld(x, y)
   return drawNodes.value.filter(visibleNode).slice().reverse().find(node => {
+    if (experimental) return hitPoint(world, node.point, nodeSize(node), transform.scale)
     const size = nodeSize(node) + 7 / transform.scale
     return Math.hypot(node.point.x - world.x, node.point.y - world.y) <= size
   })
@@ -220,6 +250,12 @@ function highlightNode(node: GraphNode | null) {
   })
   highlightIds.value = ids
 }
+function focusNeighborhood() {
+  const canvas = canvasRef.value
+  if (!experimental || !canvas || !selectedNode.value) return
+  const points = drawNodes.value.filter(node => visibleNode(node) && highlightIds.value.has(node.id)).map(node => node.point)
+  Object.assign(transform, focusTransform(points, { width: canvas.clientWidth, height: canvas.clientHeight }))
+}
 function onCanvasClick(event: MouseEvent) {
   if (drag.moved) { drag.moved = false; return }
   const rect = canvasRef.value?.getBoundingClientRect()
@@ -227,6 +263,7 @@ function onCanvasClick(event: MouseEvent) {
   const node = nodeAt(event.clientX - rect.left, event.clientY - rect.top)
   selectedNode.value = node || null
   highlightNode(node || null)
+  focusNeighborhood()
   draw()
 }
 function onPointerDown(event: PointerEvent) {
@@ -244,7 +281,7 @@ function onWheel(event: WheelEvent) {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   const before = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
-  transform.scale = Math.min(2.7, Math.max(.45, transform.scale * (event.deltaY > 0 ? .9 : 1.1)))
+  transform.scale = Math.min(2.7, Math.max(experimental ? .03 : .45, transform.scale * (event.deltaY > 0 ? .9 : 1.1)))
   const after = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
   transform.x += after.x - before.x; transform.y += after.y - before.y; draw()
 }
@@ -252,7 +289,7 @@ function resetView() { transform.scale = 1; transform.x = 0; transform.y = 0; se
 function focusFirstMatch() {
   const node = searchMatches.value[0]
   if (!node) { ElMessage.warning('没有匹配节点'); return }
-  selectedNode.value = node; highlightNode(node); transform.x = -node.point.x; transform.y = -node.point.y; draw()
+  selectedNode.value = node; highlightNode(node); transform.x = -node.point.x; transform.y = -node.point.y; focusNeighborhood(); draw()
 }
 async function loadGraph() {
   loading.value = true
@@ -262,7 +299,13 @@ async function loadGraph() {
   } catch { ElMessage.error('图谱数据加载失败') }
   finally { loading.value = false; draw() }
 }
-watch([activeKinds, searchKeyword], () => draw(), { deep: true })
+watch(activeKinds, () => {
+  if (experimental && selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
+    selectedNode.value = null; highlightIds.value = new Set()
+  }
+  draw()
+}, { deep: true })
+watch(searchKeyword, () => draw())
 onMounted(() => { resizeObserver = new ResizeObserver(resizeCanvas); if (canvasWrapRef.value) resizeObserver.observe(canvasWrapRef.value); loadGraph() })
 onUnmounted(() => resizeObserver?.disconnect())
 </script>

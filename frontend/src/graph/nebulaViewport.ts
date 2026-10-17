@@ -1,0 +1,35 @@
+import type { GraphNode } from '../api/graph'
+import type { Point } from './nebulaLegacy'
+
+export interface Transform { x: number; y: number; scale: number }
+export interface Viewport { width: number; height: number }
+export function visibleInFocus(id: string, focus: Set<string>) {
+  return !focus.size || focus.has(id)
+}
+export function toScreen(point: Point, view: Viewport, transform: Transform): Point {
+  return { x: view.width / 2 + (point.x + transform.x) * transform.scale, y: view.height / 2 + (point.y + transform.y) * transform.scale }
+}
+export function toWorld(point: Point, view: Viewport, transform: Transform): Point {
+  return { x: (point.x - view.width / 2) / transform.scale - transform.x, y: (point.y - view.height / 2) / transform.scale - transform.y }
+}
+export function hitPoint(world: Point, center: Point, radius: number, scale: number) {
+  return Math.hypot(world.x - center.x, world.y - center.y) * scale <= radius * Math.max(.72, scale) + 7
+}
+export function focusTransform(points: Point[], view: Viewport): Transform {
+  if (!points.length) return { x: 0, y: 0, scale: 1 }
+  const xs = points.map(point => point.x); const ys = points.map(point => point.y)
+  const minX = Math.min(...xs); const maxX = Math.max(...xs)
+  const minY = Math.min(...ys); const maxY = Math.max(...ys)
+  const left = Math.min(300, view.width * .27); const right = Math.min(410, view.width * .34)
+  const width = Math.max(40, view.width - left - right - 48)
+  const height = Math.max(40, view.height - 72)
+  const scale = Math.min(1, width / Math.max(1, maxX - minX), height / Math.max(1, maxY - minY))
+  return { scale, x: -(minX + maxX) / 2 + (left - right) / 2 / scale, y: -(minY + maxY) / 2 }
+}
+export function searchNodes<T extends GraphNode>(nodes: T[], keyword: string, activeKinds: Set<GraphNode['kind']>): T[] {
+  const word = keyword.trim().toLowerCase()
+  if (!word) return []
+  const exact = (node: T) => node.label.toLowerCase() === word || node.id.toLowerCase() === word
+  return nodes.filter(node => activeKinds.has(node.kind) && (node.label.toLowerCase().includes(word) || node.id.toLowerCase().includes(word)))
+    .sort((a, b) => Number(exact(b)) - Number(exact(a)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+}

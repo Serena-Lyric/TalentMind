@@ -1,5 +1,8 @@
 import type { GraphNode, GraphEdge } from '../api/graph'
 import type { Point } from './nebulaLegacy'
+import type { SimulationNodeDatum } from 'd3-force'
+
+interface Anchor extends SimulationNodeDatum { id: string; kind: GraphNode['kind'] }
 
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0
 const goldenAngle = 2.39996323
@@ -27,21 +30,19 @@ export async function buildRelationLayout(nodes: GraphNode[], edges: GraphEdge[]
   const anchorIds = new Set(anchors.map(node => node.id))
   const skeleton = validEdges.filter(edge => anchorIds.has(edge.source) && anchorIds.has(edge.target))
   if (anchors.length) {
-    const { D3ForceLayout } = await import('@antv/g6')
+    const { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } = await import('d3-force')
     let seed = 42
-    const solver = new D3ForceLayout({
-      width: 0, height: 0, center: [0, 0],
-      alphaDecay: .14, nodeStrength: -180, linkDistance: 180, edgeStrength: .15,
-      preventOverlap: true, nodeSize: (node: { kind?: string }) => node.kind === 'job' ? 130 : 28, nodeSpacing: 12,
-      randomSource: () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296),
-    })
+    const solver = forceSimulation<Anchor>(anchors.map(node => ({ id: node.id, kind: node.kind }))).stop()
     try {
-      await solver.execute({
-        nodes: anchors.map(node => ({ id: node.id, kind: node.kind })),
-        edges: skeleton.map((edge, index) => ({ id: String(index), source: edge.source, target: edge.target })),
-      })
-      solver.forEachNode(node => positions.set(String(node.id), { x: node.x, y: node.y }))
-    } finally { solver.stop(); solver.destroy() }
+      solver.randomSource(() => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296))
+        .force('link', forceLink<Anchor, { source: string | Anchor; target: string | Anchor }>(skeleton.map(edge => ({ source: edge.source, target: edge.target })))
+          .id(node => node.id).distance(180).strength(.15))
+        .force('charge', forceManyBody<Anchor>().strength(-180))
+        .force('center', forceCenter(0, 0))
+        .force('collision', forceCollide<Anchor>(node => node.kind === 'job' ? 77 : 26))
+        .alphaDecay(.05).tick(120)
+      solver.nodes().forEach(node => positions.set(node.id, { x: node.x!, y: node.y! }))
+    } finally { solver.stop() }
   }
   // 同一邻域使用稳定的局部槽位；共享节点的中心始终由全部不同岗位决定。
   const groups = new Map<string, GraphNode[]>()
