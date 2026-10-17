@@ -47,7 +47,7 @@
     </aside>
 
     <div ref="canvasWrapRef" class="nebula-canvas-wrap">
-      <canvas ref="canvasRef" @click="onCanvasClick" @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointerleave="onPointerUp" @wheel.prevent="onWheel"></canvas>
+      <canvas ref="canvasRef" @click="onCanvasClick" @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointerleave="onPointerLeave" @wheel.prevent="onWheel"></canvas>
       <div v-if="loading" class="nebula-state"><el-icon class="is-loading"><Loading /></el-icon><span>正在加载图谱数据...</span></div>
       <div v-else-if="!graphData.nodes.length" class="nebula-state"><el-icon><DataAnalysis /></el-icon><span>暂无图谱数据</span></div>
     </div>
@@ -85,7 +85,7 @@ import { buildRelationLayout } from '../graph/nebulaLayout'
 import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
 import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale, type Transform } from '../graph/nebulaViewport'
 
-import { nodeAppearance } from '../graph/nebulaPresentation'
+import { nodeAppearance, selectLabels, type LabelCandidate } from '../graph/nebulaPresentation'
 
 let overview = true
 let fittedScale = 1
@@ -106,6 +106,7 @@ const graphData = shallowRef<GraphData>({ nodes: [], edges: [], stats: { totalNo
 const searchKeyword = ref('')
 const searchIndex = ref(-1)
 const selectedNode = ref<GraphNode | null>(null)
+const hoveredId = ref<string | null>(null)
 const filters = reactive([
   { kind: 'job' as const, label: '岗位', color: '#4da6ff', active: true },
   { kind: 'skill' as const, label: '技能', color: '#2ee66b', active: true },
@@ -128,6 +129,7 @@ const searchMatches = computed(() => {
   if (experimental) return searchNodes(drawNodes.value, keyword, activeKinds.value)
   return drawNodes.value.filter(node => node.label.toLowerCase().includes(keyword) || node.id.toLowerCase().includes(keyword))
 })
+const searchMatchIds = computed(() => new Set(searchMatches.value.map(node => node.id)))
 const connectedCount = computed(() => {
   if (!selectedNode.value) return 0
   return graphData.value.edges.filter(edge => edge.source === selectedNode.value?.id || edge.target === selectedNode.value?.id).length
@@ -202,7 +204,7 @@ function draw() {
   const positions = new Map(drawNodes.value.map(node => [node.id, node.point]))
   const edgePlan = experimental ? selectEdgePlan(graphData.value.edges, graphData.value.nodes, positions, {
     activeKinds: activeKinds.value, selectedId: selectedNode.value?.id, viewport, scale: transform.scale,
-  }) : { edges: graphData.value.edges, candidates: graphData.value.edges.length, visibleDirect: 0 }
+  }) : { edges: graphData.value.edges, candidates: graphData.value.edges.length, visibleDirect: 0, dataDegree: 0, typeFilteredDirect: 0 }
   const edges = edgePlan.edges
   let submitted = 0; let painted = 0
   ctx.save()
@@ -229,12 +231,14 @@ function draw() {
     ctx.stroke()
   })
   ctx.restore()
-  const matchIds = new Set(searchMatches.value.map(node => node.id))
+  const matchIds = searchMatchIds.value
+  const labels: (LabelCandidate & { text: string; x: number; y: number; font: string; active: boolean })[] = []
   nodes.forEach(node => {
     const point = worldToScreen(node.point)
     const match = Boolean(searchKeyword.value) && matchIds.has(node.id)
     const selected = selectedNode.value?.id === node.id
-    const appearance = experimental ? nodeAppearance(node.kind, nodeSize(node), transform.scale, selected, match) : {
+    const hovered = hoveredId.value === node.id
+    const appearance = experimental ? nodeAppearance(node.kind, nodeSize(node), transform.scale, selected, match, hovered) : {
       radius: nodeSize(node) * Math.max(.72, transform.scale), label: node.kind === 'job' || match || selected,
       shadow: node.kind === 'skill' ? 8 : 16, outline: true,
     }
@@ -254,24 +258,44 @@ function draw() {
     if (appearance.outline) ctx.stroke()
     if (appearance.label) {
       ctx.font = `${node.kind === 'job' ? 9 : 10}px "Microsoft YaHei", sans-serif`
-      ctx.fillStyle = active ? 'rgba(232,239,255,.82)' : 'rgba(180,188,225,.25)'
-      ctx.textAlign = 'center'; ctx.fillText(nodeLabel(node), point.x, point.y + size + 13)
+      const text = nodeLabel(node)
+      const y = point.y + size + 13
+      if (experimental) {
+        const halfWidth = ctx.measureText(text).width / 2 + 3
+        labels.push({ id: node.id, text, x: point.x, y, font: ctx.font, active,
+          priority: selected ? 4 : hovered ? 3 : match ? 2 : node.kind === 'job' ? 1 : 0,
+          bounds: { left: point.x - halfWidth, right: point.x + halfWidth, top: y - 11, bottom: y + 3 },
+        })
+      } else {
+        ctx.fillStyle = active ? 'rgba(232,239,255,.82)' : 'rgba(180,188,225,.25)'
+        ctx.textAlign = 'center'; ctx.fillText(text, point.x, y)
+      }
     }
     ctx.restore()
   })
+  const labelIds = selectLabels(labels, { left: 0, right: canvas.clientWidth, top: 0, bottom: canvas.clientHeight }, experimental ? graphPanels() : [])
+  for (const label of labels) {
+    if (!labelIds.has(label.id)) continue
+    ctx.font = label.font; ctx.textAlign = 'center'
+    ctx.fillStyle = label.active ? 'rgba(232,239,255,.82)' : 'rgba(180,188,225,.25)'
+    ctx.fillText(label.text, label.x, label.y)
+  }
   if (debug && rootRef.value) rootRef.value.dataset.nebula = JSON.stringify({
     mode: experimental ? 'experimental' : 'legacy', totalEdges: graphData.value.edges.length,
     candidates: experimental ? edgePlan.candidates : undefined, visibleDirect: experimental ? edgePlan.visibleDirect : undefined,
+    direct: experimental && selectedNode.value ? { dataDegree: edgePlan.dataDegree, typeFiltered: edgePlan.typeFilteredDirect, drawable: edgePlan.visibleDirect, submitted, intersecting: painted } : null,
     submitted, painted, selectedId: selectedNode.value?.id || null,
-    overview, lastFit, fittedScale, search: { index: searchIndex.value, count: searchMatches.value.length },
+    overview, lastFit, fittedScale, savedView: Boolean(savedView.value), hoveredId: hoveredId.value,
+    labels: { candidates: labels.length, drawn: labelIds.size }, search: { index: searchIndex.value, count: searchMatches.value.length },
     activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
   })
 }
 
 function nodeAt(x: number, y: number) {
   const world = screenToWorld(x, y)
+  const matchIds = searchMatchIds.value
   return drawNodes.value.filter(visibleNode).slice().reverse().find(node => {
-    if (experimental) return hitPoint(world, node.point, nodeAppearance(node.kind, nodeSize(node), transform.scale, selectedNode.value?.id === node.id).radius, transform.scale)
+    if (experimental) return hitPoint(world, node.point, nodeAppearance(node.kind, nodeSize(node), transform.scale, selectedNode.value?.id === node.id, matchIds.has(node.id), hoveredId.value === node.id).radius, transform.scale)
     const size = nodeSize(node) + 7 / transform.scale
     return Math.hypot(node.point.x - world.x, node.point.y - world.y) <= size
   })
@@ -290,15 +314,18 @@ function highlightNode(node: GraphNode | null) {
   })
   highlightIds.value = ids
 }
-function graphArea() {
+function graphPanels() {
   const canvas = canvasRef.value
-  if (!canvas) return { left: 0, right: 0, top: 0, bottom: 0 }
+  if (!canvas) return []
   const rect = canvas.getBoundingClientRect()
-  const panels = [...(rootRef.value?.querySelectorAll('.nebula-control, .nebula-detail') || [])].map(panel => {
+  return [...(rootRef.value?.querySelectorAll('.nebula-control, .nebula-detail') || [])].map(panel => {
     const box = panel.getBoundingClientRect()
     return { left: box.left - rect.left, right: box.right - rect.left, top: box.top - rect.top, bottom: box.bottom - rect.top }
   })
-  return availableGraphArea({ width: canvas.clientWidth, height: canvas.clientHeight }, panels)
+}
+function graphArea() {
+  const canvas = canvasRef.value
+  return availableGraphArea({ width: canvas?.clientWidth || 0, height: canvas?.clientHeight || 0 }, graphPanels())
 }
 function fitPoints(points: Point[]) {
   const canvas = canvasRef.value
@@ -334,12 +361,13 @@ function returnToView() {
   savedView.value = null; lastFit = null
   draw()
 }
-function clearSelection() {
+async function clearSelection() {
   selectedNode.value = null; highlightIds.value = new Set(); searchIndex.value = -1
   if (experimental) overview = false
+  if (experimental) await nextTick()
   draw()
 }
-function onCanvasClick(event: MouseEvent) {
+async function onCanvasClick(event: MouseEvent) {
   if (drag.moved) { drag.moved = false; return }
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -347,6 +375,7 @@ function onCanvasClick(event: MouseEvent) {
   if (experimental) { searchIndex.value = -1; overview = false }
   selectedNode.value = node || null
   highlightNode(node || null)
+  if (experimental) await nextTick()
   draw()
 }
 function onPointerDown(event: PointerEvent) {
@@ -354,13 +383,21 @@ function onPointerDown(event: PointerEvent) {
   canvasRef.value?.setPointerCapture(event.pointerId)
 }
 function onPointerMove(event: PointerEvent) {
-  if (!drag.active) return
+  if (!drag.active) {
+    if (!experimental) return
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (!rect) return
+    const id = nodeAt(event.clientX - rect.left, event.clientY - rect.top)?.id || null
+    if (id !== hoveredId.value) { hoveredId.value = id; draw() }
+    return
+  }
   const dx = event.clientX - drag.startX; const dy = event.clientY - drag.startY
   drag.moved = drag.moved || Math.abs(dx) > 3 || Math.abs(dy) > 3
   if (experimental && drag.moved) overview = false
   transform.x = drag.originX + dx / transform.scale; transform.y = drag.originY + dy / transform.scale; draw()
 }
 function onPointerUp() { drag.active = false }
+function onPointerLeave() { onPointerUp(); if (experimental && hoveredId.value) { hoveredId.value = null; draw() } }
 function onWheel(event: WheelEvent) {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -420,11 +457,12 @@ async function loadGraph() {
   } catch { if (generation === loadGeneration) ElMessage.error('图谱数据加载失败') }
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
-watch(activeKinds, () => {
+watch(activeKinds, async () => {
   if (experimental) searchIndex.value = -1
   if (experimental && selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
     selectedNode.value = null; highlightIds.value = new Set()
   }
+  if (experimental) await nextTick()
   if (experimental && overview) fitGraph()
   draw()
 }, { deep: true })

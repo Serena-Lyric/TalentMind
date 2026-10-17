@@ -89,3 +89,13 @@ test('三种线型克制可辨，远景/长线弱化，聚焦直连重点突出'
     assert.ok(focus.alpha>=.6 && focus.width>near.width)
   }
 })
+test('选中诊断区分原始度数、类型过滤及有坐标的直连，不按视口删掉离屏直连', () => {
+  const graph = [node('j','job'),node('inside','skill'),node('off','skill'),node('hidden','industry'),node('unplaced','skill')]
+  const points = new Map([['j',{x:0,y:0}],['inside',{x:20,y:0}],['off',{x:2000,y:0}],['hidden',{x:10,y:0}]])
+  const links = ['inside','off','hidden','unplaced','missing'].map(target=>({source:'j',target,kind:'requires'}))
+  const plan = selectEdgePlan(links,graph,points,{...options,activeKinds:new Set(['job','skill']),selectedId:'j',scale:.085,limit:1})
+  assert.equal(plan.dataDegree,5)
+  assert.equal(plan.typeFilteredDirect,3)
+  assert.equal(plan.visibleDirect,2)
+  assert.deepEqual(plan.edges.map(edge=>edge.target),['inside','off'])
+})

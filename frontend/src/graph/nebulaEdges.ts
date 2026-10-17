@@ -26,6 +26,9 @@ export function edgeAppearance(edge: GraphEdge, nodes: Map<string, GraphNode>, s
 
 export function selectEdgePlan(edges: GraphEdge[], nodes: GraphNode[], positions: Map<string, Point>, options: EdgeOptions) {
   const visible = new Set(nodes.filter(node => options.activeKinds.has(node.kind)).map(node => node.id))
+  const direct = options.selectedId ? edges.filter(edge => edge.source === options.selectedId || edge.target === options.selectedId) : []
+  const dataDegree = direct.length
+  const typeFilteredDirect = direct.filter(edge => visible.has(edge.source) && visible.has(edge.target)).length
   const candidates = edges.filter(edge => visible.has(edge.source) && visible.has(edge.target)
     && positions.has(edge.source) && positions.has(edge.target)
     && (options.selectedId
@@ -45,7 +48,7 @@ export function selectEdgePlan(edges: GraphEdge[], nodes: GraphNode[], positions
     .filter(item => options.selectedId || zoomed || item.length <= maxLength)
     .sort((a, b) => a.length - b.length || b.inside - a.inside || a.distance - b.distance || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
   const visibleDirect = options.selectedId ? candidates.length : 0
-  if (options.selectedId || zoomed) return { edges: ranked.map(item => item.edge), candidates: candidates.length, visibleDirect }
+  if (options.selectedId || zoomed) return { edges: ranked.map(item => item.edge), candidates: candidates.length, visibleDirect, dataDegree, typeFilteredDirect }
   const limit = Math.max(0, Math.min(options.limit ?? 900, options.scale < .18 ? 120 : options.scale < .5 ? 300 : 900))
   const groups = new Map<string, typeof ranked>()
   for (const item of ranked) {
@@ -73,7 +76,7 @@ export function selectEdgePlan(edges: GraphEdge[], nodes: GraphNode[], positions
       })
     }
   }
-  return { edges: result, candidates: candidates.length, visibleDirect }
+  return { edges: result, candidates: candidates.length, visibleDirect, dataDegree, typeFilteredDirect }
 }
 
 export function dashedEdge(edge: GraphEdge, nodes: Map<string, GraphNode>) {
