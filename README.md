@@ -28,6 +28,9 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
+**2026-10-17 M3/M5 图谱改造状态**：当前 `master` 已合并 [PR #21](https://github.com/Serena-Lyric/TalentMind/pull/21) 的**离线图谱构建正确性与安全入口修复**，但新 ID/冲突审计尚未进行正式消费者迁移；现有 `graph.json` / Neo4j 未因此重建。[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 的关系驱动布局、原位选中、全览/标签等仍为**未合并实验实现**；原双路线星云原型 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 已按用户决定终止（Not planned），本地遗留待审计。**新的 Career Nebula 视觉与页面改造**当前只形成已确认设计与实施任务书，尚未启动正式页面改造或将 Three.js 接入主分支。
+
+
 2026-10-17 M2 B3-5（Issue #18）：独立八大类标准岗位目录**19 条未确认草案**与逐项人工审核/准入契约；正式 release **0 条**，非合成仅形成待现实批准的提案，synthetic_only 仅模拟准入。见 [M2 README](backend/app/job_analysis/README.md) 和 [归档实施及独立复审报告](docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)（[PR #19](https://github.com/Serena-Lyric/TalentMind/pull/19)）。Codex 报告阻网完整非集成 1132 passed / 2 skipped / 23 deselected，外部连接尝试 0；ChatGPT 独立静态复审通过，用户已授权归档/合并，状态以 GitHub 为准。不启动 B4。
 
 2026-10-17 M2 B3-4（Issue #16）：新增独立八类 families-v3 的硬件工程技术范围与待审材料证据层；宽泛、竞争、成熟复合和多职位分段主张均维持待审，不发布 canonical_job、职位拆分或招聘人数。见 [M2 README](backend/app/job_analysis/README.md)、[归档实施与复审报告](docs/superpowers/archive/2026-10-17-M2-stage-B3-4-implementation.md)、[PR #17](https://github.com/Serena-Lyric/TalentMind/pull/17)。Codex 报告完整阻网 1057 passed / 2 skipped / 23 deselected，外部服务连接 0；ChatGPT 独立静态复审通过并获用户归档/合并授权，状态以 PR 为准；尚未启动 B4。
