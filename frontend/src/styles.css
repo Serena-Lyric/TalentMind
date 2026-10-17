@@ -77,6 +77,7 @@ button { cursor: pointer; }
 
 .main-shell { min-height: 100vh; margin-left: 254px; transition: margin-left .2s ease; }
 .main-shell.sidebar-collapsed { margin-left: 92px; }
+.main-shell--graph { transition: none; }
 .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; min-height: 74px; padding: 0 34px; background: rgba(248, 246, 242, .94); backdrop-filter: blur(10px); }
 .breadcrumb { display: flex; align-items: center; gap: 9px; font-size: 13px; }
 .breadcrumb-root { color: #b5b0ad; }
@@ -91,6 +92,10 @@ button { cursor: pointer; }
 .user-chip b { font-weight: 500; }
 .page-main { min-height: calc(100vh - 74px); padding: 10px 34px 42px; }
 .page-main.page-main--graph { min-height: 100vh; padding-block: 18px; }
+.app-shell--graph-immersive > .sidebar { display: none; }
+.app-shell--graph-immersive > .main-shell { margin-left: 0; transition: none; }
+.app-shell--graph-immersive .page-main--graph { padding: 0; min-height: 100dvh; }
+.app-shell.app-shell--graph-immersive .graph-page { max-width: none; height: 100dvh; min-height: 0; }
 .page-fade-enter-active, .page-fade-leave-active { transition: opacity .16s ease, transform .16s ease; }
 .page-fade-enter-from, .page-fade-leave-to { opacity: 0; transform: translateY(5px); }
 

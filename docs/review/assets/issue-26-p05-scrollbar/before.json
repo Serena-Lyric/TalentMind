@@ -1,0 +1,128 @@
+{
+  "phase": "before",
+  "browser": "155.0.4283.45",
+  "base": "http://127.0.0.1:18087/",
+  "errors": [],
+  "writes": [],
+  "cases": [
+    {
+      "width": 1600,
+      "height": 900,
+      "start": {
+        "rect": {
+          "x": 1189,
+          "y": 87,
+          "width": 360,
+          "height": 770
+        },
+        "overflowY": "auto",
+        "scrollbarWidth": "thin",
+        "webkitDisplay": "inline",
+        "scrollTop": 0,
+        "scrollHeight": 1181,
+        "clientHeight": 768,
+        "clientWidth": 348
+      },
+      "wheel": 180,
+      "smallDelta": 220,
+      "end": {
+        "rect": {
+          "x": 1189,
+          "y": 87,
+          "width": 360,
+          "height": 770
+        },
+        "overflowY": "auto",
+        "scrollbarWidth": "thin",
+        "webkitDisplay": "inline",
+        "scrollTop": 413,
+        "scrollHeight": 1181,
+        "clientHeight": 768,
+        "clientWidth": 348
+      },
+      "left": {
+        "rect": {
+          "x": 305,
+          "y": 87,
+          "width": 244,
+          "height": 438
+        },
+        "overflowY": "auto",
+        "scrollbarWidth": "auto",
+        "webkitDisplay": "inline",
+        "scrollTop": 0,
+        "scrollHeight": 436,
+        "clientHeight": 436,
+        "clientWidth": 242
+      },
+      "textHash": "d19330a0b8bd86bb151bb75f91b816a148cc3cfedb50014f561054f2b152e3f7",
+      "camera": {
+        "scale": 0.08437419016874956,
+        "x": 1574.9924840398633,
+        "y": -56.975756701247064
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "start": {
+        "rect": {
+          "x": 119,
+          "y": 462,
+          "width": 244,
+          "height": 351
+        },
+        "overflowY": "auto",
+        "scrollbarWidth": "thin",
+        "webkitDisplay": "inline",
+        "scrollTop": 0,
+        "scrollHeight": 1507,
+        "clientHeight": 349,
+        "clientWidth": 232
+      },
+      "wheel": 180,
+      "smallDelta": 220,
+      "end": {
+        "rect": {
+          "x": 119,
+          "y": 462,
+          "width": 244,
+          "height": 351
+        },
+        "overflowY": "auto",
+        "scrollbarWidth": "thin",
+        "webkitDisplay": "inline",
+        "scrollTop": 1158,
+        "scrollHeight": 1507,
+        "clientHeight": 349,
+        "clientWidth": 232
+      },
+      "left": {
+        "rect": {
+          "x": 125,
+          "y": 87,
+          "width": 210,
+          "height": 351
+        },
+        "overflowY": "auto",
+        "scrollbarWidth": "auto",
+        "webkitDisplay": "inline",
+        "scrollTop": 0,
+        "scrollHeight": 473,
+        "clientHeight": 349,
+        "clientWidth": 193
+      },
+      "textHash": "d19330a0b8bd86bb151bb75f91b816a148cc3cfedb50014f561054f2b152e3f7",
+      "camera": {
+        "scale": 0.08437419016874956,
+        "x": 1574.9924840398633,
+        "y": -56.975756701247064
+      }
+    }
+  ],
+  "target": {
+    "id": "job:j-a38f7b74cc5f5920",
+    "label": "后端工程师"
+  },
+  "failure": "AssertionError [ERR_ASSERTION]: 右侧可见滚动条应隐藏\n\n'thin' !== 'none'\n\n    at file:///D:/Application/ClaudeCode/repository/TalentMind-p05/frontend/scripts/test-nebula-detail-scrollbar.mjs:85:12"
+}

@@ -1,0 +1,54 @@
+{
+  "nodes": 7845,
+  "edges": 11412,
+  "allCoordinatesMatchPR23": true,
+  "orderIndependent": true,
+  "baseline": "abb73eb9c2b35819ba0ac870ed4cbd8dd5d91e7f",
+  "browser": "155.0.4283.45",
+  "pr23Debug": {
+    "mode": "experimental",
+    "totalEdges": 11412,
+    "candidates": 11412,
+    "visibleDirect": 0,
+    "direct": null,
+    "submitted": 120,
+    "painted": 120,
+    "selectedId": null,
+    "overview": true,
+    "lastFit": {
+      "area": {
+        "left": 260,
+        "right": 1596,
+        "top": 0,
+        "bottom": 896
+      },
+      "points": 7845,
+      "outside": 0
+    },
+    "fittedScale": 0.09428760676821099,
+    "savedView": false,
+    "hoveredId": null,
+    "labels": {
+      "candidates": 0,
+      "drawn": 0
+    },
+    "search": {
+      "index": -1,
+      "count": 0
+    },
+    "activeKinds": [
+      "job",
+      "skill",
+      "industry"
+    ],
+    "transform": {
+      "scale": 0.09428760676821099,
+      "x": 1412.9971597383346,
+      "y": -56.975756701247064
+    },
+    "layoutMs": 1156.1000000014901,
+    "drawMs": 48.29999999701977
+  },
+  "temporaryPort": 18088,
+  "stoppedAfterCapture": true
+}
