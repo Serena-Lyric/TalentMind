@@ -4,6 +4,26 @@ import type { Bounds } from './nebulaEdges'
 
 export interface Transform { x: number; y: number; scale: number }
 export interface Viewport { width: number; height: number }
+export function availableGraphArea(view: Viewport, panels: Bounds[]): Bounds {
+  const full = { left: 0, right: view.width, top: 0, bottom: view.height }
+  const obstacles = panels.map(panel => ({
+    left: Math.max(0, panel.left), right: Math.min(view.width, panel.right),
+    top: Math.max(0, panel.top), bottom: Math.min(view.height, panel.bottom),
+  })).filter(panel => panel.left < panel.right && panel.top < panel.bottom)
+  const xs = [...new Set([0, view.width, ...obstacles.flatMap(panel => [panel.left, panel.right])])].sort((a,b)=>a-b)
+  const ys = [...new Set([0, view.height, ...obstacles.flatMap(panel => [panel.top, panel.bottom])])].sort((a,b)=>a-b)
+  let best = full; let bestArea = 0
+  // 两块固定面板，枚举其边界形成的空矩形；不估算面板宽度。
+  for (let l = 0; l < xs.length - 1; l++) for (let r = l + 1; r < xs.length; r++) {
+    for (let t = 0; t < ys.length - 1; t++) for (let b = t + 1; b < ys.length; b++) {
+      const rect = { left: xs[l], right: xs[r], top: ys[t], bottom: ys[b] }
+      if (obstacles.some(panel => rect.left < panel.right && rect.right > panel.left && rect.top < panel.bottom && rect.bottom > panel.top)) continue
+      const size = (rect.right - rect.left) * (rect.bottom - rect.top)
+      if (size > bestArea) { best = rect; bestArea = size }
+    }
+  }
+  return best
+}
 export function visibleInFocus(id: string, focus: Set<string>) {
   return !focus.size || focus.has(id)
 }
@@ -27,7 +47,7 @@ export function toWorld(point: Point, view: Viewport, transform: Transform): Poi
   return { x: (point.x - view.width / 2) / transform.scale - transform.x, y: (point.y - view.height / 2) / transform.scale - transform.y }
 }
 export function hitPoint(world: Point, center: Point, radius: number, scale: number) {
-  return Math.hypot(world.x - center.x, world.y - center.y) * scale <= radius * Math.max(.72, scale) + 7
+  return Math.hypot(world.x - center.x, world.y - center.y) * scale <= radius + 7
 }
 export function focusTransform(points: Point[], view: Viewport, area?: Bounds): Transform {
   if (!points.length) return { x: 0, y: 0, scale: 1 }
@@ -40,8 +60,8 @@ export function focusTransform(points: Point[], view: Viewport, area?: Bounds): 
   const scale = Math.min(1, width / Math.max(1, maxX - minX), height / Math.max(1, maxY - minY))
   return {
     scale,
-    x: -(minX + maxX) / 2 + ((bounds.left + bounds.right) / 2 - view.width / 2) / scale,
-    y: -(minY + maxY) / 2 + ((bounds.top + bounds.bottom) / 2 - view.height / 2) / scale,
+    x: -(minX / 2 + maxX / 2) + ((bounds.left + bounds.right) / 2 - view.width / 2) / scale,
+    y: -(minY / 2 + maxY / 2) + ((bounds.top + bounds.bottom) / 2 - view.height / 2) / scale,
   }
 }
 export function searchNodes<T extends GraphNode>(nodes: T[], keyword: string, activeKinds: Set<GraphNode['kind']>): T[] {

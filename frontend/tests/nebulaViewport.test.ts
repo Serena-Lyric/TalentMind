@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection } from '../src/graph/nebulaViewport.ts'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea } from '../src/graph/nebulaViewport.ts'
 import type { GraphNode } from '../src/api/graph.ts'
 
 test('缩放和平移后的屏幕/世界坐标互逆', () => {
@@ -12,10 +12,10 @@ test('缩放和平移后的屏幕/世界坐标互逆', () => {
     assert.ok(Math.abs(result.x - point.x) < 1e-9 && Math.abs(result.y - point.y) < 1e-9)
   }
 })
-test('低倍缩放点击半径与绘制最小屏幕半径一致', () => {
-  assert.equal(hitPoint({ x: 40, y: 0 }, { x: 0, y: 0 }, 18, .45), true)
-  assert.equal(hitPoint({ x: 45, y: 0 }, { x: 0, y: 0 }, 18, .45), false)
-  assert.equal(hitPoint({ x: 20, y: 0 }, { x: 0, y: 0 }, 18, 2.7), true)
+test('LOD 后使用实际屏幕绘制半径命中，低倍和高倍一致', () => {
+  assert.equal(hitPoint({ x: 30, y: 0 }, { x: 0, y: 0 }, 8.1, .45), true)
+  assert.equal(hitPoint({ x: 40, y: 0 }, { x: 0, y: 0 }, 8.1, .45), false)
+  assert.equal(hitPoint({ x: 20, y: 0 }, { x: 0, y: 0 }, 48.6, 2.7), true)
 })
 test('聚焦把分散直连放进两侧玻璃面板之间且保留边距', () => {
   const points = [{ x: -2500, y: -1800 }, { x: 2500, y: 1800 }]
@@ -70,4 +70,27 @@ test('聚焦可使用现有 DOM 实测的可用矩形', () => {
     const screen = toScreen(point, view, transform)
     assert.ok(screen.x > area.left && screen.x < area.right && screen.y > area.top && screen.y < area.bottom)
   }
+})
+test('全览适配全部极端坐标和宽高变化，并避让实际面板矩形', () => {
+  const points = [{ x: -1e12, y: -2e12 }, { x: 3e12, y: 4e12 }]
+  for (const view of [{width:1277,height:817}, {width:901,height:817}, {width:600,height:350}]) {
+    const panel = {left:16,right:260,top:12,bottom:300}
+    const area = availableGraphArea(view, [panel])
+    assert.ok(area.right <= panel.left || area.left >= panel.right || area.bottom <= panel.top || area.top >= panel.bottom)
+    const transform = focusTransform(points, view, area)
+    assert.ok(transform.scale > 0 && Number.isFinite(transform.scale))
+    for (const point of points) {
+      const screen = toScreen(point, view, transform)
+      assert.ok(screen.x >= area.left && screen.x <= area.right && screen.y >= area.top && screen.y <= area.bottom)
+    }
+  }
+})
+test('可用矩形不与左右/覆盖面板相交，空图和零尺寸仍有限', () => {
+  const view = {width:600,height:800}
+  const panels = [{left:16,right:260,top:12,bottom:380}, {left:220,right:580,top:12,bottom:500}]
+  const area = availableGraphArea(view, panels)
+  assert.ok(area.top >= 500)
+  assert.deepEqual(area, availableGraphArea(view, [...panels].reverse()))
+  assert.ok(Object.values(focusTransform([],view,area)).every(Number.isFinite))
+  assert.ok(Object.values(focusTransform([{x:0,y:0}],{width:0,height:0})).every(Number.isFinite))
 })

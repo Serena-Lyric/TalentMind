@@ -72,8 +72,14 @@ import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
-import { selectEdges, dashedEdge, segmentInBounds } from '../graph/nebulaEdges'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection } from '../graph/nebulaViewport'
+import { selectEdges, dashedEdge, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea } from '../graph/nebulaViewport'
+
+import { nodeAppearance } from '../graph/nebulaPresentation'
+
+let overview = true
+let overviewScale = 1
+let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
 const experimental = query.get('nebula') === 'experimental'
@@ -147,7 +153,7 @@ function resizeCanvas() {
   canvas.height = Math.floor(wrap.clientHeight * ratio)
   canvas.style.width = `${wrap.clientWidth}px`
   canvas.style.height = `${wrap.clientHeight}px`
-  if (experimental && selectedNode.value) focusNeighborhood()
+  if (experimental) { if (selectedNode.value) focusNeighborhood(); else if (overview) fitGraph() }
   draw()
 }
 
@@ -208,22 +214,27 @@ function draw() {
   const matchIds = new Set(searchMatches.value.map(node => node.id))
   nodes.forEach(node => {
     const point = worldToScreen(node.point)
-    const size = nodeSize(node) * Math.max(.72, transform.scale)
+    const match = Boolean(searchKeyword.value) && matchIds.has(node.id)
+    const selected = selectedNode.value?.id === node.id
+    const appearance = experimental ? nodeAppearance(node.kind, nodeSize(node), transform.scale, selected, match) : {
+      radius: nodeSize(node) * Math.max(.72, transform.scale), label: node.kind === 'job' || match || selected,
+      shadow: node.kind === 'skill' ? 8 : 16, outline: true,
+    }
+    const size = appearance.radius
     if (experimental && (point.x + size < 0 || point.y + size < 0 || point.x - size > canvas.clientWidth || point.y - size > canvas.clientHeight)) return
     const color = colors[node.kind]
     const active = !hasHighlight || highlights.has(node.id)
-    const match = searchKeyword.value && matchIds.has(node.id)
     ctx.save()
     ctx.globalAlpha = active ? 1 : .12
     ctx.shadowColor = color
-    ctx.shadowBlur = node.kind === 'skill' ? 8 : 16
+    ctx.shadowBlur = appearance.shadow
     ctx.fillStyle = color
     ctx.beginPath(); ctx.arc(point.x, point.y, size, 0, Math.PI * 2); ctx.fill()
     ctx.shadowBlur = 0
     ctx.lineWidth = match ? 2.5 : 1.2
     ctx.strokeStyle = match ? '#fff' : 'rgba(255,255,255,.5)'
-    ctx.stroke()
-    if (node.kind === 'job' || match || (selectedNode.value && selectedNode.value.id === node.id)) {
+    if (appearance.outline) ctx.stroke()
+    if (appearance.label) {
       ctx.font = `${node.kind === 'job' ? 9 : 10}px "Microsoft YaHei", sans-serif`
       ctx.fillStyle = active ? 'rgba(232,239,255,.82)' : 'rgba(180,188,225,.25)'
       ctx.textAlign = 'center'; ctx.fillText(nodeLabel(node), point.x, point.y + size + 13)
@@ -233,14 +244,14 @@ function draw() {
   if (debug && rootRef.value) rootRef.value.dataset.nebula = JSON.stringify({
     mode: experimental ? 'experimental' : 'legacy', totalEdges: graphData.value.edges.length,
     submitted, painted, selectedId: selectedNode.value?.id || null,
-    activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
+    overview, lastFit, activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
   })
 }
 
 function nodeAt(x: number, y: number) {
   const world = screenToWorld(x, y)
   return drawNodes.value.filter(visibleNode).slice().reverse().find(node => {
-    if (experimental) return hitPoint(world, node.point, nodeSize(node), transform.scale)
+    if (experimental) return hitPoint(world, node.point, nodeAppearance(node.kind, nodeSize(node), transform.scale, selectedNode.value?.id === node.id).radius, transform.scale)
     const size = nodeSize(node) + 7 / transform.scale
     return Math.hypot(node.point.x - world.x, node.point.y - world.y) <= size
   })
@@ -259,20 +270,31 @@ function highlightNode(node: GraphNode | null) {
   })
   highlightIds.value = ids
 }
-function focusNeighborhood() {
+function fitPoints(points: Point[]) {
   const canvas = canvasRef.value
-  if (!experimental || !canvas || !selectedNode.value) return
-  const points = drawNodes.value.filter(node => visibleNode(node) && highlightIds.value.has(node.id)).map(node => node.point)
+  if (!experimental || !canvas) return
   const rect = canvas.getBoundingClientRect()
-  const control = rootRef.value?.querySelector('.nebula-control')?.getBoundingClientRect()
-  const detail = rootRef.value?.querySelector('.nebula-detail')?.getBoundingClientRect()
-  const area = { left: (control ? control.right - rect.left : 0) + 24, right: (detail ? detail.left - rect.left : rect.width) - 24, top: 24, bottom: rect.height - 24 }
-  if (area.right - area.left < 80) {
-    area.left = 24; area.right = rect.width - 24
-    area.top = Math.max(control?.bottom || rect.top, detail?.bottom || rect.top) - rect.top + 24
-    if (area.top >= area.bottom - 40) area.top = 24
-  }
-  Object.assign(transform, focusTransform(points, { width: canvas.clientWidth, height: canvas.clientHeight }, area))
+  const panels = [...(rootRef.value?.querySelectorAll('.nebula-control, .nebula-detail') || [])].map(panel => {
+    const box = panel.getBoundingClientRect()
+    return { left: box.left - rect.left, right: box.right - rect.left, top: box.top - rect.top, bottom: box.bottom - rect.top }
+  })
+  const view = { width: canvas.clientWidth, height: canvas.clientHeight }
+  const area = availableGraphArea(view, panels)
+  Object.assign(transform, focusTransform(points, view, area))
+  const outside = points.filter(point => {
+    const screen = toScreen(point, view, transform)
+    return screen.x < area.left || screen.x > area.right || screen.y < area.top || screen.y > area.bottom
+  }).length
+  lastFit = { area, points: points.length, outside }
+}
+function fitGraph() {
+  fitPoints(drawNodes.value.filter(node => activeKinds.value.has(node.kind)).map(node => node.point))
+  overviewScale = transform.scale
+}
+function focusNeighborhood() {
+  if (!experimental || !selectedNode.value) return
+  overview = false
+  fitPoints(drawNodes.value.filter(visibleNode).map(node => node.point))
 }
 async function onCanvasClick(event: MouseEvent) {
   if (drag.moved) { drag.moved = false; return }
@@ -293,18 +315,25 @@ function onPointerMove(event: PointerEvent) {
   if (!drag.active) return
   const dx = event.clientX - drag.startX; const dy = event.clientY - drag.startY
   drag.moved = drag.moved || Math.abs(dx) > 3 || Math.abs(dy) > 3
+  if (experimental && drag.moved) overview = false
   transform.x = drag.originX + dx / transform.scale; transform.y = drag.originY + dy / transform.scale; draw()
 }
 function onPointerUp() { drag.active = false }
 function onWheel(event: WheelEvent) {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
+  if (experimental) overview = false
   const before = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
-  transform.scale = Math.min(2.7, Math.max(experimental ? .03 : .45, transform.scale * (event.deltaY > 0 ? .9 : 1.1)))
+  transform.scale = Math.min(2.7, Math.max(experimental ? Math.min(.03, overviewScale) : .45, transform.scale * (event.deltaY > 0 ? .9 : 1.1)))
   const after = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
   transform.x += after.x - before.x; transform.y += after.y - before.y; draw()
 }
-function resetView() { transform.scale = 1; transform.x = 0; transform.y = 0; selectedNode.value = null; highlightIds.value = new Set(); draw() }
+async function resetView() {
+  selectedNode.value = null; highlightIds.value = new Set()
+  if (experimental) { overview = true; await nextTick(); fitGraph() }
+  else { transform.scale = 1; transform.x = 0; transform.y = 0 }
+  draw()
+}
 async function focusFirstMatch() {
   const node = searchMatches.value[0]
   if (!node) { ElMessage.warning('没有匹配节点'); return }
@@ -331,6 +360,7 @@ watch(activeKinds, () => {
   if (experimental && selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
     selectedNode.value = null; highlightIds.value = new Set()
   }
+  if (experimental && overview) fitGraph()
   draw()
 }, { deep: true })
 watch(searchKeyword, () => draw())
