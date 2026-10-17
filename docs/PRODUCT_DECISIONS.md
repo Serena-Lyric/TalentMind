@@ -209,7 +209,7 @@ B2 第一轮只允许免费离线、单 JD 分析与持久化/恢复验证，规
 
 ## 7. M3/M5 创新方向、可视工作台与第一批页面决策（2026-10-17）
 
-> 以下为**用户与指导教师确认的竞赛创新总方向**及用户随后确认的第一批图谱视觉/交互目标；除明确标注“已实现”的历史基础能力外，都应按“设计已确认、实现/效果未验收”解释。详细工程与设计限制见 [Career Nebula 视觉设计基线](superpowers/specs/2026-10-17-career-nebula-visual-design.md)。
+> 以下三层竞赛创新框架已经用户确认；**其中第一创新点另经指导教师确认**，第二、第三创新点及其具体算法尚不能写成教师逐项验收或已经实现。以下第一批图谱视觉/交互目标同样属于已确认设计，不等于实现/效果验收。详细工程与设计限制见 [Career Nebula 视觉设计基线](superpowers/specs/2026-10-17-career-nebula-visual-design.md)。
 
 ### 7.1 三大创新点（作为竞赛材料与 README 开头的主线）
 
@@ -239,7 +239,7 @@ B2 第一轮只允许免费离线、单 JD 分析与持久化/恢复验证，规
 
 ### 7.4 开发和记录边界
 
-- 当前 `master` 仍保留原正式 Canvas 页面；[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 为未合并的实验交互/布局版本，是否合并由 ChatGPT 审核和用户授权决定。旧 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 无约束 A/B 原型方案已按用户要求终止，并非项目视觉方向取消；相关残留待后续安全审计清理。
+- 当前 `master` 仍保留原正式 Canvas 页面；[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 为未合并的实验交互/布局版本，是否合并由 ChatGPT 审核和用户授权决定。旧 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 无约束 A/B 原型方案已按用户要求终止，并非项目视觉方向取消；上一轮原型已安全归档至 [`archive/career-nebula-prototype-pre-redesign-20261017`](https://github.com/Serena-Lyric/TalentMind/tree/archive/career-nebula-prototype-pre-redesign-20261017)（HEAD `4caa2550`），仅留待后续按清单审计清理原 worktree/依赖；归档不是新实现基线。
 - 后续先做图谱页面外壳的可回退小修改及《诗云》视觉原型，**本次记录不代表批准直接替换正式渲染器、修改 Neo4j 或删除旧分支/worktree**。源项目许可独立核实，不能直接复用有非商业限制的资产/代码。
 - 新创新点、重要功能或技术方案**经用户确认即可写入 README**，不必等待开发完成；每项标记“已确认设计 / 原型中 / 已实现 / 已验证”，由成员据此准备竞赛资料。未经用户授意不自动修改 README/GitHub；本次更新因用户明确要求而获授权。此后继续按 AGENTS 的 PR 审核/授权合并流程。
 - **仍未确定**：最终 2D/2.5D/3D/WebGL/WebGPU 技术路线、图社区/路径算法、正式色彩与尺寸参数、业务关系迁移、三模式精细页面设计、设置页实现、PR #23 的最终处置以及仓库遗留清理范围。
