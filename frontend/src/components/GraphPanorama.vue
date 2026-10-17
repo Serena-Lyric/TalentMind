@@ -41,6 +41,9 @@
         <button type="button" @click="resetView"><el-icon><Refresh /></el-icon>重置视图</button>
         <button type="button" @click="loadGraph"><el-icon><RefreshRight /></el-icon>刷新数据</button>
       </div>
+      <div v-if="experimental && savedView" class="nebula-tools">
+        <button type="button" @click="returnToView">返回原视角</button>
+      </div>
     </aside>
 
     <div ref="canvasWrapRef" class="nebula-canvas-wrap">
@@ -52,9 +55,10 @@
     <aside v-if="selectedNode" class="nebula-detail panel-glass">
       <div class="detail-head">
         <div><small>{{ nodeKindLabel(selectedNode.kind) }}</small><h3>{{ selectedNode.label }}</h3><p v-if="selectedNode.name_en && selectedNode.name_en !== selectedNode.label" class="detail-en">{{ selectedNode.name_en }}</p></div>
-        <button type="button" aria-label="关闭详情" @click="selectedNode = null; highlightIds.clear(); searchIndex = -1; draw()">×</button>
+        <button type="button" aria-label="关闭详情" @click="clearSelection">×</button>
       </div>
       <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>关联节点</small></span><span><b>{{ selectedNode.jobs || selectedNode.size || 0 }}</b><small>{{ selectedNode.kind === 'job' ? '来源 JD' : '关联岗位' }}</small></span></div>
+      <div v-if="experimental" class="nebula-tools"><button type="button" @click="viewAllConnections">查看全部关联</button></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>分类 / 演化</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>来源平台</label><p>{{ selectedNode.platform_label || '—' }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.core_duties" class="detail-section"><label>核心职责</label><p>{{ selectedNode.core_duties }}</p></div>
@@ -63,7 +67,7 @@
       <div v-if="selectedNode.kind === 'job' && selectedNode.scenarios?.length" class="detail-section"><label>应用场景</label><p>{{ selectedNode.scenarios.join('、') }}</p></div>
       <div v-if="selectedNode.status" class="detail-section"><label>状态</label><p>{{ selectedNode.status === 'stable' ? '稳定' : selectedNode.status === 'emerging' ? '新一代' : selectedNode.status }}</p></div>
       <div v-if="selectedNode.kind !== 'job'" class="detail-section"><label>节点名称</label><p>{{ selectedNode.label }}</p></div>
-      <div class="detail-section"><label>使用提示</label><p>已高亮该节点的直接关联，点击空白区域可清除高亮。</p></div>
+      <div class="detail-section"><label>使用提示</label><p>已高亮该节点的直接关联，点击空白区域可清除高亮。<template v-if="experimental">画布外的关联可通过“查看全部关联”查看。</template></p></div>
     </aside>
 
     <div class="nebula-hint">点击节点查看详情&nbsp;&nbsp;·&nbsp;&nbsp;滚轮缩放&nbsp;&nbsp;·&nbsp;&nbsp;拖拽平移</div>
@@ -79,7 +83,7 @@ import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
 import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale } from '../graph/nebulaViewport'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale, type Transform } from '../graph/nebulaViewport'
 
 import { nodeAppearance } from '../graph/nebulaPresentation'
 
@@ -113,6 +117,7 @@ const drawNodes = shallowRef<DrawNode[]>([])
 const DEFAULT_EDGE_LIMIT = 900
 const highlightIds = ref<Set<string>>(new Set())
 const transform = reactive({ scale: 1, x: 0, y: 0 })
+const savedView = ref<{ transform: Transform; fittedScale: number; overview: boolean } | null>(null)
 const drag = reactive({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 })
 let resizeObserver: ResizeObserver | null = null
 
@@ -161,7 +166,7 @@ function resizeCanvas() {
   canvas.height = Math.floor(wrap.clientHeight * ratio)
   canvas.style.width = `${wrap.clientWidth}px`
   canvas.style.height = `${wrap.clientHeight}px`
-  if (experimental) { if (selectedNode.value) focusNeighborhood(); else if (overview) fitGraph() }
+  if (experimental && overview && !selectedNode.value) fitGraph()
   draw()
 }
 
@@ -285,16 +290,21 @@ function highlightNode(node: GraphNode | null) {
   })
   highlightIds.value = ids
 }
-function fitPoints(points: Point[]) {
+function graphArea() {
   const canvas = canvasRef.value
-  if (!experimental || !canvas) return
+  if (!canvas) return { left: 0, right: 0, top: 0, bottom: 0 }
   const rect = canvas.getBoundingClientRect()
   const panels = [...(rootRef.value?.querySelectorAll('.nebula-control, .nebula-detail') || [])].map(panel => {
     const box = panel.getBoundingClientRect()
     return { left: box.left - rect.left, right: box.right - rect.left, top: box.top - rect.top, bottom: box.bottom - rect.top }
   })
+  return availableGraphArea({ width: canvas.clientWidth, height: canvas.clientHeight }, panels)
+}
+function fitPoints(points: Point[]) {
+  const canvas = canvasRef.value
+  if (!experimental || !canvas) return
   const view = { width: canvas.clientWidth, height: canvas.clientHeight }
-  const area = availableGraphArea(view, panels)
+  const area = graphArea()
   Object.assign(transform, focusTransform(points, view, area))
   fittedScale = transform.scale
   const outside = points.filter(point => {
@@ -311,16 +321,32 @@ function focusNeighborhood() {
   overview = false
   fitPoints(drawNodes.value.filter(visibleNode).map(node => node.point))
 }
-async function onCanvasClick(event: MouseEvent) {
+async function viewAllConnections() {
+  if (!experimental || !selectedNode.value) return
+  if (!savedView.value) savedView.value = { transform: { ...transform }, fittedScale, overview }
+  await nextTick()
+  focusNeighborhood(); draw()
+}
+function returnToView() {
+  if (!savedView.value) return
+  Object.assign(transform, savedView.value.transform)
+  fittedScale = savedView.value.fittedScale; overview = savedView.value.overview
+  savedView.value = null; lastFit = null
+  draw()
+}
+function clearSelection() {
+  selectedNode.value = null; highlightIds.value = new Set(); searchIndex.value = -1
+  if (experimental) overview = false
+  draw()
+}
+function onCanvasClick(event: MouseEvent) {
   if (drag.moved) { drag.moved = false; return }
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   const node = nodeAt(event.clientX - rect.left, event.clientY - rect.top)
-  if (experimental) searchIndex.value = -1
+  if (experimental) { searchIndex.value = -1; overview = false }
   selectedNode.value = node || null
   highlightNode(node || null)
-  if (experimental) await nextTick()
-  focusNeighborhood()
   draw()
 }
 function onPointerDown(event: PointerEvent) {
@@ -347,7 +373,7 @@ function onWheel(event: WheelEvent) {
 }
 async function resetView() {
   selectedNode.value = null; highlightIds.value = new Set()
-  if (experimental) searchIndex.value = -1
+  if (experimental) { searchIndex.value = -1; savedView.value = null }
   if (experimental) { overview = true; await nextTick(); fitGraph() }
   else { transform.scale = 1; transform.x = 0; transform.y = 0 }
   draw()
@@ -356,8 +382,7 @@ async function focusFirstMatch() {
   const node = searchMatches.value[0]
   if (!node) { ElMessage.warning('没有匹配节点'); return }
   selectedNode.value = node; highlightNode(node); transform.x = -node.point.x; transform.y = -node.point.y
-  if (experimental) await nextTick()
-  focusNeighborhood(); draw()
+  draw()
 }
 function onSearchEnter(event: KeyboardEvent) {
   if (!experimental) { focusFirstMatch(); return }
@@ -371,7 +396,15 @@ async function stepSearch(direction: 1 | -1) {
   const node = searchMatches.value[searchIndex.value]
   if (!node) { ElMessage.warning('没有匹配节点'); return }
   selectedNode.value = node; highlightNode(node)
-  await nextTick(); focusNeighborhood(); draw()
+  overview = false
+  await nextTick()
+  const area = graphArea()
+  const point = worldToScreen(node.point)
+  if (point.x < area.left + 20 || point.x > area.right - 20 || point.y < area.top + 20 || point.y > area.bottom - 20) {
+    transform.x += ((area.left + area.right) / 2 - point.x) / transform.scale
+    transform.y += ((area.top + area.bottom) / 2 - point.y) / transform.scale
+  }
+  draw()
 }
 async function loadGraph() {
   const generation = ++loadGeneration
@@ -381,9 +414,8 @@ async function loadGraph() {
     if (generation !== loadGeneration) return
     await buildLayout(data, generation)
     if (generation !== loadGeneration) return
-    if (experimental) highlightNode(selectedNode.value)
+    if (experimental) { savedView.value = null; highlightNode(selectedNode.value) }
     await nextTick()
-    if (experimental) focusNeighborhood()
     resizeCanvas()
   } catch { if (generation === loadGeneration) ElMessage.error('图谱数据加载失败') }
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
