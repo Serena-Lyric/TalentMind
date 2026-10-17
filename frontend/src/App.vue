@@ -38,7 +38,7 @@
     </aside>
 
     <main class="main-shell" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-      <header class="topbar">
+      <header v-if="!isGraphRoute" class="topbar">
         <div class="breadcrumb">
           <span class="breadcrumb-root">岗位能力图谱</span>
           <el-icon><ArrowRight /></el-icon>
@@ -54,7 +54,7 @@
         </div>
       </header>
 
-      <section class="page-main">
+      <section class="page-main" :class="{ 'page-main--graph': isGraphRoute }">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" />
@@ -86,6 +86,7 @@ const route = useRoute()
 const router = useRouter()
 const sidebarCollapsed = ref(false)
 const isLoginRoute = computed(() => route.path === '/login')
+const isGraphRoute = computed(() => route.name === 'Graph')
 const currentUser = ref<DemoUser | null>(getCurrentUser())
 
 watch(() => route.path, () => { currentUser.value = getCurrentUser() })

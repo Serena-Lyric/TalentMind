@@ -90,6 +90,7 @@ button { cursor: pointer; }
 .user-chip img { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; background: #fff; box-shadow: 0 0 0 1px #ece8e3; }
 .user-chip b { font-weight: 500; }
 .page-main { min-height: calc(100vh - 74px); padding: 10px 34px 42px; }
+.page-main.page-main--graph { min-height: 100vh; padding-block: 18px; }
 .page-fade-enter-active, .page-fade-leave-active { transition: opacity .16s ease, transform .16s ease; }
 .page-fade-enter-from, .page-fade-leave-to { opacity: 0; transform: translateY(5px); }
 
