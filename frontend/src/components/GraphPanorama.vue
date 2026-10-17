@@ -479,7 +479,8 @@ onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect() })
 .nebula-canvas-wrap canvas { display: block; width: 100%; height: 100%; cursor: grab; }
 .nebula-canvas-wrap canvas:active { cursor: grabbing; }
 .nebula-state { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 9px; color: #7679a8; font-size: 13px; pointer-events: none; }
-.nebula-detail { position: absolute; top: 68px; right: 16px; z-index: 6; width: min(360px, calc(100% - 32px)); max-height: calc(100% - 92px); overflow-y: auto; padding: 16px; scrollbar-width: thin; }
+.nebula-detail { position: absolute; top: 68px; right: 16px; z-index: 6; width: min(360px, calc(100% - 32px)); max-height: calc(100% - 92px); overflow-y: auto; padding: 16px; scrollbar-width: none; }
+.nebula-detail::-webkit-scrollbar { display: none; }
 .detail-head { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(105, 106, 189, .2); }
 .detail-head small, .detail-section label { color: #777aa8; font-size: 10px; letter-spacing: 1px; }
 .detail-head h3 { margin: 5px 0 0; color: #f4f6ff; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }.detail-en { margin: 4px 0 0; color: #8f96c6; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }

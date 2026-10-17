@@ -1,8 +1,53 @@
 # Issue #26 · P0.5 交互补全交付（2026-10-17）
 
-状态：已开发、本机验证；等待 ChatGPT 复审与用户实机验收。未合并 PR #27 或本轮 PR，P1《诗云》未启动。
+状态：用户已基本验收 P0.5；最后滚动条补修已开发、本机验证，等待 ChatGPT 复审。未合并 PR #27 或本轮 PR，P1《诗云》未启动。
 
-## PR #28 定向补修（2026-10-17，本轮最新）
+## 最后界面补修：右侧详情隐藏滚动条（2026-10-17 开始，10-18 交付，最新）
+
+用户已基本验收 P0.5，本轮仅修复右侧详情可见滚动条。开工 HEAD=`150b91a`，分支仍为 `codex/issue-26-p05`；已跟踪文件干净，上轮 11 张未跟踪截图保留原地，未夹带提交。18087（PID 11168 / 父 30052）的 Vite `__file` 确认为本检出；18000（25160）、18086（32572）保持既有服务，未重启/新增服务或改动共享依赖。
+
+**10-18 提交前复核**：18000 仍由 PID 25160 监听，18086/18087 已无监听；本会话未执行停止或重启命令，未擅自恢复服务。以下前后截图和专项验证均已在此前正常运行的 18087 上取得，不能将验证时服务状态误写为提交时仍在运行。
+
+生产差异仅两处 CSS：右侧 `.nebula-detail` 的 `scrollbar-width: thin` 改为 `none`，新增 `.nebula-detail::-webkit-scrollbar { display: none; }`。前者覆盖 Firefox 与现代 Chromium，后者提供 Chromium 兼容。`overflow-y: auto` 保留，模板/脚本、尺寸、位置、文字、左侧工具菜单和图谱交互均未修改。
+
+### 真实前后证据与滚动验证
+
+复用 18087 和既有 GET API，真实 Edge **155.0.4283.45**，使用同一岗位 `job:j-a38f7b74cc5f5920 / 后端工程师` 的原始长详情。没有注入测试长文或替换 API。截图明确排除 headless 默认 `--hide-scrollbars`；初轮默认 headless 截图不足以证明滚动条可见，因此最终前后证据均按排除该参数后的相同条件重新取得。
+
+| 验证 | 1600×900 | 390×844 |
+|---|---|---|
+| 前后详情外框（x/y/宽/高） | 均为 1189 / 87 / 360 / 770 | 均为 119 / 462 / 244 / 351 |
+| 样式 | thin → none；WebKit inline → none；overflow-y 始终 auto | 同左 |
+| 滚动行为 | wheel 到180，连续5次8px到220；End 到394，等于1162−768；Home 回0 | wheel 到180，小增量到220；End 到1120，等于1469−349；Home 回0 |
+| 不变项 | 面板文字 SHA-256、左侧矩形/滚动属性及相机逐项与补修前相等 | 同左；左侧原滚动条仍保留 |
+| 末尾内容 | 最后“使用提示”完整在面板内可见 | 同左 |
+
+隐藏原有10px滚动条后可用内容宽度自然增加，文字折行/scrollHeight 随之变化；没有修改面板外框尺寸、文字或字号。补修前滚动操作通过、隐藏断言 **RED（thin != none）**；补修后全部断言通过。pageerror=[]、API writes=[]，测试独立浏览器在 finally 关闭。连续小增量 wheel 验证触摸板滚动所用事件通路，不声称测试过物理触摸板硬件；本机无 Firefox，Firefox 使用标准 CSS 规则但未做实机验证。
+
+| 场景 | 补修前 | 补修后 |
+|---|---|---|
+| 桌面顶部（可见滚动条对照） | [截图](assets/issue-26-p05-scrollbar/before-1600x900-top.png) | [截图](assets/issue-26-p05-scrollbar/after-1600x900-top.png) |
+| 桌面内容末尾 | [截图](assets/issue-26-p05-scrollbar/before-1600x900-end.png) | [截图](assets/issue-26-p05-scrollbar/after-1600x900-end.png) |
+| 窄屏顶部 | [截图](assets/issue-26-p05-scrollbar/before-390x844-top.png) | [截图](assets/issue-26-p05-scrollbar/after-390x844-top.png) |
+| 窄屏内容末尾 | [截图](assets/issue-26-p05-scrollbar/before-390x844-end.png) | [截图](assets/issue-26-p05-scrollbar/after-390x844-end.png) |
+
+原始数值与断言：[before.json](assets/issue-26-p05-scrollbar/before.json) / [after.json](assets/issue-26-p05-scrollbar/after.json)。本轮 `pnpm test` **49 passed / 0 failed**；`pnpm run build` 类型检查与 Vite 成功，保留既有 chunk >500kB 警告。专项脚本会比较同目录 before.json；重新取得 RED 证据须使用补修前代码，不能将当前已修复样式误记为补修前。
+
+```powershell
+# frontend 目录；复用既有18087和已装依赖
+$env:PLAYWRIGHT_MODULE='C:/Users/Serena Lyric/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs'
+node scripts/test-nebula-detail-scrollbar.mjs --before # 原150b91a样式，预期隐藏断言失败
+node scripts/test-nebula-detail-scrollbar.mjs          # 补修后，与before.json比较
+$env:pnpm_config_verify_deps_before_run='false'
+pnpm test
+pnpm run build
+```
+
+已将后续《诗云》选中真实节点须明显、持续、易定位且区别于悬停/相邻节点的需求写入 PRODUCT_DECISIONS §7.3 第6项、视觉规范 §3 和 D109，标记为**已确认、待开发**；本轮没有开发高亮或启动 P1。新增 [详情滚动条陷阱](../superpowers/traps/2026-10-17-nebula-detail-scrollbar.md)并同步资产状态。
+
+PR #28 继续叠加 PR #27（base=`codex/issue-26-p0`），完成后停止等待复审；不合并、不操作数据库、不清理工作树。下方相机补修及原轮交付为历史记录。
+
+## PR #28 相机快照定向补修（2026-10-17，上一轮）
 
 依据：[ChatGPT 最新复审](https://github.com/Serena-Lyric/TalentMind/pull/28#pullrequestreview-5558355111)、[Issue #26 最新接力](https://github.com/Serena-Lyric/TalentMind/issues/26#issuecomment-6235411265)。开工 HEAD=`c465f7ae24ee43e6c015e806190718bf6c5b66ba`，分支 `codex/issue-26-p05`，独立检出干净。远端核对 master=`1e5f4da`、P0=`41f9184`、P0.5=`c465f7a`；PR #28 继续以 `codex/issue-26-p0` 为 base，叠加 PR #27，两个 PR 均保持未合并。
 

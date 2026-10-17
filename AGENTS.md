@@ -40,6 +40,7 @@
 - AI 修复业务/脚本 bug 后，在 `docs/superpowers/traps/YYYY-MM-DD-简述.md` 记录“症状 → 根因 → 修复 → 教训”；按模块阅读既有陷阱，不在根指引复制完整索引。
   - 图谱本轮陷阱：[全览基线与网页沉浸高度（2026-10-17）](docs/superpowers/traps/2026-10-17-nebula-fit-and-immersive.md)。
   - 图谱快照：[改选节点后沿用旧相机快照（2026-10-17）](docs/superpowers/traps/2026-10-17-nebula-selection-camera-snapshot.md)。
+  - 详情滚动条：[可见滚动条与 headless 截图（2026-10-17）](docs/superpowers/traps/2026-10-17-nebula-detail-scrollbar.md)。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
 ## 5. Windows 与编码
