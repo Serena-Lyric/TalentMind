@@ -1,0 +1,64 @@
+[
+  {
+    "file": "drag-depth.jpg",
+    "bytes": 206979,
+    "sha256": "4ee5f1c639d3eb4201b3c98a94f9619543c649e0f7adaf1b3a33faaaefce5892",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  },
+  {
+    "file": "mid.jpg",
+    "bytes": 180931,
+    "sha256": "ada02e689fc165c6da8bd4b07a3e892cbf0f431dc22fd6c30ce38019566a6ab6",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  },
+  {
+    "file": "near.jpg",
+    "bytes": 192306,
+    "sha256": "f30ba782fb6a1d44a09f19008e2a9fd5565ad1ce35221d3b23be3ffa5f8ee968",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  },
+  {
+    "file": "operation.webm",
+    "bytes": 10144990,
+    "sha256": "7ecd841637befde3b6751fec3cb78be1b19a3ba18bbf44d3792d404582f2f6a9",
+    "source": "real WebGL recording; scripted DOM operations"
+  },
+  {
+    "file": "overview.jpg",
+    "bytes": 102999,
+    "sha256": "d35c9586d7d227d5f5a3d7fdd3283737de605eaf9699b027b1adb641a6a10e0a",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  },
+  {
+    "file": "selected-near-native.jpg",
+    "bytes": 193279,
+    "sha256": "6f4172aa21462de39d658a1fbe916072c5af3a3fe046d5ce79e0a779e43359d1",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  },
+  {
+    "file": "selected-near-wheel.jpg",
+    "bytes": 216445,
+    "sha256": "13cd4956e5e6176959927503d432a56943ca07a4b98e5b26918f8581b6114864",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  },
+  {
+    "file": "selected.jpg",
+    "bytes": 101125,
+    "sha256": "a4392f1f521c3ab6e2b84076f12920c54ce621e06aa5e5fb44945e6bbe0012aa",
+    "source": "native Edge JPEG screenshot bytes, unchanged",
+    "width": 1600,
+    "height": 900
+  }
+]
