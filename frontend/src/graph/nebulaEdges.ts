@@ -9,8 +9,22 @@ export interface EdgeOptions {
   scale: number
   limit?: number
 }
-
 export function selectEdges(edges: GraphEdge[], nodes: GraphNode[], positions: Map<string, Point>, options: EdgeOptions): GraphEdge[] {
+  return selectEdgePlan(edges,nodes,positions,options).edges
+}
+export function edgeAppearance(edge: GraphEdge, nodes: Map<string, GraphNode>, scale: number, focused: boolean, length: number) {
+  const scene = edge.kind.toLowerCase() === 'applies_to'
+  const related = dashedEdge(edge,nodes)
+  const base = scale < .18 ? .1 : scene ? .15 : .2
+  return {
+    color: scene ? '#c77dff' : related ? '#8e89c4' : '#4fa2ff',
+    alpha: focused ? .7 : base * Math.min(1, 120 / Math.max(120,length)),
+    width: focused ? 1.15 : scale < .18 ? .5 : .65,
+    dash: scene ? [1,4] : related ? [6,5] : [],
+  }
+}
+
+export function selectEdgePlan(edges: GraphEdge[], nodes: GraphNode[], positions: Map<string, Point>, options: EdgeOptions) {
   const visible = new Set(nodes.filter(node => options.activeKinds.has(node.kind)).map(node => node.id))
   const candidates = edges.filter(edge => visible.has(edge.source) && visible.has(edge.target)
     && positions.has(edge.source) && positions.has(edge.target)
@@ -23,12 +37,16 @@ export function selectEdges(edges: GraphEdge[], nodes: GraphNode[], positions: M
     const source = positions.get(edge.source)!
     const target = positions.get(edge.target)!
     const inside = (p: Point) => p.x >= options.viewport.left && p.x <= options.viewport.right && p.y >= options.viewport.top && p.y <= options.viewport.bottom
-    return { inside: Number(inside(source)) + Number(inside(target)), distance: Math.hypot((source.x + target.x) / 2 - center.x, (source.y + target.y) / 2 - center.y) }
+    return { inside: Number(inside(source)) + Number(inside(target)), distance: Math.hypot((source.x + target.x) / 2 - center.x, (source.y + target.y) / 2 - center.y), length: Math.hypot(source.x-target.x,source.y-target.y) * options.scale }
   }
+  const zoomed = options.scale >= 1.8
+  const maxLength = options.scale < .18 ? 72 : options.scale < .5 ? 180 : 480
   const ranked = candidates.map(edge => ({ edge, ...priority(edge), key: key(edge) }))
-    .sort((a, b) => b.inside - a.inside || a.distance - b.distance || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
-  if (options.selectedId || options.scale >= 1.8) return ranked.map(item => item.edge)
-  const limit = Math.max(0, options.limit ?? 900)
+    .filter(item => options.selectedId || zoomed || item.length <= maxLength)
+    .sort((a, b) => a.length - b.length || b.inside - a.inside || a.distance - b.distance || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+  const visibleDirect = options.selectedId ? candidates.length : 0
+  if (options.selectedId || zoomed) return { edges: ranked.map(item => item.edge), candidates: candidates.length, visibleDirect }
+  const limit = Math.max(0, Math.min(options.limit ?? 900, options.scale < .18 ? 120 : options.scale < .5 ? 300 : 900))
   const groups = new Map<string, typeof ranked>()
   for (const item of ranked) {
     if (!groups.has(item.edge.kind)) groups.set(item.edge.kind, [])
@@ -55,7 +73,7 @@ export function selectEdges(edges: GraphEdge[], nodes: GraphNode[], positions: M
       })
     }
   }
-  return result
+  return { edges: result, candidates: candidates.length, visibleDirect }
 }
 
 export function dashedEdge(edge: GraphEdge, nodes: Map<string, GraphNode>) {

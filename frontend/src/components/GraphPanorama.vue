@@ -33,6 +33,7 @@
         <span><i class="legend-skill"></i>技能节点</span>
         <span><i class="legend-industry"></i>行业节点</span>
         <span><i class="legend-edge"></i>岗位-技能关联</span>
+        <span v-if="experimental"><i class="legend-edge scenario"></i>岗位-场景关联</span>
         <span><i class="legend-edge dashed"></i>岗位间关联</span>
       </div>
 
@@ -77,7 +78,7 @@ import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
-import { selectEdges, dashedEdge, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
+import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
 import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex } from '../graph/nebulaViewport'
 
 import { nodeAppearance } from '../graph/nebulaPresentation'
@@ -194,9 +195,10 @@ function draw() {
   const bottomRight = screenToWorld(canvas.clientWidth, canvas.clientHeight)
   const viewport = { left: topLeft.x, top: topLeft.y, right: bottomRight.x, bottom: bottomRight.y }
   const positions = new Map(drawNodes.value.map(node => [node.id, node.point]))
-  const edges = experimental ? selectEdges(graphData.value.edges, graphData.value.nodes, positions, {
+  const edgePlan = experimental ? selectEdgePlan(graphData.value.edges, graphData.value.nodes, positions, {
     activeKinds: activeKinds.value, selectedId: selectedNode.value?.id, viewport, scale: transform.scale,
-  }) : graphData.value.edges
+  }) : { edges: graphData.value.edges, candidates: graphData.value.edges.length, visibleDirect: 0 }
+  const edges = edgePlan.edges
   let submitted = 0; let painted = 0
   ctx.save()
   ctx.lineWidth = .7
@@ -210,11 +212,15 @@ function draw() {
     const targetPoint = worldToScreen(target.point)
     submitted++
     if (segmentInBounds(source.point, target.point, viewport)) painted++
-    const dashed = experimental ? dashedEdge(edge, nodeById) : edge.kind.includes('similar')
-    const active = true
     ctx.beginPath(); ctx.moveTo(sourcePoint.x, sourcePoint.y); ctx.lineTo(targetPoint.x, targetPoint.y)
-    ctx.strokeStyle = active ? (dashed ? 'rgba(142,137,196,.25)' : 'rgba(79,162,255,.27)') : 'rgba(75,79,128,.06)'
-    ctx.setLineDash(dashed ? [4, 5] : [])
+    if (experimental) {
+      const style = edgeAppearance(edge, nodeById, transform.scale, Boolean(selectedNode.value), Math.hypot(sourcePoint.x-targetPoint.x,sourcePoint.y-targetPoint.y))
+      ctx.strokeStyle = style.color; ctx.globalAlpha = style.alpha; ctx.lineWidth = style.width; ctx.setLineDash(style.dash)
+    } else {
+      const dashed = edge.kind.includes('similar')
+      ctx.strokeStyle = dashed ? 'rgba(142,137,196,.25)' : 'rgba(79,162,255,.27)'
+      ctx.setLineDash(dashed ? [4,5] : [])
+    }
     ctx.stroke()
   })
   ctx.restore()
@@ -250,6 +256,7 @@ function draw() {
   })
   if (debug && rootRef.value) rootRef.value.dataset.nebula = JSON.stringify({
     mode: experimental ? 'experimental' : 'legacy', totalEdges: graphData.value.edges.length,
+    candidates: experimental ? edgePlan.candidates : undefined, visibleDirect: experimental ? edgePlan.visibleDirect : undefined,
     submitted, painted, selectedId: selectedNode.value?.id || null,
     overview, lastFit, search: { index: searchIndex.value, count: searchMatches.value.length },
     activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
@@ -424,6 +431,7 @@ onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect() })
 .nebula-legend .legend-industry { background: #c77dff; box-shadow: 0 0 9px #c77dff; }
 .nebula-legend .legend-edge { width: 18px; height: 2px; border-radius: 0; background: #4da6ff; }
 .nebula-legend .legend-edge.dashed { height: 0; border-top: 2px dashed #777aa8; }
+.nebula-legend .legend-edge.scenario { height: 0; border-top: 1px dotted #c77dff; background: transparent; }
 .nebula-tools { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(105, 106, 189, .18); }
 .nebula-tools button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 6px; border: 0; background: transparent; color: #8287b4; font-size: 10px; }
 .nebula-tools button:hover { color: #fff; }

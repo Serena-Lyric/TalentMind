@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { GraphNode, GraphEdge } from '../src/api/graph.ts'
-import { selectEdges, dashedEdge, type EdgeOptions } from '../src/graph/nebulaEdges.ts'
+import { selectEdges, dashedEdge, selectEdgePlan, edgeAppearance, type EdgeOptions } from '../src/graph/nebulaEdges.ts'
 
 const node = (id: string, kind: GraphNode['kind']): GraphNode => ({ id, kind, label: id, size: 12, color: '' })
 const nodes = [node('j', 'job'), node('k', 'job'), node('s', 'skill'), node('i', 'industry'), node('outside', 'skill')]
@@ -55,4 +55,37 @@ test('RELATED_TO 仅在岗位两端使用虚线，技能与场景关系使用实
   assert.equal(dashedEdge(edges[0], byId), false)
   assert.equal(dashedEdge(edges[1], byId), false)
   assert.equal(dashedEdge({ source: 's', target: 'i', kind: 'related_to' }, byId), false)
+})
+test('远景减少短线预算、抑制长距离穿屏边，选择时仍完整保留', () => {
+  const graph = [node('j','job'),...Array.from({length:500},(_,i)=>node('s'+i,'skill')),node('long','skill')]
+  const points = new Map(graph.map((n,i)=>[n.id,{x:i,y:0}]))
+  points.set('long',{x:10000,y:0})
+  const links = graph.slice(1).map(n=>({source:'j',target:n.id,kind:'requires'}))
+  const far = selectEdgePlan(links,graph,points,{...options,scale:.08})
+  assert.ok(far.edges.length<=120)
+  assert.ok(!far.edges.some(e=>e.target==='long'))
+  assert.equal(far.candidates,501)
+  const focus = selectEdgePlan(links,graph,points,{...options,scale:.08,selectedId:'j'})
+  assert.equal(focus.edges.length,501)
+  assert.equal(focus.visibleDirect,501)
+})
+test('普通模式优先近距离真实边，不让视口中央的长交叉线抢预算', () => {
+  const graph = [node('a','job'),node('b','skill'),node('c','job'),node('d','skill')]
+  const points = new Map([['a',{x:-80,y:80}],['b',{x:-60,y:80}],['c',{x:-90,y:0}],['d',{x:90,y:0}]])
+  const links = [{source:'c',target:'d',kind:'requires'},{source:'a',target:'b',kind:'requires'}]
+  assert.deepEqual(selectEdges(links,graph,points,{...options,limit:1}),[links[1]])
+  assert.deepEqual(selectEdges([...links].reverse(),graph,points,{...options,limit:1}),[links[1]])
+})
+test('三种线型克制可辨，远景/长线弱化，聚焦直连重点突出', () => {
+  const byId = new Map(nodes.map(n=>[n.id,n]))
+  const styles = edges.slice(0,3).map(edge=>edgeAppearance(edge,byId,1,false,100))
+  assert.equal(new Set(styles.map(s=>JSON.stringify(s.dash))).size,3)
+  for (const edge of edges.slice(0,3)) {
+    const far = edgeAppearance(edge,byId,.08,false,100)
+    const near = edgeAppearance(edge,byId,1,false,100)
+    const long = edgeAppearance(edge,byId,1,false,800)
+    const focus = edgeAppearance(edge,byId,.08,true,1000)
+    assert.ok(far.alpha<near.alpha && long.alpha<near.alpha)
+    assert.ok(focus.alpha>=.6 && focus.width>near.width)
+  }
 })
