@@ -97,4 +97,6 @@ python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnos
 
 最终 `python -m pytest -m "not integration" -q --tb=short --basetemp <专属临时目录>`：**1160 passed / 2 skipped / 23 deselected / 190 既有依赖警告，64.39s**。86 个父/子 Python 进程加载阻网钩子；服务/外网/DNS 尝试 0；标准库内部 socketpair 6 次；专属临时目录退出后不存在（TEMP_AREA_REMOVED=True）。定向检查额外证明纯构建与真实诊断入口均无需导入 sqlalchemy/neo4j/app.db/app.config。
 
-`git diff --check` 通过。没有运行生产/隔离数据库集成测试，没有数据库夹具写入，因此不声称查询过生产夹具计数或逐行业务一致性。前端无变化，未运行前端构建。新旧 ID、nullable 冲突字段与审计还需消费方适配，禁止把本轮离线结果直接导入正式图。PR 信息待创建后补录。
+`git diff --check` 通过。没有运行生产/隔离数据库集成测试，没有数据库夹具写入，因此不声称查询过生产夹具计数或逐行业务一致性。前端无变化，未运行前端构建。新旧 ID、nullable 冲突字段与审计还需消费方适配，禁止把本轮离线结果直接导入正式图。
+
+交付实现提交：`098ef6424b83fa7fa79c60a02cefba4d87258987`，已推送 `codex/m3-issue-20`。[PR #21](https://github.com/Serena-Lyric/TalentMind/pull/21) 已创建并附到本聊天，目标 master；实查 OPEN / MERGEABLE、mergedAt=null、autoMergeRequest=null，无远端 CI 结果。保留工作区与分支供 ChatGPT 定向复审，未合并、未删除临时分支。此后仅补录交付文档；受保护的 exchange、M2、DDL、frontend 相对基线 diff 为空。
