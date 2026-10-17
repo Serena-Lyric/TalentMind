@@ -1,6 +1,6 @@
 <template>
   <div v-if="isLoginRoute" class="login-route"><router-view /></div>
-  <div v-else class="app-shell">
+  <div v-else class="app-shell" :class="{ 'app-shell--graph-immersive': isGraphRoute && graphImmersive }">
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-card">
         <div class="brand-row">
@@ -37,7 +37,7 @@
       </div>
     </aside>
 
-    <main class="main-shell" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+    <main class="main-shell" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'main-shell--graph': isGraphRoute }">
       <header v-if="!isGraphRoute" class="topbar">
         <div class="breadcrumb">
           <span class="breadcrumb-root">岗位能力图谱</span>
@@ -57,7 +57,7 @@
       <section class="page-main" :class="{ 'page-main--graph': isGraphRoute }">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
-            <component :is="Component" />
+            <component :is="Component" @immersive-change="graphImmersive = $event" />
           </transition>
         </router-view>
       </section>
@@ -87,9 +87,11 @@ const router = useRouter()
 const sidebarCollapsed = ref(false)
 const isLoginRoute = computed(() => route.path === '/login')
 const isGraphRoute = computed(() => route.name === 'Graph')
+const graphImmersive = ref(false)
 const currentUser = ref<DemoUser | null>(getCurrentUser())
 
 watch(() => route.path, () => { currentUser.value = getCurrentUser() })
+watch(isGraphRoute, active => { if (!active) graphImmersive.value = false })
 
 function logout() {
   clearCurrentUser()
