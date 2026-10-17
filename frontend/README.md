@@ -2,6 +2,8 @@
 
 TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Plus + ECharts + Pinia。
 
+独立视觉研究入口：[Career Nebula P1-A](visual-lab/README.md)。它使用隔离依赖与 18126 端口，只展示合成演示银河，不替换正式图谱或消费真实 M3 数据。
+
 ## 页面
 
 - 数据概览：真实岗位、简历、技能和 signal 趋势
