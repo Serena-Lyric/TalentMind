@@ -4,6 +4,11 @@ import type { Bounds } from './nebulaEdges'
 
 export interface Transform { x: number; y: number; scale: number }
 export interface Viewport { width: number; height: number }
+export function nextSearchIndex(current: number, count: number, direction: 1 | -1): number {
+  if (!count) return -1
+  if (current < 0 || current >= count) return direction === 1 ? 0 : count - 1
+  return (current + direction + count) % count
+}
 export function availableGraphArea(view: Viewport, panels: Bounds[]): Bounds {
   const full = { left: 0, right: view.width, top: 0, bottom: view.height }
   const obstacles = panels.map(panel => ({

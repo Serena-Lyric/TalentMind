@@ -10,10 +10,15 @@
       <label class="nebula-label">搜索</label>
       <div class="nebula-search">
         <el-icon><Search /></el-icon>
-        <input v-model="searchKeyword" placeholder="输入岗位或技能..." @keydown.enter="focusFirstMatch" />
+        <input v-model="searchKeyword" placeholder="输入岗位或技能..." @keydown.enter="onSearchEnter" />
         <button v-if="searchKeyword" type="button" @click="searchKeyword = ''">×</button>
       </div>
       <p v-if="searchKeyword" class="search-hint">{{ searchMatches.length ? `找到 ${searchMatches.length} 个节点` : '没有匹配节点' }}</p>
+      <div v-if="experimental && searchKeyword.trim()" class="nebula-search-nav">
+        <button type="button" aria-label="上一个搜索结果" :disabled="loading || !searchMatches.length" @click="stepSearch(-1)">‹</button>
+        <span aria-live="polite">{{ searchIndex < 0 ? 0 : searchIndex + 1 }} / {{ searchMatches.length }}</span>
+        <button type="button" aria-label="下一个搜索结果" :disabled="loading || !searchMatches.length" @click="stepSearch(1)">›</button>
+      </div>
 
       <label class="nebula-label">节点类型</label>
       <div class="nebula-filters">
@@ -46,7 +51,7 @@
     <aside v-if="selectedNode" class="nebula-detail panel-glass">
       <div class="detail-head">
         <div><small>{{ nodeKindLabel(selectedNode.kind) }}</small><h3>{{ selectedNode.label }}</h3><p v-if="selectedNode.name_en && selectedNode.name_en !== selectedNode.label" class="detail-en">{{ selectedNode.name_en }}</p></div>
-        <button type="button" aria-label="关闭详情" @click="selectedNode = null; highlightIds.clear(); draw()">×</button>
+        <button type="button" aria-label="关闭详情" @click="selectedNode = null; highlightIds.clear(); searchIndex = -1; draw()">×</button>
       </div>
       <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>关联节点</small></span><span><b>{{ selectedNode.jobs || selectedNode.size || 0 }}</b><small>{{ selectedNode.kind === 'job' ? '来源 JD' : '关联岗位' }}</small></span></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>分类 / 演化</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
@@ -73,7 +78,7 @@ import { getGraphData, type GraphData, type GraphNode } from '../api/graph'
 import { buildLegacyLayout, type Point } from '../graph/nebulaLegacy'
 import { buildRelationLayout } from '../graph/nebulaLayout'
 import { selectEdges, dashedEdge, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
-import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea } from '../graph/nebulaViewport'
+import { toScreen, toWorld, hitPoint, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex } from '../graph/nebulaViewport'
 
 import { nodeAppearance } from '../graph/nebulaPresentation'
 
@@ -94,6 +99,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 const loading = ref(false)
 const graphData = shallowRef<GraphData>({ nodes: [], edges: [], stats: { totalNodes: 0, totalEdges: 0, added: 0, removed: 0, changed: 0 } })
 const searchKeyword = ref('')
+const searchIndex = ref(-1)
 const selectedNode = ref<GraphNode | null>(null)
 const filters = reactive([
   { kind: 'job' as const, label: '岗位', color: '#4da6ff', active: true },
@@ -139,6 +145,7 @@ async function buildLayout(data: GraphData, generation: number) {
   if (generation !== loadGeneration) return
   layoutMs = performance.now() - start
   graphData.value = data
+  if (experimental) searchIndex.value = -1
   drawNodes.value = nodes.map(node => ({ ...node, point: layout.get(node.id) || { x: 0, y: 0 } }))
   nodeById.clear()
   drawNodes.value.forEach(node => nodeById.set(node.id, node))
@@ -244,7 +251,8 @@ function draw() {
   if (debug && rootRef.value) rootRef.value.dataset.nebula = JSON.stringify({
     mode: experimental ? 'experimental' : 'legacy', totalEdges: graphData.value.edges.length,
     submitted, painted, selectedId: selectedNode.value?.id || null,
-    overview, lastFit, activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
+    overview, lastFit, search: { index: searchIndex.value, count: searchMatches.value.length },
+    activeKinds: [...activeKinds.value], transform: { ...transform }, layoutMs, drawMs: performance.now() - start,
   })
 }
 
@@ -301,6 +309,7 @@ async function onCanvasClick(event: MouseEvent) {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   const node = nodeAt(event.clientX - rect.left, event.clientY - rect.top)
+  if (experimental) searchIndex.value = -1
   selectedNode.value = node || null
   highlightNode(node || null)
   if (experimental) await nextTick()
@@ -330,6 +339,7 @@ function onWheel(event: WheelEvent) {
 }
 async function resetView() {
   selectedNode.value = null; highlightIds.value = new Set()
+  if (experimental) searchIndex.value = -1
   if (experimental) { overview = true; await nextTick(); fitGraph() }
   else { transform.scale = 1; transform.x = 0; transform.y = 0 }
   draw()
@@ -340,6 +350,20 @@ async function focusFirstMatch() {
   selectedNode.value = node; highlightNode(node); transform.x = -node.point.x; transform.y = -node.point.y
   if (experimental) await nextTick()
   focusNeighborhood(); draw()
+}
+function onSearchEnter(event: KeyboardEvent) {
+  if (!experimental) { focusFirstMatch(); return }
+  event.preventDefault()
+  if (!event.isComposing) stepSearch(event.shiftKey ? -1 : 1)
+}
+async function stepSearch(direction: 1 | -1) {
+  if (loading.value) { ElMessage.info('图谱数据加载中'); return }
+  if (!searchKeyword.value.trim()) { ElMessage.info('请输入岗位或技能'); return }
+  searchIndex.value = nextSearchIndex(searchIndex.value, searchMatches.value.length, direction)
+  const node = searchMatches.value[searchIndex.value]
+  if (!node) { ElMessage.warning('没有匹配节点'); return }
+  selectedNode.value = node; highlightNode(node)
+  await nextTick(); focusNeighborhood(); draw()
 }
 async function loadGraph() {
   const generation = ++loadGeneration
@@ -357,13 +381,14 @@ async function loadGraph() {
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
 watch(activeKinds, () => {
+  if (experimental) searchIndex.value = -1
   if (experimental && selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
     selectedNode.value = null; highlightIds.value = new Set()
   }
   if (experimental && overview) fitGraph()
   draw()
 }, { deep: true })
-watch(searchKeyword, () => draw())
+watch(searchKeyword, () => { if (experimental) searchIndex.value = -1; draw() })
 onMounted(() => { resizeObserver = new ResizeObserver(resizeCanvas); if (canvasWrapRef.value) resizeObserver.observe(canvasWrapRef.value); loadGraph() })
 onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect() })
 </script>
@@ -384,6 +409,9 @@ onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect() })
 .nebula-search input::placeholder { color: #62668f; }
 .nebula-search button, .detail-head button { border: 0; background: transparent; color: #7b80a9; font-size: 18px; }
 .search-hint { margin: 6px 0 12px; color: #7b80a9; font-size: 10px; }
+.nebula-search-nav { display: flex; align-items: center; justify-content: space-between; margin: -6px 0 12px; color: #a1a4c2; font-size: 10px; }
+.nebula-search-nav button { width: 26px; height: 23px; border: 1px solid rgba(88, 89, 163, .34); border-radius: 6px; background: rgba(19, 19, 53, .72); color: #dbe2ff; cursor: pointer; }
+.nebula-search-nav button:disabled { opacity: .35; cursor: default; }
 .nebula-filters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
 .nebula-filters button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid rgba(93, 94, 172, .45); border-radius: 10px; background: rgba(30, 30, 74, .7); color: #d5dcff; font-size: 11px; }
 .nebula-filters button.off { opacity: .35; }
