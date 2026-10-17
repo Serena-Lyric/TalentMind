@@ -6,13 +6,15 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
-| [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案的主要依据；M2-01～60、相关 M1 输入原则与待决策；已确认不等于已实现 |
+| [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案；M2-01～60、相关 M1 输入与新增 M3/M5 创新方向、Career Nebula 第一批设计；确认不等于已实现 |
+| [Career Nebula 视觉设计基线](superpowers/specs/2026-10-17-career-nebula-visual-design.md) | 大型多色知识银河、《诗云》参考边界、图谱页面布局与交互/视觉规范，区分已确认与待议 |
+| [Career Nebula Codex 第一批任务书](superpowers/plans/2026-10-17-career-nebula-first-phase.md) | P0 仅图谱页顶栏/高度，P1 独立《诗云》风格视觉样品，验收/回退与禁止事项 |
 | [README.md](../README.md) | 项目总览、带日期的模块状态、启动/测试、目录边界 |
 | [AGENT_START_HERE.md](../AGENT_START_HERE.md) | 少量核心阅读 + M1–M5 选读，不要求逐文件复述 |
 | [AGENTS.md](../AGENTS.md) | 通用规则、安全边界、分阶段开发/审查/授权合并的唯一维护入口 |
 | [CLAUDE.md](../CLAUDE.md) | Claude 补充约束，避免复制 AGENTS |
 | 根目录 `A_AGENT_HANDOVER.md` | A 角色（M1 + 集成）专属路线与交接 |
-| [决策跟踪](superpowers/决策跟踪.md) | 保留历史决策并追加至 D99（含阶段 A、B1、B2 两轮与 B3）；当前产品规则查主文档 |
+| [决策跟踪](superpowers/决策跟踪.md) | 保留历史决策并追加至 D104（含 M2 与 M3/M5 新增确认）；当前产品规则查主文档 |
 | [DDL](../backend/app/contracts/ddl.sql)及同目录契约 | 当前源码契约，接口/存储/集成任务必读；产品更新不直接授权迁移 |
 | [资产与状态](superpowers/资产与状态.md) | 按任务模块读资产/已知限制/证据日期；实现仍须核对代码与测试 |
 | [未决问题清单](superpowers/未决问题清单.md) | 历史遗留/待办；新 M2 产品未决统一查 PRODUCT_DECISIONS 第 5 节 |
