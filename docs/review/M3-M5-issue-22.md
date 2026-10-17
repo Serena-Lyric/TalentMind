@@ -1,5 +1,7 @@
 # Issue #22：Career Nebula 布局与关系可见性第一轮
 
+交付：[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23)，base=master，head=codex/m3-m5-issue-22；创建后实查 OPEN / CLEAN，autoMergeRequest=null，远端检查列表为空（不宣称远端 CI 通过）。
+
 日期：2026-10-17（Asia/Singapore）。状态：实现、自检与独立代码审查修复完成，等待 ChatGPT 集中复审和用户视觉验收。不是生产数据迁移，也没有默认启用新布局。
 
 ## 1. 基线与边界
