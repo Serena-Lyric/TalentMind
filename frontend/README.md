@@ -34,6 +34,8 @@ pnpm run dev
 
 默认仍为原版 legacy。需要审查关系布局时，完整刷新 `http://127.0.0.1:18080/?nebula=experimental#/graph`（独立 worktree 服务可改用 18081）；参数放在 hash 前。删除 `nebula=experimental` 后刷新即可回退，无新增永久工具栏。
 
-实验版复用已有 d3-force 固定迭代，按真实关联安排岗位/技能/场景；共享节点考虑全部关联岗位。普通连线采用视口、类型轮转和端点覆盖的稳定预算；选中节点展示所有可见类型的真实直连，scale >= 1.8 补全当前视口内关系。顶部关联数仍为数据总数。可额外用 `nebulaDebug=1` 查看根节点 `data-nebula` 开发期计数，无可见统计项。
+实验版复用已有 d3-force 固定迭代，按真实关联安排岗位/技能/场景；共享节点考虑全部关联岗位。初次/重置按实际面板与完整节点范围fit，远景降低节点尺寸、标签和阴影，放大恢复。搜索旁前后按钮及序号切换多结果；Enter下一项、Shift+Enter上一项，首项精确优先，关键词/筛选/刷新重置游标。
+
+普通连线按远/中/普通120/300/900预算优先较近真实边；技能实线、场景点线、岗位相关虚线使用原色板。选中展示全部可见直连并突出，scale >= 1.8 补全当前视口内关系。顶部仍为真实总关系；`nebulaDebug=1` 可读根节点 `data-nebula` 中候选/最终绘制/直连及fit结果，无新增可见统计项。详见[第二轮报告](../docs/review/M3-M5-issue-22-round2.md)。
 
 `pnpm test` 使用 Node 内置 TypeScript stripping（本轮验证 Node 24.15.0），无需新增测试框架；`pnpm run build` 执行类型检查与构建。只读固定 API 快照可运行 `node --experimental-strip-types scripts/check-nebula.ts <graph-api.json>`；检查器不连接服务或写文件。测试与检查均不写数据库。首次布局计算仍在主线程，完整图全景较密集，最终视觉效果待用户验收。
