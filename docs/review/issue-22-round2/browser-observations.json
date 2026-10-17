@@ -1,0 +1,881 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Singapore",
+  "codeHead": "017304a",
+  "experimentalUrl": "http://127.0.0.1:18081/?nebula=experimental&nebulaDebug=1#/graph",
+  "legacyUrl": "http://127.0.0.1:18081/?nebulaDebug=1#/graph",
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "canvas": {
+    "width": 1277,
+    "height": 817
+  },
+  "narrowViewport": {
+    "width": 1224,
+    "height": 1000
+  },
+  "measurements": [
+    {
+      "state": "initial-overview",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 11412,
+      "visibleDirect": 0,
+      "submitted": 120,
+      "painted": 120,
+      "selectedId": null,
+      "overview": true,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 1277,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 7845,
+        "outside": 0
+      },
+      "fittedScale": 0.0855858299753504,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 41.69999999925494
+    },
+    {
+      "state": "python-first",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 222,
+      "visibleDirect": 222,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": 0,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 9.400000002235174
+    },
+    {
+      "state": "python-next-button",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 1,
+      "visibleDirect": 1,
+      "submitted": 1,
+      "painted": 1,
+      "selectedId": "industry:python-原生无服务器数据平台",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 2,
+        "outside": 0
+      },
+      "fittedScale": 1,
+      "search": {
+        "index": 1,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": -345.7254342335736,
+        "y": 68.47853465301517
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 5.5
+    },
+    {
+      "state": "keyboard-Shift+Enter",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 222,
+      "visibleDirect": 222,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": 0,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 8.5
+    },
+    {
+      "state": "keyboard-Shift+Enter",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 1,
+      "visibleDirect": 1,
+      "submitted": 1,
+      "painted": 1,
+      "selectedId": "skill:脚本语言-python-javascript",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 2,
+        "outside": 0
+      },
+      "fittedScale": 1,
+      "search": {
+        "index": 86,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": -138.83041204522286,
+        "y": -110.83190990845236
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 5.400000002235174
+    },
+    {
+      "state": "keyboard-Enter",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 222,
+      "visibleDirect": 222,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": 0,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 7.900000002235174
+    },
+    {
+      "state": "previous-button",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 222,
+      "visibleDirect": 222,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": 0,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 6.400000002235174
+    },
+    {
+      "state": "filter-reset-cursor",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 222,
+      "visibleDirect": 222,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": -1,
+        "count": 82
+      },
+      "activeKinds": [
+        "job",
+        "skill"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 7.800000000745058
+    },
+    {
+      "state": "hide-selected-type",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 7,
+      "visibleDirect": 0,
+      "submitted": 5,
+      "painted": 5,
+      "selectedId": null,
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": -1,
+        "count": 33
+      },
+      "activeKinds": [
+        "job"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 5.099999997764826
+    },
+    {
+      "state": "no-matches",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 11057,
+      "visibleDirect": 0,
+      "submitted": 300,
+      "painted": 300,
+      "selectedId": null,
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 45.5
+    },
+    {
+      "state": "empty-keyword",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 11057,
+      "visibleDirect": 0,
+      "submitted": 300,
+      "painted": 300,
+      "selectedId": null,
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1344.5999999977648,
+      "drawMs": 45
+    },
+    {
+      "state": "refresh-resets-cursor",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 222,
+      "visibleDirect": 222,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 223,
+        "outside": 0
+      },
+      "fittedScale": 0.18098882013558654,
+      "search": {
+        "index": -1,
+        "count": 87
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.18098882013558654,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 5.899999998509884
+    },
+    {
+      "state": "focus-before-wheel",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 16,
+      "visibleDirect": 16,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 17,
+        "outside": 0
+      },
+      "fittedScale": 0.681473198596756,
+      "search": {
+        "index": 0,
+        "count": 1
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.681473198596756,
+        "x": -60.41731642430945,
+        "y": 251.07756124049592
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 8
+    },
+    {
+      "state": "focus-wheel-out",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 16,
+      "visibleDirect": 16,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 17,
+        "outside": 0
+      },
+      "fittedScale": 0.681473198596756,
+      "search": {
+        "index": 0,
+        "count": 1
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.6133258787370804,
+        "x": -64.84672140354473,
+        "y": 259.36570462550077
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 6.900000002235174
+    },
+    {
+      "state": "focus-wheel-in",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 16,
+      "visibleDirect": 16,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 17,
+        "outside": 0
+      },
+      "fittedScale": 0.681473198596756,
+      "search": {
+        "index": 0,
+        "count": 1
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.6746584666107885,
+        "x": -60.819989604239936,
+        "y": 251.8310288209509
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 7.300000000745058
+    },
+    {
+      "state": "focused-lines",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 16,
+      "visibleDirect": 16,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 17,
+        "outside": 0
+      },
+      "fittedScale": 0.681473198596756,
+      "search": {
+        "index": 0,
+        "count": 1
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.681473198596756,
+        "x": -60.41731642430945,
+        "y": 251.07756124049592
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 5.399999998509884
+    },
+    {
+      "state": "ordinary-lines",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 5624,
+      "visibleDirect": 0,
+      "submitted": 900,
+      "painted": 900,
+      "selectedId": null,
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 17,
+        "outside": 0
+      },
+      "fittedScale": 0.681473198596756,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.681473198596756,
+        "x": -60.41731642430945,
+        "y": 251.07756124049592
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 34.29999999701977
+    },
+    {
+      "state": "manual-pan",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 5781,
+      "visibleDirect": 0,
+      "submitted": 900,
+      "painted": 900,
+      "selectedId": null,
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 17,
+        "outside": 0
+      },
+      "fittedScale": 0.681473198596756,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.681473198596756,
+        "x": 86.32359753373514,
+        "y": 119.01073867825582
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 44.100000001490116
+    },
+    {
+      "state": "focus-before-reset",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 37,
+      "visibleDirect": 37,
+      "submitted": 37,
+      "painted": 37,
+      "selectedId": "skill:pytorch",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 38,
+        "outside": 0
+      },
+      "fittedScale": 0.2704339353921196,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.2704339353921196,
+        "x": 374.00959023794894,
+        "y": 330.45835602723247
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 6
+    },
+    {
+      "state": "reset-overview",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 11412,
+      "visibleDirect": 0,
+      "submitted": 120,
+      "painted": 120,
+      "selectedId": null,
+      "overview": true,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 1277,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 7845,
+        "outside": 0
+      },
+      "fittedScale": 0.0855858299753504,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 41.599999997764826
+    },
+    {
+      "state": "narrow-overview",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 11412,
+      "visibleDirect": 0,
+      "submitted": 120,
+      "painted": 120,
+      "selectedId": null,
+      "overview": true,
+      "lastFit": {
+        "area": {
+          "left": 260,
+          "right": 901,
+          "top": 0,
+          "bottom": 817
+        },
+        "points": 7845,
+        "outside": 0
+      },
+      "fittedScale": 0.06902614907836083,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.06902614907836083,
+        "x": 1917.5811911274382,
+        "y": -56.975756701247064
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 67.40000000223517
+    },
+    {
+      "state": "narrow-focus",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "candidates": 37,
+      "visibleDirect": 37,
+      "submitted": 37,
+      "painted": 37,
+      "selectedId": "skill:pytorch",
+      "overview": false,
+      "lastFit": {
+        "area": {
+          "left": 0,
+          "right": 901,
+          "top": 446.3333435058594,
+          "bottom": 817
+        },
+        "points": 38,
+        "outside": 0
+      },
+      "fittedScale": 0.20001143960600878,
+      "search": {
+        "index": 0,
+        "count": 7
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.20001143960600878,
+        "x": 589.0959713528081,
+        "y": 1446.2278949722702
+      },
+      "layoutMs": 1377.0999999977648,
+      "drawMs": 8.199999999254942
+    },
+    {
+      "state": "legacy-default",
+      "mode": "legacy",
+      "totalEdges": 11412,
+      "submitted": 900,
+      "painted": 137,
+      "selectedId": null,
+      "overview": true,
+      "lastFit": null,
+      "fittedScale": 1,
+      "search": {
+        "index": -1,
+        "count": 0
+      },
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      },
+      "layoutMs": 34.30000000074506,
+      "drawMs": 37.099999997764826
+    }
+  ]
+}

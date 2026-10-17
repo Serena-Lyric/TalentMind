@@ -1,0 +1,315 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Singapore",
+  "source": "Live Vue UI / read-only existing graph API",
+  "baselineUrl": "http://127.0.0.1:18080/#/graph",
+  "experimentalUrl": "http://127.0.0.1:18081/?nebula=experimental&nebulaDebug=1#/graph",
+  "comparisonViewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "canvas": {
+    "width": 1277,
+    "height": 817
+  },
+  "measurements": [
+    {
+      "state": "experimental-overview",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 900,
+      "painted": 900,
+      "selectedId": null,
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      },
+      "layoutMs": 1320.699999999255,
+      "drawMs": 25.299999999813735
+    },
+    {
+      "state": "experimental-skill",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 37,
+      "painted": 37,
+      "selectedId": "skill:pytorch",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.24882323318487617,
+        "x": 355.3289884645073,
+        "y": 330.45835602723247
+      },
+      "layoutMs": 1320.699999999255,
+      "drawMs": 6.599999999627471
+    },
+    {
+      "state": "rapid-refresh-focused-skill",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 37,
+      "painted": 37,
+      "selectedId": "skill:pytorch",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.24882323318487617,
+        "x": 355.3289884645073,
+        "y": 330.45835602723247
+      },
+      "layoutMs": 1298.7999999998137,
+      "drawMs": 5.2000000001862645
+    },
+    {
+      "state": "final-shared-skill",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 37,
+      "painted": 37,
+      "selectedId": "skill:pytorch",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.24882323318487617,
+        "x": 355.3289884645073,
+        "y": 330.45835602723247
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 12.899999999441206
+    },
+    {
+      "state": "final-job",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.627015852717666,
+        "x": -67.83047465780609,
+        "y": 251.07756124049592
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 10.599999999627471
+    },
+    {
+      "state": "canvas-hit-job",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.627015852717666,
+        "x": -67.83047465780609,
+        "y": 251.07756124049592
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 9.799999999813735
+    },
+    {
+      "state": "canvas-pan",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.627015852717666,
+        "x": 91.65512617121826,
+        "y": 171.33476082598375
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 7.900000000372529
+    },
+    {
+      "state": "canvas-wheel-zoom",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 16,
+      "painted": 16,
+      "selectedId": "job:j-f6dd5eb6f9c5c2e4",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.6897174379894326,
+        "x": 95.59394017176194,
+        "y": 163.96459364632645
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 6.7999999998137355
+    },
+    {
+      "state": "final-industry-filter",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 900,
+      "painted": 900,
+      "selectedId": null,
+      "activeKinds": [
+        "job",
+        "skill"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 24.799999999813735
+    },
+    {
+      "state": "final-overview",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 900,
+      "painted": 900,
+      "selectedId": null,
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 28.700000000186265
+    },
+    {
+      "state": "final-python",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 222,
+      "painted": 222,
+      "selectedId": "skill:python",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.16652578505413768,
+        "x": -174.26282451466386,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 12.700000000186265
+    },
+    {
+      "state": "final-hide-selected-type",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 900,
+      "painted": 900,
+      "selectedId": null,
+      "activeKinds": [
+        "job",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.16652578505413768,
+        "x": -174.26282451466386,
+        "y": -10.139097741823434
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 28.299999999813735
+    },
+    {
+      "state": "unselected-high-zoom",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 1685,
+      "painted": 1685,
+      "selectedId": null,
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1.9487171000000014,
+        "x": 13.225881026222584,
+        "y": -24.747793180399903
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 25.299999999813735
+    },
+    {
+      "state": "narrow-viewport-final",
+      "mode": "experimental",
+      "totalEdges": 11412,
+      "submitted": 37,
+      "painted": 37,
+      "selectedId": "skill:pytorch",
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 0.07953939922813609,
+        "x": -142.1976649909384,
+        "y": 330.45835602723247
+      },
+      "layoutMs": 1330.2000000001863,
+      "drawMs": 13.5
+    },
+    {
+      "state": "rollback-legacy",
+      "mode": "legacy",
+      "totalEdges": 11412,
+      "submitted": 900,
+      "painted": 137,
+      "selectedId": null,
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      },
+      "layoutMs": 30.59999999962747,
+      "drawMs": 38.89999999944121
+    }
+  ]
+}

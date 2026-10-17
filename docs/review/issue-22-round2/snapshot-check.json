@@ -1,0 +1,72 @@
+{
+  "snapshotSha256": "6e396721ea55b26451d0d58f8f8356027361c2707e87c1e4a96d77ec4331517a",
+  "nodes": 7845,
+  "edges": 11412,
+  "nodeTypes": {
+    "industry": 2457,
+    "job": 717,
+    "skill": 4671
+  },
+  "edgeTypes": {
+    "applies_to": 2539,
+    "related_to": 7,
+    "requires": 8866
+  },
+  "finite": true,
+  "orderInvariant": true,
+  "inputUnchanged": true,
+  "layoutMs": 1104.1047,
+  "overview": {
+    "transform": {
+      "scale": 0.0853760627946971,
+      "x": 1718.4873374192016,
+      "y": -45.85865957796386
+    },
+    "area": {
+      "left": 260,
+      "right": 1277,
+      "top": 0,
+      "bottom": 817
+    },
+    "fittedNodes": 7845,
+    "outside": 0,
+    "candidates": 11412,
+    "drawn": 120
+  },
+  "legacyExtent": {
+    "width": 273774.526831419,
+    "height": 8015.0623323545715
+  },
+  "experimentalExtent": {
+    "width": 8683.164870066454,
+    "height": 9100.9115970649
+  },
+  "normal": {
+    "drawn": 900,
+    "types": {
+      "applies_to": 336,
+      "requires": 564
+    }
+  },
+  "zoomed": 4047,
+  "focused": [
+    {
+      "id": "skill:pytorch",
+      "actualDirect": 37,
+      "selected": 37,
+      "scale": 0.23290128674768076
+    },
+    {
+      "id": "skill:python",
+      "actualDirect": 222,
+      "selected": 222,
+      "scale": 0.173859357189901
+    },
+    {
+      "id": "job:j-f6dd5eb6f9c5c2e4",
+      "actualDirect": 16,
+      "selected": 16,
+      "scale": 0.7526789315012232
+    }
+  ]
+}

@@ -1,0 +1,1447 @@
+[
+  {
+    "name": "final-initial",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 11412,
+      "direct": null,
+      "drawMs": 48.39999999850989,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": true,
+      "painted": 120,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 120,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "zoom-step-8",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 11041,
+      "direct": null,
+      "drawMs": 63.39999999850989,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": "job:j-266505feceda0af5",
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 300,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 300,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.18346082742972375,
+        "x": 538.1711843939479,
+        "y": -62.17024356668746
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "zoom-step-16",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 8519,
+      "direct": null,
+      "drawMs": 45.099999997764826,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": "industry:金融服务it运维与应用支持",
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 300,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 300,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.3932645767516973,
+        "x": 64.66208737146172,
+        "y": -64.59351002581792
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "zoom-step-24",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 4434,
+      "direct": null,
+      "drawMs": 35.79999999701977,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 100,
+        "drawn": 88
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 900,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 900,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.8429975460943249,
+        "x": -156.23340098597458,
+        "y": -65.72398171321699
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "near-labels",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 2363,
+      "direct": null,
+      "drawMs": 67.89999999850988,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 620,
+        "drawn": 273
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 674,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 674,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 1.3576559779603716,
+        "x": -229.4561963967995,
+        "y": -66.09871230504424
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "near-python-search",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 11.100000001490116,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 28,
+        "drawn": 21
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": 0
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 1.3576559779603716,
+        "x": 310.36769359796386,
+        "y": -20.938896103321532
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-python-all",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 15.100000001490116,
+      "fittedScale": 0.18098882013558656,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 900.6666870117188,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 223
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": true,
+      "search": {
+        "count": 87,
+        "index": 0
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.18098882013558656,
+        "x": -146.35022389491144,
+        "y": -10.139097741823434
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-python-return",
+    "canvas": {
+      "bottom": 957,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 9,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 28,
+        "drawn": 20
+      },
+      "lastFit": null,
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": 0
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 1.3576559779603716,
+        "x": 310.36769359796386,
+        "y": -20.938896103321532
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "near-python-next",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 1,
+      "direct": {
+        "dataDegree": 1,
+        "drawable": 1,
+        "intersecting": 1,
+        "submitted": 1,
+        "typeFiltered": 1
+      },
+      "drawMs": 6.600000001490116,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 2,
+        "drawn": 2
+      },
+      "lastFit": null,
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 1,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": 1
+      },
+      "selectedId": "industry:python-原生无服务器数据平台",
+      "submitted": 1,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 1.3576559779603716,
+        "x": -357.90222073117326,
+        "y": 68.47853465301517
+      },
+      "visibleDirect": 1
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "after-scroll-interruption",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 4876,
+      "direct": null,
+      "drawMs": 37.79999999701977,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": "industry:微服务与-rest-api-平台现代化",
+      "labels": {
+        "candidates": 136,
+        "drawn": 109
+      },
+      "lastFit": null,
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 900,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 900,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.721514050583238,
+        "x": -375.5445600442251,
+        "y": 69.0197069972036
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "zoom-below-middle",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 5419,
+      "direct": null,
+      "drawMs": 34.69999999925494,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": "industry:微服务与-rest-api-平台现代化",
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": null,
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 900,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 900,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.6493626455249143,
+        "x": -379.7281525558883,
+        "y": 69.14803717646679
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-before-click",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 11412,
+      "direct": null,
+      "drawMs": 57.19999999925494,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": true,
+      "painted": 120,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 120,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-canvas-click",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 2,
+      "direct": {
+        "dataDegree": 2,
+        "drawable": 2,
+        "intersecting": 2,
+        "submitted": 2,
+        "typeFiltered": 2
+      },
+      "drawMs": 13.399999998509884,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": "skill:vmware",
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 2,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": "skill:vmware",
+      "submitted": 2,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 2
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-blank-click",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 11412,
+      "direct": null,
+      "drawMs": 55.30000000074506,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 120,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 120,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-python-input",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 11412,
+      "direct": null,
+      "drawMs": 55.5,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 120,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 120,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-python-first",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 10.099999997764826,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": 0
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-search-wrap-last",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 1,
+      "direct": {
+        "dataDegree": 1,
+        "drawable": 1,
+        "intersecting": 1,
+        "submitted": 1,
+        "typeFiltered": 1
+      },
+      "drawMs": 6.899999998509884,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 1,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": 86
+      },
+      "selectedId": "skill:脚本语言-python-javascript",
+      "submitted": 1,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 1
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-search-wrap-first",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 8.5,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": 0
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-filter-industry",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 8.699999999254942,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": false,
+      "search": {
+        "count": 82,
+        "index": -1
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-filter-jobs",
+    "canvas": {
+      "bottom": 957.6666717529296,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140.6666717529297,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140.6666717529297
+    },
+    "debug": {
+      "activeKinds": [
+        "skill"
+      ],
+      "candidates": 0,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 0,
+        "intersecting": 0,
+        "submitted": 0,
+        "typeFiltered": 0
+      },
+      "drawMs": 5.599999997764826,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1553.699999999255,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 0,
+      "savedView": false,
+      "search": {
+        "count": 49,
+        "index": -1
+      },
+      "selectedId": "skill:python",
+      "submitted": 0,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "final-refresh",
+    "canvas": {
+      "bottom": 957,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 222,
+      "direct": {
+        "dataDegree": 222,
+        "drawable": 222,
+        "intersecting": 222,
+        "submitted": 222,
+        "typeFiltered": 222
+      },
+      "drawMs": 8.5,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 1,
+        "drawn": 1
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1482,
+      "mode": "experimental",
+      "overview": false,
+      "painted": 222,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": -1
+      },
+      "selectedId": "skill:python",
+      "submitted": 222,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 222
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "legacy-default",
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "direct": null,
+      "drawMs": 43.099999997764826,
+      "fittedScale": 1,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": null,
+      "layoutMs": 35.899999998509884,
+      "mode": "legacy",
+      "overview": true,
+      "painted": 98,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 900,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  {
+    "name": "final-reset-with-search",
+    "canvas": {
+      "bottom": 957,
+      "height": 817,
+      "left": 288.66668701171875,
+      "right": 1565.6666870117188,
+      "top": 140,
+      "width": 1277,
+      "x": 288.66668701171875,
+      "y": 140
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "candidates": 11412,
+      "direct": null,
+      "drawMs": 54.30000000074506,
+      "fittedScale": 0.0855858299753504,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": {
+        "area": {
+          "bottom": 817,
+          "left": 260,
+          "right": 1277,
+          "top": 0
+        },
+        "outside": 0,
+        "points": 7845
+      },
+      "layoutMs": 1482,
+      "mode": "experimental",
+      "overview": true,
+      "painted": 120,
+      "savedView": false,
+      "search": {
+        "count": 87,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 120,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 0.0855858299753504,
+        "x": 1553.1799862045536,
+        "y": -56.975756701247064
+      },
+      "visibleDirect": 0
+    },
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    }
+  },
+  {
+    "name": "legacy-fixed-viewport",
+    "viewport": {
+      "height": 1000,
+      "width": 1600
+    },
+    "debug": {
+      "activeKinds": [
+        "job",
+        "skill",
+        "industry"
+      ],
+      "direct": null,
+      "drawMs": 41.10000000149011,
+      "fittedScale": 1,
+      "hoveredId": null,
+      "labels": {
+        "candidates": 0,
+        "drawn": 0
+      },
+      "lastFit": null,
+      "layoutMs": 35.899999998509884,
+      "mode": "legacy",
+      "overview": true,
+      "painted": 137,
+      "savedView": false,
+      "search": {
+        "count": 0,
+        "index": -1
+      },
+      "selectedId": null,
+      "submitted": 900,
+      "totalEdges": 11412,
+      "transform": {
+        "scale": 1,
+        "x": 0,
+        "y": 0
+      }
+    }
+  }
+]
