@@ -1,0 +1,48 @@
+{
+  "source": "Real browser DOM after route transition; isolated worktree, existing read-only graph API",
+  "codeCommit": "bdf257c8b058ea7528fafdaa8057cb1ce3587123",
+  "desktop": [
+    {
+      "checks": {
+        "bottomAligned": true,
+        "noOverflow": true,
+        "topAligned": true,
+        "topbarHidden": true
+      },
+      "counts": "7845 个节点11412 条关联",
+      "graph": [
+        18,
+        882
+      ],
+      "sidebar": [
+        18,
+        882
+      ],
+      "viewport": [
+        1600,
+        900
+      ]
+    },
+    {
+      "checks": {
+        "bottomAligned": true,
+        "noOverflow": true,
+        "topAligned": true,
+        "topbarHidden": true
+      },
+      "counts": "7845 个节点11412 条关联",
+      "graph": [
+        18,
+        1062
+      ],
+      "sidebar": [
+        18,
+        1062
+      ],
+      "viewport": [
+        1920,
+        1080
+      ]
+    }
+  ]
+}
