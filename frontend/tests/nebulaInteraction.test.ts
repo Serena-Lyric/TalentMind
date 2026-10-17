@@ -61,6 +61,99 @@ test('搜索仅平移离开有效区域的目标，保留比例；连续切换�
   assert.equal(s.transform.x, -2000)
 })
 
+for (const select of ['search', 'canvas']) {
+  test(`${select} 改选 B 后展开并返回 B 本次原视角，不沿用 A 快照`, async t => {
+    const app = graphComponent(); t.after(app.stop)
+    const s = app.state
+    app.setGraph([node('match-a', 0, 0), node('match-b', 300, 0)], [{ source: 'match-a', target: 'match-b', kind: 'requires' }])
+    s.searchKeyword.value = 'match'; await nextTick()
+    await s.stepSearch(1)
+    const beforeA = { ...s.transform }
+    await s.viewAllConnections()
+    assert.notDeepEqual({ ...s.transform }, beforeA)
+    const expandedA = { ...s.transform }
+    if (select === 'search') await s.stepSearch(1)
+    else {
+      const point = s.worldToScreen({ x: 300, y: 0 })
+      await s.onCanvasClick(click(point.x, point.y))
+    }
+    assert.equal(s.selectedNode.value.id, 'match-b')
+    assert.equal(s.savedView.value, null)
+    assert.deepEqual({ ...s.transform }, expandedA)
+    const beforeB = { ...s.transform }
+    await s.viewAllConnections()
+    s.onWheel({ ...click(600, 400), deltaY: -120 })
+    await s.viewAllConnections()
+    s.returnToView()
+    assert.deepEqual({ ...s.transform }, beforeB)
+    assert.equal(s.savedView.value, null)
+  })
+}
+
+for (const clear of ['blank', 'close', 'filter']) {
+  test(`${clear} 清除选中使旧快照失效，再选同节点返回新视角`, async t => {
+    const app = graphComponent(); t.after(app.stop)
+    const s = app.state
+    app.setGraph([node('match-a', 0, 0), node('match-b', 300, 0)], [{ source: 'match-a', target: 'match-b', kind: 'requires' }])
+    await s.onCanvasClick(click(600, 400))
+    await s.viewAllConnections()
+    const expanded = { ...s.transform }
+    if (clear === 'blank') await s.onCanvasClick(click(10, 10))
+    else if (clear === 'close') await s.clearSelection()
+    else {
+      s.filters.find((filter: any) => filter.kind === 'skill').active = false
+      await nextTick()
+    }
+    assert.equal(s.selectedNode.value, null)
+    assert.equal(s.savedView.value, null)
+    s.returnToView()
+    assert.deepEqual({ ...s.transform }, expanded)
+    if (clear === 'filter') {
+      s.filters.find((filter: any) => filter.kind === 'skill').active = true
+      await nextTick()
+    }
+    const point = s.worldToScreen({ x: 0, y: 0 })
+    await s.onCanvasClick(click(point.x, point.y))
+    const before = { ...s.transform }
+    await s.viewAllConnections()
+    s.returnToView()
+    assert.deepEqual({ ...s.transform }, before)
+  })
+}
+
+test('同节点画布重选及搜索循环不废弃首次展开快照', async t => {
+  const app = graphComponent(); t.after(app.stop)
+  const s = app.state
+  app.setGraph([node('match-a', 0, 0), node('neighbor', 300, 0)], [{ source: 'match-a', target: 'neighbor', kind: 'requires' }])
+  s.searchKeyword.value = 'match-a'; await nextTick()
+  await s.stepSearch(1)
+  const before = { ...s.transform }
+  await s.viewAllConnections()
+  const point = s.worldToScreen({ x: 0, y: 0 })
+  await s.onCanvasClick(click(point.x, point.y))
+  await s.viewAllConnections()
+  await s.stepSearch(1)
+  await s.viewAllConnections()
+  s.returnToView()
+  assert.deepEqual({ ...s.transform }, before)
+})
+
+test('同一更新周期改选并展开 B 仍保存 B 的快照', async t => {
+  const app = graphComponent(); t.after(app.stop)
+  const s = app.state
+  app.setGraph([node('match-a', 0, 0), node('match-b', 300, 0)], [{ source: 'match-a', target: 'match-b', kind: 'requires' }])
+  s.searchKeyword.value = 'match'; await nextTick()
+  await s.stepSearch(1)
+  await s.viewAllConnections()
+  const beforeB = { ...s.transform }
+  const selecting = s.stepSearch(1)
+  const expanding = s.viewAllConnections()
+  await Promise.all([selecting, expanding])
+  s.onWheel({ ...click(600, 400), deltaY: -120 })
+  s.returnToView()
+  assert.deepEqual({ ...s.transform }, beforeB)
+})
+
 test('真实绘制路径随缩放展示三类型标签，远景仅悬停目标显示并在离开时清除', t => {
   const app = graphComponent(); t.after(app.stop)
   const s = app.state

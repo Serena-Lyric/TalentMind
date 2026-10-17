@@ -2,6 +2,52 @@
 
 状态：已开发、本机验证；等待 ChatGPT 复审与用户实机验收。未合并 PR #27 或本轮 PR，P1《诗云》未启动。
 
+## PR #28 定向补修（2026-10-17，本轮最新）
+
+依据：[ChatGPT 最新复审](https://github.com/Serena-Lyric/TalentMind/pull/28#pullrequestreview-5558355111)、[Issue #26 最新接力](https://github.com/Serena-Lyric/TalentMind/issues/26#issuecomment-6235411265)。开工 HEAD=`c465f7ae24ee43e6c015e806190718bf6c5b66ba`，分支 `codex/issue-26-p05`，独立检出干净。远端核对 master=`1e5f4da`、P0=`41f9184`、P0.5=`c465f7a`；PR #28 继续以 `codex/issue-26-p0` 为 base，叠加 PR #27，两个 PR 均保持未合并。
+
+### 运行环境审计（先审计，再验证）
+
+| 监听端口 | 监听 PID（父 PID） | 命令行与归属证据 |
+|---|---|---|
+| 18000 | 25160（29676） | 原仓 `backend/.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 18000`，保留既有后端。 |
+| 18086 | 32572（33568） | `node.exe node_modules/vite/bin/vite.js --host 127.0.0.1 --port 18086 --strictPort`；HTTP 返回的 Vue `__file` 为 `C:/Users/Serena Lyric/.codex/worktrees/issue-26-p0/TalentMind/frontend/src/components/GraphPanorama.vue`。 |
+| 18087 | 11168（30052） | 同一 Vite 命令、端口 18087；Vue `__file` 为 `D:/Application/ClaudeCode/repository/TalentMind-p05/frontend/src/components/GraphPanorama.vue`。本轮直接复用。 |
+| 23306、6379、7474、7687 | 17356、17660 | Docker backend / WSL relay 现有监听，未操作容器或数据库。 |
+| 18080、18081、18082、18088 | 无监听 | 本轮没有新增服务。其他系统/项目监听保持原状。 |
+
+审计使用 `Get-NetTCPConnection`、`Get-CimInstance Win32_Process`、父进程及已服务源码路径交叉核对。`TalentMind-p05` 为独立 Git 检出（`.git` 与 common dir 均为 `.git`），所以不出现在原仓 `git worktree list` 中。其 `frontend/node_modules` junction 实际指向 `C:/Users/Serena Lyric/.codex/worktrees/m3-m5-issue-22/TalentMind/frontend/node_modules`；未删除、重装或改写 junction。验证后 18000/18086/18087 的 PID 均保持原值，没有结束个人浏览器或其他原进程；只关闭本次脚本自行启动的隔离测试 Edge。
+
+### 最小修复与回归
+
+选中 A 并展开后改选 B，旧 savedView 原本不会失效。生产代码仅在 `GraphPanorama.vue` 增加选中 ID 的同步 watcher：身份变化（含清空）立即清除旧快照；相同 ID 不清除，仍由首次展开保存 transform、fittedScale、overview，返回逻辑原样复用。同步时机避免同一更新周期改选后展开的竞态。没有修改关系坐标、全图适配、页面外壳或 Y/H 实现。
+
+| 本轮验证 | 结果 |
+|---|---|
+| 新增真实 SFC setup 回归 | 7 项：搜索/画布改选 B，空白/关闭/类型过滤清除，同 ID 画布重选及搜索循环，同更新周期改选并展开。旧代码定向 **9 passed / 6 failed**，失败为残留 A 快照或实际返回 A 相机；修复后 **15 passed / 0 failed**。同节点重复展开的既有测试保留。 |
+| `pnpm test` | **49 passed / 0 failed**；新增测试复用现有 helper，实际执行 SFC、Vue watcher 与相机操作，仅隔离挂载/网络/Canvas 端口。 |
+| `pnpm run build` | vue-tsc 与 Vite 成功；现有 >500kB chunk 警告保留。 |
+| 18087 真实 Edge 155 回归 | **13 组通过**；新增真实键盘/按钮流程 A→展开→搜索 B→展开/重复/YH→返回 B，相机精确相等。保留原有 1600×900、1920×1080 全览/外壳、真实关系、搜索、滚轮/拖拽、390×844、输入保护及路由冒烟。pageerror=[]，API writes=[]。 |
+| 独立只读代码检查 | 本轮两文件生产/SFC diff 未发现 Critical/Important/Minor；独立复跑定向 15/15、全套 49/49。浏览器脚本与文档由本会话另行检查，不能把内部自检当作 ChatGPT 复审。 |
+
+真实浏览器结果：[本轮 browser-results.json](assets/issue-26-p05-snapshot/browser-results.json)。新增场景的 B 展开前相机为 `{scale:0.1807879385181108,x:-145.78549242182243,y:-10.139097741823434}`，返回逐字段精确一致，区别于 A 的 `{scale:0.08437419016874956,x:1574.9924840398633,y:-56.975756701247064}`。本轮重复生成的 11 张截图保留本地 `docs/review/assets/issue-26-p05-snapshot/`，只提交 JSON 结果，原轮已提交截图不覆盖。
+
+本轮命令（`frontend/`，复用既有服务与已装依赖）：
+
+```powershell
+$env:pnpm_config_verify_deps_before_run='false'
+node --experimental-strip-types --test tests/nebulaInteraction.test.ts
+pnpm test
+pnpm run build
+$env:PLAYWRIGHT_MODULE='C:/Users/Serena Lyric/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs'
+$env:NEBULA_OUTPUT='../docs/review/assets/issue-26-p05-snapshot'
+node --experimental-strip-types scripts/test-nebula-browser.mjs
+```
+
+新增 [快照陷阱记录](../superpowers/traps/2026-10-17-nebula-selection-camera-snapshot.md)并同步资产状态和 AGENTS 陷阱入口；没有新增产品裁决。正式 graph.json SHA-256 仍为 `6565D56DBC5A267EB90144F078C54F3D0C761C9A98CA29A18B4DC9C6CDDE38E2`。未运行后端/数据库集成测试，无数据库夹具或清理操作，无 M1/M2/DDL/正式图谱修改，不清理任何既有工作树或分支。仅推送现有 P0.5 分支，再次等待 ChatGPT 复审和用户验收；不合并 PR #27/#28，不开始 P1。
+
+以下为原轮交付记录，42 项测试及原截图属于原轮证据，不替代本轮结果。
+
 ## 基线、分支与运行
 
 - 基线：PR #27 `codex/issue-26-p0@41f9184f2e47a86df4fc86d60b93556e8a19e0db`。用户已验收 P0 外壳；本分支仅叠加 P0.5，PR base 为 `codex/issue-26-p0`，不是把 P0 当作已发布 master。

@@ -130,6 +130,29 @@ try {
   assert.deepEqual((await state()).transform, original)
   check('主动完整关联 223 节点全入视野、重复查看与返回/关闭详情保持原视角')
 
+  await search.press('Enter'); await settle()
+  const beforeA = (await state()).transform
+  await page.getByRole('button', { name: '查看全部关联', exact: true }).click(); await settle()
+  await search.press('Enter'); await settle()
+  s = await state()
+  assert.equal(s.search.index, 1); assert.notEqual(s.selectedId, 'skill:python')
+  assert.equal(s.savedView, false)
+  assert.equal(await page.getByRole('button', { name: '返回原视角', exact: true }).count(), 0)
+  const beforeB = s.transform
+  assert.notDeepEqual(beforeB, beforeA)
+  await page.getByRole('button', { name: '查看全部关联', exact: true }).click(); await settle()
+  assert.equal((await state()).lastFit.outside, 0)
+  const expandedB = (await state()).transform
+  await blur(); await page.keyboard.press('y'); await page.keyboard.press('h'); await settle()
+  await page.keyboard.press('h'); await page.keyboard.press('y'); await settle()
+  assert.deepEqual((await state()).transform, expandedB); assert.equal((await state()).savedView, true)
+  await page.getByRole('button', { name: '查看全部关联', exact: true }).click(); await settle()
+  await page.getByRole('button', { name: '返回原视角', exact: true }).click(); await settle()
+  assert.deepEqual((await state()).transform, beforeB)
+  assert.equal((await state()).savedView, false)
+  check('A 展开后直接搜索切换 B，B 重复展开及 Y/H 后返回 B 本次原视角', { beforeA, beforeB, expandedB })
+  await page.getByRole('button', { name: '重置视图', exact: true }).click(); await settle()
+
   // Derive a target from the real API and deterministic projection, then use
   // actual mouse input; never call component event handlers through evaluate.
   const data = (await (await context.request.get(base + 'api/graph/data?year=2026&focusJob=all')).json()).data

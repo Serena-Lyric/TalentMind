@@ -423,6 +423,8 @@ async function loadGraph() {
   } catch { if (generation === loadGeneration) ElMessage.error('图谱数据加载失败') }
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
+// 快照只属于当前选中身份；同步失效，避免同一轮改选后展开误用旧快照。
+watch(() => selectedNode.value?.id, () => { savedView.value = null }, { flush: 'sync' })
 watch(activeKinds, async () => {
   searchIndex.value = -1
   if (selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
