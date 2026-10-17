@@ -75,3 +75,44 @@ def test_real_cli_only_writes_report_to_stdout():
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["before"]["related_to"] == 7
     assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize("entry", ["direct", "module"])
+def test_rebuild_is_disabled_before_service_import_connection_or_file_write(entry):
+    code = '''
+import builtins, runpy, socket, sys
+from pathlib import Path
+path = Path(sys.argv[1])
+before = path.read_bytes()
+attempts = []
+original = builtins.__import__
+def guarded(name, *args, **kwargs):
+    if name.startswith(("sqlalchemy", "neo4j", "app.db", "app.config")):
+        attempts.append("service import")
+        raise AssertionError("service dependency loaded: " + name)
+    return original(name, *args, **kwargs)
+def denied(*args, **kwargs):
+    attempts.append("write or connection")
+    raise AssertionError("rebuild attempted a side effect")
+builtins.__import__ = guarded
+Path.write_text = Path.write_bytes = Path.mkdir = denied
+socket.socket.connect = socket.socket.connect_ex = denied
+try:
+    if sys.argv[2] == "direct":
+        from app.integration.rebuild_m2_graph import rebuild
+        rebuild()
+    else:
+        runpy.run_module("app.integration.rebuild_m2_graph", run_name="__main__")
+except RuntimeError as error:
+    assert "disabled" in str(error) and "offline" in str(error)
+else:
+    raise AssertionError("rebuild did not fail closed")
+assert attempts == [], attempts
+assert path.read_bytes() == before
+'''
+    path = Path(__file__).resolve().parents[2] / "exchange/m3/graph.json"
+    before = path.read_bytes()
+    result = subprocess.run([sys.executable, "-c", code, str(path), entry], capture_output=True,
+                            text=True, encoding="utf-8", timeout=30)
+    assert result.returncode == 0, result.stderr
+    assert path.read_bytes() == before

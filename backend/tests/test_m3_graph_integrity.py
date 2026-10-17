@@ -172,3 +172,29 @@ def test_legacy_mapping_reproduces_job_specific_historical_alias_targets():
     assert any(m["source_name"] == "cpp" and m["legacy_id"] == "skill:c" and m["new_id"] == "skill:cpp" for m in mappings)
     assert {(m["job_id"], m["legacy_id"], m["new_id"]) for m in mappings if m["source_name"] == "tool"} == {
         ("job:j-01", "skill:python", "skill:tool"), ("job:j-02", "skill:java", "skill:tool")}
+
+
+@pytest.mark.parametrize("required,display", [
+    ("Python", "python"), (" Python ", "python "),
+    ("python", "PYTHON"), ("C++", " c++ "),
+])
+@pytest.mark.parametrize("legacy_required", [True, None, "absent"])
+def test_unverified_claim_marks_entity_for_review_despite_case_or_whitespace(required, display, legacy_required):
+    detail = {"name": display, "canonical_name": "java"}
+    if legacy_required != "absent":
+        detail["is_required"] = legacy_required
+    graph = build_graph_data([job(required=[required])], [{"jd_id": 1, "skills": [detail]}])
+    edge, = of_type(graph, "REQUIRES")
+    assert edge["needs_review"] is True
+    assert edge["status_conflict"] is False
+    assert edge["target"] != "skill:java"
+    assert graph["audit"]["unverified_canonical_claims"][0]["mapping_applied"] is False
+
+
+def test_equivalent_exact_canonical_spelling_does_not_create_review_claim():
+    graph = build_graph_data([job(required=[" Python "])], [{"jd_id": 1, "skills": [
+        {"name": "PYTHON", "canonical_name": " python ", "is_required": True},
+    ]}])
+    edge, = of_type(graph, "REQUIRES")
+    assert edge["needs_review"] is False
+    assert graph["audit"]["unverified_canonical_claims"] == []

@@ -100,3 +100,17 @@ python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnos
 `git diff --check` 通过。没有运行生产/隔离数据库集成测试，没有数据库夹具写入，因此不声称查询过生产夹具计数或逐行业务一致性。前端无变化，未运行前端构建。新旧 ID、nullable 冲突字段与审计还需消费方适配，禁止把本轮离线结果直接导入正式图。
 
 交付实现提交：`098ef6424b83fa7fa79c60a02cefba4d87258987`，已推送 `codex/m3-issue-20`。[PR #21](https://github.com/Serena-Lyric/TalentMind/pull/21) 已创建并附到本聊天，目标 master；实查 OPEN / MERGEABLE、mergedAt=null、autoMergeRequest=null，无远端 CI 结果。保留工作区与分支供 ChatGPT 定向复审，未合并、未删除临时分支。此后仅补录交付文档；受保护的 exchange、M2、DDL、frontend 相对基线 diff 为空。
+
+## 2026-10-17 后端安全收尾（用户追加授权，待复审）
+
+依据 [ChatGPT 定向复审](https://github.com/Serena-Lyric/TalentMind/pull/21#pullrequestreview-5555468973) 与用户“后端继续完成 PR #21 的安全收尾”指令，继续在原 PR 分支实施；不合并、不迁移、不重新生成正式图。以上 36/1160 为首轮证据，本节记录后续结果。
+
+1. **待审主张按实体关联**：核验发现复审所举带 `is_required=true` 的明细，因原名已经进入来源数组，当前版本并不会漏标；但明细 bool 为 null 或缺失时能复现同一比较键缺陷。改为记录 `_skill_id(display)`、REQUIRES 按 sid 判 needs_review，覆盖大小写和首尾空白，不应用争议 canonical，也不制造状态冲突。
+2. **破坏性入口直接禁用**：移除原 DB 查询、正式文件写入与 Neo4j 清图实现。保留 rebuild() 名称明确报 offline disabled，模块入口同样失败关闭；无参数或环境变量可绕过。仅恢复纯函数与只读诊断用途，生产重建重新开放须完成消费方/迁移方案并另获授权。不是全仓历史导入器安全化。
+3. **前端集中下一轮**：技能节点散乱与大部分连线缺失作为用户报告表现，留到下一轮前端算法修复统一排查；本轮不改前端/API、不调查或宣称视觉问题已经解决。集中待办写入 `未决问题清单.md`，不预判具体根因。
+
+新增 15 项反例/对照：四组大小写/空白 × True/null/缺失共 12 项，等价 canonical 不误标 1 项，直接调用与模块入口无副作用 2 项。有效 RED 为 **10 failed / 33 passed**（8 项漏标、2 项入口越界），最小修复后同组 + 既有图谱测试 **51 passed**。入口测试的子进程在调用前拦截服务依赖导入、连接与 Path 写入，并验证拦截计数为 0、正式文件字节不变；RED 阶段仅拦截到 sqlalchemy 导入，未真正连接或写文件。
+
+安全收尾完整非集成阻网回归：**1175 passed / 2 skipped / 23 deselected / 190 既有依赖警告，65.44s**。88 个父/子 Python 进程服务/外网/DNS 尝试 0，标准库内部 socketpair 6 次；TemporaryDirectory 自动清理后不存在。沿用上节合成配置和 socket 审计隔离器，未复制真实 .env、未连接或测试数据库；被禁用入口仅经无副作用拒绝测试调用。
+
+`git diff --check` 与本轮文档相对链接核查通过；exchange、M2、DDL、frontend 相对基线受保护路径 diff 为空，原工作区/新工作区正式图 SHA-256 均仍为 `6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2`。原工作区未提交修复继续保留。安全修复将推送原 PR #21 供 ChatGPT 再次复审，未合并、未自动合并、未清理分支；阶段报告在获准合并前保留。前端问题尚未调查和修复，不以本轮通过数声称视觉验收完成。

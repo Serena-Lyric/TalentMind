@@ -22,6 +22,7 @@ M3 图谱正式目录。`builder.py` 从 M2 交接产出构建 Job/Skill 节点�
 - RELATED_TO 仍为 Job–Job 技能集合 Jaccard >= 0.35，完整倒排候选，没有 TopK；节点、关系及审计确定排序。
 - REQUIRES 保留 `source_names/source_states/source_fields/source_row_indices/source_indices` 平行数组，逐次记录重复声明；字段来源为 required_skills、bonus_skills 或 skill_details。前两者 row_index=-1、index 对应岗位原输入列表；后者直接对应传入 skill_rows 的行和 skills 数组原索引，audit 同样保留两级位置。job_count 为不同岗位数。改变输入顺序会改变来源位置，但不会用顺序裁决技能身份或有效要求。
 - `legacy_required/legacy_bonus` 仅是历史投影，不是新版 M2 五态。同一实体要求冲突时 `status_conflict=true`、`needs_review=true`，旧 `is_required` 与 `weight` 为 null；可直接对应的明细 bool 分歧也保留。原始技能明细及未应用的 canonical 主张留在 audit。
+- 待审 canonical 主张按技能实体 ID 关联 REQUIRES；大小写、首尾空白及明细缺失布尔状态均不应导致漏标，不把未经核实的主张直接应用为事实。
 
 只读诊断入口（从 backend 执行，不需要 .env 或服务）：
 
@@ -32,7 +33,9 @@ python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnos
 
 诊断只读显式快照并向 stdout 输出 JSON（包括完整映射和关系差异），在内存中分别比较旧 ID 的完整候选与修复身份后的候选，以独立全对穷举校验无漏算。岗位节点的历史技能数组与已有行业边不能恢复丢失的原始明细或被覆盖的场景名称；不代表生产重建的最终结果。
 
-**兼容与迁移边界：** 新实体 ID 会变化，冲突边 nullable 字段及附加审计须消费方保留；不能使用 bool(null) 或默认 weight 把冲突当加分/必备。现有 API/导入器未在本轮适配，部分路径可能丢弃这些字段，因此新输出仅用于离线。未来需审核映射，回到原始事实拆分一对多关系，在隔离实例验证消费方与迁移，并另获生产操作许可；不能只重命名旧节点。已核验 graph.json 本轮不变。`rebuild()` 仍会写文件并清空正式图，**禁止把它当诊断入口运行**。
+**兼容与迁移边界：** 新实体 ID 会变化，冲突边 nullable 字段及附加审计须消费方保留；不能使用 bool(null) 或默认 weight 把冲突当加分/必备。现有 API/导入器未在本轮适配，部分路径可能丢弃这些字段，因此新输出仅用于离线。未来需审核映射，回到原始事实拆分一对多关系，在隔离实例验证消费方与迁移，并另获生产操作许可；不能只重命名旧节点。已核验 graph.json 本轮不变。`rebuild()` 及 `python -m app.integration.rebuild_m2_graph` **已直接禁用**，在导入服务依赖、连接数据库或写文件之前报错，且没有确认参数或环境变量绕过入口。恢复生产重建须经后续适配、迁移设计与明确授权；只读诊断仍使用上面的独立入口。其他历史导入脚本未在本轮变更，不能据此认为它们也已安全化。
+
+用户报告的技能节点散乱及大部分连线缺失，按 2026-10-17 指示集中留到下一轮前端算法修复；本轮不修改布局、连线呈现或 API，也不把本次离线修复宣称为已解决前端表现。统一跟踪于 [未决问题清单](../../../docs/superpowers/未决问题清单.md)。
 
 测试结果、快照数字、限制和后续复审见 [阶段报告](../../../docs/review/M3-issue-20.md)；根因见 [陷阱记录](../../../docs/superpowers/traps/2026-10-17-m3-identity-and-relations.md)。
 

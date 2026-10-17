@@ -1,16 +1,14 @@
-"""Build the full Neo4j graph from the imported M2 catalog."""
+"""Project the full M2 catalog offline; production rebuilding is disabled."""
 from __future__ import annotations
 
 import json
 import re
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-GRAPH_PATH = REPO_ROOT / "exchange" / "m3" / "graph.json"
 _CANONICAL_NAMES = {
     item["canonical"].lower(): item["canonical"]
     for item in json.loads((REPO_ROOT / "backend/app/skills/skill_dict_seed.json").read_text(encoding="utf-8"))
@@ -108,7 +106,7 @@ def build_graph_data(rows: list[dict[str, Any]], skill_rows: list[dict[str, Any]
         bonus = [name for _, name in bonus_values]
         details = skill_by_job.get(internal_id, [])
         legacy_aliases: dict[str, str] = {}
-        unverified_names: set[str] = set()
+        unverified_skill_ids: set[str] = set()
         for row_index, index, item in details:
             audit["skill_details"].append({"job_id": job_id, "source_row_index": row_index,
                                            "source_index": index, "detail": dict(item)})
@@ -121,7 +119,7 @@ def build_graph_data(rows: list[dict[str, Any]], skill_rows: list[dict[str, Any]
             if legacy_canonical:
                 legacy_aliases[legacy_canonical] = legacy_canonical
             if display and canonical and _skill_id(display) != _skill_id(canonical):
-                unverified_names.add(display)
+                unverified_skill_ids.add(_skill_id(display))
                 audit["unverified_canonical_claims"].append({"job_id": job_id, "source_name": display,
                                                              "claimed_canonical": canonical, "mapping_applied": False})
         required_ids = [register("skill", skill, job_id, legacy_aliases.get(skill.lower(), skill.lower())) for skill in required]
@@ -164,7 +162,7 @@ def build_graph_data(rows: list[dict[str, Any]], skill_rows: list[dict[str, Any]
                           "source_row_indices": [row_index for _, _, _, row_index, _ in occurrences],
                           "source_indices": [index for _, _, _, _, index in occurrences],
                           "has_duplicates": len(occurrences) > 1, "status_conflict": conflict,
-                          "needs_review": conflict or any(name.strip() in unverified_names for name, _, _, _, _ in occurrences)})
+                          "needs_review": conflict or sid in unverified_skill_ids})
             if conflict:
                 audit["requirement_conflicts"].append({"source": job_id, "target": sid})
         applied_industries: set[str] = set()
@@ -208,53 +206,9 @@ def build_graph_data(rows: list[dict[str, Any]], skill_rows: list[dict[str, Any]
 
 
 def rebuild() -> dict[str, int]:
-    from sqlalchemy import text
-
-    from app.db.mysql import SessionLocal
-    from app.db.neo4j import get_neo4j
-
-    db = SessionLocal()
-    try:
-        rows = [dict(row) for row in db.execute(text("""
-            SELECT id, job_name, name_en, job_name_zh, m2_job_id, category, is_emerging, evolution,
-                   core_duties, required_skills, bonus_skills, scenarios, source, quality, source_jd_count
-            FROM job_definition ORDER BY id
-        """)).mappings().all()]
-        skill_rows = [dict(row) for row in db.execute(text("SELECT jd_id, skills FROM job_skill")).mappings().all()]
-    finally:
-        db.close()
-    graph = build_graph_data(rows, skill_rows)
-    graph["metadata"] = {
-        "node_count": len(graph["nodes"]), "edge_count": len(graph["edges"]),
-        "source": "M2 full return package", "version": "m2-full-2026-09-02",
-        "exported_at": datetime.now(timezone.utc).isoformat(),
-    }
-    GRAPH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    GRAPH_PATH.write_text(json.dumps(graph, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    driver = get_neo4j()
-    try:
-        with driver.session() as session:
-            session.run("MATCH (n) DETACH DELETE n").consume()
-            for node_type, label in (("job", "Job"), ("skill", "Skill"), ("industry", "Industry")):
-                payload = []
-                for node in graph["nodes"]:
-                    if node.get("type") != node_type:
-                        continue
-                    props = {key: (json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) and key == "evolution" else value) for key, value in node.items() if key not in {"id", "type", "kind"}}
-                    props.setdefault("name", node.get("name") or node["id"])
-                    payload.append({"node_id": node["id"], "props": props})
-                if payload:
-                    session.run(f"UNWIND $nodes AS node MERGE (n:{label} {{node_id: node.node_id}}) SET n += node.props", nodes=payload).consume()
-            for relation in ("REQUIRES", "RELATED_TO", "APPLIES_TO"):
-                payload = [{"source": edge["source"], "target": edge["target"], "props": {key: value for key, value in edge.items() if key not in {"source", "target", "type"}}} for edge in graph["edges"] if edge.get("type") == relation]
-                if payload:
-                    session.run(f"UNWIND $edges AS edge MATCH (a {{node_id: edge.source}}), (b {{node_id: edge.target}}) MERGE (a)-[r:{relation}]->(b) SET r += edge.props", edges=payload).consume()
-            counts = session.run("MATCH (n) WITH count(n) AS nodes OPTIONAL MATCH ()-[r]->() RETURN nodes, count(r) AS edges").single()
-    finally:
-        driver.close()
-    return {"job_rows": len(rows), "nodes": int(counts["nodes"]), "edges": int(counts["edges"])}
+    """Fail closed until consumers and an approved production migration are ready."""
+    raise RuntimeError("rebuild disabled: offline projection only; use app.graph.diagnose_snapshot")
 
 
 if __name__ == "__main__":
-    print(json.dumps(rebuild(), ensure_ascii=False, indent=2))
+    rebuild()

@@ -13,7 +13,7 @@
 - 精确 canonical 名称忽略大小写识别；其余名字保留，UTF-8 百分号编码生成可逆 ID。只读旧词典，不使用其未逐项核实的别名；输入不同 canonical 主张单独审计，不自动映射。场景同样保留精确名称；旧 Job ID 规则保留，碰撞显式报错。
 - 完整枚举共享技能候选并保持 Jaccard >= 0.35；固定排序，无事实层 TopK。诊断另用全岗位对穷举校验，不复用候选算法。
 - 每个 Job–Skill 只生成一条 REQUIRES，保留逐次原名、legacy 状态、来源字段与索引。岗位 required/bonus 及可直接对应的技能明细 bool 分歧都标冲突，is_required/weight=null、needs_review=true；明细全文在 audit 保留。未知别名不合并，不把旧布尔字段升级为 M2 五态。
-- `job_count` 按不同岗位计数；实体映射与旧键一对多分组明确输出；服务依赖只在显式破坏性 `rebuild()` 内导入。仅通过 `app.graph.diagnose_snapshot` 只读诊断，不运行重建或导入。
+- `job_count` 按不同岗位计数；实体映射与旧键一对多分组明确输出。PR 复审安全收尾已直接禁用 `rebuild()` 及其模块入口，服务导入、写文件与清图路径已移除；仅通过 `app.graph.diagnose_snapshot` 只读诊断。待审实体漏标与入口风险另见 [安全收尾陷阱](2026-10-17-m3-review-safety.md)。
 
 ## 教训
 
