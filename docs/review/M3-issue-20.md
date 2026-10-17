@@ -113,4 +113,4 @@ python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnos
 
 安全收尾完整非集成阻网回归：**1175 passed / 2 skipped / 23 deselected / 190 既有依赖警告，65.44s**。88 个父/子 Python 进程服务/外网/DNS 尝试 0，标准库内部 socketpair 6 次；TemporaryDirectory 自动清理后不存在。沿用上节合成配置和 socket 审计隔离器，未复制真实 .env、未连接或测试数据库；被禁用入口仅经无副作用拒绝测试调用。
 
-`git diff --check` 与本轮文档相对链接核查通过；exchange、M2、DDL、frontend 相对基线受保护路径 diff 为空，原工作区/新工作区正式图 SHA-256 均仍为 `6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2`。原工作区未提交修复继续保留。安全修复将推送原 PR #21 供 ChatGPT 再次复审，未合并、未自动合并、未清理分支；阶段报告在获准合并前保留。前端问题尚未调查和修复，不以本轮通过数声称视觉验收完成。
+`git diff --check` 与本轮文档相对链接核查通过；exchange、M2、DDL、frontend 相对基线受保护路径 diff 为空，原工作区/新工作区正式图 SHA-256 均仍为 `6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2`。原工作区未提交修复继续保留。安全修复 `bc7252abc874ba5412d50cc7bd2a2f22de992f21` 已推送原 PR #21，PR 正文已补两项阻塞的核验、RED→GREEN 和最新回归结果；实查 OPEN / MERGEABLE、mergedAt=null、autoMergeRequest=null、无远端 CI。等待 ChatGPT 再次复审，未合并、未自动合并、未清理分支；阶段报告在获准合并前保留。前端问题尚未调查和修复，不以本轮通过数声称视觉验收完成。
