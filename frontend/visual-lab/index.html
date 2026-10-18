@@ -7,6 +7,18 @@
     <header><div class="eyebrow">TALENTMIND <span> / VISUAL STUDY 01</span></div><h1>Career Nebula<span>职业银河</span></h1><p>一片星海，无数种可能。</p></header>
     <div id="sectors" aria-label="八个演示职业星区"></div>
     <div id="node-label" role="status" hidden></div>
+    <aside id="graph-tools" hidden aria-label="真实交接图筛选">
+      <strong>M3 正式交接快照 · 实验候选</strong>
+      <p id="graph-counts" role="status"></p>
+      <label>节点类型<select id="node-kind"><option value="all">全部类型</option><option value="job">岗位</option><option value="skill">技能</option><option value="industry">行业／历史场景</option></select></label>
+      <label>关系类型<select id="edge-kind"><option value="all">全部关系</option><option>REQUIRES</option><option>APPLIES_TO</option><option>RELATED_TO</option></select></label>
+      <label>查找名称或原 ID<input id="graph-query" type="search" placeholder="例如 python"></label>
+      <label>结果（最多显示 100 条）<select id="graph-results" size="4" aria-label="搜索结果"></select></label>
+      <button id="show-related" disabled>查看全部关联</button><button id="clear-filter">返回全图</button>
+      <p>位置仅用于展示，不代表职业分类或算法社区。</p>
+      <a href="?data=demo">切回合成适配</a> · <a href="http://127.0.0.1:18080/graph">打开旧图谱页面</a>
+    </aside>
+    <aside id="graph-detail" hidden aria-label="节点与关系来源"></aside>
     <footer><span class="demo-mark">视觉演示 · 合成星体与关系</span><span>CAREER NEBULA <i> / </i> P1–A</span></footer>
     <div id="failure" role="alert" hidden></div>
   </main>

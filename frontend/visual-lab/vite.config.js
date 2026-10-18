@@ -1,15 +1,30 @@
 import { defineConfig } from 'vite';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 
 export default defineConfig({
+  server: { host: '127.0.0.1', port: 18127, strictPort: true },
   plugins: [{
+    name: 'read-only-m3-handover',
+    async generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'm3-graph.json', source: await readFile(new URL('../../exchange/m3/graph.json', import.meta.url)) });
+    },
+    configureServer(server) {
+      server.middlewares.use('/m3-graph.json', async (request, response) => {
+        if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405).end(); return; }
+        try {
+          const bytes = await readFile(new URL('../../exchange/m3/graph.json', import.meta.url));
+          response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }).end(request.method === 'HEAD' ? undefined : bytes);
+        } catch { response.writeHead(503).end('M3 handover unavailable'); }
+      });
+    },
+  }, {
     name: 'local-visual-recording',
     configureServer(server) {
       server.middlewares.use('/__visual-lab-capture', async (request, response) => {
-        if (request.method !== 'POST' || request.headers.host !== '127.0.0.1:18126' || request.headers.origin !== 'http://127.0.0.1:18126') {
+        if (request.method !== 'POST' || request.headers.host !== '127.0.0.1:18127' || request.headers.origin !== 'http://127.0.0.1:18127') {
           response.writeHead(403).end(); return;
         }
         try {
