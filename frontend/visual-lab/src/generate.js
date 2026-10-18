@@ -6,6 +6,8 @@ export function randomSource(seed) {
   return () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return (state + .5) / 4294967296; };
 }
 const gaussian = random => Math.sqrt(-2 * Math.log(random())) * Math.cos(2 * Math.PI * random());
+const familyColors = FAMILIES.map(family => new THREE.Color(family.color));
+const warmCore = new THREE.Color('#ffe7ce');
 function noise(x, z) {
   const hash = (a, b) => { const n = Math.sin(a * 83.13 + b * 177.17) * 43871.71; return n - Math.floor(n); };
   const ix = Math.floor(x), iz = Math.floor(z);
@@ -13,13 +15,21 @@ function noise(x, z) {
   return (hash(ix, iz) * (1 - u) + hash(ix + 1, iz) * u) * (1 - v) + (hash(ix, iz + 1) * (1 - u) + hash(ix + 1, iz + 1) * u) * v;
 }
 
-function disk(random) {
+function disk(random, kind) {
   let r;
   do { r = -CONFIG.spiral.diskScale * Math.log(random() * random()); } while (r > CONFIG.radius);
   const branch = random() < .38 ? 0 : random() < .6 ? 2 : random() < .5 ? 1 : 3;
   const fill = Math.exp(-r * r / 380);
-  const deviation = gaussian(random) * CONFIG.spiral.width * (.6 + r / 130) + (random() - .5) * Math.PI * 2 * fill;
-  const [x, , z] = spiralPoint(r, branch, deviation);
+  const model = CONFIG.distribution;
+  const variation = noise(r * .055, branch * 3.7);
+  const width = CONFIG.spiral.width * (.6 + r / 130) * (.5 + model.widthVariation * variation);
+  const wing = random() < model.wingFraction ? model.wingWidth : 1;
+  const wander = model.armWander * (noise(r * .035 + 2, branch * 2.1) - .5) * 2;
+  const deviation = gaussian(random) * width * wing + wander + (random() - .5) * Math.PI * 2 * fill;
+  const [sx, , sz] = spiralPoint(r, branch, deviation);
+  const diffuse = random() < model.diffuse[kind];
+  const azimuth = random() * Math.PI * 2;
+  const x = diffuse ? r * Math.cos(azimuth) : sx, z = diffuse ? r * Math.sin(azimuth) : sz;
   return [x + gaussian(random) * 1.4, gaussian(random) * (CONFIG.spiral.thickness + 2.6 * fill), z + gaussian(random) * 1.4];
 }
 
@@ -27,22 +37,24 @@ function tint(position, random) {
   const [x, , z] = position, radius = Math.hypot(x, z);
   const color = new THREE.Color('#6989c5');
   let weight = .2, red = color.r * weight, green = color.g * weight, blue = color.b * weight;
-  for (const family of FAMILIES) {
+  for (const [index, family] of FAMILIES.entries()) {
     const d2 = (x - family.center[0]) ** 2 + (z - family.center[2]) ** 2;
     const w = Math.exp(-d2 / (family.spread ** 2)) * 2.4;
-    const c = new THREE.Color(family.color);
+    const c = familyColors[index];
     red += c.r * w; green += c.g * w; blue += c.b * w; weight += w;
   }
   color.setRGB(red / weight, green / weight, blue / weight);
-  color.lerp(new THREE.Color('#ffe7ce'), Math.exp(-radius * radius / 110) * .95);
+  color.lerp(warmCore, Math.exp(-radius * radius / 110) * .95);
   const texture = noise(x / 11, z / 11) * .65 + noise(x / 3.4, z / 3.4) * .35;
-  color.multiplyScalar((.24 + 1.8 * texture ** 2) * (.8 + random() * .4));
+  color.multiplyScalar((.5 + texture * .85) * (.9 + random() * .2));
   return color;
 }
 
 export function generateParticles(kind) {
   const count = CONFIG.particles[kind], random = randomSource(CONFIG.seed + Object.keys(CONFIG.particles).indexOf(kind) * 997);
+  const appearance = randomSource(CONFIG.seed + Object.keys(CONFIG.particles).indexOf(kind) * 997 + 7919);
   const position = new Float32Array(count * 3), color = new Float32Array(count * 3), scale = new Float32Array(count), phase = new Float32Array(count);
+  const alpha = new Float32Array(count), haze = new Float32Array(count);
   for (let i = 0; i < count; i++) {
     let p;
     if (kind === 'core') {
@@ -54,21 +66,28 @@ export function generateParticles(kind) {
       const angle = random() * Math.PI * 2, cos = random() * 2 - 1, r = 280 + random() * 220;
       p = [r * Math.sqrt(1 - cos * cos) * Math.cos(angle), r * cos, r * Math.sqrt(1 - cos * cos) * Math.sin(angle)];
     } else {
-      do { p = disk(random); } while (random() > .3 + .7 * noise(p[0] / 8, p[2] / 8));
-      if (kind === 'mist' && random() < .2) {
-        const knot = Math.floor(random() * 26), r = 25 + knot * 2.3;
-        const anchor = spiralPoint(r, knot % 4, .08 * Math.sin(knot));
-        p = [anchor[0] + gaussian(random) * 2.4, gaussian(random) * 1.2, anchor[2] + gaussian(random) * 2.4];
-      }
+      let density;
+      do {
+        p = disk(random, kind);
+        const warp = CONFIG.distribution.warp * (noise(p[0] / 25, p[2] / 25) - .5);
+        density = noise((p[0] + warp) / 10, (p[2] - warp) / 10);
+      } while (random() > CONFIG.distribution.densityFloor + (1 - CONFIG.distribution.densityFloor) * density);
     }
     position.set(p, i * 3);
     const c = kind === 'field' ? new THREE.Color('#7385ac').multiplyScalar(.4 + random() * .5) : tint(p, random);
     if (kind === 'stars') c.lerp(new THREE.Color('#c7daee'), .25);
     color.set([c.r, c.g, c.b], i * 3);
-    scale[i] = .55 + random() ** 1.5 * 1.6;
+    const profile = CONFIG.appearance[kind];
+    const isHaze = appearance() < profile.hazeFraction;
+    const isSpark = !isHaze && appearance() < (profile.sparkFraction ?? 0);
+    const range = isHaze ? profile.haze : isSpark ? profile.spark : profile.fine;
+    scale[i] = range[0] + (range[1] - range[0]) * appearance() ** 2;
+    alpha[i] = range[2] + (range[3] - range[2]) * appearance();
+    haze[i] = Number(isHaze);
+    random(); // Preserve the position RNG stream when appearance parameters change.
     phase[i] = random() * Math.PI * 2;
   }
-  return { position, color, scale, phase, count };
+  return { position, color, scale, phase, alpha, haze, count };
 }
 
 export function generateDemo() {

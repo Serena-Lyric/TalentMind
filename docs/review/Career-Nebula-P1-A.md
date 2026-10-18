@@ -1,5 +1,7 @@
 # Career Nebula P1-A · 真实浏览器视觉实验交付
 
+> **最新：见文末 [P1-A.1 视觉质量优化](#p1-a1)。下方 P1-A 为原始交付历史，原始截图与录像未覆盖。**
+
 日期：2026-10-18（Asia/Singapore）。**独立实验，等待用户实际视觉验收；不是正式图谱替换，也不宣布美术完成。**
 
 ## 范围与运行
@@ -96,3 +98,60 @@
 - backend、exchange、frontend/src 与正式前端 package/lock 相对基线 diff 为空。正式 graph.json SHA-256 仍为 `6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2`。
 - PR #27 HEAD `41f9184f2e47a86df4fc86d60b93556e8a19e0db`、PR #28 HEAD `a2cbca41f849e06d2efa1629e55da98c5bbcf0ec` 均与开始核查一致，仍 Open Draft；没有合并、关闭或清理。P0.5 滚动条补修仍未完成。
 - 到此停止开发，保留实验服务、分支、工作树和 docs/review 报告，等待用户对真实画面的验收；不自动开始 P2/P3。
+
+## P1-A.1
+
+**银河视觉质量优化 · 2026-10-18 · 待第二次真实视觉验收。** 继续同一分支和 Draft PR #29，不推进正式 M3、数据接入或 `/graph`。用户认可原方向，本轮仅改善细腻度、臂间连续性和机械感。
+
+### 原因与按步骤调整
+
+1. **分布问题**：原 dust/mist/stars 共用窄臂采样，薄雾在半径 25–90、偏离最近主臂超过 0.45 rad 的比例仅约 3.6%；mist 的 20% 还落在 26 个等节奏锚点，亮度平方噪声强化了亮结。先保持原粒子样式与后处理，只加入低密度圆盘、臂翼、平滑宽度与小幅主干偏移，移除规则雾结。见 [第一步全览](issue-26-p1-a1/stage-1-overview.jpg)。不是整体抬高背景或增加大渐变。
+2. **层次问题**：原尺寸分布和近景上限让大量粒子变成类似大小的亮点。拆成细小星尘、极低透明度未分辨雾光及少量较亮装饰星，核心也拆成细粒与少量雾光；尺寸与 alpha 分开控制，亮度噪声从强平方调制改为较温和起伏。总数仍 214200，没有增加 Bloom/曝光。
+3. **局部回调而非累积补丁**：第一组宽雾使近景光斑过大、圆盘反差偏弱，见 [未采用的 28px 星核](issue-26-p1-a1/trial-2-core.png)；强淡出+16px 上限又使核心过暗，见 [未采用的强淡出星核](issue-26-p1-a1/trial-3-core.png)。最终采用 24px 上限、温和连续淡出，弥散比例回调为 dust 12% / mist 35%，保留主臂与暗区。最终 mist 臂间比例仍受测试约束在 15%–40%，不把分布变成均匀粒子墙。
+4. **填充成本**：全分辨率宽雾在首轮独立 Edge 实测中，core 从旧版 32.3 降到 24.6 FPS（[未采用数据](issue-26-p1-a1/full-resolution-performance-core.json)），未将其作为交付方案。最终仅将低频、低透明度的 haze 三维粒子渲染到半分辨率 HalfFloat 目标，在线性色彩阶段加回，再进入原来的 Bloom/ACES/OutputPass。细尘、知识星体、关系线与文字保持全分辨率，没有模糊整幅画面。
+
+所有关键参数在 `config.js`。`spiralPoint` 的四臂骨架、职业星区中心/颜色、seed 261018、默认 camera、CONFIG.render、116 个演示节点与 40 条关系都保持。节点/关系 JSON 的 SHA-256 仍为 `75c49b6d419c1de569049ae7aa167aec430dcd60a63f2921a34efd6dd6ad6fae`；装饰位置允许随分布模型改变，但相同模型重复生成确定。
+
+参考仍为原作的分层、Gaussian/Additive 方法；另外核对 [Beltoforion 的公开星系渲染原理](https://beltoforion.de/en/spiral_galaxy_renderer/) 中未分辨光与独立星点的分层说明，及 [Three.js ShaderMaterial 文档](https://threejs.org/docs/pages/ShaderMaterial.html)。独立实现，没有复制《诗云》源码、媒体或素材；本轮不尝试原作的真实诗人数据模型或旋转网络。
+
+### 同机真实前后对照
+
+新证据全部位于 `docs/review/issue-26-p1-a1/`。旧版从 `7edfea6` 重放，只给旧版和新版加入相同 DEV 采集入口（星核视距 43、装饰时钟固定为 0、首帧元数据）。不是用优化后的源码伪装旧版。
+
+**以下 8 张 PNG 均由同一独立、带界面的 Edge 155.0.4283.45 / Playwright 通路实际截图，1600×900，DPR 1，无 HUD。** 四组 JSON 逐字段相等：seed、camera、target、width/height、DPR、dustClock、selected、原后处理参数与各层数量；唯一新增渲染策略是上文明确说明的 haze 半分辨率通道。未缩放、增强、AI 生成或拼接截图。原 P1-A 图片、视频与所有旧元数据逐文件哈希不变。
+
+| 对照 | P1-A 重放 | P1-A.1 |
+|---|---|---|
+| 全览 | ![旧版全览](issue-26-p1-a1/before-overview.png) | ![优化全览](issue-26-p1-a1/after-overview.png) |
+| 星核近景 | ![旧版星核](issue-26-p1-a1/before-core.png) | ![优化星核](issue-26-p1-a1/after-core.png) |
+| 旋臂局部 | ![旧版旋臂](issue-26-p1-a1/before-arm.png) | ![优化旋臂](issue-26-p1-a1/after-arm.png) |
+| 选中节点 | ![旧版选中](issue-26-p1-a1/before-selected.png) | ![优化选中](issue-26-p1-a1/after-selected.png) |
+
+浏览器连接反复超时后，用户明确选择用 Playwright 启动独立 Edge 临时用户目录；没有连接日常 Edge 用户目录、重启浏览器或修改其设置。初期旧标签页还记录过 [Vite HMR WebSocket 连接失败](issue-26-p1-a1/before-console.json)，不把它隐去或解释成最终GPU错误。初期 CUA 重放 JPG 和步骤样图另作过程证据，最终配对统一使用上述 Playwright PNG，避免不同截图编码混入最终对照。
+
+### 帧时间、成本与验证
+
+同机 Ryzen AI 9 H 365 / Radeon 880M，WebGL 2 / ANGLE D3D11。最终 paired 测试均使用 **1699×901、DPR 1.5、默认最高1.5的画质配置**；每场景预热 3 秒后清空帧历史，采满 300 帧。没有降低全局 DPR、降低粒子数或停掉动画来取得性能数字。
+
+| 场景 | 旧版 FPS / 平均ms / P95ms | 新版 FPS / 平均ms / P95ms |
+|---|---|---|
+| 默认全览 | 47.2 / 21.17 / 33.6 | 48.5 / 20.61 / 33.5 |
+| 星核近景（距43） | 36.7 / 27.28 / 34.1 | 35.6 / 28.06 / 33.9 |
+| 旋臂近景（距43） | 52.6 / 19.00 / 33.4 | 46.5 / 21.50 / 33.5 |
+
+原始数据是新目录的 `before-performance-*.json` / `after-performance-*.json`，包含 GPU、可见性、实际分辨率/DPR与相机。此前 P1-A 的60 FPS是另一运行时段、不同控制通路的样本，本轮 CUA 前台基线也曾测得60；**不拿跨时段60与本表48.5直接解释回归**。本轮同通路 paired 数据显示：默认视图成本相当，旋臂近景约增加2.5ms，星核增加0.78ms；不是全场景更快或稳定60的声明。
+
+额外成本：细尘/雾光两个属性约1.63 MiB（CPU及对应GPU buffer），索引约0.62 MiB；半分辨率 RT 在1600×900/DPR1.5时约6.18 MiB，默认1699×901时约6.57 MiB。装饰粒子 draw 从5增到7，另加一次全屏合成；它以额外通道/带宽换取雾光较低的片元工作量。没有复杂通用渲染框架或新依赖。
+
+- `npm test`：**10 passed**。新增 seed/camera/节点关系不变、臂间采样、fine/haze 分层、每粒子只画一次、实际 render-target 纹理绑定等检查。有效 RED→GREEN：臂间3.6%不足、缺失alpha/haze层次、未分层渲染、ShaderPass纹理被克隆成null；最后一项也由真实控制台告警定位并修复。
+- [24项页面交互](issue-26-p1-a1/interaction-checks.json) 全通过；[原生输入](issue-26-p1-a1/native-inputs.json) 另验证鼠标点击后端工程师且相机不动、选中后滚轮缩放、空白清除后滚轮只调速、真实D持续平移、实际输入框键入wasdqe不移动镜头。
+- [截图控制台](issue-26-p1-a1/capture-console.json)、[性能控制台](issue-26-p1-a1/perf-console.json)、[交互控制台](issue-26-p1-a1/interaction-console.json) 最终均无 error/warn；开发过程中出现过的纹理克隆告警不冒充最终结果。
+- 独立 build 通过：JS 约532.44kB / gzip135.53kB，保留>500kB既有警告。无新增npm依赖；未运行正式Vue构建、后端/数据库测试，因为这些正式路径没有改动。
+- 独立只读复审确认分层互斥、线性合成顺序、正常/异常路径恢复camera layer/clear color/alpha/render target、RT resize及生产诊断剔除；10 tests与内存构建通过。当前无动态场景销毁入口；未来集成时仍需统一dispose生命周期。
+- 复现工具：[prepare-baseline.mjs](issue-26-p1-a1/prepare-baseline.mjs)、[capture.mjs](issue-26-p1-a1/capture.mjs)、[controls.mjs](issue-26-p1-a1/controls.mjs)。Playwright使用已装独立运行时，不进入lab或正式前端依赖；`NEBULA_PLAYWRIGHT`可指定其index.mjs绝对路径。先运行prepare（拒绝覆盖不一致文件），启动lab，再运行capture的`capture`/`perf`模式与controls。只读回放目录`.p1a-baseline/`被忽略，不同步源码副本。
+
+### 当前判断与未满意项
+
+全览的臂间从大块空黑变成稀疏过渡，主臂仍可辨；中心颗粒明显变细，少量亮点与雾光分开，选中星体仍突出。减少规则团簇有助于自然度，但**主臂仍可看出四臂数学骨架，部分近景雾团仍有局部斑点，极近星核的光雾还偏淡**。职业色场与类型编码未重设计，不能把本轮当作正式配色或真实知识布局。
+
+这是供第二次验收的可运行优化结果，不以测试、性能或自己的审美判断替用户宣布视觉完成。维持 `http://127.0.0.1:18126/`，Vite PID **25788**（本轮开始时原22004已不存在、端口空闲，启动后未重启）；不合并PR #29，不改PR #27/#28，不启动下一阶段。

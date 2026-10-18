@@ -32,6 +32,8 @@ npm run build
 
 可复现截图入口：`?view=mid`、`?view=near`、`?view=selected`；`?evidence=1` 固定场景容器为 1600×900，浏览器视口须相应设置。正常体验不使用 evidence 参数，自动跟随窗口。
 
+P1-A.1 新增仅 DEV 的 `?view=core` 星核近景和 `&still=1` 截图时钟固定入口；截图前设置视口、导航后不交互，capture 元数据记录首个已渲染帧。正式构建不带这些采集功能。原 P1-A 截图/录像仍位于旧证据目录；新旧配对、逐步调整及性能成本见阶段报告的 P1-A.1 节。
+
 ## 文件与视觉参数
 
 | 文件 | 用途 |
@@ -39,12 +41,15 @@ npm run build
 | `src/config.js` | 粒子数量、画质、旋臂、运动、相机、八示例色场及临时实体样式 |
 | `src/generate.js` | 确定性空间、密度噪声与合成节点/边 |
 | `src/particles.js` | 尘埃/薄雾/星核/亮星/背景的 GPU Points Shader |
+| `src/haze-pass.js` | 仅未分辨雾光的半分辨率三维粒子通道，在线性色彩阶段合成；细尘、知识星体和曲线保持全分辨率 |
 | `src/knowledge.js` | 固定的可选星体、屏幕命中、选中星核与持续光晕、端点准确的曲线 |
 | `src/camera.js`、`control-state.js` | OrbitControls、持续键盘、滚轮分流、输入保护与边界 |
 | `src/main.js` | 组合场景、适度 Bloom、标签与 ResizeObserver |
 | `src/diagnostics.js` | 仅开发时按需加载的检查和真实视频采集 |
 
 不旋转知识网络。装饰只做小幅有界的局部漂移/呼吸，调速累积时钟，改变速度没有相位跳变。中心没有大面积光斑、贴图、CSS/SVG 银河或底光精灵；星云结构全部来自真实三维粒子叠加。
+
+P1-A.1 仍为 214200 粒子，未提高 Bloom/曝光：部分装饰重新分配到稀疏圆盘和旋臂翼部，宽度/密度平滑变化；细尘与低透明度雾光采用不同尺寸范围。`appearance`、`distribution`、`hazeRenderScale` 和近景淡出阈值集中在 config。雾光通道增加一个半分辨率 HalfFloat 目标与一次合成，存在显存/带宽成本，实测数据与未采用方案均保留。
 
 ## 参考与许可
 
