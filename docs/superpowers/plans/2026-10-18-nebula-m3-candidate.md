@@ -37,7 +37,7 @@
 - [x] 先测试有限坐标/全分辨率边界 RED，再从 P1-A shader 做最小分布调整 GREEN。间隙比例测试本身在A1亦通过，不能单独证明改进。
 - [x] 五视图三版本同条件截图与每视图 300 帧性能，另测 M3 请求/选择/筛选/缩放/回退/失败。
 - [x] 记录源哈希、字段索引、旧 builder/离线修复/正式交接差异、回退操作；完整相关回归。
-- [ ] 独立审阅修复实质问题，更新资产/决策/README，提交并创建 Draft PR，注明待视觉验收。
+- [x] 独立审阅修复实质问题，更新资产/决策/README，提交并创建 Draft PR，注明待视觉验收。
 
 ## 执行记录
 
@@ -48,3 +48,4 @@
 - Final review: Critical0/Important1/Minor0；畸形数组type已测试Missing expected exception RED→GREEN。详见阶段报告§7；没有再次派审阅。
 - Ruling: 后端两个既有M2冻结引用失败保持原状并如实交付Draft，不夹带C35修复——本分支与基线的有关输入字节相同；代价是不能宣称全仓绿，合并审查仍有已知阻塞。
 - Ruling: 继续保留历史haze-pass模块作A1实现证据，新版本不加载——符合用户保留实验要求；代价为一个不打包的历史文件。
+- Delivery: Draft PR #30（https://github.com/Serena-Lyric/TalentMind/pull/30），未合并，未产品验收；18127保留运行，临时生产预览18128已停止。
