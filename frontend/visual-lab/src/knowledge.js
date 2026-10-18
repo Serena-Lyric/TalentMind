@@ -67,7 +67,9 @@ export function createKnowledge(scene, graph = generateDemo()) {
   }
   function updateLines() {
     write(base, edgeIndices);
-    write(highlight, edgeIndices.filter(index => edges[index].source === selected || edges[index].target === selected));
+    const direct = edgeIndices.filter(index => edges[index].source === selected || edges[index].target === selected);
+    write(highlight, direct);
+    highlight.material.opacity = .3 / Math.sqrt(Math.max(1, direct.length / 8));
     base.material.opacity = selected ? .002 : .009;
   }
   updateLines();

@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as adapter from '../src/m3-adapter.js';
+import * as THREE from 'three';
+import { createKnowledge } from '../src/knowledge.js';
 
 const snapshot = JSON.parse(readFileSync(new URL('../../../exchange/m3/graph.json', import.meta.url)));
 const small = () => ({ nodes: [
@@ -53,4 +55,19 @@ test('filters expose only induced edges and exact one-hop focus, including empty
   view = adapter.filterGraph(graph, { focus: 'job:a' });
   assert.deepEqual([...view.nodeIds], ['job:a', 'skill:c']); assert.deepEqual(view.edgeIndices, [0, 1]);
   view = adapter.filterGraph(graph, { relation: 'RELATED_TO' }); assert.deepEqual(view.edgeIndices, []);
+});
+
+test('full graph renders in three batches, and high-degree selection keeps all links with bounded brightness', () => {
+  const graph = adapter.adaptM3(snapshot), scene = new THREE.Scene();
+  const knowledge = createKnowledge(scene, graph);
+  assert.equal(scene.children.length, 3);
+  knowledge.select('skill:python');
+  assert.equal(knowledge.counts().highlightedEdges, 222);
+  assert.ok(scene.children[2].material.opacity < .08, 'hundreds of links must not pile up as an opaque central light');
+  knowledge.filter(adapter.filterGraph(graph, { kind: 'job' }));
+  assert.equal(knowledge.counts().highlightedEdges, 0);
+  assert.equal(knowledge.counts().visibleNodes, 717); assert.equal(knowledge.counts().visibleEdges, 7);
+  knowledge.filter(adapter.filterGraph(graph, { query: 'not-present-261018' }));
+  assert.equal(knowledge.pick(800, 450, new THREE.PerspectiveCamera(), 1600, 900), null);
+  scene.children.forEach(object => { object.geometry.dispose(); object.material.dispose(); });
 });

@@ -8,13 +8,13 @@ import { CONFIG, FAMILIES, TYPES } from './config.js';
 import { createDust } from './particles.js';
 import { createKnowledge } from './knowledge.js';
 import { createCamera } from './camera.js';
-import { createHazePass } from './haze-pass.js';
 import { adaptM3, filterGraph } from './m3-adapter.js';
 
 const params = new URLSearchParams(location.search), root = document.querySelector('#universe'), canvas = document.querySelector('#galaxy');
 if (params.has('evidence')) document.body.classList.add('evidence');
 async function start() { try {
   const real = params.get('data') !== 'demo';
+  document.querySelector('footer span:last-child').textContent = 'CAREER NEBULA / P1-A.2 待审核';
   let graph;
   if (real) {
     const response = await fetch('/m3-graph.json');
@@ -24,14 +24,13 @@ async function start() { try {
     graph.provenance.sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
   }
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.info.autoReset = false;
   renderer.setClearColor('#000001'); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = CONFIG.render.exposure;
   const scene = new THREE.Scene(), dust = createDust(scene), knowledge = createKnowledge(scene, graph);
   const control = createCamera(canvas, (x, y) => select(knowledge.pick(x, y, control.camera, root.clientWidth, root.clientHeight)));
   const { camera, orbit, state } = control;
-  const haze = createHazePass(renderer, scene, camera);
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(haze.pass);
   composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), CONFIG.render.bloomStrength, CONFIG.render.bloomRadius, CONFIG.render.bloomThreshold));
   composer.addPass(new OutputPass());
   const label = document.querySelector('#node-label'), sectorRoot = document.querySelector('#sectors');
@@ -99,7 +98,6 @@ async function start() { try {
     camera.aspect = width / height; camera.updateProjectionMatrix();
     renderer.setPixelRatio(dpr); renderer.setSize(width, height, false); composer.setPixelRatio(dpr); composer.setSize(width, height);
     dust.resize(height, dpr); knowledge.resize(height, dpr);
-    haze.resize(width, height, dpr);
   }
   const observer = new ResizeObserver(resize); observer.observe(root); resize();
   let last = performance.now(), dustClock = 0, onFrame = null;
@@ -115,8 +113,8 @@ async function start() { try {
     const elapsed = now - last; last = now;
     if (document.hidden) return;
     const dt = Math.min(elapsed / 1000, .05); control.update(dt); if (!(import.meta.env.DEV && params.has('still'))) dustClock += dt * state.speed; dust.update(dustClock);
-    haze.render(); composer.render();
-    if (import.meta.env.DEV && params.has('still') && !root.dataset.capture) root.dataset.capture = JSON.stringify({ seed: CONFIG.seed, camera: camera.position.toArray().map(v => +v.toFixed(6)), target: orbit.target.toArray().map(v => +v.toFixed(6)), width: root.clientWidth, height: root.clientHeight, dpr: renderer.getPixelRatio(), dustClock, selected: state.selected, render: CONFIG.render, particles: CONFIG.particles });
+    renderer.info.reset(); composer.render();
+    if (import.meta.env.DEV && params.has('still') && !root.dataset.capture) root.dataset.capture = JSON.stringify({ seed: CONFIG.seed, camera: camera.position.toArray().map(v => +v.toFixed(6)), target: orbit.target.toArray().map(v => +v.toFixed(6)), width: root.clientWidth, height: root.clientHeight, dpr: renderer.getPixelRatio(), dustClock, selected: state.selected, render: CONFIG.render, particles: CONFIG.particles, provenance: graph?.provenance ?? { mode: 'synthetic-demo' } });
     (real ? [] : FAMILIES).forEach((family, index) => {
       const p = project(family.center); const element = sectorLabels[index];
       element.style.left = `${p.x}px`; element.style.top = `${p.y}px`;

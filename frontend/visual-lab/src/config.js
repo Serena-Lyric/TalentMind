@@ -3,25 +3,11 @@ export const CONFIG = {
   seed: 261018, radius: 100,
   particles: { dust: 110000, mist: 44000, core: 48000, stars: 10000, field: 2200 },
   spiral: { winding: 4.8, width: 0.19, diskScale: 22, thickness: 2.3 },
-  distribution: {
-    diffuse: { dust: .12, mist: .35, stars: .06 },
-    wingFraction: .18, wingWidth: 2.4, armWander: .16, widthVariation: 1.2,
-    warp: 6, densityFloor: .42,
-  },
   camera: { distance: 245, min: 24, max: 520, phi: 0.86, theta: 0.18, fov: 43, panRate: 0.32, zoomRate: 0.65 },
   motion: { initial: 0.15, min: 0, max: 2, amplitude: 0.28 },
   render: { dpr: 1.5, bloomStrength: 0.34, bloomRadius: 0.45, bloomThreshold: 0.85, exposure: 1.05 },
-  // Profiles: [minimum world size, maximum world size, minimum alpha, maximum alpha].
-  appearance: {
-    dust: { fine: [.04, .13, .14, .32], haze: [1.2, 2.4, .006, .012], hazeFraction: .05 },
-    mist: { haze: [1.8, 3.4, .018, .028], hazeFraction: 1 },
-    core: { fine: [.035, .1, .35, .65], haze: [1.8, 2.8, .012, .02], hazeFraction: .14 },
-    stars: { fine: [.07, .2, .14, .4], spark: [.3, .55, .5, .8], sparkFraction: .035, hazeFraction: 0 },
-    field: { fine: [.11, .32, .14, .24], hazeFraction: 0 },
-  },
-  hazeResolvePixels: 18, hazeFadeFloor: .55,
-  hazeRenderScale: .5,
-  maxSprite: { dust: 24, mist: 24, core: 24, stars: 5, field: 3 },
+  layers: { dust: [0.16, 0.48], mist: [1.45, 0.09], core: [0.28, 0.28], stars: [0.23, 0.8], field: [0.2, 0.22] },
+  maxSprite: { dust: 5, mist: 10, core: 6, stars: 5, field: 3 },
 };
 
 export function spiralPoint(radius, branch = 0, offset = 0) {
