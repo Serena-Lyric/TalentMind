@@ -2,6 +2,8 @@
 
 日期：2026-10-18（Asia/Singapore）。基线为 Draft #30 `e7771d070abd54532efd9c813e9434d5af87459c`，独立分支 `codex/career-nebula-p1-a3`；仅供单独审核，不合并 #29/#30/本轮 PR，不关闭 Issue #26。
 
+交付：[Draft PR #31](https://github.com/Serena-Lyric/TalentMind/pull/31)，面向`codex/career-nebula-p1-a2-m3`，保持OPEN/Draft。远端实现与审阅记录提交`a0ada22`与本地完全一致；后续仅补交付链接和记录。
+
 **结果建议：实验未优于基线，保留 P1-A.2。** 全景完全保留，背景细星与星核有所减弱，但真实 M3 近景仍由密集知识节点及关系重叠主导，尚不能确认知识辨识度有足够改善。此次停止视觉优化；保留 opt-in 实验供复核，不因已投入实现而采用。P1-A.2 只是可接受的阶段保底，整个 #30 未获最终产品验收。
 
 ## 实现与边界
@@ -91,6 +93,8 @@ adaptive 的连续重放相邻帧最大 opacity 差0.00940、点径上限差0.03
 3. 原 #30 分支/提交及工作树不变；DEV原版重放为`/.p1a2-baseline/index.html`，由本轮capture脚本只从e7771d0生成忽略目录，拒绝覆盖不同内容，不进生产包。
 4. 正式Vue页面仍为18080/graph，需要按原README另行启动；本轮没有替换它，也没有因本实验停止其他服务。18129开发候选保留供审核，18130临时生产预览测试后关闭。
 5. 设置`NEBULA_PLAYWRIGHT`为已有Playwright的index.mjs绝对路径；在仓库根依次运行`node docs/review/issue-26-p1-a3/capture.mjs`、`node docs/review/issue-26-p1-a3/verify.mjs`。生产验证需先build并在18130启动preview，再运行`check-production.mjs`。脚本使用真实Edge硬件WebGL，数据只读。该端口下原DEV面板旧“录制”按钮仍只支持18127的原保存路由；本轮录像用capture脚本浏览器下载，不绕过原路由的Origin限制。
+
+传输说明：约65MB证据的整包上传未完成，逐文件API也遇到大视频请求超时；最终用小包Git增量传输原视频、API核对blob/tree并复现原提交。两条原始视频没有重编码，`05ffc06`和`a0ada22`远端SHA与本地完全一致。辅助分支`codex/career-nebula-p1-a3-media-transfer`仅作传输留存，中间前缀提交不是演示版本；不创建其PR、不合并，也不自动删除。原#29/#30、master和其他工作树不变。未改TLS、网络规则或凭据配置。
 
 采集器修正说明：最初canvas locator截图包含了footer，导致原版比较失败，现仅对canvas比较隐藏覆盖层；最初要求25px隔离点在真实密集全景不可得，改为3px中心分离并点击精确投影位置，未改12px实际拾取半径。最初按定时键盘录制端点不同，已替换为上述逐帧同路径录像，未把它称为人工输入视频。最终产物与核验均采用修正后的条件。见[采集陷阱](../superpowers/traps/2026-10-18-nebula-paired-capture.md)。
 
