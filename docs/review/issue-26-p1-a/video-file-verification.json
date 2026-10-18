@@ -1,0 +1,9 @@
+{
+  "source": "recorded WebM EBML scan; no decoding/transcoding",
+  "bytes": 10144990,
+  "frameBlocks": 448,
+  "distinctEncodedPayloads": 448,
+  "durationFromTimestampsSeconds": 19.982,
+  "width": 1600,
+  "height": 900
+}

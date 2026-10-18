@@ -1,0 +1,118 @@
+[
+  {
+    "name": "未选中滚轮只改变装饰流速",
+    "passed": true,
+    "evidence": {
+      "before": 0.15,
+      "after": 0.27,
+      "distance": 245.00000000000003
+    }
+  },
+  {
+    "name": "流速下限为零且装饰时钟暂停",
+    "passed": true
+  },
+  {
+    "name": "流速上限为2",
+    "passed": true
+  },
+  {
+    "name": "选中相机不动",
+    "passed": true
+  },
+  {
+    "name": "选中后滚轮只缩放",
+    "passed": true
+  },
+  {
+    "name": "缩放下限24",
+    "passed": true
+  },
+  {
+    "name": "缩放上限520",
+    "passed": true
+  },
+  {
+    "name": "Q/E连续缩放",
+    "passed": true,
+    "evidence": {
+      "qStart": 245.00000000000003,
+      "qEnd": 176.9961906418418,
+      "eEnd": 244.9522296577603
+    }
+  },
+  {
+    "name": "W连续平移",
+    "passed": true
+  },
+  {
+    "name": "A连续平移",
+    "passed": true
+  },
+  {
+    "name": "S连续平移",
+    "passed": true
+  },
+  {
+    "name": "D连续平移",
+    "passed": true
+  },
+  {
+    "name": "input输入保护",
+    "passed": true
+  },
+  {
+    "name": "textarea输入保护",
+    "passed": true
+  },
+  {
+    "name": "select输入保护",
+    "passed": true
+  },
+  {
+    "name": "div输入保护",
+    "passed": true
+  },
+  {
+    "name": "isComposing保护",
+    "passed": true
+  },
+  {
+    "name": "ctrlKey保护",
+    "passed": true
+  },
+  {
+    "name": "altKey保护",
+    "passed": true
+  },
+  {
+    "name": "metaKey保护",
+    "passed": true
+  },
+  {
+    "name": "失焦清除按键",
+    "passed": true
+  },
+  {
+    "name": "知识坐标不随动画变化",
+    "passed": true
+  },
+  {
+    "name": "容器resize 960×640",
+    "passed": true,
+    "evidence": {
+      "expected": 960,
+      "actual": 960,
+      "aspect": 1.5
+    }
+  },
+  {
+    "name": "容器resize 1600×900",
+    "passed": true,
+    "evidence": {
+      "expected": 1600,
+      "actual": 1600,
+      "aspect": 1.7777777777777777
+    }
+  }
+]

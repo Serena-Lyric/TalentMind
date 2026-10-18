@@ -1,0 +1,31 @@
+{
+  "selected": null,
+  "speed": 0.15,
+  "dustClock": 1.7864424000000025,
+  "camera": [
+    5.834077922640214,
+    28.054811131054233,
+    32.06074090212884
+  ],
+  "target": [
+    0,
+    0,
+    0
+  ],
+  "distance": 43,
+  "width": 1699,
+  "height": 901,
+  "dpr": 1.5,
+  "particles": 214200,
+  "nodes": 116,
+  "edges": 40,
+  "movedFrames": 0,
+  "visibility": "visible",
+  "frameSamples": 300,
+  "meanMs": 28.06,
+  "fps": 35.6,
+  "p95Ms": 33.9,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+  "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+}
