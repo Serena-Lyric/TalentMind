@@ -15,6 +15,12 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ## 启动
 
+### M3/M5-P2.1 集成候选（2026-10-19，待独立审核）
+
+正式 Vue `/graph` 默认使用银河候选；现有 Hash Router 的地址为 `/#/graph`，旧 Canvas 回退为 `/#/graph?graphRenderer=legacy`。导航和原演示登录保持；后者仅前端演示校验。候选从唯一 `exchange/m3/graph.json` 读取已核验历史交接快照（7845/11412），不访问实时数据库、不混入未发布标准岗位。Vite只在构建输出复制该文件；源码不重复存放快照。
+
+预计算候选、版本绑定、共享技能/孤点层级、完整邻接分页、测试及截图/录屏见 [集成报告](../docs/review/M3-M5-P2-1.md)。Jaccard0.10/Leiden及固定投影视觉尚未定稿。运行需localhost或HTTPS，普通局域网HTTP不跳过摘要校验。`pnpm test` 运行前端定向与#28交互回归，`pnpm run build` 包含类型检查。
+
 ```powershell
 pnpm install --frozen-lockfile
 pnpm run dev
