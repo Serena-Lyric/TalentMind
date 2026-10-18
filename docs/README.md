@@ -9,6 +9,7 @@
 | [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案；M2-01～60、相关 M1 输入与新增 M3/M5 创新方向、Career Nebula 第一批设计；确认不等于已实现 |
 | [Career Nebula 视觉设计基线](superpowers/specs/2026-10-17-career-nebula-visual-design.md) | 大型多色知识银河、《诗云》参考边界、图谱页面布局与交互/视觉规范，区分已确认与待议 |
 | [Career Nebula Codex 第一批任务书](superpowers/plans/2026-10-17-career-nebula-first-phase.md) | P0 仅图谱页顶栏/高度，P1 独立《诗云》风格视觉样品，验收/回退与禁止事项 |
+| [M3-P2-0 离线研究](research/m3-p2-0/report.md) | 正式快照审计、相似性与社区对照、局部连接解释；附契约草案、复现入口与团队能力口径，不代表生产升级 |
 | [README.md](../README.md) | 项目总览、带日期的模块状态、启动/测试、目录边界 |
 | [AGENT_START_HERE.md](../AGENT_START_HERE.md) | 少量核心阅读 + M1–M5 选读，不要求逐文件复述 |
 | [AGENTS.md](../AGENTS.md) | 通用规则、安全边界、分阶段开发/审查/授权合并的唯一维护入口 |

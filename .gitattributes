@@ -1,2 +1,6 @@
 # B3-5 definition provenance hashes must survive checkout on every platform.
 docs/PRODUCT_DECISIONS.md text eol=lf
+# Research artifacts retain exact output bytes; legacy snapshot stays untouched.
+backend/app/graph/research/*.py text eol=lf
+docs/research/m3-p2-0/*.json -text whitespace=cr-at-eol
+docs/research/m3-p2-0/*.py text eol=lf
