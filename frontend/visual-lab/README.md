@@ -1,4 +1,10 @@
-# Career Nebula · P1-A.2 与 M3 集成候选（未验收）
+# Career Nebula · P1-A.3 可回退近景实验（未验收）
+
+本轮从 #30 的 `e7771d0` 独立开发。默认及 `?visual=baseline` 保留 P1-A.2 原视觉；`?visual=adaptive` 启用分层装饰透明度/点径实验。真实 M3 默认开启，合成演示仅显式 `?data=demo`。实验预览可用 `npm run dev -- --port 18129` 与原候选隔离，baseline/adaptive 共享相同数据与交互，回退只需改 URL 后刷新。
+
+本轮实现与验收步骤见[计划](../../docs/superpowers/plans/2026-10-18-nebula-p1-a3.md)。P1-A.2 是阶段保底，不代表整个 #30 最终产品验收。新效果待同机对照和独立审核，不自动采用或合并。
+
+## P1-A.2 数据适配与历史说明
 
 本分支默认只读消费 `exchange/m3/graph.json` 正式快照（7845节点/11412边），不是实时数据库。214200装饰粒子独立计数。运行本目录 `npm ci --ignore-scripts`、`npm run dev`，访问 <http://127.0.0.1:18127/>；`npm test`、`npm run build` 验证。依赖仍隔离，保留PR #29的18126服务。
 
