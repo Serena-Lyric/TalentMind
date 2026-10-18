@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { generateParticles } from './generate.js';
 
-export function createDust(scene) {
+export function createDust(scene, visual = 'baseline') {
   const layers = [];
+  let pixelRatio = 1;
   for (const kind of Object.keys(CONFIG.particles)) {
     const data = generateParticles(kind), geometry = new THREE.BufferGeometry();
     for (const [name, size] of [['position', 3], ['color', 3], ['scale', 1], ['phase', 1]]) geometry.setAttribute(name === 'position' ? name : `a${name}`, new THREE.BufferAttribute(data[name], size));
@@ -34,11 +35,21 @@ export function createDust(scene) {
         }`,
     });
     const points = new THREE.Points(geometry, material); points.frustumCulled = false;
-    scene.add(points); layers.push(points);
+    scene.add(points); layers.push({ kind, points });
   }
   return {
-    update(clock) { for (const points of layers) points.material.uniforms.clock.value = clock; },
-    resize(height, dpr) { layers.forEach((points, index) => { points.material.uniforms.pixels.value = height * dpr; points.material.uniforms.maxPixels.value = Object.values(CONFIG.maxSprite)[index] * dpr; }); },
+    update(clock, distance = CONFIG.camera.distance, fov = CONFIG.camera.fov) {
+      const span = distance * Math.tan(fov * Math.PI / 360) / Math.tan(CONFIG.camera.fov * Math.PI / 360);
+      const t = visual === 'adaptive' ? THREE.MathUtils.clamp((CONFIG.adaptive.far - span) / (CONFIG.adaptive.far - CONFIG.adaptive.near), 0, 1) : 0;
+      const detail = t * t * (3 - 2 * t);
+      for (const { kind, points } of layers) {
+        const uniforms = points.material.uniforms, [opacity, cap] = CONFIG.adaptive.layers[kind];
+        uniforms.clock.value = clock;
+        uniforms.opacity.value = CONFIG.layers[kind][1] * (1 + (opacity - 1) * detail);
+        uniforms.maxPixels.value = CONFIG.maxSprite[kind] * pixelRatio * (1 + (cap - 1) * detail);
+      }
+    },
+    resize(height, dpr) { pixelRatio = dpr; layers.forEach(({ kind, points }) => { points.material.uniforms.pixels.value = height * dpr; points.material.uniforms.maxPixels.value = CONFIG.maxSprite[kind] * dpr; }); },
     count: Object.values(CONFIG.particles).reduce((sum, value) => sum + value, 0),
   };
 }

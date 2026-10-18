@@ -1,0 +1,87 @@
+{
+  "checks": [
+    {
+      "name": "default production exact M3",
+      "passed": true
+    },
+    {
+      "name": "default production mode and DEV exclusion",
+      "passed": true
+    },
+    {
+      "name": "default production original selected node/links",
+      "passed": true
+    },
+    {
+      "name": "baseline production exact M3",
+      "passed": true
+    },
+    {
+      "name": "baseline production mode and DEV exclusion",
+      "passed": true
+    },
+    {
+      "name": "baseline production original selected node/links",
+      "passed": true
+    },
+    {
+      "name": "adaptive production exact M3",
+      "passed": true
+    },
+    {
+      "name": "adaptive production mode and DEV exclusion",
+      "passed": true
+    },
+    {
+      "name": "adaptive production original selected node/links",
+      "passed": true
+    },
+    {
+      "name": "unknown production exact M3",
+      "passed": true
+    },
+    {
+      "name": "unknown production mode and DEV exclusion",
+      "passed": true
+    },
+    {
+      "name": "unknown production original selected node/links",
+      "passed": true
+    },
+    {
+      "name": "production explicit synthetic fallback labelled",
+      "passed": true
+    },
+    {
+      "name": "production asset hash",
+      "passed": true
+    },
+    {
+      "name": "baseline real zoom video decodes and seeks",
+      "passed": true,
+      "evidence": {
+        "width": 1600,
+        "height": 900,
+        "duration": 13.428,
+        "readyState": 4
+      }
+    },
+    {
+      "name": "adaptive real zoom video decodes and seeks",
+      "passed": true,
+      "evidence": {
+        "width": 1600,
+        "height": 900,
+        "duration": 13.166,
+        "readyState": 4
+      }
+    },
+    {
+      "name": "normal production and video playback no errors/warnings",
+      "passed": true,
+      "evidence": []
+    }
+  ],
+  "errors": [],
+  "browser": "155.0.4283.45"
+}

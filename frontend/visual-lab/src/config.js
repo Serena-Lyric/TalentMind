@@ -8,6 +8,11 @@ export const CONFIG = {
   render: { dpr: 1.5, bloomStrength: 0.34, bloomRadius: 0.45, bloomThreshold: 0.85, exposure: 1.05 },
   layers: { dust: [0.16, 0.48], mist: [1.45, 0.09], core: [0.28, 0.28], stars: [0.23, 0.8], field: [0.2, 0.22] },
   maxSprite: { dust: 5, mist: 10, core: 6, stars: 5, field: 3 },
+  adaptive: {
+    far: 185, near: 45,
+    // Near-view opacity / point-cap ratios; mist keeps the original diffuse structure.
+    layers: { dust: [.8, .85], mist: [1, 1], core: [.72, .8], stars: [.16, .44], field: [.3, .55] },
+  },
 };
 
 export function spiralPoint(radius, branch = 0, offset = 0) {

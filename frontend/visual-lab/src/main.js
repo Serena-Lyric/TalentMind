@@ -14,7 +14,8 @@ const params = new URLSearchParams(location.search), root = document.querySelect
 if (params.has('evidence')) document.body.classList.add('evidence');
 async function start() { try {
   const real = params.get('data') !== 'demo';
-  document.querySelector('footer span:last-child').textContent = 'CAREER NEBULA / P1-A.2 待审核';
+  const visual = params.get('visual') === 'adaptive' ? 'adaptive' : 'baseline';
+  document.querySelector('footer span:last-child').textContent = `CAREER NEBULA / ${visual === 'adaptive' ? 'P1-A.3 实验' : 'P1-A.2 保底'} / ${visual}`;
   let graph;
   if (real) {
     const response = await fetch('/m3-graph.json');
@@ -26,7 +27,7 @@ async function start() { try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.info.autoReset = false;
   renderer.setClearColor('#000001'); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = CONFIG.render.exposure;
-  const scene = new THREE.Scene(), dust = createDust(scene), knowledge = createKnowledge(scene, graph);
+  const scene = new THREE.Scene(), dust = createDust(scene, visual), knowledge = createKnowledge(scene, graph);
   const control = createCamera(canvas, (x, y) => select(knowledge.pick(x, y, control.camera, root.clientWidth, root.clientHeight)));
   const { camera, orbit, state } = control;
   const composer = new EffectComposer(renderer);
@@ -112,7 +113,7 @@ async function start() { try {
   renderer.setAnimationLoop(now => {
     const elapsed = now - last; last = now;
     if (document.hidden) return;
-    const dt = Math.min(elapsed / 1000, .05); control.update(dt); if (!(import.meta.env.DEV && params.has('still'))) dustClock += dt * state.speed; dust.update(dustClock);
+    const dt = Math.min(elapsed / 1000, .05); control.update(dt); if (!(import.meta.env.DEV && params.has('still'))) dustClock += dt * state.speed; dust.update(dustClock, camera.position.distanceTo(orbit.target), camera.fov);
     renderer.info.reset(); composer.render();
     if (import.meta.env.DEV && params.has('still') && !root.dataset.capture) root.dataset.capture = JSON.stringify({ seed: CONFIG.seed, camera: camera.position.toArray().map(v => +v.toFixed(6)), target: orbit.target.toArray().map(v => +v.toFixed(6)), width: root.clientWidth, height: root.clientHeight, dpr: renderer.getPixelRatio(), dustClock, selected: state.selected, render: CONFIG.render, particles: CONFIG.particles, provenance: graph?.provenance ?? { mode: 'synthetic-demo' } });
     (real ? [] : FAMILIES).forEach((family, index) => {
@@ -125,7 +126,7 @@ async function start() { try {
   });
   root.dataset.ready = 'true';
   if (import.meta.env.DEV && params.has('diagnostics')) {
-    const app = { renderer, snapshot: () => ({ selected: state.selected, speed: state.speed, dustClock, camera: camera.position.toArray(), target: orbit.target.toArray(), distance: camera.position.distanceTo(orbit.target), width: root.clientWidth, height: root.clientHeight, dpr: renderer.getPixelRatio(), particles: dust.count, nodes: knowledge.nodes.length, edges: knowledge.edges.length, ...knowledge.counts(), provenance: graph?.provenance ?? { mode: 'synthetic-demo' }, drawCalls: renderer.info.render.calls, movedFrames: state.movedFrames, visibility: document.visibilityState }), project, nodes: knowledge.nodes, select, root, canvas, camera, orbit, state };
+    const app = { renderer, scene, visual, snapshot: () => ({ visual, selected: state.selected, speed: state.speed, dustClock, camera: camera.position.toArray(), target: orbit.target.toArray(), distance: camera.position.distanceTo(orbit.target), width: root.clientWidth, height: root.clientHeight, dpr: renderer.getPixelRatio(), particles: dust.count, nodes: knowledge.nodes.length, edges: knowledge.edges.length, ...knowledge.counts(), provenance: graph?.provenance ?? { mode: 'synthetic-demo' }, drawCalls: renderer.info.render.calls, movedFrames: state.movedFrames, visibility: document.visibilityState }), project, nodes: knowledge.nodes, select, root, canvas, camera, orbit, state };
     import('./diagnostics.js').then(module => { onFrame = module.mountDiagnostics(app); });
   }
 } catch (error) {
