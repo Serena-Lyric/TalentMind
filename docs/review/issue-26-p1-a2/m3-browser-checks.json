@@ -1,0 +1,608 @@
+{
+  "checks": [
+    {
+      "name": "browser consumes exact formal snapshot bytes",
+      "passed": true,
+      "evidence": [
+        {
+          "url": "http://127.0.0.1:18127/m3-graph.json",
+          "status": 200,
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        }
+      ]
+    },
+    {
+      "name": "real nodes/edges and decorative particles use independent counts",
+      "passed": true,
+      "evidence": {
+        "selected": null,
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          33.240676535973314,
+          159.84717970019273,
+          182.67166327957133
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 245.00000000000003,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 7845,
+        "visibleEdges": 11412,
+        "highlightedEdges": 0,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 60,
+        "meanMs": 17.5,
+        "fps": 57.1,
+        "p95Ms": 17.3,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "M3 mode does not invent demo families",
+      "passed": true
+    },
+    {
+      "name": "search selection is an actual raw ID and leaves camera unchanged",
+      "passed": true,
+      "evidence": {
+        "selected": "skill:python",
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          33.240676535973314,
+          159.84717970019273,
+          182.67166327957133
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 245.00000000000003,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 25,
+        "visibleEdges": 0,
+        "highlightedEdges": 0,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 181,
+        "meanMs": 16.94,
+        "fps": 59,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "detail provides exact node raw fields and edge indices",
+      "passed": true,
+      "evidence": {
+        "sourceIndex": 1,
+        "id": "skill:python"
+      }
+    },
+    {
+      "name": "all one-hop nodes and induced edges retain real source counts",
+      "passed": true,
+      "evidence": {
+        "selected": "skill:python",
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          33.240676535973314,
+          159.84717970019273,
+          182.67166327957133
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 245.00000000000003,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 223,
+        "visibleEdges": 227,
+        "highlightedEdges": 222,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 300,
+        "meanMs": 16.72,
+        "fps": 59.8,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "selected wheel zooms without changing dust speed",
+      "passed": true,
+      "evidence": {
+        "selected": "skill:python",
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          26.148042283897873,
+          125.74024506508363,
+          143.6946197630789
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 192.72382596130564,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 223,
+        "visibleEdges": 227,
+        "highlightedEdges": 222,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 300,
+        "meanMs": 16.67,
+        "fps": 60,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "hidden skill selection clears; node-kind filter is induced",
+      "passed": true,
+      "evidence": {
+        "selected": null,
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          26.148042283897873,
+          125.74024506508363,
+          143.6946197630789
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 192.72382596130564,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 717,
+        "visibleEdges": 7,
+        "highlightedEdges": 0,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 300,
+        "meanMs": 16.67,
+        "fps": 60,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "empty result is genuinely empty",
+      "passed": true,
+      "evidence": {
+        "selected": null,
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          26.148042283897873,
+          125.74024506508363,
+          143.6946197630789
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 192.72382596130564,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 0,
+        "visibleEdges": 0,
+        "highlightedEdges": 0,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 300,
+        "meanMs": 16.67,
+        "fps": 60,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "relationship filter preserves all raw APPLIES_TO edges",
+      "passed": true,
+      "evidence": {
+        "selected": null,
+        "speed": 0.15,
+        "dustClock": 0,
+        "camera": [
+          26.148042283897873,
+          125.74024506508363,
+          143.6946197630789
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 192.72382596130564,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 7845,
+        "edges": 11412,
+        "visibleNodes": 7845,
+        "visibleEdges": 2539,
+        "highlightedEdges": 0,
+        "provenance": {
+          "source": "exchange/m3/graph.json",
+          "mode": "formal-handover-snapshot",
+          "nodeKinds": {
+            "job": 717,
+            "skill": 4671,
+            "industry": 2457
+          },
+          "edgeKinds": {
+            "REQUIRES": 8866,
+            "APPLIES_TO": 2539,
+            "RELATED_TO": 7
+          },
+          "layout": "identity-hash-and-adjacency-display-only",
+          "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 300,
+        "meanMs": 16.67,
+        "fps": 60,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "existing camera/input/resize interactions work with actual M3",
+      "passed": true,
+      "evidence": [
+        {
+          "name": "未选中滚轮只改变装饰流速",
+          "passed": true,
+          "evidence": {
+            "before": 0.15,
+            "after": 0.27,
+            "distance": 192.72382596130564
+          }
+        },
+        {
+          "name": "流速下限为零且装饰时钟暂停",
+          "passed": true
+        },
+        {
+          "name": "流速上限为2",
+          "passed": true
+        },
+        {
+          "name": "选中相机不动",
+          "passed": true
+        },
+        {
+          "name": "选中后滚轮只缩放",
+          "passed": true
+        },
+        {
+          "name": "缩放下限24",
+          "passed": true
+        },
+        {
+          "name": "缩放上限520",
+          "passed": true
+        },
+        {
+          "name": "Q/E连续缩放",
+          "passed": true,
+          "evidence": {
+            "qStart": 192.72382596130564,
+            "qEnd": 139.275392009238,
+            "eEnd": 194.83990289301227
+          }
+        },
+        {
+          "name": "W连续平移",
+          "passed": true
+        },
+        {
+          "name": "A连续平移",
+          "passed": true
+        },
+        {
+          "name": "S连续平移",
+          "passed": true
+        },
+        {
+          "name": "D连续平移",
+          "passed": true
+        },
+        {
+          "name": "input输入保护",
+          "passed": true
+        },
+        {
+          "name": "textarea输入保护",
+          "passed": true
+        },
+        {
+          "name": "select输入保护",
+          "passed": true
+        },
+        {
+          "name": "div输入保护",
+          "passed": true
+        },
+        {
+          "name": "isComposing保护",
+          "passed": true
+        },
+        {
+          "name": "ctrlKey保护",
+          "passed": true
+        },
+        {
+          "name": "altKey保护",
+          "passed": true
+        },
+        {
+          "name": "metaKey保护",
+          "passed": true
+        },
+        {
+          "name": "失焦清除按键",
+          "passed": true
+        },
+        {
+          "name": "知识坐标不随动画变化",
+          "passed": true
+        },
+        {
+          "name": "容器resize 960×640",
+          "passed": true,
+          "evidence": {
+            "expected": 960,
+            "actual": 960,
+            "aspect": 1.5
+          }
+        },
+        {
+          "name": "容器resize 1600×900",
+          "passed": true,
+          "evidence": {
+            "expected": 1600,
+            "actual": 1600,
+            "aspect": 1.7777777777777777
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing snapshot displays error and never marks graph ready",
+      "passed": true,
+      "evidence": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Error: M3 handover HTTP 503\n    at start (http://127.0.0.1:18127/src/main.js?t=1792309632203:21:29)",
+        "Error: Unknown/inconsistent node kind at nodes[0]\n    at http://127.0.0.1:18127/src/m3-adapter.js?t=1792309632203:17:107\n    at Array.map (<anonymous>)\n    at adaptM3 (http://127.0.0.1:18127/src/m3-adapter.js?t=1792309632203:14:29)\n    at start (http://127.0.0.1:18127/src/main.js?t=1792309632203:23:13)"
+      ]
+    },
+    {
+      "name": "invalid snapshot never silently substitutes synthetic entities",
+      "passed": true
+    },
+    {
+      "name": "explicit old data adapter rollback works",
+      "passed": true,
+      "evidence": {
+        "selected": null,
+        "speed": 0.15,
+        "dustClock": 0.15776999999994415,
+        "camera": [
+          33.240676535973314,
+          159.84717970019273,
+          182.67166327957133
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "distance": 245.00000000000003,
+        "width": 1600,
+        "height": 900,
+        "dpr": 1,
+        "particles": 214200,
+        "nodes": 116,
+        "edges": 40,
+        "visibleNodes": 116,
+        "visibleEdges": 40,
+        "highlightedEdges": 0,
+        "provenance": {
+          "mode": "synthetic-demo"
+        },
+        "drawCalls": 22,
+        "movedFrames": 0,
+        "visibility": "visible",
+        "frameSamples": 61,
+        "meanMs": 16.68,
+        "fps": 60,
+        "p95Ms": 17.1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+        "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      }
+    },
+    {
+      "name": "normal M3 and demo sessions have no console errors/warnings",
+      "passed": true,
+      "evidence": []
+    }
+  ],
+  "consoleEvents": [],
+  "expectedErrors": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Error: M3 handover HTTP 503\n    at start (http://127.0.0.1:18127/src/main.js?t=1792309632203:21:29)",
+    "Error: Unknown/inconsistent node kind at nodes[0]\n    at http://127.0.0.1:18127/src/m3-adapter.js?t=1792309632203:17:107\n    at Array.map (<anonymous>)\n    at adaptM3 (http://127.0.0.1:18127/src/m3-adapter.js?t=1792309632203:14:29)\n    at start (http://127.0.0.1:18127/src/main.js?t=1792309632203:23:13)"
+  ],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:18127/m3-graph.json",
+      "status": 200,
+      "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+    }
+  ],
+  "sourceSha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+}

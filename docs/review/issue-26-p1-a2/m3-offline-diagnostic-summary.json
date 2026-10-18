@@ -1,0 +1,45 @@
+{
+  "snapshot_sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2",
+  "before": {
+    "nodes": 7845,
+    "edges": 11412,
+    "related_to": 7,
+    "requires": 8866,
+    "applies_to": 2539
+  },
+  "after": {
+    "nodes": 7864,
+    "edges": 11455,
+    "related_to": 36,
+    "requires": 8880,
+    "applies_to": 2539
+  },
+  "limitations": [
+    "Reconstruction uses stored job required/bonus arrays and stored industry edges only.",
+    "Lost raw skill details, overwritten industry names and original JD evidence cannot be recovered.",
+    "This is a legacy projection comparison, not M2 five-state analysis or a production migration."
+  ],
+  "legacy_complete": {
+    "candidate_pairs": 46807,
+    "related_to": 41,
+    "missing_from_snapshot": 34,
+    "unexpected_in_snapshot": 0
+  },
+  "corrected": {
+    "candidate_pairs": 46682,
+    "added_vs_snapshot": 30,
+    "removed_vs_snapshot": 1,
+    "added_vs_legacy_complete": 1,
+    "removed_vs_legacy_complete": 6
+  },
+  "audit_counts": {
+    "identity_version": "exact-canonical-percent-v1",
+    "requirement_semantics": "legacy_required_bonus",
+    "unverified_canonical_claims": 0,
+    "skill_details": 0,
+    "requirement_conflicts": 11,
+    "entity_mappings": 11419,
+    "legacy_id_collisions": 16,
+    "candidate_pair_count": 46682
+  }
+}

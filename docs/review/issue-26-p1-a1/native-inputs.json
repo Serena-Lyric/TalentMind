@@ -1,0 +1,220 @@
+{
+  "before": {
+    "selected": null,
+    "speed": 0.15,
+    "dustClock": 7.855661600000062,
+    "camera": [
+      33.240676535973314,
+      159.84717970019273,
+      182.67166327957133
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 245.00000000000003,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 127,
+    "visibility": "visible",
+    "frameSamples": 248,
+    "meanMs": 17.88,
+    "fps": 55.9,
+    "p95Ms": 17.3,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "selected": {
+    "selected": "demo:0:0",
+    "speed": 0.15,
+    "dustClock": 8.003111600000063,
+    "camera": [
+      33.240676535973314,
+      159.84717970019273,
+      182.67166327957133
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 245.00000000000003,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 127,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 17.89,
+    "fps": 55.9,
+    "p95Ms": 17.3,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "zoomed": {
+    "selected": "demo:0:0",
+    "speed": 0.15,
+    "dustClock": 8.15311160000005,
+    "camera": [
+      27.764947066598914,
+      133.51558829790898,
+      152.58019962488018
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 204.64120289354256,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 127,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 17.72,
+    "fps": 56.4,
+    "p95Ms": 17.2,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "unselected": {
+    "selected": null,
+    "speed": 0.15,
+    "dustClock": 8.303126600000038,
+    "camera": [
+      27.764947066598914,
+      133.51558829790898,
+      152.58019962488018
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 204.64120289354256,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 127,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 17.61,
+    "fps": 56.8,
+    "p95Ms": 17.1,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "accelerated": {
+    "selected": null,
+    "speed": 0.32999999463558216,
+    "dustClock": 8.624111594903846,
+    "camera": [
+      27.76494706659891,
+      133.51558829790898,
+      152.58019962488018
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 204.64120289354256,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 127,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 17.72,
+    "fps": 56.4,
+    "p95Ms": 17.2,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "pan": {
+    "selected": null,
+    "speed": 0.32999999463558216,
+    "dustClock": 8.948633589628482,
+    "camera": [
+      54.605312821039675,
+      133.51558829790898,
+      147.69607090927792
+    ],
+    "target": [
+      26.840365754440814,
+      2.7281860818747134e-16,
+      -4.8841287156022615
+    ],
+    "distance": 204.64120289354256,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 152,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 17.89,
+    "fps": 55.9,
+    "p95Ms": 17.3,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "typed": {
+    "selected": null,
+    "speed": 0.32999999463558216,
+    "dustClock": 9.28411158417502,
+    "camera": [
+      54.605312821039675,
+      133.51558829790898,
+      147.69607090927792
+    ],
+    "target": [
+      26.840365754440814,
+      2.7281860818747134e-16,
+      -4.8841287156022615
+    ],
+    "distance": 204.64120289354256,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1.0000000298023224,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 152,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 17.39,
+    "fps": 57.5,
+    "p95Ms": 17.3,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "result": "native mouse selection/no recenter, wheel split, held D pan, actual input typing protected"
+}

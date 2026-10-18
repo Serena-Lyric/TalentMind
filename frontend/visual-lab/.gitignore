@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.p1a-baseline/
+*.log
+.p1a1-baseline/

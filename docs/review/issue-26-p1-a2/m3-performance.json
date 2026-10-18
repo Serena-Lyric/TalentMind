@@ -1,0 +1,51 @@
+{
+  "selected": null,
+  "speed": 0.15,
+  "dustClock": 0,
+  "camera": [
+    26.148042283897873,
+    125.74024506508363,
+    143.6946197630789
+  ],
+  "target": [
+    0,
+    0,
+    0
+  ],
+  "distance": 192.72382596130564,
+  "width": 1600,
+  "height": 900,
+  "dpr": 1,
+  "particles": 214200,
+  "nodes": 7845,
+  "edges": 11412,
+  "visibleNodes": 7845,
+  "visibleEdges": 11412,
+  "highlightedEdges": 0,
+  "provenance": {
+    "source": "exchange/m3/graph.json",
+    "mode": "formal-handover-snapshot",
+    "nodeKinds": {
+      "job": 717,
+      "skill": 4671,
+      "industry": 2457
+    },
+    "edgeKinds": {
+      "REQUIRES": 8866,
+      "APPLIES_TO": 2539,
+      "RELATED_TO": 7
+    },
+    "layout": "identity-hash-and-adjacency-display-only",
+    "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+  },
+  "drawCalls": 22,
+  "movedFrames": 134,
+  "visibility": "visible",
+  "frameSamples": 300,
+  "meanMs": 16.67,
+  "fps": 60,
+  "p95Ms": 17.2,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+  "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+}

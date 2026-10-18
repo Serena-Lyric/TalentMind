@@ -1,0 +1,10 @@
+{
+  "bytes": 10144990,
+  "durationMs": 20182.20000000298,
+  "mimeType": "video/webm;codecs=vp9",
+  "saved": {
+    "path": "C:\\Users\\SERENA~1\\AppData\\Local\\Temp\\talentmind-p1a-fe0d7694-da77-439a-82d9-ad52a416b60c.webm",
+    "bytes": 10144990
+  },
+  "capture": "real canvas.captureStream 30fps; scripted DOM keyboard/wheel + diagnostic selection; no static frames"
+}
