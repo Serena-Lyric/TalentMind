@@ -1,0 +1,33 @@
+{
+  "graph": {
+    "source": "exchange/m3/graph.json",
+    "mode": "formal-handover-snapshot",
+    "nodeKinds": {
+      "job": 717,
+      "skill": 4671,
+      "industry": 2457
+    },
+    "edgeKinds": {
+      "REQUIRES": 8866,
+      "APPLIES_TO": 2539,
+      "RELATED_TO": 7
+    },
+    "layout": "identity-hash-and-adjacency-display-only",
+    "sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2",
+    "nodes": 7845,
+    "edges": 11412,
+    "visibleNodes": 7845,
+    "visibleEdges": 11412,
+    "highlightedEdges": 0,
+    "filters": {
+      "kind": "all",
+      "relation": "all",
+      "query": "",
+      "focus": null
+    }
+  },
+  "selection": "skill:python → nodes[1]",
+  "explicitDemoRollback": true,
+  "productionDiagnosticsAbsent": true,
+  "errors": []
+}

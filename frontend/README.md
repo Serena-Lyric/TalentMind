@@ -2,7 +2,7 @@
 
 TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Plus + ECharts + Pinia。
 
-独立视觉研究入口：[Career Nebula P1-A](visual-lab/README.md)。它使用隔离依赖与 18126 端口，只展示合成演示银河，不替换正式图谱或消费真实 M3 数据。
+独立候选入口：[Career Nebula P1-A.2 + M3](visual-lab/README.md)。本分支使用隔离依赖与 18127 端口，只读消费正式 M3 交接快照；可用 `?data=demo` 回退合成适配，不替换正式 Vue 图谱。P1-A/P1-A.1 保留于 PR #29，P1-A.2 与真实集成均未通过产品验收；[证据与回退](../docs/review/Career-Nebula-P1-A2-M3.md)。
 
 ## 页面
 

@@ -1,0 +1,39 @@
+{
+  "label": "p1a1",
+  "view": "core",
+  "url": "http://127.0.0.1:18127/.p1a1-baseline/index.html?data=demo&diagnostics=1&view=core&still=1",
+  "stats": {
+    "selected": null,
+    "speed": 0.15,
+    "dustClock": 0,
+    "camera": [
+      5.834077922640214,
+      28.054811131054233,
+      32.06074090212884
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 43,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 0,
+    "visibility": "visible",
+    "frameSamples": 121,
+    "meanMs": 16.67,
+    "fps": 60,
+    "p95Ms": 16.8,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "capture": "{\"seed\":261018,\"camera\":[5.834078,28.054811,32.060741],\"target\":[0,0,0],\"width\":1600,\"height\":900,\"dpr\":1,\"dustClock\":0,\"selected\":null,\"render\":{\"dpr\":1.5,\"bloomStrength\":0.34,\"bloomRadius\":0.45,\"bloomThreshold\":0.85,\"exposure\":1.05},\"particles\":{\"dust\":110000,\"mist\":44000,\"core\":48000,\"stars\":10000,\"field\":2200}}",
+  "file": "p1a1-core.png",
+  "sha256": "1ff3a0a0a827befe5057a39d6566f7ae05f5fd7ff829610d5d8652455465a5f3"
+}

@@ -14,7 +14,7 @@ export function adaptM3(input) {
   const nodes = input.nodes.map((raw, sourceIndex) => {
     if (!raw || typeof raw.id !== 'string' || !raw.id.trim() || ids.has(raw.id)) throw new Error(`Invalid/duplicate node ID at nodes[${sourceIndex}]`);
     const kind = raw.type;
-    if (!Object.hasOwn(kinds, kind) || (raw.kind && raw.kind !== kind)) throw new Error(`Unknown/inconsistent node kind at nodes[${sourceIndex}]`);
+    if (typeof kind !== 'string' || !Object.hasOwn(kinds, kind) || (raw.kind && raw.kind !== kind)) throw new Error(`Unknown/inconsistent node kind at nodes[${sourceIndex}]`);
     ids.add(raw.id); nodeKinds[kind]++;
     const h = hash(raw.id), radius = 22 + (h % 6800) / 100;
     const position = spiralPoint(radius, h % 4, ((h >>> 8) % 1000 / 1000 - .5) * .26);

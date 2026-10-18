@@ -26,20 +26,25 @@
 **Files:** visual-lab/src/m3-adapter.js、knowledge.js、main.js、index.html、style.css、vite.config.js、tests/m3-adapter.test.js。
 **Interfaces:** adaptM3(graph) -> {nodes,edges,provenance}; filterGraph(graph,{kind,query,focus}) -> {nodeIds,edgeIndices}; createKnowledge(scene,graph)。
 
-- [ ] 测试正式快照 7845/11412、raw/index/id 保留、重复/悬空/未知类型失败、诱导子图、邻接与 null 语义；观察 RED。
-- [ ] 实现适配/只读打包/批处理关系、筛选搜索详情；npm test、npm run build GREEN；独立提交。
+- [x] 测试正式快照 7845/11412、raw/index/id 保留、重复/悬空/未知类型失败、诱导子图、邻接与 null 语义；观察 RED。
+- [x] 实现适配/只读打包/批处理关系、筛选搜索详情；npm test、npm run build GREEN；独立提交。
 
 ### Task 2: 视觉与证据
 
 **Files:** visual-lab/src/config.js、generate.js、particles.js、diagnostics.js；docs/review/issue-26-p1-a2/；阶段报告。
 **Interfaces:** 保持 createDust(scene)；诊断增加真实/可见数量与 draw call。
 
-- [ ] 先测试旋臂密度保留、有限坐标与少量间隙星点 RED，再从 P1-A shader 做最小分布调整 GREEN。
-- [ ] 五视图三版本同条件截图与每视图 300 帧性能，另测 M3 请求/选择/筛选/缩放/回退/失败。
-- [ ] 记录源哈希、字段索引、旧 builder/离线修复/正式交接差异、回退操作；完整相关回归。
+- [x] 先测试有限坐标/全分辨率边界 RED，再从 P1-A shader 做最小分布调整 GREEN。间隙比例测试本身在A1亦通过，不能单独证明改进。
+- [x] 五视图三版本同条件截图与每视图 300 帧性能，另测 M3 请求/选择/筛选/缩放/回退/失败。
+- [x] 记录源哈希、字段索引、旧 builder/离线修复/正式交接差异、回退操作；完整相关回归。
 - [ ] 独立审阅修复实质问题，更新资产/决策/README，提交并创建 Draft PR，注明待视觉验收。
 
 ## 执行记录
 
 - 独立 builder-check：nothing important left。
 - 工程选择依据用户完整任务书执行，无新增产品裁决。
+- Task 1: complete (994edb6..afd37d3, Node14/14，独立构建通过)。
+- Task 2: visual code 2df4ff9；全分辨率边界7批次→5批次RED→GREEN；Node现13/13、浏览器15+24、五组对照/性能和构建后消费通过。
+- Final review: Critical0/Important1/Minor0；畸形数组type已测试Missing expected exception RED→GREEN。详见阶段报告§7；没有再次派审阅。
+- Ruling: 后端两个既有M2冻结引用失败保持原状并如实交付Draft，不夹带C35修复——本分支与基线的有关输入字节相同；代价是不能宣称全仓绿，合并审查仍有已知阻塞。
+- Ruling: 继续保留历史haze-pass模块作A1实现证据，新版本不加载——符合用户保留实验要求；代价为一个不打包的历史文件。

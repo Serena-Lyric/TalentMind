@@ -1,0 +1,44 @@
+{
+  "label": "p1a2",
+  "view": "arm",
+  "url": "http://127.0.0.1:18127/?data=demo&diagnostics=1&view=near",
+  "stats": {
+    "selected": null,
+    "speed": 0.15,
+    "dustClock": 1.207424999999892,
+    "camera": [
+      -45.28118877979777,
+      28.054811131054233,
+      49.474227340479885
+    ],
+    "target": [
+      -51.115266702437985,
+      0,
+      17.41348643835104
+    ],
+    "distance": 43,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "visibleNodes": 116,
+    "visibleEdges": 40,
+    "highlightedEdges": 0,
+    "provenance": {
+      "mode": "synthetic-demo"
+    },
+    "drawCalls": 22,
+    "movedFrames": 0,
+    "visibility": "visible",
+    "frameSamples": 300,
+    "meanMs": 16.67,
+    "fps": 60,
+    "p95Ms": 17.1,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "capture": null
+}

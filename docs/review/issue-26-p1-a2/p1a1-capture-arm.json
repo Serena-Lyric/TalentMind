@@ -1,0 +1,39 @@
+{
+  "label": "p1a1",
+  "view": "arm",
+  "url": "http://127.0.0.1:18127/.p1a1-baseline/index.html?data=demo&diagnostics=1&view=near&still=1",
+  "stats": {
+    "selected": null,
+    "speed": 0.15,
+    "dustClock": 0,
+    "camera": [
+      -45.28118877979777,
+      28.054811131054233,
+      49.474227340479885
+    ],
+    "target": [
+      -51.115266702437985,
+      0,
+      17.41348643835104
+    ],
+    "distance": 43,
+    "width": 1600,
+    "height": 900,
+    "dpr": 1,
+    "particles": 214200,
+    "nodes": 116,
+    "edges": 40,
+    "movedFrames": 0,
+    "visibility": "visible",
+    "frameSamples": 121,
+    "meanMs": 16.8,
+    "fps": 59.5,
+    "p95Ms": 16.8,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "gpu": "ANGLE (AMD, AMD Radeon(TM) 880M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "capture": "{\"seed\":261018,\"camera\":[-45.281189,28.054811,49.474227],\"target\":[-51.115267,0,17.413486],\"width\":1600,\"height\":900,\"dpr\":1,\"dustClock\":0,\"selected\":null,\"render\":{\"dpr\":1.5,\"bloomStrength\":0.34,\"bloomRadius\":0.45,\"bloomThreshold\":0.85,\"exposure\":1.05},\"particles\":{\"dust\":110000,\"mist\":44000,\"core\":48000,\"stars\":10000,\"field\":2200}}",
+  "file": "p1a1-arm.png",
+  "sha256": "2c3700b3e3a6b1f48b7ae6c1037149a307ca9c3b249176dc9989b8e6a4a4a615"
+}

@@ -40,6 +40,8 @@
 - AI 修复业务/脚本 bug 后，在 `docs/superpowers/traps/YYYY-MM-DD-简述.md` 记录“症状 → 根因 → 修复 → 教训”；按模块阅读既有陷阱，不在根指引复制完整索引。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
+本轮陷阱索引：[M3 适配类型强转与高连接度关系汇聚](docs/superpowers/traps/2026-10-18-m3-adapter-type-and-link-light.md)（2026-10-18）。
+
 ## 5. Windows 与编码
 
 - 端口用 `Get-NetTCPConnection -LocalPort`；进程用 `Get-Process`/`Stop-Process`，不用 `netstat`/`tasklist`/`taskkill` 文本解析。

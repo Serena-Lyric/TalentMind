@@ -42,6 +42,8 @@ test('invalid contracts fail rather than silently dropping data or inventing dem
     g => g.nodes.push(g.nodes[0]), g => g.nodes[0].id = '',
     g => g.nodes[0].type = 'invented', g => g.edges[0].target = 'missing',
     g => g.edges[0].type = 'invented', g => g.edges[0].source = 4,
+    g => g.nodes[0].type = ['job'], g => g.nodes[0].type = {},
+    g => g.nodes[0].type = null, g => g.nodes[0].type = 0,
   ]) { const graph = small(); mutate(graph); assert.throws(() => adapter.adaptM3(graph)); }
   assert.throws(() => adapter.adaptM3({ nodes: [] }));
 });
