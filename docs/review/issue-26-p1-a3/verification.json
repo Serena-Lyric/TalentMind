@@ -1,0 +1,78 @@
+{
+  "sourceSha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2",
+  "checks": 79,
+  "originalEvidenceFilesUnchanged": 118,
+  "panoramaPixelIdentical": true,
+  "allSixBaselineViewsMatchOriginal": true,
+  "exactVideoPathPaired": true,
+  "pairs": [
+    {
+      "view": "overview",
+      "baselineMeanMs": 16.668666666666663,
+      "adaptiveMeanMs": 16.668,
+      "baselineP95Ms": 17.09999999999991,
+      "adaptiveP95Ms": 17.09999999999991
+    },
+    {
+      "view": "arm-mid",
+      "baselineMeanMs": 16.668000000000003,
+      "adaptiveMeanMs": 16.667666666666666,
+      "baselineP95Ms": 17.100000000000364,
+      "adaptiveP95Ms": 17.100000000000364
+    },
+    {
+      "view": "arm-near",
+      "baselineMeanMs": 16.669000000000004,
+      "adaptiveMeanMs": 16.667333333333332,
+      "baselineP95Ms": 17.09999999999991,
+      "adaptiveP95Ms": 17.100000000000364
+    },
+    {
+      "view": "core-near",
+      "baselineMeanMs": 22.77833333333333,
+      "adaptiveMeanMs": 21.167666666666666,
+      "baselineP95Ms": 33.400000000000546,
+      "adaptiveP95Ms": 33.40000000000009
+    },
+    {
+      "view": "selected",
+      "baselineMeanMs": 19.223,
+      "adaptiveMeanMs": 18.778000000000002,
+      "baselineP95Ms": 33.399999999999636,
+      "adaptiveP95Ms": 33.399999999999636
+    },
+    {
+      "view": "neighbors",
+      "baselineMeanMs": 16.667333333333332,
+      "adaptiveMeanMs": 16.667333333333332,
+      "baselineP95Ms": 17.199999999999818,
+      "adaptiveP95Ms": 17.100000000000364
+    }
+  ],
+  "videoChecks": [
+    {
+      "mode": "baseline",
+      "frames": 601,
+      "maxOpacityStep": 0,
+      "maxCapStep": 0,
+      "meanMs": 22.444999999999965,
+      "p95Ms": 33.5,
+      "calls": [
+        22
+      ]
+    },
+    {
+      "mode": "adaptive",
+      "frames": 601,
+      "maxOpacityStep": 0.009392121126753472,
+      "maxCapStep": 0.039133838028139856,
+      "meanMs": 22.028333333333304,
+      "p95Ms": 33.5,
+      "calls": [
+        22
+      ]
+    }
+  ],
+  "recommendation": "实验未优于基线，保留 P1-A.2",
+  "limitation": "Reduced decoration intensity is not proof of a meaningful gain in knowledge readability. Visual judgment still requires product review."
+}

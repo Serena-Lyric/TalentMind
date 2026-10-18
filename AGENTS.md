@@ -42,6 +42,8 @@
 
 本轮陷阱索引：[M3 适配类型强转与高连接度关系汇聚](docs/superpowers/traps/2026-10-18-m3-adapter-type-and-link-light.md)（2026-10-18）。
 
+[P1-A.3 配对采集覆盖层、拾取密度与定时输入](docs/superpowers/traps/2026-10-18-nebula-paired-capture.md)（2026-10-18）。
+
 ## 5. Windows 与编码
 
 - 端口用 `Get-NetTCPConnection -LocalPort`；进程用 `Get-Process`/`Stop-Process`，不用 `netstat`/`tasklist`/`taskkill` 文本解析。

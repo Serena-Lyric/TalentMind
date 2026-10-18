@@ -5,6 +5,8 @@ export function mountDiagnostics(app) {
   const panel = document.createElement('aside'); panel.id = 'diagnostics';
   panel.innerHTML = '<strong>DEV / 真机诊断</strong><p>本页是开发测试模式，截图入口不含此面板。</p><button id="run-checks">运行交互检查</button><button id="record">录制约20秒操作</button><label>输入保护测试<input id="typing" placeholder="在此输入 WASDQE"></label><pre id="stats"></pre><pre id="checks"></pre><a id="record-download" hidden>下载真实 WebGL 操作录像</a>';
   document.querySelector('#universe').append(panel);
+  // DEV-only scene access for paired camera, buffer and picking verification.
+  panel.app = app;
   const stats = panel.querySelector('#stats'), checks = panel.querySelector('#checks');
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   const wheel = deltaY => app.canvas.dispatchEvent(new WheelEvent('wheel', { deltaY, cancelable: true, bubbles: true }));
