@@ -49,5 +49,5 @@ export function graphComponent(props = vue.reactive({ panelsHidden: false, immer
     state.nodeById.clear()
     nodes.forEach(node => state.nodeById.set(node.id, node))
   }
-  return { state, setGraph, labels, stop: () => scope.stop(), debug: () => JSON.parse(state.rootRef.value.dataset.nebula) }
+  return { state, setGraph, labels, load, stop: () => scope.stop(), debug: () => JSON.parse(state.rootRef.value.dataset.nebula) }
 }

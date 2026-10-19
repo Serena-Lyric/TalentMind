@@ -15,9 +15,11 @@ import type { GalaxyCamera } from './camera'
 // @ts-expect-error Original P1-A.2 knowledge shader; replay only, no synthetic data fallback.
 import { createKnowledge } from './p1a2Knowledge.js'
 
-export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void, options:{visual:VisualVariant;frozen:boolean;diagnostics?:boolean;spatial?:{rig:GalaxyCamera;group:THREE.Group;frame:(delta:number)=>void}}={visual:'p22',frozen:false}) {
+export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void, options:{visual:VisualVariant;frozen:boolean;diagnostics?:boolean;spatial?:{rig:GalaxyCamera;group:THREE.Group;frame:(delta:number)=>void;pointLimit?:(value:number)=>void}}={visual:'p22',frozen:false}) {
   const renderer = new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'})
   renderer.info.autoReset=false
+  const gl=renderer.getContext(),pointSizeRange=Array.from(gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as Float32Array)
+  options.spatial?.pointLimit?.(pointSizeRange[1])
   renderer.setClearColor('#000001'); renderer.toneMapping=THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure=CONFIG.render.exposure
   const scene=new THREE.Scene(), fixedCamera=new THREE.OrthographicCamera(-100,100,100,-100,.1,1600)
@@ -82,7 +84,7 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
       if(referenceNodes!==nodes){disposeObjects(referenceGroup);referenceGroup.clear();knowledge=createKnowledge(referenceGroup,{nodes:nodes.map(n=>({id:n.id,type:n.kind==='job'?0:n.kind==='skill'?2:3,position:[n.point.x/30,-n.point.y/30,0]})),edges:[]});referenceNodes=nodes}
       knowledge.filter({nodeIds:ids,edgeIndices:[]});knowledge.select(selected)
     },
-    stats:()=>({frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),heap:heap(),resources:{...renderer.info.memory,calls:renderer.info.render.calls},particles:dust.count,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:options.spatial?'perspective':'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
+    stats:()=>({frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),heap:heap(),resources:{...renderer.info.memory,calls:renderer.info.render.calls},particles:dust.count,pointSizeRange,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:options.spatial?'perspective':'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
     dispose(){stopped=true;cancelAnimationFrame(frame);canvas.removeEventListener('webglcontextlost',lost);disposeObjects(scene);composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose();if(options.diagnostics)console.info('nebula-disposed',JSON.stringify({...renderer.info.memory,frameCancelled:true}))}
   }
 }

@@ -23,15 +23,15 @@ test('关系显示逐边守恒：数据缺失/类型/LOD/坐标/视口/长度/�
  positions.set('long1',{x:-500,y:0});positions.set('long2',{x:500,y:0})
  positions.set('budget',{x:20,y:0})
  const edges=[['j','shown'],['j','type'],['j','lod'],['j','unplaced'],['off1','off2'],['long1','long2'],['j','budget'],['j','missing']].map(([source,target],sourceIndex)=>({source,target,kind:'REQUIRES',sourceIndex}))
- const plan=planRelations(edges,nodes,positions,{activeKinds:new Set(['job','skill']),visibleIds:new Set(nodes.filter(n=>n.id!=='lod').map(n=>n.id)),viewport:bounds,scale:1,limit:1})
- assert.deepEqual(plan.audit,{scope:8,invalidEndpoint:1,typeHidden:1,lodHidden:1,unplaced:1,viewportHidden:1,lengthHidden:1,budgetHidden:1,submitted:1})
+ const plan=planRelations(edges,nodes,positions,{activeKinds:new Set(['job','skill']),visibleIds:new Set(nodes.filter(n=>n.id!=='lod').map(n=>n.id)),showUnselected:true,viewport:bounds,scale:1,limit:1})
+ assert.deepEqual(plan.audit,{scope:8,interactionHidden:0,invalidEndpoint:1,typeHidden:1,lodHidden:1,unplaced:1,viewportHidden:1,lengthHidden:1,budgetHidden:1,submitted:1})
  assert.equal(plan.edges[0].sourceIndex,0)
 })
 test('选中222真实直连不做视口/长度/预算删除；曲线保持全部原边身份及端点',()=>{
  const nodes=[node('s'),...Array.from({length:222},(_,i)=>node('j'+i,'job'))]
  const positions=new Map(nodes.map((n,i)=>[n.id,{x:i?1000+i:0,y:i*.01}]))
  const edges=nodes.slice(1).map((n,sourceIndex)=>({source:n.id,target:'s',kind:'REQUIRES',sourceIndex}))
- const plan=planRelations(edges,nodes,positions,{activeKinds:new Set(['job','skill']),visibleIds:new Set(nodes.map(n=>n.id)),selectedId:'s',viewport:bounds,scale:.1,limit:1})
+ const plan=planRelations(edges,nodes,positions,{activeKinds:new Set(['job','skill']),visibleIds:new Set(nodes.map(n=>n.id)),selectedId:'s',showUnselected:true,viewport:bounds,scale:.1,limit:1})
  assert.equal(plan.edges.length,222);assert.equal(plan.audit.budgetHidden,0);assert.equal(plan.audit.viewportHidden,0);assert.equal(plan.audit.lengthHidden,0)
  const controls=fanControls(plan.edges,positions,'s')
  assert.equal(controls.size,222);assert.equal(new Set([...controls.values()].map(p=>p.y)).size,222)
@@ -58,6 +58,6 @@ test('修订版近景长边参与可解释预算，不再被长度阈值提前�
  const nodes=['a','b','c','d'].map(id=>node(id,'job'))
  const positions=new Map([['a',{x:-500,y:0}],['b',{x:500,y:0}],['c',{x:0,y:20}],['d',{x:20,y:20}]])
  const edges=[{source:'a',target:'b',kind:'RELATED_TO'},{source:'c',target:'d',kind:'RELATED_TO'}]
- const result=planRelations(edges,nodes,positions,{activeKinds:new Set(['job']),visibleIds:new Set(nodes.map(n=>n.id)),viewport:bounds,scale:1.35,limit:2,preserveLongNear:true})
+ const result=planRelations(edges,nodes,positions,{activeKinds:new Set(['job']),visibleIds:new Set(nodes.map(n=>n.id)),showUnselected:true,viewport:bounds,scale:1.35,limit:2,preserveLongNear:true})
  assert.equal(result.audit.lengthHidden,0);assert.equal(result.edges.length,2)
 })

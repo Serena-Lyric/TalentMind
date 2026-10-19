@@ -7,12 +7,7 @@
     </header>
 
     <aside v-show="!props.panelsHidden" class="nebula-control panel-glass" tabindex="0" aria-label="图谱控制，可滚动">
-      <p class="snapshot-note">已核验历史交接快照<br />非实时数据库 · 非新版标准岗位目录</p>
-      <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
-      <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
-      <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
-      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphVisual=p22#/graph">P2.3三维</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。仅作比较，不改变数据。</p></details>
-      <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
+      <p class="snapshot-note">探索岗位、技能与历史场景<br />单击星体显示直接关联；点击空白取消。</p>
       <label class="nebula-label">搜索</label>
       <div class="nebula-search">
         <el-icon><Search /></el-icon>
@@ -43,10 +38,10 @@
         <span><i class="legend-edge dashed"></i>历史 RELATED_TO</span>
       </div>
 
+      <label class="nebula-label">分析图层</label>
       <label class="snapshot-note"><input v-model="showDerived" type="checkbox" />显示候选派生相似（{{ artifact?.derived_edges?.length ?? 0 }}）</label>
-      <p class="snapshot-note">星体视觉权重仅区分岗位 / 技能 / 历史场景，不代表市场需求或职业重要性。214,200 装饰粒子独立计数。</p>
+      <p class="snapshot-note">{{ spatialMode && stellarMode ? '蓝色斜角标识岗位，绿色横标识技能，紫色纵标识历史场景。' : '蓝色岗位、绿色技能、紫色历史场景。' }}星体外观不代表职业重要性；装饰星尘不计入知识节点。</p>
       <p class="snapshot-note" aria-live="polite">{{ relationSummary }}</p>
-      <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
       <p v-if="showDerived" class="snapshot-note">{{ derivedSummary }}</p>
       <p class="snapshot-note">{{ levelSummary }}</p>
       <div class="nebula-tools">
@@ -60,6 +55,19 @@
       <div v-if="savedView" class="nebula-tools">
         <button type="button" @click="returnToView">返回原视角</button>
       </div>
+      <details class="snapshot-note technical-info"><summary>技术信息 / 版本与诊断</summary>
+      <p class="snapshot-note">已核验历史交接快照<br />非实时数据库 · 非新版标准岗位目录</p>
+      <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
+      <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
+      <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?#/graph">P2.4恒星</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。仅作比较，不改变数据。</p></details>
+      <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
+      <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
+        <label v-if="spatialMode && stellarMode">恒星外观预设
+          <select v-model="stellarPreset" aria-label="恒星外观预设"><option value="">稳定 ID 混合</option><option v-for="type in STELLAR_TYPES" :key="type" :value="type">{{ stellarNames[type] }}</option></select>
+        </label>
+        <p>外观采用自行编写的程序化材质，四类仅为视觉预设；不对应职业重要性、需求、JD 数量或质量。</p>
+      </details>
     </aside>
 
     <div ref="canvasWrapRef" class="nebula-canvas-wrap">
@@ -75,8 +83,8 @@
         <button type="button" aria-label="关闭详情" @click="clearSelection">×</button>
       </div>
       <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>历史直接关系</small></span><span><b>{{ connectedNodeCount }}</b><small>不同邻接节点</small></span></div>
-      <div class="detail-section"><label>身份 / 来源</label><p>{{ selectedNode.id }}<br />graph.json → nodes[{{ selectedNode.sourceIndex }}]</p><p>历史 job_count：{{ selectedNode.raw?.job_count ?? '未提供' }}（不等于直连数量）</p><details class="layout-provenance"><summary>候选布局说明</summary><p>社区：{{ communityLabel }}。这是算法布局归属，不是审核后的职业分类。</p></details></div>
-      <div class="nebula-tools"><button type="button" @click="viewAllConnections">查看全部关联</button></div>
+      <p v-if="spatialMode && stellarMode" class="snapshot-note">外观：{{ stellarNames[stellarProfile(selectedNode.id,stellarPreset || undefined).type] }} · 仅视觉分配</p>
+      <div class="nebula-tools"><button type="button" @click="viewAllConnections">定位全部关联</button><button v-if="spatialMode && stellarMode" type="button" @click="inspectStar">近距离观察</button></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>历史分类 / 演化（旧口径）</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>来源平台</label><p>{{ selectedNode.platform_label || '—' }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.core_duties" class="detail-section"><label>核心职责</label><p>{{ selectedNode.core_duties }}</p></div>
@@ -85,23 +93,24 @@
       <div v-if="selectedNode.kind === 'job' && selectedNode.scenarios?.length" class="detail-section"><label>历史 scenarios 原文（旧口径）</label><p>{{ selectedNode.scenarios.join('、') }}</p></div>
       <div v-if="selectedNode.status" class="detail-section"><label>状态</label><p>{{ selectedNode.status === 'stable' ? '稳定' : selectedNode.status === 'emerging' ? '新一代' : selectedNode.status }}</p></div>
       <div v-if="selectedNode.kind !== 'job'" class="detail-section"><label>节点名称</label><p>{{ selectedNode.label }}</p></div>
-      <div class="detail-section"><label>全部直接关系 · 每页 30 条 · 不受画布预算限制</label>
+      <div class="detail-section"><label>直接关联 · 每页 30 条</label>
         <p>共 {{ directEdges.length }} 条；类型过滤隐藏 {{ directEdges.length - typeVisibleDirect }} 条</p>
         <ol class="connection-list" :start="connectionPage * 30 + 1">
           <li v-for="edge in connectionRows" :key="edge.sourceIndex" :class="{ 'edge-focused': focusedEdgeIndex === edge.sourceIndex }" @mouseenter="focusRelation(edge.sourceIndex)" @mouseleave="focusRelation(null)">
             <button type="button" :disabled="connectionHidden(edge)" @click="selectConnection(edge)">{{ nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.label }}</button>
             <small v-if="connectionHidden(edge)">另一端类型当前隐藏；原关系仍在数据中。</small>
             <button v-if="connectionHidden(edge)" type="button" @click="showConnection(edge)">显示该类型并选中</button>
-            <small>{{ edge.kind }} · edges[{{ edge.sourceIndex }}]</small>
+            <small>{{ relationName(edge.kind) }} · {{ nodeKindLabel(nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.kind || 'job') }}</small>
             <button class="edge-focus-button" :disabled="connectionHidden(edge)" :aria-label="`高亮原关系 ${edge.sourceIndex}`" @focus="focusRelation(edge.sourceIndex)" @blur="focusRelation(null)" @click="focusRelation(edge.sourceIndex)">高亮这条原边</button>
-            <details><summary>原始关系 / 来源</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
+            <details><summary>原始关系 / 来源索引 {{ edge.sourceIndex }}</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
             <small v-if="edge.raw?.source_indices">来源索引 {{ JSON.stringify(edge.raw.source_indices) }}</small>
           </li>
         </ol>
         <div class="nebula-search-nav"><button aria-label="上一页关联" :disabled="connectionPage === 0" @click="connectionPage--">‹</button><span>{{ connectionPage + 1 }} / {{ Math.max(1, Math.ceil(directEdges.length / 30)) }}</span><button aria-label="下一页关联" :disabled="(connectionPage + 1) * 30 >= directEdges.length" @click="connectionPage++">›</button></div>
       </div>
+      <details class="detail-section"><summary>技术信息 / 身份与来源</summary><p>{{ selectedNode.id }}<br />graph.json → nodes[{{ selectedNode.sourceIndex }}]</p><p>历史 job_count：{{ selectedNode.raw?.job_count ?? '未提供' }}（不等于直连数量）</p><details class="layout-provenance"><summary>候选布局说明</summary><p>社区：{{ communityLabel }}。这是算法布局归属，不是审核后的职业分类。</p></details></details>
       <details class="detail-section"><summary>原始节点属性（历史快照）</summary><pre>{{ JSON.stringify(selectedNode.raw, null, 2) }}</pre></details>
-      <div class="detail-section"><label>使用提示</label><p>已高亮该节点的直接关联，点击空白区域可清除高亮。画布外的关联可通过“查看全部关联”查看。</p></div>
+      <div class="detail-section"><label>使用提示</label><p>已高亮该节点的直接关联，点击空白区域可清除高亮。画布外的关联可通过“定位全部关联”查看。</p></div>
     </aside>
 
     <div class="nebula-hint">{{ spatialMode ? '左拖旋转 · 右拖 / WASD 平移 · Q/E 滚转 · 滚轮缩放 · R 全景 · 单击选择' : '点击节点查看详情 · 滚轮缩放 · 拖拽平移' }}</div>
@@ -117,7 +126,7 @@ import { loadHistoricalGraph, visibleKnowledgeIds, type LayoutArtifact } from '.
 
 import type { Point } from '../graph/nebulaViewport'
 import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
-import { toScreen, toWorld, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale, type Transform } from '../graph/nebulaViewport'
+import { toScreen, toWorld, focusTransform, searchNodes, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale, type Transform } from '../graph/nebulaViewport'
 
 import { nodeAppearance, selectLabels, type LabelCandidate } from '../graph/nebulaPresentation'
 import { starAppearance, createStarSprites, paintStar, placeStarLabels } from '../graph/starPresentation'
@@ -125,6 +134,7 @@ import { planRelations, fanControls, curveIntersects } from '../graph/relationRe
 import { comparisonSettings } from '../graph/comparisonView'
 import { cameraKey, type GalaxyCamera, type CameraState } from '../graph/galaxy/camera'
 import type { SpatialKnowledge } from '../graph/galaxy/knowledge'
+import { stellarProfile, stellarNames, STELLAR_TYPES, type StellarType } from '../graph/galaxy/stellarAppearance'
 
 const comparison=comparisonSettings(window.location.search)
 const visual=comparison.visual
@@ -133,6 +143,8 @@ let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
+const stellarMode=query.get('graphStars')!=='p23'
+const stellarPreset=ref<StellarType|''>('')
 const spatialMode=query.get('graphCamera')!=='fixed'&&visual==='p22'&&!comparison.preset
 const cameraRig=shallowRef<GalaxyCamera|null>(null)
 let spatialKnowledge:SpatialKnowledge|null=null,spatialDirty=true,disposed=false,composing=false
@@ -160,7 +172,7 @@ const loadError = ref('')
 const webglError = ref(false)
 const relationSummary = ref('')
 const relationAudit = shallowRef<ReturnType<typeof planRelations>['audit']|null>(null)
-const auditLabels={invalidEndpoint:'无有效端点',typeHidden:'按类型隐藏',lodHidden:'LOD折叠',unplaced:'缺少有效坐标',viewportHidden:'视口外省略',lengthHidden:'长度策略省略',budgetHidden:'视觉预算截断'}
+const auditLabels={interactionHidden:'未选择，按交互隐藏',invalidEndpoint:'无有效端点',typeHidden:'按类型隐藏',lodHidden:'LOD折叠',unplaced:'缺少有效坐标',viewportHidden:'视口外省略',lengthHidden:'长度策略省略',budgetHidden:'视觉预算截断'}
 const focusedEdgeIndex=ref<number|null>(null)
 function focusRelation(index:number|null|undefined){focusedEdgeIndex.value=index??null;draw()}
 const derivedSummary = ref('')
@@ -236,6 +248,7 @@ function measureInteraction(name:string,start:number) {
 }
 const colors: Record<string, string> = { job: '#4da6ff', skill: '#2ee66b', industry: '#c77dff' }
 
+function relationName(kind:string){return kind==='REQUIRES'?'岗位技能关联':kind==='APPLIES_TO'?'历史场景关联':kind==='RELATED_TO'?'历史岗位关联':kind}
 function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '历史场景（旧 Industry 投影）' }
 function appearanceFor(node:GraphNode,selected=false,matched=false,hovered=false){const activeHover=hovered||(focusedEdgeIndex.value!==null&&focusedEdgeIds.value.has(node.id));return visual==='p22'?starAppearance(node.kind,transform.scale,selected,matched,activeHover):nodeAppearance(node.kind,nodeSize(node),transform.scale,selected,matched,activeHover)}
 function nodeSize(node: GraphNode) { return node.kind === 'job' ? Math.max(7, Math.min(18, (node.size || 14) * .42)) : node.kind === 'industry' ? 13 : Math.max(3.5, Math.min(8, (node.size || 8) * .32)) }
@@ -285,7 +298,7 @@ function screenToWorld(x: number, y: number) {
   if (!canvas) return { x: 0, y: 0 }
   return toWorld({ x, y }, { width: canvas.clientWidth, height: canvas.clientHeight }, transform)
 }
-function visibleNode(node: DrawNode) { const id=node.id; return activeKinds.value.has(node.kind) && knowledgeIds.value.has(id) && visibleInFocus(id, highlightIds.value) }
+function visibleNode(node: DrawNode) { return activeKinds.value.has(node.kind) && knowledgeIds.value.has(node.id) }
 
 function draw() {
   if(cameraRig.value&&spatialKnowledge){spatialDirty=true;return}
@@ -341,8 +354,8 @@ function draw() {
   })
   ctx.restore()
   relationSummary.value=selectedNode.value
-    ? directEdges.value.length?`历史直连 ${directEdges.value.length} · 类型可见 ${typeVisibleDirect.value} · 提交 ${submitted} · 画布相交 ${painted}。无预算截断；指向关联行可高亮原边，主动查看全部关联可适配视口。`:'当前历史快照没有该节点的直接关系记录。'
-    : `历史关系 ${graphData.value.edges.length} · 提交 ${submitted} · 画布相交 ${painted}。类型隐藏 ${edgePlan.audit.typeHidden} / LOD折叠 ${edgePlan.audit.lodHidden} / 预算截断 ${edgePlan.audit.budgetHidden}；其余原因可展开核对。`
+    ? directEdges.value.length?`历史直连 ${directEdges.value.length} · 类型可见 ${typeVisibleDirect.value} · 提交 ${submitted} · 画布相交 ${painted}。无预算截断；指向关联行可高亮原边，主动定位全部关联可适配视口。`:'当前历史快照没有该节点的直接关系记录。'
+    : `未选择星体，历史关系按交互隐藏 ${edgePlan.audit.interactionHidden} / ${graphData.value.edges.length}。历史关系 ${graphData.value.edges.length} · 提交 ${submitted} · 画布相交 ${painted}。类型隐藏 ${edgePlan.audit.typeHidden} / LOD折叠 ${edgePlan.audit.lodHidden} / 预算截断 ${edgePlan.audit.budgetHidden}；其余原因可展开核对。`
   let derivedSubmitted=0
   if(showDerived.value && artifact.value?.derived_edges) {
     const derived=artifact.value.derived_edges.map(e=>({...e,kind:'candidate_similarity'}))
@@ -372,7 +385,7 @@ function draw() {
     const color = colors[node.kind]
     const active = !hasHighlight || highlights.has(node.id)
     ctx.save()
-    ctx.globalAlpha = active ? 1 : .12
+    ctx.globalAlpha = active ? 1 : .82
     if(visual==='p22')paintStar(ctx,point.x,point.y,starAppearance(node.kind,transform.scale,selected,match,hovered||focusedIds.has(node.id)),color,starSprites?.get(node.kind,appearance.radius))
     else if(visual==='p21') {
       ctx.shadowColor=color;ctx.shadowBlur=appearance.shadow;ctx.fillStyle=color
@@ -476,8 +489,9 @@ function fitGraph() {
 function focusNeighborhood() {
   if (!selectedNode.value) return
   overview = false
-  if(cameraRig.value&&spatialKnowledge){cameraRig.value.fit(drawNodes.value.filter(visibleNode).map(n=>spatialKnowledge!.positions.get(n.id)!),graphArea());spatialDirty=true;return}
-  fitPoints(drawNodes.value.filter(visibleNode).map(node => node.point))
+  const neighborhood=drawNodes.value.filter(node=>highlightIds.value.has(node.id)&&activeKinds.value.has(node.kind))
+  if(cameraRig.value&&spatialKnowledge){cameraRig.value.fit(neighborhood.map(n=>spatialKnowledge!.positions.get(n.id)!),graphArea());spatialDirty=true;return}
+  fitPoints(neighborhood.map(node => node.point))
 }
 async function viewAllConnections() {
   const interactionStart=performance.now()
@@ -487,6 +501,15 @@ async function viewAllConnections() {
   await nextTick()
   focusNeighborhood(); draw()
   measureInteraction('all-connections',interactionStart)
+}
+async function inspectStar() {
+  if(!cameraRig.value||!spatialKnowledge||!selectedNode.value)return
+  if(!savedView.value)savedView.value={transform:{...transform},fittedScale,overview}
+  if(!savedCamera)savedCamera=cameraRig.value.capture()
+  overview=false
+  await nextTick()
+  cameraRig.value.fit([spatialKnowledge.positions.get(selectedNode.value.id)!],graphArea())
+  draw()
 }
 function returnToView() {
   const interactionStart=performance.now()
@@ -500,6 +523,7 @@ function returnToView() {
 }
 async function clearSelection() {
   selectedNode.value = null; highlightIds.value = new Set(); searchIndex.value = -1
+  focusedEdgeIndex.value=null
   overview = false
   await nextTick()
   draw()
@@ -622,6 +646,7 @@ watch(activeKinds, async () => {
 watch(() => props.panelsHidden, async () => { await nextTick(); draw() })
 watch(searchKeyword, async () => { searchIndex.value = -1; await nextTick(); draw() })
 watch(showDerived,draw)
+watch(stellarPreset,draw)
 function cameraKeydown(event:KeyboardEvent){
   if(!cameraRig.value)return
   const key=cameraKey(event,composing)
@@ -649,12 +674,12 @@ function flushSpatial(delta:number){
   spatialDirty=false
   Object.assign(transform,{scale:rig.scale})
   const focusedEdge=directEdges.value.find(e=>e.sourceIndex===focusedEdgeIndex.value)
-  const result=knowledge.update(canvas,{activeKinds:activeKinds.value,selectedId:selectedNode.value?.id,focusIds:highlightIds.value,priority:new Set([...highlightIds.value,...searchMatchIds.value]),matches:searchMatchIds.value,hoveredId:hoveredId.value,focusedEdge,panels:graphPanels(),showDerived:showDerived.value,derived:showDerived.value?(artifact.value?.derived_edges||[]).map(e=>({...e,kind:'candidate_similarity'})):[]})
+  const result=knowledge.update(canvas,{activeKinds:activeKinds.value,selectedId:selectedNode.value?.id,focusIds:highlightIds.value,priority:new Set([...highlightIds.value,...searchMatchIds.value]),matches:searchMatchIds.value,hoveredId:hoveredId.value,focusedEdge,stellarPreset:stellarPreset.value||undefined,panels:graphPanels(),showDerived:showDerived.value,derived:showDerived.value?(artifact.value?.derived_edges||[]).map(e=>({...e,kind:'candidate_similarity'})):[]})
   relationAudit.value=result.audit
-  relationSummary.value=`历史${selectedNode.value?'直连':'关系'} ${result.audit.scope} · 提交 ${result.submitted} · 三维视锥相交 ${result.intersecting}；总量 ${graphData.value.edges.length}。逐条原边可在详情高亮。`
+  relationSummary.value=selectedNode.value?`直接关系 ${result.audit.scope} · 类型隐藏 ${result.audit.typeHidden} · 提交 ${result.submitted} · 视锥候选 ${result.intersecting}。其他星体仍可选中。`:`未选择星体 · 历史关系隐藏 ${result.audit.interactionHidden} / ${graphData.value.edges.length} · 提交 0。单击任意星体显示直接关联。`
   derivedSummary.value=`派生相似：提交 ${result.derivedSubmitted} / 总量 ${artifact.value?.derived_edges?.length||0}（独立候选层）`
   levelSummary.value=`当前知识层 ${result.visibleNodes} / ${graphData.value.nodes.length}；展示深度不代表语义距离。`
-  if(debug&&rootRef.value)rootRef.value.dataset.nebula=JSON.stringify({...result,mode:'galaxy-p23',visual:'p22',snapshot:artifact.value?.snapshot_sha256_lf,totalEdges:graphData.value.edges.length,relationshipAudit:result.audit,selectedId:selectedNode.value?.id||null,selectedScreen:selectedNode.value?knowledge.projected(selectedNode.value.id):null,focusedEdgeIndex:focusedEdgeIndex.value,camera:rig.capture(),galaxy:galaxy?.stats(),hoveredId:hoveredId.value,savedView:Boolean(savedView.value),activeKinds:[...activeKinds.value],search:{index:searchIndex.value,count:searchMatches.value.length},panelsHidden:Boolean(props.panelsHidden),immersive:Boolean(props.immersive),direct:selectedNode.value?{dataDegree:directEdges.value.length,typeFiltered:typeVisibleDirect.value,submitted:result.submitted,intersecting:result.intersecting}:null})
+  if(debug&&rootRef.value)rootRef.value.dataset.nebula=JSON.stringify({...result,mode:stellarMode?'galaxy-p24':'galaxy-p23-stars',visual:'p22',snapshot:artifact.value?.snapshot_sha256_lf,totalEdges:graphData.value.edges.length,relationshipAudit:result.audit,selectedId:selectedNode.value?.id||null,selectedScreen:selectedNode.value?knowledge.projected(selectedNode.value.id):null,focusedEdgeIndex:focusedEdgeIndex.value,camera:rig.capture(),galaxy:galaxy?.stats(),hoveredId:hoveredId.value,savedView:Boolean(savedView.value),activeKinds:[...activeKinds.value],search:{index:searchIndex.value,count:searchMatches.value.length},panelsHidden:Boolean(props.panelsHidden),immersive:Boolean(props.immersive),direct:selectedNode.value?{dataDegree:directEdges.value.length,typeFiltered:typeVisibleDirect.value,submitted:result.submitted,intersecting:result.intersecting}:null})
 }
 onMounted(async () => {
   starSprites=createStarSprites(colors)
@@ -664,8 +689,8 @@ onMounted(async () => {
   try {
     const {createGalaxyBackground}=await import('../graph/galaxy/background')
     if(disposed||!galaxyRef.value)return
-    if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value);if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
-    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial}:undefined})
+    if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value,stellarMode);if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
+    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial,pointLimit:spatialKnowledge.setPointLimit}:undefined})
     resizeCanvas()
     if(cameraRig.value)fitGraph()
     if(debug)statsTimer=setInterval(()=>{if(rootRef.value)rootRef.value.dataset.galaxyStats=JSON.stringify(galaxy?.stats())},500)
@@ -675,6 +700,7 @@ onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTim
 </script>
 
 <style scoped>
+.technical-info {margin-top:16px;border-top:1px solid rgba(105,106,189,.18);padding-top:12px}.technical-info summary,.detail-section summary{cursor:pointer}.technical-info select{max-width:100%;background:#15152d;color:#dbe2ff;border:1px solid #45456b;border-radius:5px;padding:4px;margin-top:6px}
 .reference-mark {color:#ffd7a0}.layout-provenance{font-size:11px;color:#a4afcb;margin:8px 0 12px}.layout-provenance summary,.relation-audit summary{cursor:pointer}.layout-provenance p{line-height:1.6}
 .connection-list .edge-focused{background:rgba(150,190,255,.12);border-radius:6px}.connection-list .edge-focus-button{font-size:10px;color:#dfedff;text-decoration:underline;margin:4px 0}.connection-list details{font-size:10px;color:#a4afcb}.connection-list summary{cursor:pointer}
 
@@ -712,9 +738,9 @@ onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTim
 .nebula-legend { display: grid; gap: 8px; padding-bottom: 12px; }
 .nebula-legend span { display: flex; align-items: center; color: #a1a4c2; font-size: 11px; }
 .nebula-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; }
-.nebula-legend .legend-job { background: #4da6ff; box-shadow: 0 0 9px #4da6ff; }
-.nebula-legend .legend-skill { background: #2ee66b; box-shadow: 0 0 9px #2ee66b; }
-.nebula-legend .legend-industry { background: #c77dff; box-shadow: 0 0 9px #c77dff; }
+.nebula-legend .legend-job { border-radius:1px;transform:rotate(45deg);background: #4da6ff; box-shadow: 0 0 9px #4da6ff; }
+.nebula-legend .legend-skill { height:3px;border-radius:0;background: #2ee66b; box-shadow: 0 0 9px #2ee66b; }
+.nebula-legend .legend-industry { width:3px;margin-left:3px;margin-right:12px;border-radius:0;background: #c77dff; box-shadow: 0 0 9px #c77dff; }
 .nebula-legend .legend-edge { width: 18px; height: 2px; border-radius: 0; background: #4da6ff; }
 .nebula-legend .legend-edge.dashed { height: 0; border-top: 2px dashed #777aa8; }
 .nebula-legend .legend-edge.scenario { height: 0; border-top: 1px dotted #c77dff; background: transparent; }

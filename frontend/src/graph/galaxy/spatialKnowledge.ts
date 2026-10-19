@@ -9,12 +9,13 @@ export function relationCurve(edge:GraphEdge,positions:Map<string,Vector3>) {
  control.y+=Math.min(3,direction.length()*.04)*Math.sin(index*2.39996)
  return new QuadraticBezierCurve3(a,control,b)
 }
-export function spatialRelations(edges:GraphEdge[],byId:Map<string,GraphNode>,positions:Map<string,Vector3>,options:{visibleIds:Set<string>;activeKinds:Set<string>;selectedId?:string;scale:number;frustum?:Frustum;bounds?:Map<GraphEdge,Box3>}) {
- const audit={scope:0,invalidEndpoint:0,typeHidden:0,lodHidden:0,unplaced:0,viewportHidden:0,lengthHidden:0,budgetHidden:0,submitted:0}
+export function spatialRelations(edges:GraphEdge[],byId:Map<string,GraphNode>,positions:Map<string,Vector3>,options:{visibleIds:Set<string>;activeKinds:Set<string>;selectedId?:string;scale:number;frustum?:Frustum;bounds?:Map<GraphEdge,Box3>;showUnselected?:boolean}) {
+ const audit={scope:0,interactionHidden:0,invalidEndpoint:0,typeHidden:0,lodHidden:0,unplaced:0,viewportHidden:0,lengthHidden:0,budgetHidden:0,submitted:0}
  const groups=new Map<string,GraphEdge[]>()
  for(const edge of edges){
   if(options.selectedId&&edge.source!==options.selectedId&&edge.target!==options.selectedId)continue
   audit.scope++
+  if(!options.selectedId&&!options.showUnselected){audit.interactionHidden++;continue}
   const a=byId.get(edge.source),b=byId.get(edge.target),p=positions.get(edge.source),q=positions.get(edge.target)
   if(!a||!b){audit.invalidEndpoint++;continue}
   if(!options.activeKinds.has(a.kind)||!options.activeKinds.has(b.kind)){audit.typeHidden++;continue}

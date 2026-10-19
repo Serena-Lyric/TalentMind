@@ -2,11 +2,12 @@ import type { GraphNode, GraphEdge } from '../api/graph'
 import type { Point } from './nebulaViewport'
 import { selectEdgePlan, segmentInBounds, type EdgeOptions, type Bounds } from './nebulaEdges.ts'
 
-export function planRelations(edges:GraphEdge[],nodes:GraphNode[],positions:Map<string,Point>,options:EdgeOptions&{visibleIds:Set<string>}) {
+export function planRelations(edges:GraphEdge[],nodes:GraphNode[],positions:Map<string,Point>,options:EdgeOptions&{visibleIds:Set<string>;showUnselected?:boolean}) {
  const byId=new Map(nodes.map(n=>[n.id,n])), scope=options.selectedId?edges.filter(e=>e.source===options.selectedId||e.target===options.selectedId):edges
- const audit={scope:scope.length,invalidEndpoint:0,typeHidden:0,lodHidden:0,unplaced:0,viewportHidden:0,lengthHidden:0,budgetHidden:0,submitted:0}
+ const audit={scope:scope.length,interactionHidden:0,invalidEndpoint:0,typeHidden:0,lodHidden:0,unplaced:0,viewportHidden:0,lengthHidden:0,budgetHidden:0,submitted:0}
  const eligible:GraphEdge[]=[]
  for(const edge of scope) {
+  if(!options.selectedId&&!options.showUnselected){audit.interactionHidden++;continue}
   const a=byId.get(edge.source),b=byId.get(edge.target),p=positions.get(edge.source),q=positions.get(edge.target)
   if(!a||!b){audit.invalidEndpoint++;continue}
   if(!options.activeKinds.has(a.kind)||!options.activeKinds.has(b.kind)){audit.typeHidden++;continue}

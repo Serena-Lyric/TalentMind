@@ -24,7 +24,7 @@ test('真实7845/11412渲染管线守恒；Python222条原边在过滤和高亮�
  const app=graphComponent();t.after(app.stop);const s=app.state
  app.setGraph(nodes,graph.edges);s.artifact.value=artifact;s.transform.scale=.2;s.draw()
  const audit=app.debug().relationshipAudit
- assert.equal(audit.scope,11412);assert.equal(audit.lodHidden,3750)
+ assert.equal(audit.scope,11412);assert.equal(audit.interactionHidden,11412)
  assert.equal(Object.entries(audit).filter(([k])=>k!=='scope').reduce((sum,[,n])=>sum+Number(n),0),11412)
  const python=nodes.find(n=>n.id==='skill:python')!;s.highlightNode(python);s.draw()
  const sourceIndices=graph.edges.filter(e=>e.source===python.id||e.target===python.id).map(e=>e.sourceIndex).sort((a,b)=>a-b)
