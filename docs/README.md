@@ -9,6 +9,7 @@
 | [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案；M2-01～60、相关 M1 输入与新增 M3/M5 创新方向、Career Nebula 第一批设计；确认不等于已实现 |
 | [Career Nebula 视觉设计基线](superpowers/specs/2026-10-17-career-nebula-visual-design.md) | 大型多色知识银河、《诗云》参考边界、图谱页面布局与交互/视觉规范，区分已确认与待议 |
 | [Career Nebula P2.4 恒星与交互报告](review/M3-M5-P2-4.md) | 正式Vue四类恒星、默认无线与非关联可选、同条件截图、222原边、开销和回退；PR35追加候选，待产品评价 |
+| [Career Nebula P2.5 视觉语义增量](superpowers/specs/2026-10-19-career-nebula-p25-visual-semantics.md) | 岗位／技能／旧场景三种主视觉、密度与银河融合、端点颜色渐变关系；已确认方向，不等于完成实现或最终美术验收 |
 | [Career Nebula P2.3增量设计](superpowers/specs/2026-10-19-career-nebula-p23-design.md) | 用户本轮确认的三维正式集成、领域/历史语义边界与未来项；[实现与证据](review/M3-M5-P2-3.md)仍待独立审核/产品验收 |
 | [Career Nebula Codex 第一批任务书](superpowers/plans/2026-10-17-career-nebula-first-phase.md) | P0 仅图谱页顶栏/高度，P1 独立《诗云》风格视觉样品，验收/回退与禁止事项 |
 | [README.md](../README.md) | 项目总览、带日期的模块状态、启动/测试、目录边界 |
