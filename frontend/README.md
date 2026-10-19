@@ -15,6 +15,12 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ## 启动
 
+### P2.3 三维知识银河（2026-10-19，独立Draft候选）
+
+当前候选 `/#/graph` 默认中心环绕三维：左拖旋转、右拖/WASD屏幕平移、Q/E滚转、滚轮缩放、R恢复。控制器基础相机与滚转显示相机分离；知识星体、原边、标签和拾取共享投影，原历史快照和来源索引保持。展示深度不代表语义距离，历史岗位未自动分八类。完整运行、80项前端测试、配对性能和实机限制见 [P2.3报告](../docs/review/M3-M5-P2-3.md)。
+
+回退 `/?graphCamera=fixed&graphVisual=p22#/graph`、`/?graphCamera=fixed&graphVisual=p21#/graph`、`/#/graph?graphRenderer=legacy`。下列P2.2/P2.1段落保留当时实现语境；最终产品验收仍待独立审核和用户确认。
+
 ### P2.2 星体与关系可读性修订（PR33追加，待视觉验收）
 
 默认正式 `/#/graph` 已使用修订版星体、逐边关系对账、独立原边曲线/高亮和标签避让。历史Industry只称旧场景投影，社区说明折叠、派生相似默认关闭。原输入/布局不变；三方真实截图、性能成本与遗留见 [P2.2报告](../docs/review/M3-M5-P2-2.md)。

@@ -1,0 +1,532 @@
+{
+  "date": "2026-10-19 Asia/Singapore",
+  "base": "a373427e54b5875f12f749e90741ace16af2b95b",
+  "graph_nodes": 7845,
+  "graph_edges": 11412,
+  "python_original_indices": [
+    0,
+    24,
+    40,
+    70,
+    114,
+    121,
+    175,
+    182,
+    205,
+    227,
+    274,
+    336,
+    388,
+    417,
+    424,
+    460,
+    479,
+    497,
+    524,
+    540,
+    591,
+    606,
+    667,
+    684,
+    731,
+    787,
+    880,
+    938,
+    962,
+    991,
+    998,
+    1043,
+    1057,
+    1099,
+    1131,
+    1209,
+    1277,
+    1323,
+    1432,
+    1447,
+    1471,
+    1551,
+    1608,
+    1633,
+    1657,
+    1667,
+    1683,
+    1743,
+    1776,
+    1811,
+    1838,
+    1861,
+    1879,
+    1899,
+    2018,
+    2025,
+    2038,
+    2057,
+    2062,
+    2073,
+    2105,
+    2174,
+    2180,
+    2227,
+    2235,
+    2278,
+    2292,
+    2300,
+    2312,
+    2354,
+    2380,
+    2396,
+    2422,
+    2504,
+    2525,
+    2550,
+    2576,
+    2600,
+    2609,
+    2679,
+    2704,
+    2712,
+    2765,
+    2857,
+    2893,
+    2907,
+    2958,
+    3000,
+    3277,
+    3328,
+    3453,
+    3519,
+    3530,
+    3536,
+    3569,
+    3594,
+    3626,
+    3662,
+    3682,
+    3720,
+    3775,
+    3835,
+    3866,
+    3918,
+    3952,
+    4003,
+    4039,
+    4047,
+    4117,
+    4149,
+    4188,
+    4221,
+    4301,
+    4335,
+    4361,
+    4450,
+    4485,
+    4495,
+    4511,
+    4529,
+    4574,
+    4594,
+    4609,
+    4623,
+    4642,
+    4662,
+    4689,
+    4704,
+    4773,
+    4860,
+    4894,
+    5076,
+    5087,
+    5105,
+    5159,
+    5167,
+    5191,
+    5306,
+    5324,
+    5348,
+    5486,
+    5511,
+    5531,
+    5610,
+    5628,
+    5776,
+    5810,
+    5827,
+    5850,
+    5921,
+    5945,
+    5963,
+    5969,
+    6021,
+    6141,
+    6161,
+    6307,
+    6349,
+    6377,
+    6380,
+    6476,
+    6502,
+    6696,
+    6741,
+    6770,
+    6786,
+    6799,
+    6852,
+    6858,
+    6914,
+    7127,
+    7164,
+    7177,
+    7204,
+    7258,
+    7336,
+    7343,
+    7395,
+    7472,
+    7477,
+    7608,
+    7717,
+    7753,
+    7791,
+    7900,
+    8322,
+    8404,
+    8785,
+    8946,
+    8992,
+    9022,
+    9049,
+    9077,
+    9099,
+    9117,
+    9368,
+    9376,
+    9430,
+    9557,
+    9615,
+    9629,
+    9660,
+    9677,
+    9695,
+    9704,
+    9730,
+    9796,
+    9814,
+    9838,
+    9964,
+    10011,
+    10024,
+    10242,
+    10421,
+    10443,
+    10487,
+    10495,
+    10508,
+    10534,
+    10544,
+    10555,
+    10641
+  ],
+  "browser_highlight_indices_match": true,
+  "browser_highlight_all_preserve_identity": true,
+  "unchanged_assets": [
+    {
+      "path": "exchange/m3/graph.json",
+      "sha256_lf": "e8e3fe6aab4ffd359a16c8c62ee8edd4684504266fafe1534d36599cd7af742f",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "exchange/m3/overlays/p2-1-layout.json",
+      "sha256_lf": "927693b19efdc7c1c91f77a3d03d28e4198ee125f43ff5b5eb27ee5056fbfea3",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "frontend/src/graph/galaxy/config.js",
+      "sha256_lf": "8cda8219c7c055f022d06b9edca770e1eb6f339710da9a5da6c744d52b78c4f1",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "frontend/src/graph/galaxy/particles.js",
+      "sha256_lf": "d36e37a8090696a685c62355e7d17fbdfc5cfa2235467d415a16da558879b326",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "frontend/src/graph/galaxy/generate.js",
+      "sha256_lf": "51b8750b5d8136752b40efc7dbf161e81a3d3b7518ba683d20ba34d3ab47b137",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "frontend/src/graph/starPresentation.ts",
+      "sha256_lf": "f9e13e02f98085d7ae0b171214de39de2c2ae5dfb3894b0226ec9eea9239bb92",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/backend-offline.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/browser-observations.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/code-self-review.md",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/derived-overlay.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/frontend-build.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/frontend-tests.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/industry-detail.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/job-detail.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/legacy-fallback.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/media-validation.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/middle.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/near-unselected.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/near.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/overview.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/performance.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/production-all-neighbors.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/production-layout-failure.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/production-login-guard.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/production-overview.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/production-python-selected.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/python-all-neighbors.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/python-last-page.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/python-selected.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/recording-timeline.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/reference-lab-build.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-1/route-interactions.webm",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/backend-graph-tests.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/browser-observations.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/code-self-review.md",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/comparison-near-cached-final.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/comparison-near-final.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/comparison-near.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/comparison-observations.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/comparison.html",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/default-semantics.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/draw-samples-final.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/draw-samples.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/expected-cases.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/frontend-build.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/frontend-tests.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/hidden-type-reason.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/historical-scenario.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/job-all-relations.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/legacy-fallback.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/new-star-canvas-click.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/open-issues.md",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p1a2-middle.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p1a2-near.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p1a2-overview.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p21-camera-only-bridge.patch",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p21-middle.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p21-near.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p21-overview.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-middle-cached-final.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-middle.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-near-cached-final.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-near-final.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-near.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-overview-cached-final.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/p22-overview.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/performance.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/provenance.json",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/python-all-relations.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/python-original-edge-0.jpg",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/reference-lab-build.log",
+      "unchanged_from_a373427": true
+    },
+    {
+      "path": "docs/review/m3-m5-p2-2/validation.json",
+      "unchanged_from_a373427": true
+    }
+  ],
+  "old_evidence_files": 66,
+  "production_database_actions": [],
+  "final_bundle_python_indices_match": true,
+  "final_bundle": "index-6a03b61c.js"
+}

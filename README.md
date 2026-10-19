@@ -269,3 +269,7 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 - 不提交 `.env`、真实密钥、数据库 volume、未经脱敏的简历和大型本地数据；
 - 未获用户授权的任务不创建 Git commit；已授权的阶段开发可按 [AGENTS.md](AGENTS.md) 在独立分支分项提交并创建 PR，但不得未经审查合并 `master`。
 
+
+### 2026-10-19 P2.3 三维正式页面候选
+
+从 PR33@a373427 在独立分支交付默认三维 `/graph`：左拖旋转、右拖/WASD平移、Q/E滚转、滚轮缩放、R恢复；知识星体与原边批量WebGL、Canvas标签共享投影。保留全部历史输入和来源索引，不自动给历史岗位分八类。P2.2仍待最终产品验收；本轮测试、性能和独立Draft PR见 [P2.3报告](docs/review/M3-M5-P2-3.md)。回退：`?graphCamera=fixed&graphVisual=p22#/graph`、`?graphCamera=fixed&graphVisual=p21#/graph`、`#/graph?graphRenderer=legacy`。不代表生产图迁移或获准合并。

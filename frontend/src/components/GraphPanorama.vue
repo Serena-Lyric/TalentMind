@@ -6,12 +6,13 @@
       <div class="nebula-meta"><span>{{ graphData.nodes.length }} 个节点</span><i></i><span>{{ graphData.edges.length }} 条关联</span></div>
     </header>
 
-    <aside v-show="!props.panelsHidden" class="nebula-control panel-glass">
+    <aside v-show="!props.panelsHidden" class="nebula-control panel-glass" tabindex="0" aria-label="图谱控制，可滚动">
       <p class="snapshot-note">已核验历史交接快照<br />非实时数据库 · 非新版标准岗位目录</p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
-      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphVisual=p22#/graph">修订版</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。仅作比较，不改变数据。</p></details>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphVisual=p22#/graph">P2.3三维</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。仅作比较，不改变数据。</p></details>
+      <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
       <label class="nebula-label">搜索</label>
       <div class="nebula-search">
         <el-icon><Search /></el-icon>
@@ -62,13 +63,13 @@
     </aside>
 
     <div ref="canvasWrapRef" class="nebula-canvas-wrap">
-      <canvas ref="canvasRef" @click="onCanvasClick" @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointerleave="onPointerLeave" @wheel.prevent="onWheel"></canvas>
+      <canvas ref="canvasRef" tabindex="0" aria-label="知识银河，左拖旋转，右拖平移，滚轮缩放" @contextmenu.prevent @click="onCanvasClick" @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp" @pointerleave="onPointerLeave" @wheel="onWheel"></canvas>
       <div v-if="loading" class="nebula-state"><el-icon class="is-loading"><Loading /></el-icon><span>正在加载图谱数据...</span></div>
       <div v-else-if="!graphData.nodes.length" class="nebula-state"><el-icon><DataAnalysis /></el-icon><span>{{ loadError || "暂无图谱数据" }}</span><a href="#/graph?graphRenderer=legacy">旧 Canvas 回退</a></div>
     </div>
 
     <div v-if="webglError" class="renderer-error">银河渲染不可用。<a href="#/graph?graphRenderer=legacy">切换旧 Canvas</a></div>
-    <aside v-if="selectedNode" v-show="!props.panelsHidden" class="nebula-detail panel-glass">
+    <aside v-if="selectedNode" v-show="!props.panelsHidden" class="nebula-detail panel-glass" tabindex="0" aria-label="节点详情，可滚动">
       <div class="detail-head">
         <div><small>{{ nodeKindLabel(selectedNode.kind) }}</small><h3>{{ selectedNode.label }}</h3><p v-if="selectedNode.name_en && selectedNode.name_en !== selectedNode.label" class="detail-en">{{ selectedNode.name_en }}</p></div>
         <button type="button" aria-label="关闭详情" @click="clearSelection">×</button>
@@ -81,7 +82,7 @@
       <div v-if="selectedNode.kind === 'job' && selectedNode.core_duties" class="detail-section"><label>核心职责</label><p>{{ selectedNode.core_duties }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.required_skills?.length" class="detail-section"><label>历史必备（非新版五态）</label><p>{{ selectedNode.required_skills.join('、') }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.bonus_skills?.length" class="detail-section"><label>历史加分（非新版五态）</label><p>{{ selectedNode.bonus_skills.join('、') }}</p></div>
-      <div v-if="selectedNode.kind === 'job' && selectedNode.scenarios?.length" class="detail-section"><label>应用场景</label><p>{{ selectedNode.scenarios.join('、') }}</p></div>
+      <div v-if="selectedNode.kind === 'job' && selectedNode.scenarios?.length" class="detail-section"><label>历史 scenarios 原文（旧口径）</label><p>{{ selectedNode.scenarios.join('、') }}</p></div>
       <div v-if="selectedNode.status" class="detail-section"><label>状态</label><p>{{ selectedNode.status === 'stable' ? '稳定' : selectedNode.status === 'emerging' ? '新一代' : selectedNode.status }}</p></div>
       <div v-if="selectedNode.kind !== 'job'" class="detail-section"><label>节点名称</label><p>{{ selectedNode.label }}</p></div>
       <div class="detail-section"><label>全部直接关系 · 每页 30 条 · 不受画布预算限制</label>
@@ -103,7 +104,7 @@
       <div class="detail-section"><label>使用提示</label><p>已高亮该节点的直接关联，点击空白区域可清除高亮。画布外的关联可通过“查看全部关联”查看。</p></div>
     </aside>
 
-    <div class="nebula-hint">点击节点查看详情&nbsp;&nbsp;·&nbsp;&nbsp;滚轮缩放&nbsp;&nbsp;·&nbsp;&nbsp;拖拽平移</div>
+    <div class="nebula-hint">{{ spatialMode ? '左拖旋转 · 右拖 / WASD 平移 · Q/E 滚转 · 滚轮缩放 · R 全景 · 单击选择' : '点击节点查看详情 · 滚轮缩放 · 拖拽平移' }}</div>
   </section>
 </template>
 
@@ -122,6 +123,8 @@ import { nodeAppearance, selectLabels, type LabelCandidate } from '../graph/nebu
 import { starAppearance, createStarSprites, paintStar, placeStarLabels } from '../graph/starPresentation'
 import { planRelations, fanControls, curveIntersects } from '../graph/relationReadability'
 import { comparisonSettings } from '../graph/comparisonView'
+import { cameraKey, type GalaxyCamera, type CameraState } from '../graph/galaxy/camera'
+import type { SpatialKnowledge } from '../graph/galaxy/knowledge'
 
 const comparison=comparisonSettings(window.location.search)
 const visual=comparison.visual
@@ -130,6 +133,12 @@ let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
+const spatialMode=query.get('graphCamera')!=='fixed'&&visual==='p22'&&!comparison.preset
+const cameraRig=shallowRef<GalaxyCamera|null>(null)
+let spatialKnowledge:SpatialKnowledge|null=null,spatialDirty=true,disposed=false,composing=false
+const cameraKeys=new Set<string>()
+let savedCamera:CameraState|null=null
+let statsTimer:ReturnType<typeof setInterval>|null=null
 const debug = query.get('nebulaDebug') === '1' || Boolean(comparison.preset)
 let layoutMs = 0
 let loadGeneration = 0
@@ -175,7 +184,7 @@ const worldPositions=computed(()=>new Map(drawNodes.value.map(node=>[node.id,nod
 const highlightIds = ref<Set<string>>(new Set())
 const transform = reactive({ scale: 1, x: 0, y: 0 })
 const savedView = ref<{ transform: Transform; fittedScale: number; overview: boolean } | null>(null)
-const drag = reactive({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 })
+const drag = reactive({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0, lastX:0,lastY:0,button:0 })
 let resizeObserver: ResizeObserver | null = null
 
 const activeKinds = computed(() => new Set(filters.filter(item => item.active).map(item => item.kind)))
@@ -246,6 +255,7 @@ async function buildLayout(data: GraphData, generation: number) {
   drawNodes.value = nodes.map(node => ({ ...node, point: layout.get(node.id) || { x: 0, y: 0 } }))
   nodeById.clear()
   drawNodes.value.forEach(node => nodeById.set(node.id, node))
+  if(spatialKnowledge)spatialKnowledge.setData(nodes,data.edges,artifact.value!.nodes)
 }
 
 function resizeCanvas() {
@@ -278,6 +288,7 @@ function screenToWorld(x: number, y: number) {
 function visibleNode(node: DrawNode) { const id=node.id; return activeKinds.value.has(node.kind) && knowledgeIds.value.has(id) && visibleInFocus(id, highlightIds.value) }
 
 function draw() {
+  if(cameraRig.value&&spatialKnowledge){spatialDirty=true;return}
   const start = performance.now()
   const canvas = canvasRef.value
   if (!canvas) return
@@ -414,6 +425,7 @@ function draw() {
 }
 
 function nodeAt(x: number, y: number) {
+  if(cameraRig.value&&spatialKnowledge){const id=spatialKnowledge.pick(x,y);return id?nodeById.get(id):undefined}
   const world = screenToWorld(x, y)
   const matchIds = searchMatchIds.value
   let closest:DrawNode|undefined, best=Infinity
@@ -458,17 +470,20 @@ function fitPoints(points: Point[]) {
   lastFit = { area, points: points.length, outside }
 }
 function fitGraph() {
+  if(cameraRig.value){cameraRig.value.reset(graphArea());spatialDirty=true;return}
   fitPoints(drawNodes.value.filter(node => activeKinds.value.has(node.kind)).map(node => node.point))
 }
 function focusNeighborhood() {
   if (!selectedNode.value) return
   overview = false
+  if(cameraRig.value&&spatialKnowledge){cameraRig.value.fit(drawNodes.value.filter(visibleNode).map(n=>spatialKnowledge!.positions.get(n.id)!),graphArea());spatialDirty=true;return}
   fitPoints(drawNodes.value.filter(visibleNode).map(node => node.point))
 }
 async function viewAllConnections() {
   const interactionStart=performance.now()
   if (!selectedNode.value) return
   if (!savedView.value) savedView.value = { transform: { ...transform }, fittedScale, overview }
+  if(cameraRig.value&&!savedCamera)savedCamera=cameraRig.value.capture()
   await nextTick()
   focusNeighborhood(); draw()
   measureInteraction('all-connections',interactionStart)
@@ -476,6 +491,7 @@ async function viewAllConnections() {
 function returnToView() {
   const interactionStart=performance.now()
   if (!savedView.value) return
+  if(cameraRig.value&&savedCamera){cameraRig.value.restore(savedCamera);savedCamera=null}
   Object.assign(transform, savedView.value.transform)
   fittedScale = savedView.value.fittedScale; overview = savedView.value.overview
   savedView.value = null; lastFit = null
@@ -502,7 +518,10 @@ async function onCanvasClick(event: MouseEvent) {
   measureInteraction('node-click',interactionStart)
 }
 function onPointerDown(event: PointerEvent) {
+  if(event.button!==0&&event.button!==2)return
   drag.active = true; drag.moved = false; drag.startX = event.clientX; drag.startY = event.clientY; drag.originX = transform.x; drag.originY = transform.y
+  drag.lastX=event.clientX;drag.lastY=event.clientY;drag.button=event.button
+  canvasRef.value?.focus?.({preventScroll:true})
   canvasRef.value?.setPointerCapture(event.pointerId)
 }
 function onPointerMove(event: PointerEvent) {
@@ -516,19 +535,23 @@ function onPointerMove(event: PointerEvent) {
   const dx = event.clientX - drag.startX; const dy = event.clientY - drag.startY
   drag.moved = drag.moved || Math.abs(dx) > 3 || Math.abs(dy) > 3
   if (drag.moved) overview = false
+  if(cameraRig.value){if(!drag.moved)return;const dx=event.clientX-drag.lastX,dy=event.clientY-drag.lastY;drag.lastX=event.clientX;drag.lastY=event.clientY;if(drag.button===2)cameraRig.value.pan(dx,dy);else cameraRig.value.orbit(dx,dy);draw();return}
   transform.x = drag.originX + dx / transform.scale; transform.y = drag.originY + dy / transform.scale; draw()
 }
 function onPointerUp() { drag.active = false }
-function onPointerLeave() { onPointerUp(); if (hoveredId.value) { hoveredId.value = null; draw() } }
+function onPointerLeave() { if(!drag.active&&hoveredId.value) { hoveredId.value = null; draw() } }
 function zoomView(direction:1|-1) {
   const canvas=canvasRef.value,rect=canvas?.getBoundingClientRect()
   if(canvas&&rect)onWheel({clientX:rect.left+canvas.clientWidth/2,clientY:rect.top+canvas.clientHeight/2,deltaY:direction})
 }
-function onWheel(event: Pick<WheelEvent,'clientX'|'clientY'|'deltaY'>) {
+function onWheel(event: Pick<WheelEvent,'clientX'|'clientY'|'deltaY'>&Partial<WheelEvent>) {
+  if(event.ctrlKey||event.metaKey||event.altKey)return
+  event.preventDefault?.()
   const interactionStart=performance.now()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   overview = false
+  if(cameraRig.value){cameraRig.value.zoom(event.deltaY>0?1:-1);draw();measureInteraction('zoom',interactionStart);return}
   const before = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
   transform.scale = nextZoomScale(transform.scale, event.deltaY <= 0, fittedScale)
   const after = screenToWorld(event.clientX - rect.left, event.clientY - rect.top)
@@ -538,6 +561,7 @@ function onWheel(event: Pick<WheelEvent,'clientX'|'clientY'|'deltaY'>) {
 async function resetView() {
   selectedNode.value = null; highlightIds.value = new Set()
   searchIndex.value = -1; savedView.value = null
+  savedCamera=null;cameraKeys.clear()
   overview = true; await nextTick(); fitGraph()
   draw()
 }
@@ -557,6 +581,7 @@ async function stepSearch(direction: 1 | -1) {
   overview = false
   await nextTick()
   const area = graphArea()
+  if(cameraRig.value&&spatialKnowledge){cameraRig.value.focus(spatialKnowledge.positions.get(node.id)!,area);draw();flushSpatial(0);measureInteraction('search-next',interactionStart);return}
   const point = worldToScreen(node.point)
   if (point.x < area.left + 20 || point.x > area.right - 20 || point.y < area.top + 20 || point.y > area.bottom - 20) {
     transform.x += ((area.left + area.right) / 2 - point.x) / transform.scale
@@ -576,7 +601,7 @@ async function loadGraph() {
     if(comparison.transform){Object.assign(transform,comparison.transform);overview=false;fittedScale=comparison.transform.scale}
     await buildLayout(data, generation)
     if (generation !== loadGeneration) return
-    savedView.value = null; highlightNode(selectedNode.value)
+    savedView.value = null;savedCamera=null; highlightNode(selectedNode.value)
     await nextTick()
     resizeCanvas()
     if (overview && !selectedNode.value) fitGraph()
@@ -584,7 +609,7 @@ async function loadGraph() {
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
 // 快照只属于当前选中身份；同步失效，避免同一轮改选后展开误用旧快照。
-watch(() => selectedNode.value?.id, () => { savedView.value = null }, { flush: 'sync' })
+watch(() => selectedNode.value?.id, () => { savedView.value = null;savedCamera=null }, { flush: 'sync' })
 watch(activeKinds, async () => {
   searchIndex.value = -1
   if (selectedNode.value && !activeKinds.value.has(selectedNode.value.kind)) {
@@ -597,18 +622,56 @@ watch(activeKinds, async () => {
 watch(() => props.panelsHidden, async () => { await nextTick(); draw() })
 watch(searchKeyword, async () => { searchIndex.value = -1; await nextTick(); draw() })
 watch(showDerived,draw)
+function cameraKeydown(event:KeyboardEvent){
+  if(!cameraRig.value)return
+  const key=cameraKey(event,composing)
+  if(!key){if(event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)cameraKeys.clear();return}
+  event.preventDefault()
+  if(key==='r'){if(!event.repeat)resetView();return}
+  cameraKeys.add(key);overview=false
+}
+function cameraKeyup(event:KeyboardEvent){cameraKeys.delete(event.key.toLowerCase())}
+function clearCameraKeys(){cameraKeys.clear();drag.active=false}
+function compositionStart(){composing=true;clearCameraKeys()}
+function compositionEnd(){composing=false}
+function flushSpatial(delta:number){
+  const rig=cameraRig.value,knowledge=spatialKnowledge,canvas=canvasRef.value
+  if(!rig||!knowledge||!canvas||!graphData.value.nodes.length)return
+  if(cameraKeys.size){
+    const speed=delta*300
+    const dx=((cameraKeys.has('a')?1:0)-(cameraKeys.has('d')?1:0))*speed,dy=((cameraKeys.has('w')?1:0)-(cameraKeys.has('s')?1:0))*speed
+    if(dx||dy)rig.pan(dx,dy)
+    if(cameraKeys.has('q')||cameraKeys.has('e'))rig.rollBy(((cameraKeys.has('q')?1:0)-(cameraKeys.has('e')?1:0))*delta*1.2)
+    spatialDirty=true
+  }
+  if(rig.update(delta))spatialDirty=true
+  if(!spatialDirty)return
+  spatialDirty=false
+  Object.assign(transform,{scale:rig.scale})
+  const focusedEdge=directEdges.value.find(e=>e.sourceIndex===focusedEdgeIndex.value)
+  const result=knowledge.update(canvas,{activeKinds:activeKinds.value,selectedId:selectedNode.value?.id,focusIds:highlightIds.value,priority:new Set([...highlightIds.value,...searchMatchIds.value]),matches:searchMatchIds.value,hoveredId:hoveredId.value,focusedEdge,panels:graphPanels(),showDerived:showDerived.value,derived:showDerived.value?(artifact.value?.derived_edges||[]).map(e=>({...e,kind:'candidate_similarity'})):[]})
+  relationAudit.value=result.audit
+  relationSummary.value=`历史${selectedNode.value?'直连':'关系'} ${result.audit.scope} · 提交 ${result.submitted} · 三维视锥相交 ${result.intersecting}；总量 ${graphData.value.edges.length}。逐条原边可在详情高亮。`
+  derivedSummary.value=`派生相似：提交 ${result.derivedSubmitted} / 总量 ${artifact.value?.derived_edges?.length||0}（独立候选层）`
+  levelSummary.value=`当前知识层 ${result.visibleNodes} / ${graphData.value.nodes.length}；展示深度不代表语义距离。`
+  if(debug&&rootRef.value)rootRef.value.dataset.nebula=JSON.stringify({...result,mode:'galaxy-p23',visual:'p22',snapshot:artifact.value?.snapshot_sha256_lf,totalEdges:graphData.value.edges.length,relationshipAudit:result.audit,selectedId:selectedNode.value?.id||null,selectedScreen:selectedNode.value?knowledge.projected(selectedNode.value.id):null,focusedEdgeIndex:focusedEdgeIndex.value,camera:rig.capture(),galaxy:galaxy?.stats(),hoveredId:hoveredId.value,savedView:Boolean(savedView.value),activeKinds:[...activeKinds.value],search:{index:searchIndex.value,count:searchMatches.value.length},panelsHidden:Boolean(props.panelsHidden),immersive:Boolean(props.immersive),direct:selectedNode.value?{dataDegree:directEdges.value.length,typeFiltered:typeVisibleDirect.value,submitted:result.submitted,intersecting:result.intersecting}:null})
+}
 onMounted(async () => {
   starSprites=createStarSprites(colors)
   resizeObserver = new ResizeObserver(resizeCanvas); if (canvasWrapRef.value) resizeObserver.observe(canvasWrapRef.value)
   loadGraph()
+  window.addEventListener('keydown',cameraKeydown);window.addEventListener('keyup',cameraKeyup);window.addEventListener('blur',clearCameraKeys);window.addEventListener('compositionstart',compositionStart);window.addEventListener('compositionend',compositionEnd);document.addEventListener('visibilitychange',clearCameraKeys)
   try {
     const {createGalaxyBackground}=await import('../graph/galaxy/background')
-    if(!galaxyRef.value)return
-    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen})
+    if(disposed||!galaxyRef.value)return
+    if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value);if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
+    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial}:undefined})
     resizeCanvas()
+    if(cameraRig.value)fitGraph()
+    if(debug)statsTimer=setInterval(()=>{if(rootRef.value)rootRef.value.dataset.galaxyStats=JSON.stringify(galaxy?.stats())},500)
   } catch {webglError.value=true}
 })
-onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect();galaxy?.dispose();starSprites?.clear() })
+onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTimer)clearInterval(statsTimer);resizeObserver?.disconnect();spatialKnowledge?.dispose();galaxy?.dispose();cameraRig.value?.dispose();starSprites?.clear();window.removeEventListener('keydown',cameraKeydown);window.removeEventListener('keyup',cameraKeyup);window.removeEventListener('blur',clearCameraKeys);window.removeEventListener('compositionstart',compositionStart);window.removeEventListener('compositionend',compositionEnd);document.removeEventListener('visibilitychange',clearCameraKeys) })
 </script>
 
 <style scoped>
@@ -631,7 +694,8 @@ onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect();galaxy?.dispo
 .nebula-meta { position: absolute; right: 22px; display: flex; align-items: center; gap: 10px; color: #777aa8; font-size: 11px; }
 .nebula-meta i { width: 4px; height: 4px; border-radius: 50%; background: #4da6ff; }
 .panel-glass { border: 1px solid rgba(105, 106, 189, .27); background: rgba(9, 9, 33, .83); border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .28); backdrop-filter: blur(12px); }
-.nebula-control { position: absolute; top: 68px; left: 16px; z-index: 6; width: 244px; max-height: calc(100% - 92px); overflow-y: auto; padding: 16px; }
+.nebula-control { position: absolute; top: 68px; left: 16px; z-index: 6; width: 244px; max-height: calc(100% - 92px); overflow-y: auto; padding: 16px; scrollbar-width:none;-ms-overflow-style:none; }
+.nebula-control::-webkit-scrollbar { display:none;width:0;height:0; }
 .nebula-label { display: block; margin: 0 0 8px; color: #777aa8; font-size: 11px; letter-spacing: 1px; }
 .nebula-search { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border: 1px solid rgba(88, 89, 163, .34); border-radius: 10px; background: rgba(19, 19, 53, .72); color: #7681d3; }
 .nebula-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #dbe2ff; font-size: 12px; }
@@ -658,7 +722,7 @@ onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect();galaxy?.dispo
 .nebula-tools button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 6px; border: 0; background: transparent; color: #8287b4; font-size: 10px; }
 .nebula-tools button:hover { color: #fff; }
 .nebula-canvas-wrap { position: absolute; inset: 56px 0 0; z-index: 1; }
-.nebula-canvas-wrap canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.nebula-canvas-wrap canvas { display: block; width: 100%; height: 100%; cursor: grab;touch-action:none; }
 .nebula-canvas-wrap canvas:active { cursor: grabbing; }
 .nebula-state { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 9px; color: #7679a8; font-size: 13px; pointer-events: none; }
 .nebula-detail { position: absolute; top: 68px; right: 16px; z-index: 6; width: min(360px, calc(100% - 32px)); max-height: calc(100% - 92px); overflow-y: auto; padding: 16px; scrollbar-width: none; }
