@@ -8,4 +8,6 @@
 
 模块状态见 [资产与状态](docs/superpowers/资产与状态.md)，历史裁决见 [决策跟踪](docs/superpowers/决策跟踪.md)；无需在这里重复维护摘要。
 
+- P2.5维护：主体类型由知识身份决定；密度只影响视觉占用，不改布局、可见性或拾取；关系颜色与事实类型分离。见[视觉陷阱](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)，验收证据见[P2.5报告](docs/review/M3-M5-P2-5.md)。
+
 - P2.3相机维护补充：控制器`stop()`不等于原位中断，须同步当前/结束状态并处理最后吸附帧；见[相机陷阱](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)。产品原则仍按主文档§8，实现与验收证据集中在[P2.3报告](docs/review/M3-M5-P2-3.md)，不在此复制状态清单。

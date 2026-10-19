@@ -272,4 +272,6 @@ M2、M3 默认交结构化文件；M4 交可运行模块；M5 对接 A 的统一
 
 ### 2026-10-19 P2.3 三维正式页面候选
 
+**P2.5增量候选（待审查及美术验收）**：正式图谱按岗位/技能/历史场景提供三类主体、连续屏幕密度控制与真实端点渐变关系；默认无线和完整相机交互保留。实现、同条件截图、93项前端测试/45项图谱离线测试与回退见[P2.5报告](docs/review/M3-M5-P2-5.md)。未变更数据库、正式快照或布局；P2.4可用`?graphStars=p24#/graph`回退。
+
 从 PR33@a373427 在独立分支交付默认三维 `/graph`：左拖旋转、右拖/WASD平移、Q/E滚转、滚轮缩放、R恢复；知识星体与原边批量WebGL、Canvas标签共享投影。保留全部历史输入和来源索引，不自动给历史岗位分八类。P2.2仍待最终产品验收；本轮测试、性能和独立Draft PR见 [P2.3报告](docs/review/M3-M5-P2-3.md)。回退：`?graphCamera=fixed&graphVisual=p22#/graph`、`?graphCamera=fixed&graphVisual=p21#/graph`、`#/graph?graphRenderer=legacy`。不代表生产图迁移或获准合并。

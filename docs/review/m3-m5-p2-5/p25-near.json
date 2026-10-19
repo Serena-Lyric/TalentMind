@@ -1,0 +1,406 @@
+{
+  "name": "p25-near",
+  "url": "http://127.0.0.1:18151/?nebulaDebug=1&freezeVisual=1#/graph",
+  "state": {
+    "audit": {
+      "scope": 8,
+      "interactionHidden": 0,
+      "invalidEndpoint": 0,
+      "typeHidden": 0,
+      "lodHidden": 0,
+      "unplaced": 0,
+      "viewportHidden": 0,
+      "lengthHidden": 0,
+      "budgetHidden": 0,
+      "submitted": 8
+    },
+    "drawnSourceIndices": [
+      1347,
+      1263,
+      6609,
+      7080,
+      4273,
+      10687,
+      10147,
+      1151
+    ],
+    "submitted": 8,
+    "intersecting": 8,
+    "visibleNodes": 7577,
+    "labels": {
+      "candidates": 184,
+      "drawn": 25
+    },
+    "drawMs": 8.100000008940697,
+    "derivedSubmitted": 0,
+    "depthVersion": "display-depth-v1",
+    "updateCount": 90,
+    "geometryBuilds": 3,
+    "labelCacheHits": 14008,
+    "scale": 1.0576105382594991,
+    "stellarVersion": "knowledge-body-v1",
+    "transitionParticles": 94140,
+    "maxPointSize": 1024,
+    "density": {
+      "compressed": 1854,
+      "max": 35.234380078283685
+    },
+    "selectedStar": {
+      "type": "青绿紧凑星",
+      "color": "#74cbb8",
+      "seed": 0.7865050642285496,
+      "radius": 21.436490195453068
+    },
+    "pickCandidates": [
+      {
+        "id": "job:j-00d5430c67bed4b2",
+        "x": 331.4725526526812,
+        "y": 51.14996062230056,
+        "depth": 56.48682746743111,
+        "visible": true,
+        "radius": 3.2312371208032236
+      },
+      {
+        "id": "job:j-0eee6685c85d83d2",
+        "x": 533.4222847303823,
+        "y": 55.74022472509619,
+        "depth": 60.949829693553255,
+        "visible": true,
+        "radius": 3.0867446501472493
+      },
+      {
+        "id": "job:j-1d025e162e91f8ea",
+        "x": 657.01396634649,
+        "y": 37.20329892242845,
+        "depth": 61.35890018098921,
+        "visible": true,
+        "radius": 3.074301810773842
+      },
+      {
+        "id": "skill:python",
+        "x": 468.7087066277511,
+        "y": 238.51617154877866,
+        "depth": 28.83802431887982,
+        "visible": true,
+        "radius": 4.697185333336145
+      },
+      {
+        "id": "skill:图像算法",
+        "x": 669.7740806221882,
+        "y": 437.3219979590339,
+        "depth": 35.142093112982565,
+        "visible": true,
+        "radius": 4.2415433601619865
+      },
+      {
+        "id": "skill:c",
+        "x": 327.7085029564644,
+        "y": 340.150049205506,
+        "depth": 38.31091361000614,
+        "visible": true,
+        "radius": 4.046525068580301
+      },
+      {
+        "id": "skill:ai-agent",
+        "x": 354.15977660203714,
+        "y": 156.35247580293864,
+        "depth": 35.08968068009836,
+        "visible": true,
+        "radius": 4.244944067637086
+      },
+      {
+        "id": "skill:rag",
+        "x": 578.9255022796084,
+        "y": 448.34371857231486,
+        "depth": 27.221607259740743,
+        "visible": true,
+        "radius": 4.830772430412299
+      },
+      {
+        "id": "skill:sql",
+        "x": 751.2720671758779,
+        "y": 109.71194663193526,
+        "depth": 33.435745547205855,
+        "visible": true,
+        "radius": 4.35538958086862
+      },
+      {
+        "id": "skill:langchain",
+        "x": 791.5897040880837,
+        "y": 449.4815708685033,
+        "depth": 29.51669513045899,
+        "visible": true,
+        "radius": 4.643276100240353
+      },
+      {
+        "id": "skill:向量检索",
+        "x": 374.2436344121734,
+        "y": 291.7653119316125,
+        "depth": 36.07043183194672,
+        "visible": true,
+        "radius": 4.182283436763137
+      },
+      {
+        "id": "skill:tob业务认知",
+        "x": 666.4049761975294,
+        "y": 483.9402260493369,
+        "depth": 31.09201248964618,
+        "visible": true,
+        "radius": 4.52289263093982
+      },
+      {
+        "id": "skill:dify",
+        "x": 478.9580898292905,
+        "y": 274.1285100130939,
+        "depth": 28.58275374953534,
+        "visible": true,
+        "radius": 4.717790851085791
+      },
+      {
+        "id": "skill:ai-agent开发",
+        "x": 483.85791482787283,
+        "y": 626.2342913969553,
+        "depth": 31.068150318662838,
+        "visible": true,
+        "radius": 4.524667958758059
+      },
+      {
+        "id": "skill:fastapi",
+        "x": 307.53471166414215,
+        "y": 382.42172463679196,
+        "depth": 40.62612679405814,
+        "visible": true,
+        "radius": 3.9162238331513564
+      },
+      {
+        "id": "skill:llamaindex",
+        "x": 351.6106921134538,
+        "y": 443.82287846971894,
+        "depth": 38.731110669719186,
+        "visible": true,
+        "radius": 4.022150695534794
+      },
+      {
+        "id": "skill:向量数据库",
+        "x": 294.5198281250813,
+        "y": 189.17947520512323,
+        "depth": 43.235314231225004,
+        "visible": true,
+        "radius": 3.780366464810905
+      },
+      {
+        "id": "skill:大模型算法",
+        "x": 520.4958713970109,
+        "y": 427.78306496221245,
+        "depth": 29.63721245604728,
+        "visible": true,
+        "radius": 4.6338340713990585
+      },
+      {
+        "id": "skill:多模态算法",
+        "x": 401.035103031021,
+        "y": 460.3145027418065,
+        "depth": 39.80572680328784,
+        "visible": true,
+        "radius": 3.961295944048688
+      },
+      {
+        "id": "skill:ai-coding工具",
+        "x": 316.8047449201155,
+        "y": 572.3161994169026,
+        "depth": 21.621309288067074,
+        "visible": true,
+        "radius": 5.354223622879898
+      },
+      {
+        "id": "skill:ai",
+        "x": 414.17136279872716,
+        "y": 501.70893729330476,
+        "depth": 38.5390849197901,
+        "visible": true,
+        "radius": 4.033248421616357
+      },
+      {
+        "id": "skill:海量数据处理",
+        "x": 600.5147637326384,
+        "y": 646.5461534580554,
+        "depth": 34.097859418837054,
+        "visible": true,
+        "radius": 4.310435907978135
+      },
+      {
+        "id": "skill:vllm",
+        "x": 713.3871018416509,
+        "y": 681.3693684670862,
+        "depth": 28.58037054398231,
+        "visible": true,
+        "radius": 4.717984079199789
+      },
+      {
+        "id": "skill:提示工程",
+        "x": 575.6938110730383,
+        "y": 512.1999940557581,
+        "depth": 31.13623724540588,
+        "visible": true,
+        "radius": 4.519606181699037
+      },
+      {
+        "id": "skill:模型微调",
+        "x": 838.9199775400901,
+        "y": 454.66739040653493,
+        "depth": 30.491140312943866,
+        "visible": true,
+        "radius": 4.568042840774304
+      },
+      {
+        "id": "skill:hugging-face",
+        "x": 392.45207458073054,
+        "y": 394.4221310713184,
+        "depth": 38.0725047816842,
+        "visible": true,
+        "radius": 4.060502765964506
+      },
+      {
+        "id": "skill:多模态模型",
+        "x": 383.53842227120583,
+        "y": 387.89499192037493,
+        "depth": 38.962929663220336,
+        "visible": true,
+        "radius": 4.008844547533806
+      },
+      {
+        "id": "skill:多模态大模型",
+        "x": 595.4334748536924,
+        "y": 558.9248466945551,
+        "depth": 36.04856324346845,
+        "visible": true,
+        "radius": 4.18365848028862
+      },
+      {
+        "id": "skill:tornado",
+        "x": 281.6418233232618,
+        "y": 173.11405480749738,
+        "depth": 39.53333067093786,
+        "visible": true,
+        "radius": 3.9765236191799618
+      },
+      {
+        "id": "skill:api开发",
+        "x": 869.5325593311912,
+        "y": 488.6813048269047,
+        "depth": 38.95737239597608,
+        "visible": true,
+        "radius": 4.009162366353909
+      }
+    ],
+    "mode": "galaxy-p25",
+    "visual": "p22",
+    "snapshot": "e8e3fe6aab4ffd359a16c8c62ee8edd4684504266fafe1534d36599cd7af742f",
+    "totalEdges": 11412,
+    "relationshipAudit": {
+      "scope": 8,
+      "interactionHidden": 0,
+      "invalidEndpoint": 0,
+      "typeHidden": 0,
+      "lodHidden": 0,
+      "unplaced": 0,
+      "viewportHidden": 0,
+      "lengthHidden": 0,
+      "budgetHidden": 0,
+      "submitted": 8
+    },
+    "selectedId": "skill:导师辅导",
+    "selectedScreen": {
+      "id": "skill:导师辅导",
+      "x": 437.1036001232106,
+      "y": 535.2949571193703,
+      "depth": 23.144988779670342,
+      "visible": true,
+      "radius": 21.436490195453068
+    },
+    "focusedEdgeIndex": null,
+    "camera": {
+      "position": [
+        5.143169986625243,
+        22.042157085536747,
+        23.021808511560604
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "quaternion": [
+        -0.3647590931484193,
+        0.1020245074260887,
+        0.04024828857420578,
+        0.9246198565447609
+      ],
+      "distance": 32.28486570574152,
+      "roll": 0,
+      "fov": 43,
+      "zoom": 1
+    },
+    "galaxy": {
+      "frames": {
+        "samples": 600,
+        "p50": 16.69999999999709,
+        "p95": 17.10000000000582
+      },
+      "renderSubmissionMs": {
+        "samples": 600,
+        "p50": 0.5,
+        "p95": 2.2999999970197678
+      },
+      "heap": {
+        "usedJSHeapSize": 59969708,
+        "totalJSHeapSize": 118306112
+      },
+      "resources": {
+        "geometries": 11,
+        "textures": 13,
+        "calls": 24
+      },
+      "particles": 214200,
+      "pointSizeRange": [
+        1,
+        1024
+      ],
+      "visual": "p22",
+      "frozen": true,
+      "clock": 0,
+      "dpr": 1.0000000298023224,
+      "fixedProjection": "perspective",
+      "renderer": "WebGL2"
+    },
+    "hoveredId": null,
+    "savedView": false,
+    "activeKinds": [
+      "job",
+      "skill",
+      "industry"
+    ],
+    "search": {
+      "index": -1,
+      "count": 0
+    },
+    "panelsHidden": false,
+    "immersive": false,
+    "direct": {
+      "dataDegree": 8,
+      "typeFiltered": 8,
+      "submitted": 8,
+      "intersecting": 8
+    }
+  },
+  "viewport": {
+    "dpr": 1.0000000298023224,
+    "height": 900,
+    "width": 1600
+  }
+}

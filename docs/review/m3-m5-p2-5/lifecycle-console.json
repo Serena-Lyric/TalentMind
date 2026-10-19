@@ -1,0 +1,20 @@
+[
+  {
+    "level": "info",
+    "message": "nebula-disposed {\"geometries\":0,\"textures\":0,\"frameCancelled\":true}",
+    "timestamp": "2026-10-19T14:47:44.830Z",
+    "url": "http://127.0.0.1:18151/assets/background-b8533aa8.js"
+  },
+  {
+    "level": "info",
+    "message": "nebula-disposed {\"geometries\":0,\"textures\":0,\"frameCancelled\":true}",
+    "timestamp": "2026-10-19T14:47:48.195Z",
+    "url": "http://127.0.0.1:18151/assets/background-b8533aa8.js"
+  },
+  {
+    "level": "info",
+    "message": "nebula-disposed {\"geometries\":0,\"textures\":0,\"frameCancelled\":true}",
+    "timestamp": "2026-10-19T14:47:51.609Z",
+    "url": "http://127.0.0.1:18151/assets/background-b8533aa8.js"
+  }
+]
