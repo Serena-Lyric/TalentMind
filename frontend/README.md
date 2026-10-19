@@ -1,5 +1,7 @@
 # frontend — TalentMind 前端（M5）
 
+真实 JD 隔离候选通过 `M3_REAL_PREVIEW_DIR=<私有bundle>` 启动 localhost Vite，并显式打开 `?graphDataset=real#/graph`。原始来源和五态保持可回溯，普通构建不携带私有数据；不带参数仍为历史 P2.5。完整运行命令、真实浏览器证据及限制见[链路交付](../docs/review/M1-M5-real-jd-e2e.md)。
+
 TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Plus + ECharts + Pinia。
 
 ## 页面

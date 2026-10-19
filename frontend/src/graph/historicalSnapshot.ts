@@ -29,7 +29,7 @@ export function adaptSnapshot(input:any):HistoricalGraph {
   })
   const edges = input.edges.map((raw:any,sourceIndex:number):SnapshotEdge => {
     if (!ids.has(raw.source) || !ids.has(raw.target)) throw new Error('Invalid endpoint')
-    if (!['REQUIRES','APPLIES_TO','RELATED_TO'].includes(raw.type)) throw new Error('Invalid relation')
+    if (!['REQUIRES','APPLIES_TO','RELATED_TO','HAS_SKILL_STATEMENT'].includes(raw.type)) throw new Error('Invalid relation')
     return {source:raw.source,target:raw.target,kind:raw.type,raw,sourceIndex}
   })
   return {nodes,edges,stats:{totalNodes:nodes.length,totalEdges:edges.length,added:0,removed:0,changed:0}}

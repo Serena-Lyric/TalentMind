@@ -4,6 +4,27 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
+import { realpathSync } from 'node:fs'
+import { allowRealPreviewRequest } from './realPreview'
+
+// Private bundles are explicit localhost dev previews; never emitted by build.
+const previewRoot = process.env.M3_REAL_PREVIEW_DIR ? realpathSync(process.env.M3_REAL_PREVIEW_DIR) : null
+const previewFiles = ['manifest.json','facts.json','sources.json','layout.json']
+function realArtifacts() {
+  return {name:'real-jd-private-preview',configureServer(server:any){
+    if(!previewRoot)return
+    server.middlewares.use((req:any,res:any,next:any)=>{
+      if(!req.url?.startsWith('/real-graph-artifacts/'))return next()
+      if(!allowRealPreviewRequest(req.socket.remoteAddress,req.headers.host,req.headers.origin)){res.statusCode=403;return res.end('Local preview only')}
+      const name=req.url.slice('/real-graph-artifacts/'.length)
+      if(!previewFiles.includes(name)){res.statusCode=404;return res.end()}
+      const file=realpathSync(resolve(previewRoot,name))
+      if(file!==resolve(previewRoot,name)){res.statusCode=403;return res.end()}
+      res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store')
+      res.end(readFileSync(file))
+    })
+  }}
+}
 
 // Serve/emit the single tracked snapshot; never duplicate it under public/.
 const artifacts = {
@@ -32,16 +53,16 @@ function historicalArtifacts() {
 }
 
 export default defineConfig({
-  define: { __GRAPH_LAYOUT_SHA256_LF__: JSON.stringify(createHash('sha256').update(readFileSync(artifacts['layout.json'],'utf8').replace(/\r\n/g,'\n')).digest('hex')) },
+  define: { __REAL_GRAPH_MANIFEST_SHA256__:JSON.stringify(previewRoot?createHash('sha256').update(readFileSync(resolve(previewRoot,'manifest.json'),'utf8').replace(/\r\n/g,'\n')).digest('hex'):''), __GRAPH_LAYOUT_SHA256_LF__: JSON.stringify(createHash('sha256').update(readFileSync(artifacts['layout.json'],'utf8').replace(/\r\n/g,'\n')).digest('hex')) },
   base: "./",
-  plugins: [vue(), historicalArtifacts()],
+  plugins: [vue(), historicalArtifacts(), realArtifacts()],
   resolve: {
     alias: {
       "@": "/src"
     }
   },
   server: {
-    host: "0.0.0.0",
+    host: previewRoot ? "127.0.0.1" : "0.0.0.0",
     port: 18080,
     proxy: {
       // 开发环境：/api 代理到后端（安装即用；默认 18000，可用 VITE_PROXY_TARGET 覆盖）

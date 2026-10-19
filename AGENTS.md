@@ -43,6 +43,7 @@
   三维改造记录：[相机过渡、最终姿态同步与派生端点](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)（2026-10-19）。
   恒星与交互记录：[选择与可见集合耦合](docs/superpowers/traps/2026-10-19-stellar-selection-and-visibility.md)（2026-10-19）。
   P2.5视觉记录：[主体类型、密度和端点渐变](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)（2026-10-19）。
+  真实链路记录：[来源绑定、组合冲突和 Unicode 偏移](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)（2026-10-20）。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
 ## 5. Windows 与编码

@@ -13,7 +13,8 @@ export function graphComponent(props = vue.reactive({ panelsHidden: false, immer
     if (modules.has(path)) return modules.get(path).exports
     const module = { exports: {} as any }
     modules.set(path, module)
-    const code = ts.transpileModule(source ?? readFileSync(path, 'utf8'), {
+    const input=source ?? (path.endsWith('.vue') ? compileScript(parse(readFileSync(path,'utf8')).descriptor,{id:'nested-test'}).content : readFileSync(path,'utf8'))
+    const code = ts.transpileModule(input, {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
     }).outputText
     const require = (id: string): any => {
@@ -21,7 +22,7 @@ export function graphComponent(props = vue.reactive({ panelsHidden: false, immer
       if (id === '@element-plus/icons-vue') return {}
       if (id === 'element-plus') return { ElMessage: { info() {}, warning() {}, error() {} } }
       if (id === '../api/graph') return { getGraphData: async () => { throw new Error('Network disabled in component test') } }
-      if (id.startsWith('.')) return load(resolve(dirname(path), id.endsWith('.ts') ? id : id + '.ts'))
+      if (id.startsWith('.')) return load(resolve(dirname(path), /\.(ts|vue)$/.test(id) ? id : id + '.ts'))
       return createRequire(path)(id)
     }
     new Function('require', 'module', 'exports', 'window', code)(require, module, module.exports, {

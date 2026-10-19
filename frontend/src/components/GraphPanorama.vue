@@ -7,7 +7,13 @@
     </header>
 
     <aside v-show="!props.panelsHidden" class="nebula-control panel-glass" tabindex="0" aria-label="图谱控制，可滚动">
-      <p class="snapshot-note">探索岗位、技能与历史场景<br />单击星体显示直接关联；点击空白取消。</p>
+      <p class="snapshot-note">{{ realMode ? '真实 JD 隔离预览 · 规则分析待审' : '探索岗位、技能与历史场景' }}<br />单击星体显示直接关联；点击空白取消。</p>
+      <div v-if="realManifest" class="snapshot-note" aria-label="真实数据版本">
+        <p>输入 {{ realManifest.counts?.input }} · 进入分析 {{ realManifest.counts?.eligible_jd }} · 拒绝或待审 {{ realManifest.counts?.excluded_or_pending }}</p>
+        <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 身份；非标准职业。五态来自有限规则，未作人工审核。</p>
+        <a href="?#/graph">返回历史 P2.5 图谱</a>
+        <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
+      </div>
       <label class="nebula-label">搜索</label>
       <div class="nebula-search">
         <el-icon><Search /></el-icon>
@@ -53,9 +59,9 @@
         <button type="button" @click="returnToView">返回原视角</button>
       </div>
       <details class="snapshot-note technical-info"><summary>技术信息 / 版本与诊断</summary>
-      <p class="snapshot-note">已核验历史交接快照<br />非实时数据库 · 非新版标准岗位目录</p>
+      <p class="snapshot-note">{{ realMode ? '已有真实 JD 的独立版本，非实时数据库' : '已核验历史交接快照' }}<br />非新版标准岗位目录</p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
-      <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
+      <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · seed 42<br />{{ realMode ? '仅无冲突、无条件的明确必备/加分单项参与相似计算；其余陈述仍保留。' : 'layout-v1 · PR32@377e9b8。' }}只用于候选空间布局，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
       <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?graphStars=p24#/graph">P2.4恒星外观</a> · <a href="?#/graph">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
       <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
@@ -79,10 +85,11 @@
         <div><small>{{ nodeKindLabel(selectedNode.kind) }}</small><h3>{{ selectedNode.label }}</h3><p v-if="selectedNode.name_en && selectedNode.name_en !== selectedNode.label" class="detail-en">{{ selectedNode.name_en }}</p></div>
         <button type="button" aria-label="关闭详情" @click="clearSelection">×</button>
       </div>
-      <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>历史直接关系</small></span><span><b>{{ connectedNodeCount }}</b><small>不同邻接节点</small></span></div>
+      <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>{{ realMode ? '原文陈述关系' : '历史直接关系' }}</small></span><span><b>{{ connectedNodeCount }}</b><small>不同邻接节点</small></span></div>
+      <div v-if="realMode" class="detail-section source-links"><label>原始 JD 回溯</label><p>技能陈述保留五态与不确定性，不代表已确认需求。</p><details><summary>来源 JD（{{ selectedNode.raw?.source_records?.length || 0 }}）</summary><button v-for="index in selectedNode.raw?.source_records || []" :key="index" type="button" @click="traceSource(index)">查看 JD {{ realSources?.records[index]?.jd_id }} 原文</button></details></div>
       <p v-if="spatialMode && stellarMode" class="snapshot-note">外观：{{ semanticMode ? knowledgeProfile(selectedNode.kind,selectedNode.id).type : stellarNames[stellarProfile(selectedNode.id,stellarPreset || undefined).type] }} · {{ semanticMode ? '知识类型标识' : '仅视觉分配' }}</p>
       <div class="nebula-tools"><button type="button" @click="viewAllConnections">定位全部关联</button><button v-if="spatialMode && stellarMode" type="button" @click="inspectStar">近距离观察</button></div>
-      <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>历史分类 / 演化（旧口径）</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
+      <div v-if="selectedNode.kind === 'job' && !realMode" class="detail-section"><label>历史分类 / 演化（旧口径）</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>来源平台</label><p>{{ selectedNode.platform_label || '—' }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.core_duties" class="detail-section"><label>核心职责</label><p>{{ selectedNode.core_duties }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.required_skills?.length" class="detail-section"><label>历史必备（非新版五态）</label><p>{{ selectedNode.required_skills.join('、') }}</p></div>
@@ -99,6 +106,8 @@
             <button v-if="connectionHidden(edge)" type="button" @click="showConnection(edge)">显示该类型并选中</button>
             <small>{{ relationName(edge.kind) }} · {{ nodeKindLabel(nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.kind || 'job') }}</small>
             <small>{{ nodeById.get(edge.source)?.label }} → {{ nodeById.get(edge.target)?.label }} · {{ edge.kind }}</small>
+            <small v-if="realMode">五态 {{ edge.raw?.state }} · 冲突 {{ edge.raw?.conflict ? '是' : '否' }} · 组合 {{ edge.raw?.relation || '单项' }}</small>
+            <button v-if="realMode" type="button" @click="traceSource(edge.raw!.source_record,edge.raw!.evidence.quote)">回溯此陈述的原始 JD</button>
             <button class="edge-focus-button" :disabled="connectionHidden(edge)" :aria-label="`高亮原关系 ${edge.sourceIndex}`" @focus="focusRelation(edge.sourceIndex)" @blur="focusRelation(null)" @click="focusRelation(edge.sourceIndex)">高亮这条原边</button>
             <details><summary>原始关系 / 来源索引 {{ edge.sourceIndex }}</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
             <small v-if="edge.raw?.source_indices">来源索引 {{ JSON.stringify(edge.raw.source_indices) }}</small>
@@ -107,10 +116,11 @@
         <div class="nebula-search-nav"><button aria-label="上一页关联" :disabled="connectionPage === 0" @click="connectionPage--">‹</button><span>{{ connectionPage + 1 }} / {{ Math.max(1, Math.ceil(directEdges.length / 30)) }}</span><button aria-label="下一页关联" :disabled="(connectionPage + 1) * 30 >= directEdges.length" @click="connectionPage++">›</button></div>
       </div>
       <details class="detail-section"><summary>技术信息 / 身份与来源</summary><p>{{ selectedNode.id }}<br />graph.json → nodes[{{ selectedNode.sourceIndex }}]</p><p>历史 job_count：{{ selectedNode.raw?.job_count ?? '未提供' }}（不等于直连数量）</p><details class="layout-provenance"><summary>候选布局说明</summary><p>社区：{{ communityLabel }}。这是算法布局归属，不是审核后的职业分类。</p></details></details>
-      <details class="detail-section"><summary>原始节点属性（历史快照）</summary><pre>{{ JSON.stringify(selectedNode.raw, null, 2) }}</pre></details>
+      <details class="detail-section"><summary>{{ realMode ? '原始节点属性（真实样本版本）' : '原始节点属性（历史快照）' }}</summary><pre>{{ JSON.stringify(selectedNode.raw, null, 2) }}</pre></details>
       <div class="detail-section"><label>使用提示</label><p>已高亮该节点的直接关联，点击空白区域可清除高亮。画布外的关联可通过“定位全部关联”查看。</p></div>
     </aside>
 
+    <SourceEvidence v-if="sourceRecord" :record="sourceRecord" :quote="sourceQuote" @close="sourceRecord=null" />
     <div class="nebula-hint">{{ spatialMode ? '左拖旋转 · 右拖 / WASD 平移 · Q/E 滚转 · 滚轮缩放 · R 全景 · 单击选择' : '点击节点查看详情 · 滚轮缩放 · 拖拽平移' }}</div>
   </section>
 </template>
@@ -121,6 +131,8 @@ import { DataAnalysis, Loading, Refresh, RefreshRight, Search } from '@element-p
 import { ElMessage } from 'element-plus'
 import { type GraphData, type GraphNode, type GraphEdge } from '../api/graph'
 import { loadHistoricalGraph, visibleKnowledgeIds, type LayoutArtifact } from '../graph/historicalSnapshot'
+import { loadRealGraph, type SourceRecord, type RealSources, type RealManifest } from '../graph/realSnapshot'
+import SourceEvidence from './SourceEvidence.vue'
 
 import type { Point } from '../graph/nebulaViewport'
 import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '../graph/nebulaEdges'
@@ -142,6 +154,10 @@ let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
+const realMode=query.get('graphDataset')==='real'
+const realSources=shallowRef<RealSources|null>(null),realManifest=shallowRef<RealManifest|null>(null)
+const sourceRecord=shallowRef<SourceRecord|null>(null),sourceQuote=ref('')
+function traceSource(index:number,quote=''){sourceRecord.value=realSources.value?.records[index]||null;sourceQuote.value=quote}
 const stellarMode=query.get('graphStars')!=='p23'
 const semanticMode=stellarMode&&query.get('graphStars')!=='p24'
 const stellarPreset=ref<StellarType|''>('')
@@ -248,7 +264,7 @@ function measureInteraction(name:string,start:number) {
 }
 const colors: Record<string, string> = { job: '#4da6ff', skill: '#2ee66b', industry: '#c77dff' }
 
-function relationName(kind:string){return kind==='REQUIRES'?'岗位技能关联':kind==='APPLIES_TO'?'历史场景关联':kind==='RELATED_TO'?'历史岗位关联':kind}
+function relationName(kind:string){return kind==='HAS_SKILL_STATEMENT'?'原文技能陈述（未人工审核）':kind==='REQUIRES'?'岗位技能关联':kind==='APPLIES_TO'?'历史场景关联':kind==='RELATED_TO'?'历史岗位关联':kind}
 function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '历史场景（旧 Industry 投影）' }
 function appearanceFor(node:GraphNode,selected=false,matched=false,hovered=false){const activeHover=hovered||(focusedEdgeIndex.value!==null&&focusedEdgeIds.value.has(node.id));return visual==='p22'?starAppearance(node.kind,transform.scale,selected,matched,activeHover):nodeAppearance(node.kind,nodeSize(node),transform.scale,selected,matched,activeHover)}
 function nodeSize(node: GraphNode) { return node.kind === 'job' ? Math.max(7, Math.min(18, (node.size || 14) * .42)) : node.kind === 'industry' ? 13 : Math.max(3.5, Math.min(8, (node.size || 8) * .32)) }
@@ -355,7 +371,7 @@ function draw() {
   ctx.restore()
   relationSummary.value=selectedNode.value
     ? directEdges.value.length?`历史直连 ${directEdges.value.length} · 类型可见 ${typeVisibleDirect.value} · 提交 ${submitted} · 画布相交 ${painted}。无预算截断；指向关联行可高亮原边，主动定位全部关联可适配视口。`:'当前历史快照没有该节点的直接关系记录。'
-    : `未选择星体，历史关系按交互隐藏 ${edgePlan.audit.interactionHidden} / ${graphData.value.edges.length}。历史关系 ${graphData.value.edges.length} · 提交 ${submitted} · 画布相交 ${painted}。类型隐藏 ${edgePlan.audit.typeHidden} / LOD折叠 ${edgePlan.audit.lodHidden} / 预算截断 ${edgePlan.audit.budgetHidden}；其余原因可展开核对。`
+    : `未选择星体，${realMode?'陈述关系':'历史关系'}按交互隐藏 ${edgePlan.audit.interactionHidden} / ${graphData.value.edges.length}。${realMode?'陈述关系':'历史关系'} ${graphData.value.edges.length} · 提交 ${submitted} · 画布相交 ${painted}。类型隐藏 ${edgePlan.audit.typeHidden} / LOD折叠 ${edgePlan.audit.lodHidden} / 预算截断 ${edgePlan.audit.budgetHidden}；其余原因可展开核对。`
   let derivedSubmitted=0
   if(showDerived.value && artifact.value?.derived_edges) {
     const derived=artifact.value.derived_edges.map(e=>({...e,kind:'candidate_similarity'}))
@@ -618,9 +634,11 @@ async function loadGraph() {
   const generation = ++loadGeneration
   loading.value = true
   try {
-    const result = await loadHistoricalGraph()
+    const realResult = realMode ? await loadRealGraph() : null
+    const result = realResult || await loadHistoricalGraph()
     const data = result.graph
     if (generation !== loadGeneration) return
+    if(realResult){realSources.value=realResult.sources;realManifest.value=realResult.manifest}
     artifact.value = result.artifact
     if(comparison.transform){Object.assign(transform,comparison.transform);overview=false;fittedScale=comparison.transform.scale}
     await buildLayout(data, generation)
@@ -629,7 +647,7 @@ async function loadGraph() {
     await nextTick()
     resizeCanvas()
     if (overview && !selectedNode.value) fitGraph()
-  } catch(error) { if (generation === loadGeneration) {loadError.value=String(error);ElMessage.error('历史快照或版本校验失败')} }
+  } catch(error) { if (generation === loadGeneration) {loadError.value=String(error);if(realMode){graphData.value={nodes:[],edges:[],stats:{totalNodes:0,totalEdges:0,added:0,removed:0,changed:0}};artifact.value=null;realSources.value=null;realManifest.value=null;sourceRecord.value=null;selectedNode.value=null;drawNodes.value=[];nodeById.clear();spatialKnowledge?.setData([],[],[])}ElMessage.error(realMode?'真实样本版本校验失败':'历史快照或版本校验失败')} }
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
 // 快照只属于当前选中身份；同步失效，避免同一轮改选后展开误用旧快照。
@@ -676,7 +694,7 @@ function flushSpatial(delta:number){
   const focusedEdge=directEdges.value.find(e=>e.sourceIndex===focusedEdgeIndex.value)
   const result=knowledge.update(canvas,{activeKinds:activeKinds.value,selectedId:selectedNode.value?.id,focusIds:highlightIds.value,priority:new Set([...highlightIds.value,...searchMatchIds.value]),matches:searchMatchIds.value,hoveredId:hoveredId.value,focusedEdge,stellarPreset:stellarPreset.value||undefined,panels:graphPanels(),showDerived:showDerived.value,derived:showDerived.value?(artifact.value?.derived_edges||[]).map(e=>({...e,kind:'candidate_similarity'})):[]})
   relationAudit.value=result.audit
-  relationSummary.value=selectedNode.value?`直接关系 ${result.audit.scope} · 类型隐藏 ${result.audit.typeHidden} · 提交 ${result.submitted} · 视锥候选 ${result.intersecting}。其他星体仍可选中。`:`未选择星体 · 历史关系隐藏 ${result.audit.interactionHidden} / ${graphData.value.edges.length} · 提交 0。单击任意星体显示直接关联。`
+  relationSummary.value=selectedNode.value?`直接关系 ${result.audit.scope} · 类型隐藏 ${result.audit.typeHidden} · 提交 ${result.submitted} · 视锥候选 ${result.intersecting}。其他星体仍可选中。`:`未选择星体 · ${realMode?'陈述关系':'历史关系'}隐藏 ${result.audit.interactionHidden} / ${graphData.value.edges.length} · 提交 0。单击任意星体显示直接关联。`
   derivedSummary.value=`派生相似：提交 ${result.derivedSubmitted} / 总量 ${artifact.value?.derived_edges?.length||0}（独立候选层）`
   levelSummary.value=`当前知识层 ${result.visibleNodes} / ${graphData.value.nodes.length}；展示深度不代表语义距离。`
   if(debug&&rootRef.value)rootRef.value.dataset.nebula=JSON.stringify({...result,mode:semanticMode?'galaxy-p25':stellarMode?'galaxy-p24':'galaxy-p23-stars',visual:'p22',snapshot:artifact.value?.snapshot_sha256_lf,totalEdges:graphData.value.edges.length,relationshipAudit:result.audit,selectedId:selectedNode.value?.id||null,selectedScreen:selectedNode.value?knowledge.projected(selectedNode.value.id):null,focusedEdgeIndex:focusedEdgeIndex.value,camera:rig.capture(),galaxy:galaxy?.stats(),hoveredId:hoveredId.value,savedView:Boolean(savedView.value),activeKinds:[...activeKinds.value],search:{index:searchIndex.value,count:searchMatches.value.length},panelsHidden:Boolean(props.panelsHidden),immersive:Boolean(props.immersive),direct:selectedNode.value?{dataDegree:directEdges.value.length,typeFiltered:typeVisibleDirect.value,submitted:result.submitted,intersecting:result.intersecting}:null})
@@ -758,6 +776,8 @@ onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTim
 .detail-kpis b { display: block; color: #69b9ff; font-size: 19px; }
 .detail-kpis small { color: #878ab7; font-size: 10px; }
 .detail-section { margin-top: 13px; }
+.source-links button { display: block; margin: 4px 0; padding: 4px 8px; color: #cce6ff; background: #172b45; border: 1px solid #345777; border-radius: 5px; cursor: pointer; }
+.source-links summary { color: #a9bdd5; font-size: 12px; cursor: pointer; }
 .detail-section p { margin: 5px 0 0; color: #babfe0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; word-break: break-word; }
 .nebula-hint { position: absolute; right: 0; bottom: 18px; left: 0; z-index: 3; color: rgba(190, 195, 237, .4); font-size: 11px; letter-spacing: 1px; text-align: center; pointer-events: none; }
 @media (max-width: 800px) { .nebula-page { height: calc(100vh - 110px); min-height: 560px; } .nebula-control { width: 210px; } .nebula-detail { right: 10px; width: calc(100% - 20px); max-height: calc(100% - 82px); } .nebula-title { font-size: 15px; letter-spacing: 1px; } .nebula-title b { font-size: 13px; } .nebula-meta { display: none; } }
