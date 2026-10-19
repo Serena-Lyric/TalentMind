@@ -8,6 +8,7 @@ export interface EdgeOptions {
   viewport: Bounds
   scale: number
   limit?: number
+  preserveLongNear?: boolean
 }
 export function selectEdges(edges: GraphEdge[], nodes: GraphNode[], positions: Map<string, Point>, options: EdgeOptions): GraphEdge[] {
   return selectEdgePlan(edges,nodes,positions,options).edges
@@ -45,10 +46,11 @@ export function selectEdgePlan(edges: GraphEdge[], nodes: GraphNode[], positions
   const zoomed = options.scale >= 1.8
   const maxLength = options.scale < .18 ? 72 : options.scale < .5 ? 180 : 480
   const ranked = candidates.map(edge => ({ edge, ...priority(edge), key: key(edge) }))
-    .filter(item => options.selectedId || zoomed || item.length <= maxLength)
+    .filter(item => options.selectedId || zoomed || (options.preserveLongNear && options.scale>=1.25) || item.length <= maxLength)
     .sort((a, b) => a.length - b.length || b.inside - a.inside || a.distance - b.distance || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
   const visibleDirect = options.selectedId ? candidates.length : 0
-  if (options.selectedId || zoomed) return { edges: ranked.map(item => item.edge), candidates: candidates.length, visibleDirect, dataDegree, typeFilteredDirect }
+  const lengthHidden=candidates.length-ranked.length, eligibleCount=ranked.length
+  if (options.selectedId || zoomed) return { edges: ranked.map(item => item.edge), candidates: candidates.length, visibleDirect, dataDegree, typeFilteredDirect,lengthHidden,eligibleCount }
   const limit = Math.max(0, Math.min(options.limit ?? 900, options.scale < .18 ? 120 : options.scale < .5 ? 300 : 900))
   const groups = new Map<string, typeof ranked>()
   for (const item of ranked) {
@@ -76,7 +78,7 @@ export function selectEdgePlan(edges: GraphEdge[], nodes: GraphNode[], positions
       })
     }
   }
-  return { edges: result, candidates: candidates.length, visibleDirect, dataDegree, typeFilteredDirect }
+  return { edges: result, candidates: candidates.length, visibleDirect, dataDegree, typeFilteredDirect,lengthHidden,eligibleCount }
 }
 
 export function dashedEdge(edge: GraphEdge, nodes: Map<string, GraphNode>) {

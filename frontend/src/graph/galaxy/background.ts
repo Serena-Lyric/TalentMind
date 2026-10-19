@@ -8,16 +8,28 @@ import { createDust } from './particles.js'
 // @ts-expect-error P1-A.2 art parameters (not a business taxonomy).
 import { CONFIG } from './config.js'
 import type { Transform } from '../nebulaViewport'
+import type { GraphNode } from '../../api/graph'
+import type { Point } from '../nebulaViewport'
+import type { VisualVariant } from '../comparisonView'
+// @ts-expect-error Original P1-A.2 knowledge shader; replay only, no synthetic data fallback.
+import { createKnowledge } from './p1a2Knowledge.js'
 
-export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void) {
+export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void, options:{visual:VisualVariant;frozen:boolean}={visual:'p22',frozen:false}) {
   const renderer = new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'})
   renderer.setClearColor('#000001'); renderer.toneMapping=THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure=CONFIG.render.exposure
   const scene=new THREE.Scene(), camera=new THREE.OrthographicCamera(-100,100,100,-100,.1,1600)
   camera.position.z=700
-  const dust=createDust(scene)
+  const dustGroup=new THREE.Group();scene.add(dustGroup)
+  const dust=createDust(dustGroup,options.visual==='p22')
   // Fixed tilted disk: same transform as #28 knowledge Canvas, no orbit or auto-flight.
-  scene.rotation.x=Math.asin(.65)
+  dustGroup.rotation.x=Math.asin(.65)
+  const referenceGroup=new THREE.Group();scene.add(referenceGroup)
+  let knowledge:any=null,referenceNodes:unknown=null
+  const disposeObjects=(group:THREE.Object3D)=>group.traverse(object=>{
+    const points=object as THREE.Points
+    points.geometry?.dispose();const materials=Array.isArray(points.material)?points.material:[points.material];materials.forEach(m=>m?.dispose())
+  })
   const composer=new EffectComposer(renderer)
   composer.addPass(new RenderPass(scene,camera))
   composer.addPass(new UnrealBloomPass(new THREE.Vector2(1,1),CONFIG.render.bloomStrength,CONFIG.render.bloomRadius,CONFIG.render.bloomThreshold))
@@ -43,7 +55,8 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
     camera.position.set(-t.x/30,t.y/30,700);camera.updateProjectionMatrix();camera.updateMatrixWorld()
     // Point shader uses perspective sizing; scale pixels to the equivalent fixed projection.
     dust.resize(700*unit,Math.min(devicePixelRatio||1,CONFIG.render.dpr))
-    dust.update(clock)
+    dust.update(options.frozen?0:clock)
+    knowledge?.resize(700*unit,Math.min(devicePixelRatio||1,CONFIG.render.dpr))
     try {composer.render()} catch {stopped=true;cancelAnimationFrame(frame);onFailure()}
     renderSamples.push(performance.now()-start);if(renderSamples.length>600)renderSamples.shift()
   }
@@ -54,10 +67,13 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
     const sorted=[...values].sort((a,b)=>a-b)
     return {samples:sorted.length,p50:sorted[Math.floor(sorted.length*.5)]??null,p95:sorted[Math.floor(sorted.length*.95)]??null}
   }
-  return {resize,stats:()=>({frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),particles:dust.count,renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
-    dispose(){stopped=true;cancelAnimationFrame(frame);canvas.removeEventListener('webglcontextlost',lost);scene.traverse(object=>{
-      const points=object as THREE.Points
-      points.geometry?.dispose();const materials=Array.isArray(points.material)?points.material:[points.material];materials.forEach(m=>m?.dispose())
-    });composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose()}
+  return {resize,
+    reference(nodes:(GraphNode&{point:Point})[],ids:Set<string>,selected:string|null) {
+      if(options.visual!=='p1a2')return
+      if(referenceNodes!==nodes){disposeObjects(referenceGroup);referenceGroup.clear();knowledge=createKnowledge(referenceGroup,{nodes:nodes.map(n=>({id:n.id,type:n.kind==='job'?0:n.kind==='skill'?2:3,position:[n.point.x/30,-n.point.y/30,0]})),edges:[]});referenceNodes=nodes}
+      knowledge.filter({nodeIds:ids,edgeIndices:[]});knowledge.select(selected)
+    },
+    stats:()=>({frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),particles:dust.count,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
+    dispose(){stopped=true;cancelAnimationFrame(frame);canvas.removeEventListener('webglcontextlost',lost);disposeObjects(scene);composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose()}
   }
 }

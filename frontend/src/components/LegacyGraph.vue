@@ -26,7 +26,7 @@
       <div class="nebula-legend">
         <span><i class="legend-job"></i>岗位节点</span>
         <span><i class="legend-skill"></i>技能节点</span>
-        <span><i class="legend-industry"></i>行业节点</span>
+        <span><i class="legend-industry"></i>历史场景（旧投影）</span>
         <span><i class="legend-edge"></i>岗位-技能关联</span>
         <span><i class="legend-edge dashed"></i>岗位间关联</span>
       </div>
@@ -84,7 +84,7 @@ const selectedNode = ref<GraphNode | null>(null)
 const filters = reactive([
   { kind: 'job' as const, label: '岗位', color: '#4da6ff', active: true },
   { kind: 'skill' as const, label: '技能', color: '#2ee66b', active: true },
-  { kind: 'industry' as const, label: '行业', color: '#c77dff', active: true },
+  { kind: 'industry' as const, label: '历史场景', color: '#c77dff', active: true },
 ])
 
 const layout = new Map<string, Point>()
@@ -116,7 +116,7 @@ const legacySecondKpi = computed(() => {
 })
 const colors: Record<string, string> = { job: '#4da6ff', skill: '#2ee66b', industry: '#c77dff' }
 
-function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '行业节点' }
+function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '历史场景（旧投影）' }
 function nodeSize(node: GraphNode) { return node.kind === 'job' ? Math.max(7, Math.min(18, (node.size || 14) * .42)) : node.kind === 'industry' ? 13 : Math.max(3.5, Math.min(8, (node.size || 8) * .32)) }
 function nodeLabel(node: GraphNode) {
   const maxChars = node.kind === 'job' ? Math.max(5, Math.min(12, Math.floor(nodeSize(node) * .8))) : 9

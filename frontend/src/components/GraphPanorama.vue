@@ -8,8 +8,10 @@
 
     <aside v-show="!props.panelsHidden" class="nebula-control panel-glass">
       <p class="snapshot-note">已核验历史交接快照<br />非实时数据库 · 非新版标准岗位目录</p>
-      <p class="snapshot-note">候选：Jaccard 0.10 + Leiden<br />PR32@377e9b8 · layout-v1 · seed 42</p>
+      <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
+      <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphVisual=p22#/graph">修订版</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。仅作比较，不改变数据。</p></details>
       <label class="nebula-label">搜索</label>
       <div class="nebula-search">
         <el-icon><Search /></el-icon>
@@ -34,15 +36,16 @@
       <div class="nebula-legend">
         <span><i class="legend-job"></i>岗位节点</span>
         <span><i class="legend-skill"></i>技能节点</span>
-        <span><i class="legend-industry"></i>历史行业 / 场景</span>
+        <span><i class="legend-industry"></i>历史场景（旧投影）</span>
         <span><i class="legend-edge"></i>岗位-技能关联</span>
         <span><i class="legend-edge scenario"></i>岗位-场景关联</span>
         <span><i class="legend-edge dashed"></i>历史 RELATED_TO</span>
       </div>
 
       <label class="snapshot-note"><input v-model="showDerived" type="checkbox" />显示候选派生相似（{{ artifact?.derived_edges?.length ?? 0 }}）</label>
-      <p class="snapshot-note">橙虚线：候选相似边。社区为算法分组，孤点不强分类。214,200 装饰粒子独立于知识节点。</p>
+      <p class="snapshot-note">星体视觉权重仅区分岗位 / 技能 / 历史场景，不代表市场需求或职业重要性。214,200 装饰粒子独立计数。</p>
       <p class="snapshot-note" aria-live="polite">{{ relationSummary }}</p>
+      <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
       <p v-if="showDerived" class="snapshot-note">{{ derivedSummary }}</p>
       <p class="snapshot-note">{{ levelSummary }}</p>
       <div class="nebula-tools">
@@ -71,9 +74,9 @@
         <button type="button" aria-label="关闭详情" @click="clearSelection">×</button>
       </div>
       <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>历史直接关系</small></span><span><b>{{ connectedNodeCount }}</b><small>不同邻接节点</small></span></div>
-      <div class="detail-section"><label>身份 / 来源</label><p>{{ selectedNode.id }}<br />graph.json → nodes[{{ selectedNode.sourceIndex }}]</p><p>社区：{{ communityLabel }}<br />历史 job_count：{{ selectedNode.raw?.job_count ?? '未提供' }}（不等于直连数量）</p></div>
+      <div class="detail-section"><label>身份 / 来源</label><p>{{ selectedNode.id }}<br />graph.json → nodes[{{ selectedNode.sourceIndex }}]</p><p>历史 job_count：{{ selectedNode.raw?.job_count ?? '未提供' }}（不等于直连数量）</p><details class="layout-provenance"><summary>候选布局说明</summary><p>社区：{{ communityLabel }}。这是算法布局归属，不是审核后的职业分类。</p></details></div>
       <div class="nebula-tools"><button type="button" @click="viewAllConnections">查看全部关联</button></div>
-      <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>分类 / 演化</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
+      <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>历史分类 / 演化（旧口径）</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>来源平台</label><p>{{ selectedNode.platform_label || '—' }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.core_duties" class="detail-section"><label>核心职责</label><p>{{ selectedNode.core_duties }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.required_skills?.length" class="detail-section"><label>历史必备（非新版五态）</label><p>{{ selectedNode.required_skills.join('、') }}</p></div>
@@ -84,9 +87,13 @@
       <div class="detail-section"><label>全部直接关系 · 每页 30 条 · 不受画布预算限制</label>
         <p>共 {{ directEdges.length }} 条；类型过滤隐藏 {{ directEdges.length - typeVisibleDirect }} 条</p>
         <ol class="connection-list" :start="connectionPage * 30 + 1">
-          <li v-for="edge in connectionRows" :key="edge.sourceIndex">
-            <button type="button" @click="selectConnection(edge)">{{ nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.label }}</button>
+          <li v-for="edge in connectionRows" :key="edge.sourceIndex" :class="{ 'edge-focused': focusedEdgeIndex === edge.sourceIndex }" @mouseenter="focusRelation(edge.sourceIndex)" @mouseleave="focusRelation(null)">
+            <button type="button" :disabled="connectionHidden(edge)" @click="selectConnection(edge)">{{ nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.label }}</button>
+            <small v-if="connectionHidden(edge)">另一端类型当前隐藏；原关系仍在数据中。</small>
+            <button v-if="connectionHidden(edge)" type="button" @click="showConnection(edge)">显示该类型并选中</button>
             <small>{{ edge.kind }} · edges[{{ edge.sourceIndex }}]</small>
+            <button class="edge-focus-button" :disabled="connectionHidden(edge)" :aria-label="`高亮原关系 ${edge.sourceIndex}`" @focus="focusRelation(edge.sourceIndex)" @blur="focusRelation(null)" @click="focusRelation(edge.sourceIndex)">高亮这条原边</button>
+            <details><summary>原始关系 / 来源</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
             <small v-if="edge.raw?.source_indices">来源索引 {{ JSON.stringify(edge.raw.source_indices) }}</small>
           </li>
         </ol>
@@ -112,13 +119,18 @@ import { selectEdgePlan, edgeAppearance, segmentInBounds, type Bounds } from '..
 import { toScreen, toWorld, focusTransform, searchNodes, visibleInFocus, resolveSelection, availableGraphArea, nextSearchIndex, nextZoomScale, type Transform } from '../graph/nebulaViewport'
 
 import { nodeAppearance, selectLabels, type LabelCandidate } from '../graph/nebulaPresentation'
+import { starAppearance, createStarSprites, paintStar, placeStarLabels } from '../graph/starPresentation'
+import { planRelations, fanControls, curveIntersects } from '../graph/relationReadability'
+import { comparisonSettings } from '../graph/comparisonView'
 
-let overview = true
+const comparison=comparisonSettings(window.location.search)
+const visual=comparison.visual
+let overview = !comparison.transform
 let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
-const debug = query.get('nebulaDebug') === '1'
+const debug = query.get('nebulaDebug') === '1' || Boolean(comparison.preset)
 let layoutMs = 0
 let loadGeneration = 0
 interface DrawNode extends GraphNode { point: Point }
@@ -130,13 +142,18 @@ const rootRef = ref<HTMLElement | null>(null)
 const canvasWrapRef = ref<HTMLElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const galaxyRef = ref<HTMLCanvasElement | null>(null)
-let galaxy: {resize:(w:number,h:number)=>void;dispose:()=>void;stats:()=>unknown} | null = null
+let galaxy: {resize:(w:number,h:number)=>void;dispose:()=>void;stats:()=>unknown;reference:(nodes:DrawNode[],ids:Set<string>,selected:string|null)=>void} | null = null
+let starSprites:ReturnType<typeof createStarSprites>|null=null
 const artifact = shallowRef<LayoutArtifact | null>(null)
 const meta = computed(() => new Map(artifact.value?.nodes.map(n=>[n.id,n]) || []))
 const showDerived = ref(false)
 const loadError = ref('')
 const webglError = ref(false)
 const relationSummary = ref('')
+const relationAudit = shallowRef<ReturnType<typeof planRelations>['audit']|null>(null)
+const auditLabels={invalidEndpoint:'无有效端点',typeHidden:'按类型隐藏',lodHidden:'LOD折叠',unplaced:'缺少有效坐标',viewportHidden:'视口外省略',lengthHidden:'长度策略省略',budgetHidden:'视觉预算截断'}
+const focusedEdgeIndex=ref<number|null>(null)
+function focusRelation(index:number|null|undefined){focusedEdgeIndex.value=index??null;draw()}
 const derivedSummary = ref('')
 const levelSummary = ref('')
 const connectionPage = ref(0)
@@ -149,11 +166,12 @@ const hoveredId = ref<string | null>(null)
 const filters = reactive([
   { kind: 'job' as const, label: '岗位', color: '#4da6ff', active: true },
   { kind: 'skill' as const, label: '技能', color: '#2ee66b', active: true },
-  { kind: 'industry' as const, label: '行业', color: '#c77dff', active: true },
+  { kind: 'industry' as const, label: '历史场景', color: '#c77dff', active: true },
 ])
 
 const nodeById = new Map<string, DrawNode>()
 const drawNodes = shallowRef<DrawNode[]>([])
+const worldPositions=computed(()=>new Map(drawNodes.value.map(node=>[node.id,node.point])))
 const highlightIds = ref<Set<string>>(new Set())
 const transform = reactive({ scale: 1, x: 0, y: 0 })
 const savedView = ref<{ transform: Transform; fittedScale: number; overview: boolean } | null>(null)
@@ -173,6 +191,10 @@ const connectedCount = computed(() => {
 })
 
 const directEdges = computed(() => graphData.value.edges.filter(e=> e.source===selectedNode.value?.id || e.target===selectedNode.value?.id))
+const focusedEdgeIds=computed(()=>{
+  const edge=focusedEdgeIndex.value===null?undefined:directEdges.value.find(e=>e.sourceIndex===focusedEdgeIndex.value)
+  return new Set(edge?[edge.source,edge.target]:[])
+})
 const connectionRows = computed(() => directEdges.value.slice(connectionPage.value*30,(connectionPage.value+1)*30))
 const connectedNodeCount = computed(() => new Set(directEdges.value.map(e=>e.source===selectedNode.value?.id?e.target:e.source)).size)
 const typeVisibleDirect = computed(() => directEdges.value.filter(e=>activeKinds.value.has(nodeById.get(e.source)!.kind)&&activeKinds.value.has(nodeById.get(e.target)!.kind)).length)
@@ -184,8 +206,20 @@ const communityLabel = computed(() => {
 })
 const knowledgeIds = computed(() => visibleKnowledgeIds(graphData.value.nodes,meta.value,transform.scale,new Set([...highlightIds.value,...searchMatchIds.value])))
 function selectConnection(edge:GraphEdge) {
+  if(connectionHidden(edge)){ElMessage.info('另一端类型当前隐藏，请先显式显示该类型');return}
   const id=edge.source===selectedNode.value?.id?edge.target:edge.source
   highlightNode(nodeById.get(id) || null);nextTick(draw)
+}
+function connectionHidden(edge:GraphEdge) {
+  const id=edge.source===selectedNode.value?.id?edge.target:edge.source,node=nodeById.get(id)
+  return Boolean(node&&!activeKinds.value.has(node.kind))
+}
+async function showConnection(edge:GraphEdge) {
+  const id=edge.source===selectedNode.value?.id?edge.target:edge.source,node=nodeById.get(id)
+  if(!node)return
+  overview=false
+  const filter=filters.find(f=>f.kind===node.kind);if(filter)filter.active=true
+  await nextTick();selectConnection(edge)
 }
 function measureInteraction(name:string,start:number) {
   if(!debug || typeof requestAnimationFrame!=='function')return
@@ -193,7 +227,8 @@ function measureInteraction(name:string,start:number) {
 }
 const colors: Record<string, string> = { job: '#4da6ff', skill: '#2ee66b', industry: '#c77dff' }
 
-function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '行业节点' }
+function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '历史场景（旧 Industry 投影）' }
+function appearanceFor(node:GraphNode,selected=false,matched=false,hovered=false){const activeHover=hovered||(focusedEdgeIndex.value!==null&&focusedEdgeIds.value.has(node.id));return visual==='p22'?starAppearance(node.kind,transform.scale,selected,matched,activeHover):nodeAppearance(node.kind,nodeSize(node),transform.scale,selected,matched,activeHover)}
 function nodeSize(node: GraphNode) { return node.kind === 'job' ? Math.max(7, Math.min(18, (node.size || 14) * .42)) : node.kind === 'industry' ? 13 : Math.max(3.5, Math.min(8, (node.size || 8) * .32)) }
 function nodeLabel(node: GraphNode) {
   const maxChars = node.kind === 'job' ? Math.max(5, Math.min(12, Math.floor(nodeSize(node) * .8))) : 9
@@ -252,18 +287,25 @@ function draw() {
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
   ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
   const nodes = drawNodes.value.filter(visibleNode)
+  if(visual==='p1a2')galaxy?.reference(drawNodes.value,new Set(nodes.map(n=>n.id)),selectedNode.value?.id || null)
   const highlights = highlightIds.value
   const hasHighlight = highlights.size > 0
   const topLeft = screenToWorld(0, 0)
   const bottomRight = screenToWorld(canvas.clientWidth, canvas.clientHeight)
   const viewport = { left: topLeft.x, top: topLeft.y, right: bottomRight.x, bottom: bottomRight.y }
-  const positions = new Map(drawNodes.value.map(node => [node.id, node.point]))
-  const edgePlan = selectEdgePlan(graphData.value.edges, nodes, positions, {
-    activeKinds: activeKinds.value, selectedId: selectedNode.value?.id, viewport, scale: transform.scale,
+  const positions = worldPositions.value
+  const edgePlan = planRelations(graphData.value.edges, graphData.value.nodes, positions, {
+    activeKinds: activeKinds.value, visibleIds:knowledgeIds.value, selectedId: selectedNode.value?.id, viewport, scale: transform.scale,preserveLongNear:visual==='p22',
   })
+  relationAudit.value=edgePlan.audit
   const edges = edgePlan.edges
   levelSummary.value = `当前知识层 ${nodes.length} / ${graphData.value.nodes.length}；远景折叠度一技能，近景、搜索与选中邻接自动展开。`
+  const curves=visual==='p22'&&selectedNode.value?fanControls(edges,new Map(nodes.map(n=>[n.id,worldToScreen(n.point)])),selectedNode.value.id):new Map<GraphEdge,Point>()
+  const focusedEdge=focusedEdgeIndex.value===null?undefined:directEdges.value.find(e=>e.sourceIndex===focusedEdgeIndex.value)
+  const focusedIds=new Set(focusedEdge?[focusedEdge.source,focusedEdge.target]:[])
+  const screenBounds={left:0,right:canvas.clientWidth,top:0,bottom:canvas.clientHeight}
   let submitted = 0; let painted = 0
+  const drawnSourceIndices:number[]=[]
   ctx.save()
   ctx.lineWidth = .7
   edges.forEach((edge) => {
@@ -273,16 +315,23 @@ function draw() {
     const sourcePoint = worldToScreen(source.point)
     const targetPoint = worldToScreen(target.point)
     submitted++
-    if (segmentInBounds(source.point, target.point, viewport)) painted++
-    ctx.beginPath(); ctx.moveTo(sourcePoint.x, sourcePoint.y); ctx.lineTo(targetPoint.x, targetPoint.y)
+    const control=curves.get(edge)
+    if(control?curveIntersects(sourcePoint,control,targetPoint,screenBounds):segmentInBounds(source.point,target.point,viewport))painted++
+    if(edge.sourceIndex!==undefined)drawnSourceIndices.push(edge.sourceIndex)
+    ctx.beginPath();ctx.moveTo(sourcePoint.x,sourcePoint.y)
+    if(control)ctx.quadraticCurveTo(control.x,control.y,targetPoint.x,targetPoint.y)
+    else ctx.lineTo(targetPoint.x,targetPoint.y)
     const style = edgeAppearance(edge, nodeById, transform.scale, Boolean(selectedNode.value), Math.hypot(sourcePoint.x-targetPoint.x,sourcePoint.y-targetPoint.y))
-    ctx.strokeStyle = style.color; ctx.globalAlpha = style.alpha; ctx.lineWidth = style.width; ctx.setLineDash(style.dash)
+    const exact=focusedEdge===edge
+    ctx.strokeStyle=exact?'#f3f7ff':style.color
+    ctx.globalAlpha=focusedEdge?(exact ? .95 : .1):(visual==='p22'&&selectedNode.value&&edges.length>64 ? .3 : style.alpha)
+    ctx.lineWidth=exact?1.8:(visual==='p22'&&selectedNode.value&&edges.length>64 ? .65 : style.width);ctx.setLineDash(style.dash)
     ctx.stroke()
   })
   ctx.restore()
-  relationSummary.value = selectedNode.value
-    ? `历史直连 ${directEdges.value.length} · 类型可见 ${typeVisibleDirect.value} · 提交 ${submitted} · 画布相交 ${painted}（全部直连无预算截断；可主动查看全部关联）`
-    : `历史关系：画布相交 ${painted} / 提交 ${submitted} / 视口候选 ${edgePlan.candidates} / 总量 ${graphData.value.edges.length}；按类型轮转、端点覆盖及长度预算，非全量连线。`
+  relationSummary.value=selectedNode.value
+    ? directEdges.value.length?`历史直连 ${directEdges.value.length} · 类型可见 ${typeVisibleDirect.value} · 提交 ${submitted} · 画布相交 ${painted}。无预算截断；指向关联行可高亮原边，主动查看全部关联可适配视口。`:'当前历史快照没有该节点的直接关系记录。'
+    : `历史关系 ${graphData.value.edges.length} · 提交 ${submitted} · 画布相交 ${painted}。类型隐藏 ${edgePlan.audit.typeHidden} / LOD折叠 ${edgePlan.audit.lodHidden} / 预算截断 ${edgePlan.audit.budgetHidden}；其余原因可展开核对。`
   let derivedSubmitted=0
   if(showDerived.value && artifact.value?.derived_edges) {
     const derived=artifact.value.derived_edges.map(e=>({...e,kind:'candidate_similarity'}))
@@ -298,51 +347,58 @@ function draw() {
     derivedSummary.value=`派生相似：提交 ${derivedSubmitted} / 视口候选 ${plan.candidates} / 总量 ${derived.length}；按节点层级、视口、长度及分层预算显示，近景补全。`
   }
   const matchIds = searchMatchIds.value
-  const labels: (LabelCandidate & { text: string; x: number; y: number; font: string; active: boolean })[] = []
+  const labels: (LabelCandidate & { text: string; x: number; y: number; font: string; active: boolean;alternatives?:Bounds[] })[] = []
+  const starObstacles:{id:string;bounds:Bounds}[]=[]
   nodes.forEach(node => {
     const point = worldToScreen(node.point)
     const match = Boolean(searchKeyword.value) && matchIds.has(node.id)
     const selected = selectedNode.value?.id === node.id
     const hovered = hoveredId.value === node.id
-    const appearance = nodeAppearance(node.kind, nodeSize(node), transform.scale, selected, match, hovered)
+    const appearance = appearanceFor(node,selected,match,hovered||focusedIds.has(node.id))
     const size = appearance.radius
     if ((point.x + size < 0 || point.y + size < 0 || point.x - size > canvas.clientWidth || point.y - size > canvas.clientHeight)) return
+    starObstacles.push({id:node.id,bounds:{left:point.x-size-2,right:point.x+size+2,top:point.y-size-2,bottom:point.y+size+2}})
     const color = colors[node.kind]
     const active = !hasHighlight || highlights.has(node.id)
     ctx.save()
     ctx.globalAlpha = active ? 1 : .12
-    ctx.shadowColor = color
-    ctx.shadowBlur = appearance.shadow
-    ctx.fillStyle = color
-    ctx.beginPath(); ctx.arc(point.x, point.y, size, 0, Math.PI * 2); ctx.fill()
-    ctx.shadowBlur = 0
-    ctx.lineWidth = match ? 2.5 : 1.2
-    ctx.strokeStyle = match ? '#fff' : 'rgba(255,255,255,.5)'
-    if (appearance.outline) ctx.stroke()
+    if(visual==='p22')paintStar(ctx,point.x,point.y,starAppearance(node.kind,transform.scale,selected,match,hovered||focusedIds.has(node.id)),color,starSprites?.get(node.kind,appearance.radius))
+    else if(visual==='p21') {
+      ctx.shadowColor=color;ctx.shadowBlur=appearance.shadow;ctx.fillStyle=color
+      ctx.beginPath();ctx.arc(point.x,point.y,size,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0
+      ctx.lineWidth=match?2.5:1.2;ctx.strokeStyle=match?'#fff':'rgba(255,255,255,.5)'
+      if(appearance.outline)ctx.stroke()
+    }
     if (appearance.label) {
-      ctx.font = `${node.kind === 'job' ? 9 : 10}px "Microsoft YaHei", sans-serif`
-      const text = nodeLabel(node)
+      ctx.font = `${visual==='p22'?(selected||hovered||focusedIds.has(node.id)?11:10):node.kind==='job'?9:10}px "Microsoft YaHei", sans-serif`
+      const maxChars=selected||hovered||focusedIds.has(node.id)?32:transform.scale>=1.25?18:12
+      const text=visual==='p22'?(node.label.length>maxChars?node.label.slice(0,maxChars-1)+'…':node.label):nodeLabel(node)
       const y = point.y + size + 13
       {
         const halfWidth = ctx.measureText(text).width / 2 + 3
         labels.push({ id: node.id, text, x: point.x, y, font: ctx.font, active,
-          priority: selected ? 4 : hovered ? 3 : match ? 2 : node.kind === 'job' ? 1 : 0,
+          priority: selected ? 4 : hovered||focusedIds.has(node.id) ? 3 : match ? 2 : node.kind === 'job' ? 1 : 0,
           bounds: { left: point.x - halfWidth, right: point.x + halfWidth, top: y - 11, bottom: y + 3 },
+          alternatives:[{left:point.x+size+7,right:point.x+size+7+2*halfWidth,top:point.y-7,bottom:point.y+7},{left:point.x-halfWidth,right:point.x+halfWidth,top:point.y-size-21,bottom:point.y-size-7},{left:point.x-size-7-2*halfWidth,right:point.x-size-7,top:point.y-7,bottom:point.y+7}],
         })
       }
     }
     ctx.restore()
   })
-  const labelIds = selectLabels(labels, { left: 0, right: canvas.clientWidth, top: 0, bottom: canvas.clientHeight }, graphPanels())
+  const labelBounds={left:0,right:canvas.clientWidth,top:0,bottom:canvas.clientHeight}
+  const placements=visual==='p22'?placeStarLabels(labels,labelBounds,graphPanels(),starObstacles,transform.scale<.35?12:transform.scale<.9?70:140):null
+  const labelIds=placements?new Set(placements.keys()):selectLabels(labels,labelBounds,graphPanels())
   for (const label of labels) {
     if (!labelIds.has(label.id)) continue
+    const placed=placements?.get(label.id);if(placed){label.x=(placed.left+placed.right)/2;label.y=placed.bottom-3}
     ctx.font = label.font; ctx.textAlign = 'center'
     ctx.strokeStyle='rgba(0,0,5,.95)';ctx.lineWidth=3;ctx.strokeText(label.text,label.x,label.y)
     ctx.fillStyle = label.active ? 'rgba(232,239,255,.82)' : 'rgba(180,188,225,.25)'
     ctx.fillText(label.text, label.x, label.y)
   }
   if (debug && rootRef.value) rootRef.value.dataset.nebula = JSON.stringify({
-    mode: 'galaxy-p2.1', totalEdges: graphData.value.edges.length,
+    mode:`galaxy-${visual}`,visual,comparison:comparison.preset,frozen:comparison.frozen,totalEdges:graphData.value.edges.length,
+    relationshipAudit:edgePlan.audit,drawnSourceIndices,focusedEdgeIndex:focusedEdgeIndex.value,curvedEdges:curves.size,
     snapshot: artifact.value?.snapshot_sha256_lf, algorithm:artifact.value?.parameters,
     derivedSubmitted, derivedTotal:artifact.value?.derived_edges?.length || 0, visibleNodes:nodes.length,
     galaxy:galaxy?.stats(),
@@ -365,7 +421,7 @@ function nodeAt(x: number, y: number) {
     if(!visibleNode(node))continue
     const id=node.id
     const distance=Math.hypot(world.x-node.point.x,world.y-node.point.y)*transform.scale
-    const radius=nodeAppearance(node.kind,nodeSize(node),transform.scale,selectedNode.value?.id===id,matchIds.has(id),hoveredId.value===id).radius
+    const radius=appearanceFor(node,selectedNode.value?.id===id,matchIds.has(id),hoveredId.value===id).radius
     if(distance<=radius+7 && (distance<best || (distance===best && id<(closest?.id || '')))) {closest=node;best=distance}
   }
   return closest
@@ -373,7 +429,7 @@ function nodeAt(x: number, y: number) {
 function highlightNode(node: GraphNode | null) {
   const selection = resolveSelection(node?.id, graphData.value.nodes, graphData.value.edges)
   selectedNode.value = selection.node; highlightIds.value = selection.ids
-  connectionPage.value = 0
+  connectionPage.value = 0;focusedEdgeIndex.value=null
 }
 function graphPanels() {
   const canvas = canvasRef.value
@@ -517,6 +573,7 @@ async function loadGraph() {
     const data = result.graph
     if (generation !== loadGeneration) return
     artifact.value = result.artifact
+    if(comparison.transform){Object.assign(transform,comparison.transform);overview=false;fittedScale=comparison.transform.scale}
     await buildLayout(data, generation)
     if (generation !== loadGeneration) return
     savedView.value = null; highlightNode(selectedNode.value)
@@ -541,19 +598,23 @@ watch(() => props.panelsHidden, async () => { await nextTick(); draw() })
 watch(searchKeyword, async () => { searchIndex.value = -1; await nextTick(); draw() })
 watch(showDerived,draw)
 onMounted(async () => {
+  starSprites=createStarSprites(colors)
   resizeObserver = new ResizeObserver(resizeCanvas); if (canvasWrapRef.value) resizeObserver.observe(canvasWrapRef.value)
   loadGraph()
   try {
     const {createGalaxyBackground}=await import('../graph/galaxy/background')
     if(!galaxyRef.value)return
-    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true})
+    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen})
     resizeCanvas()
   } catch {webglError.value=true}
 })
-onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect();galaxy?.dispose() })
+onUnmounted(() => { loadGeneration++; resizeObserver?.disconnect();galaxy?.dispose();starSprites?.clear() })
 </script>
 
 <style scoped>
+.reference-mark {color:#ffd7a0}.layout-provenance{font-size:11px;color:#a4afcb;margin:8px 0 12px}.layout-provenance summary,.relation-audit summary{cursor:pointer}.layout-provenance p{line-height:1.6}
+.connection-list .edge-focused{background:rgba(150,190,255,.12);border-radius:6px}.connection-list .edge-focus-button{font-size:10px;color:#dfedff;text-decoration:underline;margin:4px 0}.connection-list details{font-size:10px;color:#a4afcb}.connection-list summary{cursor:pointer}
+
 .galaxy-background { position:absolute;inset:56px 0 0;width:100%;height:calc(100% - 56px);pointer-events:none; }
 .snapshot-note {font-size:11px;line-height:1.6;color:#a4afcb;margin:6px 0 12px}
 .fallback-link {display:block;color:#bcd9ff;font-size:12px;margin-bottom:16px}

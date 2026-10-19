@@ -21,7 +21,7 @@ export function graphComponent(props = vue.reactive({ panelsHidden: false, immer
       if (id === '@element-plus/icons-vue') return {}
       if (id === 'element-plus') return { ElMessage: { info() {}, warning() {}, error() {} } }
       if (id === '../api/graph') return { getGraphData: async () => { throw new Error('Network disabled in component test') } }
-      if (id.startsWith('.')) return load(resolve(dirname(path), id + '.ts'))
+      if (id.startsWith('.')) return load(resolve(dirname(path), id.endsWith('.ts') ? id : id + '.ts'))
       return createRequire(path)(id)
     }
     new Function('require', 'module', 'exports', 'window', code)(require, module, module.exports, {
