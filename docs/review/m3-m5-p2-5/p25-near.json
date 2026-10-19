@@ -3,8 +3,8 @@
   "url": "http://127.0.0.1:18151/?nebulaDebug=1&freezeVisual=1#/graph",
   "state": {
     "audit": {
-      "scope": 8,
-      "interactionHidden": 0,
+      "scope": 11412,
+      "interactionHidden": 11412,
       "invalidEndpoint": 0,
       "typeHidden": 0,
       "lodHidden": 0,
@@ -12,31 +12,22 @@
       "viewportHidden": 0,
       "lengthHidden": 0,
       "budgetHidden": 0,
-      "submitted": 8
+      "submitted": 0
     },
-    "drawnSourceIndices": [
-      1347,
-      1263,
-      6609,
-      7080,
-      4273,
-      10687,
-      10147,
-      1151
-    ],
-    "submitted": 8,
-    "intersecting": 8,
+    "drawnSourceIndices": [],
+    "submitted": 0,
+    "intersecting": 0,
     "visibleNodes": 7577,
     "labels": {
       "candidates": 184,
-      "drawn": 25
+      "drawn": 38
     },
-    "drawMs": 8.100000008940697,
+    "drawMs": 17.5,
     "derivedSubmitted": 0,
     "depthVersion": "display-depth-v1",
-    "updateCount": 90,
-    "geometryBuilds": 3,
-    "labelCacheHits": 14008,
+    "updateCount": 16,
+    "geometryBuilds": 0,
+    "labelCacheHits": 383,
     "scale": 1.0576105382594991,
     "stellarVersion": "knowledge-body-v1",
     "transitionParticles": 94140,
@@ -45,12 +36,7 @@
       "compressed": 1854,
       "max": 35.234380078283685
     },
-    "selectedStar": {
-      "type": "青绿紧凑星",
-      "color": "#74cbb8",
-      "seed": 0.7865050642285496,
-      "radius": 21.436490195453068
-    },
+    "selectedStar": null,
     "pickCandidates": [
       {
         "id": "job:j-00d5430c67bed4b2",
@@ -298,8 +284,8 @@
     "snapshot": "e8e3fe6aab4ffd359a16c8c62ee8edd4684504266fafe1534d36599cd7af742f",
     "totalEdges": 11412,
     "relationshipAudit": {
-      "scope": 8,
-      "interactionHidden": 0,
+      "scope": 11412,
+      "interactionHidden": 11412,
       "invalidEndpoint": 0,
       "typeHidden": 0,
       "lodHidden": 0,
@@ -307,17 +293,10 @@
       "viewportHidden": 0,
       "lengthHidden": 0,
       "budgetHidden": 0,
-      "submitted": 8
+      "submitted": 0
     },
-    "selectedId": "skill:导师辅导",
-    "selectedScreen": {
-      "id": "skill:导师辅导",
-      "x": 437.1036001232106,
-      "y": 535.2949571193703,
-      "depth": 23.144988779670342,
-      "visible": true,
-      "radius": 21.436490195453068
-    },
+    "selectedId": null,
+    "selectedScreen": null,
     "focusedEdgeIndex": null,
     "camera": {
       "position": [
@@ -350,21 +329,21 @@
       "frames": {
         "samples": 600,
         "p50": 16.69999999999709,
-        "p95": 17.10000000000582
+        "p95": 17.19999999999709
       },
       "renderSubmissionMs": {
         "samples": 600,
-        "p50": 0.5,
-        "p95": 2.2999999970197678
+        "p50": 0.5999999940395355,
+        "p95": 1.2000000029802322
       },
       "heap": {
-        "usedJSHeapSize": 59969708,
-        "totalJSHeapSize": 118306112
+        "usedJSHeapSize": 40183197,
+        "totalJSHeapSize": 68485689
       },
       "resources": {
         "geometries": 11,
         "textures": 13,
-        "calls": 24
+        "calls": 23
       },
       "particles": 214200,
       "pointSizeRange": [
@@ -391,16 +370,12 @@
     },
     "panelsHidden": false,
     "immersive": false,
-    "direct": {
-      "dataDegree": 8,
-      "typeFiltered": 8,
-      "submitted": 8,
-      "intersecting": 8
-    }
+    "direct": null
   },
   "viewport": {
     "dpr": 1.0000000298023224,
     "height": 900,
     "width": 1600
-  }
+  },
+  "capture": "fullPage"
 }

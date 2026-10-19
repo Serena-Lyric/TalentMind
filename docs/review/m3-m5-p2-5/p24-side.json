@@ -22,12 +22,12 @@
       "candidates": 0,
       "drawn": 0
     },
-    "drawMs": 4.0999999940395355,
+    "drawMs": 4.200000002980232,
     "derivedSubmitted": 0,
     "depthVersion": "display-depth-v1",
-    "updateCount": 68,
+    "updateCount": 27,
     "geometryBuilds": 0,
-    "labelCacheHits": 18,
+    "labelCacheHits": 391,
     "scale": 0.12951120899797197,
     "stellarVersion": "stellar-id-v1",
     "transitionParticles": 94140,
@@ -324,17 +324,17 @@
     "galaxy": {
       "frames": {
         "samples": 600,
-        "p50": 16.69999999999891,
-        "p95": 17.099999999998545
+        "p50": 16.700000000000728,
+        "p95": 33.400000000001455
       },
       "renderSubmissionMs": {
         "samples": 600,
-        "p50": 0.4000000059604645,
-        "p95": 7
+        "p50": 0.7999999970197678,
+        "p95": 2.0999999940395355
       },
       "heap": {
-        "usedJSHeapSize": 66788227,
-        "totalJSHeapSize": 127917755
+        "usedJSHeapSize": 72700278,
+        "totalJSHeapSize": 116899574
       },
       "resources": {
         "geometries": 11,
@@ -372,5 +372,6 @@
     "dpr": 1.0000000298023224,
     "height": 900,
     "width": 1600
-  }
+  },
+  "capture": "fullPage"
 }

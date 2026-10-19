@@ -22,12 +22,12 @@
       "candidates": 0,
       "drawn": 0
     },
-    "drawMs": 10.599999994039536,
+    "drawMs": 15.300000011920929,
     "derivedSubmitted": 0,
     "depthVersion": "display-depth-v1",
-    "updateCount": 101,
-    "geometryBuilds": 4,
-    "labelCacheHits": 14008,
+    "updateCount": 1,
+    "geometryBuilds": 0,
+    "labelCacheHits": 0,
     "scale": 0.12951120899797197,
     "stellarVersion": "knowledge-body-v1",
     "transitionParticles": 94140,
@@ -327,23 +327,23 @@
     },
     "galaxy": {
       "frames": {
-        "samples": 600,
-        "p50": 16.69999999999709,
-        "p95": 17.39999999999418
+        "samples": 2,
+        "p50": 49.72599999999875,
+        "p95": 49.72599999999875
       },
       "renderSubmissionMs": {
-        "samples": 600,
-        "p50": 0.4000000059604645,
-        "p95": 0.699999988079071
+        "samples": 2,
+        "p50": 60.900000005960464,
+        "p95": 60.900000005960464
       },
       "heap": {
-        "usedJSHeapSize": 61685591,
-        "totalJSHeapSize": 119353659
+        "usedJSHeapSize": 52583491,
+        "totalJSHeapSize": 79408335
       },
       "resources": {
-        "geometries": 11,
+        "geometries": 7,
         "textures": 13,
-        "calls": 24
+        "calls": 19
       },
       "particles": 214200,
       "pointSizeRange": [
@@ -376,5 +376,6 @@
     "dpr": 1.0000000298023224,
     "height": 900,
     "width": 1600
-  }
+  },
+  "capture": "fullPage"
 }

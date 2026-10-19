@@ -22,12 +22,12 @@
       "candidates": 0,
       "drawn": 0
     },
-    "drawMs": 6.5,
+    "drawMs": 5.9000000059604645,
     "derivedSubmitted": 0,
     "depthVersion": "display-depth-v1",
-    "updateCount": 11,
+    "updateCount": 27,
     "geometryBuilds": 0,
-    "labelCacheHits": 8,
+    "labelCacheHits": 391,
     "scale": 0.12951120899797197,
     "stellarVersion": "knowledge-body-v1",
     "transitionParticles": 94140,
@@ -327,18 +327,18 @@
     },
     "galaxy": {
       "frames": {
-        "samples": 541,
-        "p50": 16.69999999999891,
-        "p95": 17.100000000000364
+        "samples": 600,
+        "p50": 16.69999999999709,
+        "p95": 17.19999999999709
       },
       "renderSubmissionMs": {
-        "samples": 541,
-        "p50": 0.4000000059604645,
-        "p95": 0.9000000059604645
+        "samples": 600,
+        "p50": 0.5,
+        "p95": 1
       },
       "heap": {
-        "usedJSHeapSize": 123603329,
-        "totalJSHeapSize": 184699325
+        "usedJSHeapSize": 57705892,
+        "totalJSHeapSize": 84482836
       },
       "resources": {
         "geometries": 11,
@@ -376,5 +376,6 @@
     "dpr": 1.0000000298023224,
     "height": 900,
     "width": 1600
-  }
+  },
+  "capture": "fullPage"
 }

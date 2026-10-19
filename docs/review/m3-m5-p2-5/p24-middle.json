@@ -22,10 +22,10 @@
       "candidates": 0,
       "drawn": 0
     },
-    "drawMs": 7.200000002980232,
+    "drawMs": 5.5999999940395355,
     "derivedSubmitted": 0,
     "depthVersion": "display-depth-v1",
-    "updateCount": 16,
+    "updateCount": 8,
     "geometryBuilds": 0,
     "labelCacheHits": 0,
     "scale": 0.34507694921447185,
@@ -323,18 +323,18 @@
     },
     "galaxy": {
       "frames": {
-        "samples": 600,
-        "p50": 16.69999999999709,
-        "p95": 17.099999999998545
+        "samples": 125,
+        "p50": 16.69999999999891,
+        "p95": 17
       },
       "renderSubmissionMs": {
-        "samples": 600,
-        "p50": 0.4000000059604645,
-        "p95": 0.699999988079071
+        "samples": 125,
+        "p50": 0.7000000029802322,
+        "p95": 7.800000011920929
       },
       "heap": {
-        "usedJSHeapSize": 56016269,
-        "totalJSHeapSize": 68669153
+        "usedJSHeapSize": 48922512,
+        "totalJSHeapSize": 110084744
       },
       "resources": {
         "geometries": 11,
@@ -372,5 +372,6 @@
     "dpr": 1.0000000298023224,
     "height": 900,
     "width": 1600
-  }
+  },
+  "capture": "fullPage"
 }

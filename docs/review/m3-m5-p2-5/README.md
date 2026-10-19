@@ -4,6 +4,7 @@
 
 - [五组同条件对照](comparison.html)：`p24/p25-{overview,middle,near,side,tail-orbit}.png`；每张对应同名JSON包含完整相机、分辨率、DPR、过滤、计数、源摘要及采样。P2.4为b7e6f65所含未改产品代码（与df1ca24相同），18154原构建；P2.5为4db4c10最终构建，18151。
 - [程序核对](browser-checks.json)：5组camera/viewport/hash/freeze相同、非零滚转往返、非邻居和222个唯一索引。
+- [实际PNG尺寸](capture-dimensions.json)：五组已用fullPage统一重拍为1600×900。初轮部分面板截图会裁成1437宽，不能只看DOM逻辑视口；非配对图保留实际边界。初轮侧视性能元数据另存[原采样](performance-steady-initial.json)，不冒充补拍后的时间样本。
 - 主体特写：`job-closeup.png`、`skill-closeup.png`、`historical-scene-closeup.png`；渐变高亮：`gradient-job-scene.png`；Python：`python-222.png`、`python-final-page.png`。
 - `python-keys-page-1.json`至`8.json`：最终222/222原生键盘激活核验。`python-pointer-transients.json`仅为初轮60次鼠标操作的瞬态记录，4次hover落点不同，不代表全部222条；报告另说明移开指针前键盘瞬态。
 - 类型/可见/相机：`python-type-hidden`、`non-neighbor-before/selected`、`selection-cleared`、`p25-rolled-panned`、`job-selected/all-connections/returned`的PNG/JSON。

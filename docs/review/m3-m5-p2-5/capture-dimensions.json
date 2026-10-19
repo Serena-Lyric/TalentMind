@@ -1,0 +1,394 @@
+[
+  {
+    "file": "fallback-legacy.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "fallback-p21.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "fallback-p22.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "fallback-p23.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "fallback-p24.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "final-overview.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "final-steady.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "final-telemetry.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "gradient-job-scene.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "historical-scene-closeup.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "job-all-connections.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "job-closeup.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "job-returned.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "job-selected.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "lifecycle-loaded-1.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "lifecycle-loaded-2.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "lifecycle-loaded-3.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "non-neighbor-before.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "non-neighbor-selected.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-00.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-01.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-02.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-03.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-04.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-05.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-06.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-07.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-08.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-09.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-10.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-11.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "orbit-frame-12.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "p24-middle.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p24-near.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p24-overview.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p24-side.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p24-tail-orbit.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p25-middle.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p25-near.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p25-overview.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p25-rolled-panned.png",
+    "png_pixels": [
+      1437,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "p25-side.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "p25-tail-orbit.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": true
+  },
+  {
+    "file": "python-222.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "python-final-page.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "python-returned.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "python-type-hidden.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "selection-cleared.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  },
+  {
+    "file": "skill-closeup.png",
+    "png_pixels": [
+      1600,
+      900
+    ],
+    "paired": false
+  }
+]
