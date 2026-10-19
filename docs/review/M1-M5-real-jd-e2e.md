@@ -2,6 +2,8 @@
 
 日期：2026-10-20（Asia/Singapore）。状态：已实际运行、正式 Vue 隔离加载并验证原文回溯；交付 Draft PR，等待集中审查，不具备合并或生产切换授权。
 
+实现提交 `1e69013a21cf3d9f8ffb8b3eeb24779ef185c90f` 已推送；[Draft PR #38](https://github.com/Serena-Lyric/TalentMind/pull/38) 已附本聊天，base=master，实查 OPEN / isDraft=true / mergedAt=null / autoMergeRequest=null，暂无远端CI结果。本任务定向差异为 `fb68d3b..1e69013`；新工作区保留，正式本机预览为 `http://127.0.0.1:18090/?graphDataset=real&nebulaDebug=1#/graph`。
+
 ## 1. 本轮完成了什么
 
 已有真实 JD → M2 B1 筛选 → M2 B2 五态 → B2.2 名称/证据治理 → 独立 M3 原文陈述事实图 → 独立派生相似/社区/布局 → 正式 `GraphPanorama.vue` Career Nebula → 原始 JD 身份、来源和全文。
