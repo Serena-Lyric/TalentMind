@@ -33,14 +33,11 @@
         <span><i class="legend-job"></i>岗位节点</span>
         <span><i class="legend-skill"></i>技能节点</span>
         <span><i class="legend-industry"></i>历史场景（旧投影）</span>
-        <span><i class="legend-edge"></i>岗位-技能关联</span>
-        <span><i class="legend-edge scenario"></i>岗位-场景关联</span>
-        <span><i class="legend-edge dashed"></i>历史 RELATED_TO</span>
       </div>
 
       <label class="nebula-label">分析图层</label>
       <label class="snapshot-note"><input v-model="showDerived" type="checkbox" />显示候选派生相似（{{ artifact?.derived_edges?.length ?? 0 }}）</label>
-      <p class="snapshot-note">{{ spatialMode && stellarMode ? '蓝色斜角标识岗位，绿色横标识技能，紫色纵标识历史场景。' : '蓝色岗位、绿色技能、紫色历史场景。' }}星体外观不代表职业重要性；装饰星尘不计入知识节点。</p>
+      <p class="snapshot-note">{{ spatialMode && semanticMode ? '蓝色恒星为岗位，青绿紧凑星为技能，紫色环状星为历史场景。' : spatialMode && stellarMode ? 'P2.4：蓝色斜角标识岗位，绿色横标识技能，紫色纵标识历史场景。' : '蓝色岗位、绿色技能、紫色历史场景。' }}星体外观不代表职业重要性；装饰星尘不计入知识节点。</p>
       <p class="snapshot-note" aria-live="polite">{{ relationSummary }}</p>
       <p v-if="showDerived" class="snapshot-note">{{ derivedSummary }}</p>
       <p class="snapshot-note">{{ levelSummary }}</p>
@@ -60,13 +57,13 @@
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
-      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?#/graph">P2.4恒星</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。仅作比较，不改变数据。</p></details>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?graphStars=p24#/graph">P2.4恒星外观</a> · <a href="?#/graph">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
       <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
       <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
-        <label v-if="spatialMode && stellarMode">恒星外观预设
+        <label v-if="spatialMode && stellarMode && !semanticMode">P2.4恒星外观预设
           <select v-model="stellarPreset" aria-label="恒星外观预设"><option value="">稳定 ID 混合</option><option v-for="type in STELLAR_TYPES" :key="type" :value="type">{{ stellarNames[type] }}</option></select>
         </label>
-        <p>外观采用自行编写的程序化材质，四类仅为视觉预设；不对应职业重要性、需求、JD 数量或质量。</p>
+        <p>主体采用程序化球面、紧凑星核与环状材质；P2.5按知识类型表达，P2.4保留四类装饰预设。不对应职业重要性、需求、JD 数量或质量。</p>
       </details>
     </aside>
 
@@ -83,7 +80,7 @@
         <button type="button" aria-label="关闭详情" @click="clearSelection">×</button>
       </div>
       <div class="detail-kpis"><span><b>{{ connectedCount }}</b><small>历史直接关系</small></span><span><b>{{ connectedNodeCount }}</b><small>不同邻接节点</small></span></div>
-      <p v-if="spatialMode && stellarMode" class="snapshot-note">外观：{{ stellarNames[stellarProfile(selectedNode.id,stellarPreset || undefined).type] }} · 仅视觉分配</p>
+      <p v-if="spatialMode && stellarMode" class="snapshot-note">外观：{{ semanticMode ? knowledgeProfile(selectedNode.kind,selectedNode.id).type : stellarNames[stellarProfile(selectedNode.id,stellarPreset || undefined).type] }} · {{ semanticMode ? '知识类型标识' : '仅视觉分配' }}</p>
       <div class="nebula-tools"><button type="button" @click="viewAllConnections">定位全部关联</button><button v-if="spatialMode && stellarMode" type="button" @click="inspectStar">近距离观察</button></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>历史分类 / 演化（旧口径）</label><p>{{ selectedNode.category || '—' }} · {{ selectedNode.is_emerging ? '新一代岗位' : '现有岗位' }}<span v-if="selectedNode.evolution?.stage"> · {{ selectedNode.evolution.stage }}</span></p></div>
       <div v-if="selectedNode.kind === 'job'" class="detail-section"><label>来源平台</label><p>{{ selectedNode.platform_label || '—' }}</p></div>
@@ -101,6 +98,7 @@
             <small v-if="connectionHidden(edge)">另一端类型当前隐藏；原关系仍在数据中。</small>
             <button v-if="connectionHidden(edge)" type="button" @click="showConnection(edge)">显示该类型并选中</button>
             <small>{{ relationName(edge.kind) }} · {{ nodeKindLabel(nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.kind || 'job') }}</small>
+            <small>{{ nodeById.get(edge.source)?.label }} → {{ nodeById.get(edge.target)?.label }} · {{ edge.kind }}</small>
             <button class="edge-focus-button" :disabled="connectionHidden(edge)" :aria-label="`高亮原关系 ${edge.sourceIndex}`" @focus="focusRelation(edge.sourceIndex)" @blur="focusRelation(null)" @click="focusRelation(edge.sourceIndex)">高亮这条原边</button>
             <details><summary>原始关系 / 来源索引 {{ edge.sourceIndex }}</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
             <small v-if="edge.raw?.source_indices">来源索引 {{ JSON.stringify(edge.raw.source_indices) }}</small>
@@ -135,6 +133,7 @@ import { comparisonSettings } from '../graph/comparisonView'
 import { cameraKey, type GalaxyCamera, type CameraState } from '../graph/galaxy/camera'
 import type { SpatialKnowledge } from '../graph/galaxy/knowledge'
 import { stellarProfile, stellarNames, STELLAR_TYPES, type StellarType } from '../graph/galaxy/stellarAppearance'
+import { knowledgeProfile } from '../graph/galaxy/visualSemantics'
 
 const comparison=comparisonSettings(window.location.search)
 const visual=comparison.visual
@@ -144,6 +143,7 @@ let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
 const stellarMode=query.get('graphStars')!=='p23'
+const semanticMode=stellarMode&&query.get('graphStars')!=='p24'
 const stellarPreset=ref<StellarType|''>('')
 const spatialMode=query.get('graphCamera')!=='fixed'&&visual==='p22'&&!comparison.preset
 const cameraRig=shallowRef<GalaxyCamera|null>(null)
@@ -679,7 +679,7 @@ function flushSpatial(delta:number){
   relationSummary.value=selectedNode.value?`直接关系 ${result.audit.scope} · 类型隐藏 ${result.audit.typeHidden} · 提交 ${result.submitted} · 视锥候选 ${result.intersecting}。其他星体仍可选中。`:`未选择星体 · 历史关系隐藏 ${result.audit.interactionHidden} / ${graphData.value.edges.length} · 提交 0。单击任意星体显示直接关联。`
   derivedSummary.value=`派生相似：提交 ${result.derivedSubmitted} / 总量 ${artifact.value?.derived_edges?.length||0}（独立候选层）`
   levelSummary.value=`当前知识层 ${result.visibleNodes} / ${graphData.value.nodes.length}；展示深度不代表语义距离。`
-  if(debug&&rootRef.value)rootRef.value.dataset.nebula=JSON.stringify({...result,mode:stellarMode?'galaxy-p24':'galaxy-p23-stars',visual:'p22',snapshot:artifact.value?.snapshot_sha256_lf,totalEdges:graphData.value.edges.length,relationshipAudit:result.audit,selectedId:selectedNode.value?.id||null,selectedScreen:selectedNode.value?knowledge.projected(selectedNode.value.id):null,focusedEdgeIndex:focusedEdgeIndex.value,camera:rig.capture(),galaxy:galaxy?.stats(),hoveredId:hoveredId.value,savedView:Boolean(savedView.value),activeKinds:[...activeKinds.value],search:{index:searchIndex.value,count:searchMatches.value.length},panelsHidden:Boolean(props.panelsHidden),immersive:Boolean(props.immersive),direct:selectedNode.value?{dataDegree:directEdges.value.length,typeFiltered:typeVisibleDirect.value,submitted:result.submitted,intersecting:result.intersecting}:null})
+  if(debug&&rootRef.value)rootRef.value.dataset.nebula=JSON.stringify({...result,mode:semanticMode?'galaxy-p25':stellarMode?'galaxy-p24':'galaxy-p23-stars',visual:'p22',snapshot:artifact.value?.snapshot_sha256_lf,totalEdges:graphData.value.edges.length,relationshipAudit:result.audit,selectedId:selectedNode.value?.id||null,selectedScreen:selectedNode.value?knowledge.projected(selectedNode.value.id):null,focusedEdgeIndex:focusedEdgeIndex.value,camera:rig.capture(),galaxy:galaxy?.stats(),hoveredId:hoveredId.value,savedView:Boolean(savedView.value),activeKinds:[...activeKinds.value],search:{index:searchIndex.value,count:searchMatches.value.length},panelsHidden:Boolean(props.panelsHidden),immersive:Boolean(props.immersive),direct:selectedNode.value?{dataDegree:directEdges.value.length,typeFiltered:typeVisibleDirect.value,submitted:result.submitted,intersecting:result.intersecting}:null})
 }
 onMounted(async () => {
   starSprites=createStarSprites(colors)
@@ -689,7 +689,7 @@ onMounted(async () => {
   try {
     const {createGalaxyBackground}=await import('../graph/galaxy/background')
     if(disposed||!galaxyRef.value)return
-    if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value,stellarMode);if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
+    if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value,stellarMode,semanticMode?'p25':'p24');if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
     galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial,pointLimit:spatialKnowledge.setPointLimit}:undefined})
     resizeCanvas()
     if(cameraRig.value)fitGraph()
@@ -738,12 +738,9 @@ onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTim
 .nebula-legend { display: grid; gap: 8px; padding-bottom: 12px; }
 .nebula-legend span { display: flex; align-items: center; color: #a1a4c2; font-size: 11px; }
 .nebula-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; }
-.nebula-legend .legend-job { border-radius:1px;transform:rotate(45deg);background: #4da6ff; box-shadow: 0 0 9px #4da6ff; }
-.nebula-legend .legend-skill { height:3px;border-radius:0;background: #2ee66b; box-shadow: 0 0 9px #2ee66b; }
-.nebula-legend .legend-industry { width:3px;margin-left:3px;margin-right:12px;border-radius:0;background: #c77dff; box-shadow: 0 0 9px #c77dff; }
-.nebula-legend .legend-edge { width: 18px; height: 2px; border-radius: 0; background: #4da6ff; }
-.nebula-legend .legend-edge.dashed { height: 0; border-top: 2px dashed #777aa8; }
-.nebula-legend .legend-edge.scenario { height: 0; border-top: 1px dotted #c77dff; background: transparent; }
+.nebula-legend .legend-job { border-radius:50%;background: radial-gradient(circle at 40% 35%,#bacfeb,#7caff1 45%,#324c78); }
+.nebula-legend .legend-skill { width:7px;height:7px;transform:rotate(45deg);border-radius:2px;background:#74cbb8; }
+.nebula-legend .legend-industry { width:12px;height:6px;border:1px solid #b199d9;background:#645179;border-radius:50%;transform:rotate(-20deg); }
 .nebula-tools { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(105, 106, 189, .18); }
 .nebula-tools button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 6px; border: 0; background: transparent; color: #8287b4; font-size: 10px; }
 .nebula-tools button:hover { color: #fff; }

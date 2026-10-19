@@ -41,3 +41,42 @@ export function createStellarMaterial(kind:number,color:string) {
     rgb=mix(rgb,typeColor,marker);alpha=max(alpha,marker);rgb=mix(rgb,vec3(.83,.93,1.),outlineRing);alpha=max(alpha,outlineRing);
     if(alpha<.008)discard;gl_FragColor=vec4(rgb*(1.+boost*.22),min(1.,alpha));}`})
 }
+
+// Kind governs the body itself: sphere, compact diamond star, or an oblate ringed body.
+// The P2.4 material above is intentionally retained byte-for-byte for visual fallback.
+export function createKnowledgeStellarMaterial(kind:number,color:string) {
+ return new ShaderMaterial({transparent:true,depthWrite:false,depthTest:false,
+  uniforms:{dpr:{value:1},halo:{value:2.6},kind:{value:kind},typeColor:{value:new Color(color)}},
+  vertexShader:`attribute float radius,outline,seed,emphasis,haloStrength,opacity;
+   uniform float dpr,halo;varying float shown,ring,coreRadius,footprint,phase,boost,haze,alphaScale;
+   void main(){shown=step(.001,radius);ring=outline;coreRadius=radius;phase=seed;boost=emphasis;haze=haloStrength;alphaScale=opacity;
+    footprint=2.*(radius*halo+4.);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_PointSize=max(1.,footprint*dpr);}`,
+  fragmentShader:`uniform float kind;uniform vec3 typeColor;
+   varying float shown,ring,coreRadius,footprint,phase,boost,haze,alphaScale;
+   float grain(vec3 p){return fract(sin(dot(floor(p),vec3(127.1,311.7,74.7)))*43758.5453);}
+   void main(){if(shown<.5)discard;
+    vec2 pixel=(gl_PointCoord-.5)*footprint,q=pixel/max(.45,coreRadius);
+    float angle=atan(q.y,q.x),isSkill=step(.5,kind)*(1.-step(1.5,kind)),isScene=step(1.5,kind);
+    vec2 body=q;body.y/=mix(1.,.72,isScene);
+    float r=length(body),diamond=(abs(q.x)+abs(q.y))*.83;
+    r=mix(r,diamond,isSkill*.65);float aa=max(.025,.7/max(1.,coreRadius));
+    float disk=1.-smoothstep(.86-aa,.86+aa,r),z=sqrt(max(0.,1.-min(1.,r*r)));
+    float detail=smoothstep(2.,12.,coreRadius),texture=.72;
+    texture+=detail*(grain(vec3(body*19.,phase*91.))-.5)*.22;
+    texture+=detail*sin(body.y*19.+phase*13.+sin(body.x*9.)*.5)*.06;
+    float light=.36+.64*pow(z,.65);
+    vec3 surface=mix(typeColor,vec3(.85,.91,1.),.08+.22*z)*light*texture;
+    float corona=exp(-max(0.,length(q)-.7)*4.2)*smoothstep(.62,1.05,length(q))*.16*haze;
+    corona*=1.-smoothstep(1.65,2.5,length(q));
+    // Small opposing rays distinguish skills even without color; no random pulsar identity.
+    float rays=isSkill*exp(-min(abs(q.x),abs(q.y))*24.)*exp(-length(q)*2.6)*smoothstep(.7,1.,length(q))*.32*haze;
+    vec2 orbit=mat2(.94,-.342,.342,.94)*q;
+    float ellipse=length(vec2(orbit.x,orbit.y/.36));
+    float band=isScene*(1.-smoothstep(.045,.13,abs(ellipse-1.48)))*.40;
+    band*=mix(1.,1.-disk,step(0.,orbit.y));
+    float alpha=max(disk,max(corona+rays,band));
+    vec3 rgb=(surface*disk+typeColor*(corona+rays+band))/max(alpha,.001);
+    float selection=(1.-smoothstep(.035,.12,abs(length(q)-1.95)))*ring*.42;
+    rgb=mix(rgb,vec3(.82,.91,1.),selection);alpha=max(alpha,selection);
+    if(alpha<.008)discard;gl_FragColor=vec4(rgb*(1.+boost*.12),min(1.,alpha*alphaScale));}`})
+}
