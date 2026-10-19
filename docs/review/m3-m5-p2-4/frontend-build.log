@@ -1,0 +1,51 @@
+$ vue-tsc --noEmit && vite build
+vite v4.5.14 building for production...
+transforming...
+✓ 2653 modules transformed.
+rendering chunks...
+[plugin:vite:reporter]
+(!) C:/Users/Serena Lyric/.codex/worktrees/m3-m5-p2-3-galaxy/TalentMind/frontend/src/graph/galaxy/camera.ts is dynamically imported by C:/Users/Serena Lyric/.codex/worktrees/m3-m5-p2-3-galaxy/TalentMind/frontend/src/components/GraphPanorama.vue?vue&type=script&setup=true&lang.ts but also statically imported by C:/Users/Serena Lyric/.codex/worktrees/m3-m5-p2-3-galaxy/TalentMind/frontend/src/components/GraphPanorama.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/index.html                                        0.47 kB │ gzip:   0.34 kB
+dist/graph-artifacts/layout.json                   2,374.60 kB │ gzip: 356.17 kB
+dist/graph-artifacts/historical.json               4,523.58 kB │ gzip: 483.40 kB
+dist/assets/JobEvolution-7fa14a46.css                  1.51 kB │ gzip:   0.59 kB
+dist/assets/Login-972dc5bc.css                         2.59 kB │ gzip:   0.94 kB
+dist/assets/Analytics-40b70e29.css                     2.64 kB │ gzip:   0.78 kB
+dist/assets/Jobs-e81ff129.css                          4.07 kB │ gzip:   1.19 kB
+dist/assets/ResumeDemo-709fe17d.css                    4.72 kB │ gzip:   1.12 kB
+dist/assets/Learning-97ab97a1.css                      5.84 kB │ gzip:   1.44 kB
+dist/assets/Collection-dfc22de9.css                    6.82 kB │ gzip:   1.48 kB
+dist/assets/Dashboard-8ba714cb.css                     8.29 kB │ gzip:   1.98 kB
+dist/assets/Resume-a971576a.css                       10.01 kB │ gzip:   2.28 kB
+dist/assets/Graph-2589bda5.css                        15.68 kB │ gzip:   2.75 kB
+dist/assets/index-d490d944.css                       365.50 kB │ gzip:  50.01 kB
+dist/assets/_plugin-vue_export-helper-c27b6911.js      0.09 kB │ gzip:   0.10 kB
+dist/assets/jobs-3d44dc69.js                           0.37 kB │ gzip:   0.22 kB
+dist/assets/resume-be390c79.js                         0.41 kB │ gzip:   0.25 kB
+dist/assets/Login-b7d57f7e.js                          2.81 kB │ gzip:   1.54 kB
+dist/assets/JobEvolution-e151e7a0.js                   3.37 kB │ gzip:   1.95 kB
+dist/assets/Analytics-f47bb4db.js                      5.38 kB │ gzip:   2.58 kB
+dist/assets/ResumeDemo-af3d11ea.js                     6.24 kB │ gzip:   2.77 kB
+dist/assets/Learning-0fb8b9b0.js                       7.21 kB │ gzip:   3.14 kB
+dist/assets/Resume-e9efbefe.js                         8.41 kB │ gzip:   3.96 kB
+dist/assets/Jobs-cd4a8aa2.js                          10.05 kB │ gzip:   4.33 kB
+dist/assets/knowledge-369db836.js                     14.75 kB │ gzip:   6.02 kB
+dist/assets/Dashboard-3dda9b6f.js                     18.36 kB │ gzip:   6.33 kB
+dist/assets/Collection-851f82ea.js                    19.61 kB │ gzip:   7.25 kB
+dist/assets/purify.es-4f2d013f.js                     22.03 kB │ gzip:   8.77 kB
+dist/assets/background-bd04169e.js                    31.58 kB │ gzip:  10.46 kB
+dist/assets/request-7abf9afa.js                       46.83 kB │ gzip:  18.38 kB
+dist/assets/index.es-341ed936.js                     150.89 kB │ gzip:  51.66 kB
+dist/assets/html2canvas.esm-e0a7d97b.js              201.43 kB │ gzip:  48.04 kB
+dist/assets/jspdf.es.min-fe90c9ef.js                 357.74 kB │ gzip: 117.99 kB
+dist/assets/Graph-5c888dce.js                        817.53 kB │ gzip: 217.96 kB
+dist/assets/dashboard-bbf74830.js                  1,038.68 kB │ gzip: 345.38 kB
+dist/assets/index-f5d2b8a4.js                      1,056.96 kB │ gzip: 349.31 kB
+
+(!) Some chunks are larger than 500 kBs after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.35s
