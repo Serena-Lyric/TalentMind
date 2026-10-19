@@ -15,6 +15,12 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ## 启动
 
+### P2.2 星体与关系可读性修订（PR33追加，待视觉验收）
+
+默认正式 `/#/graph` 已使用修订版星体、逐边关系对账、独立原边曲线/高亮和标签避让。历史Industry只称旧场景投影，社区说明折叠、派生相似默认关闭。原输入/布局不变；三方真实截图、性能成本与遗留见 [P2.2报告](../docs/review/M3-M5-P2-2.md)。
+
+P2.1视觉回退为 `/?graphVisual=p21#/graph`，旧Canvas仍为 `/#/graph?graphRenderer=legacy`。受控比较使用 `/?graphVisual=p1a2|p21|p22&graphCompare=overview|middle|near#/graph`（分别选一个值），统一输入/布局/固定投影并冻结时钟；p1a2只回放原知识点shader，不冒充原独立站相机。全景重绘成本仍高于P2.1，不以帧间隔采样宣称全面性能提升。
+
 ### M3/M5-P2.1 集成候选（2026-10-19，待独立审核）
 
 正式 Vue `/graph` 默认使用银河候选；现有 Hash Router 的地址为 `/#/graph`，旧 Canvas 回退为 `/#/graph?graphRenderer=legacy`。导航和原演示登录保持；后者仅前端演示校验。候选从唯一 `exchange/m3/graph.json` 读取已核验历史交接快照（7845/11412），不访问实时数据库、不混入未发布标准岗位。Vite只在构建输出复制该文件；源码不重复存放快照。

@@ -28,6 +28,8 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 ## 当前状态
 
+2026-10-19追加：PR33的M3/M5-P2.2已实现星体核心/光晕、逐边显示分账、原边曲线高亮、近景长边预算与标签避让；9张同输入/同相机对照、三实体原索引及性能记录见 [P2.2报告](docs/review/M3-M5-P2-2.md)。前端62/62、图谱定向53/53、两套构建通过；**仍是待视觉验收候选**，绘制成本上升等未解决问题明确保留，不是正式目录或算法产品定稿。
+
 2026-10-19：M3/M5-P2.1 在独立分支形成正式Vue图谱集成候选，保留原演示登录/导航与旧Canvas参数回退；仅使用已核验历史7845节点/11412关系，候选相似/社区绑定输入摘要。属于**已实现并定向验证、待独立审核及视觉验收**，不表示新版标准岗位、五态语义或生产迁移已完成。见 [集成报告](docs/review/M3-M5-P2-1.md) 与 [10月21日能力/证据索引](docs/演示能力与证据索引-2026-10-21.md)。
 
 **2026-10-17 M3/M5 图谱改造状态**：当前 `master` 已合并 [PR #21](https://github.com/Serena-Lyric/TalentMind/pull/21) 的**离线图谱构建正确性与安全入口修复**，但新 ID/冲突审计尚未进行正式消费者迁移；现有 `graph.json` / Neo4j 未因此重建。[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 的关系驱动布局、原位选中、全览/标签等仍为**未合并实验实现**；原双路线星云原型 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 已按用户决定终止（Not planned），旧原型已保存在 [独立归档分支](https://github.com/Serena-Lyric/TalentMind/tree/archive/career-nebula-prototype-pre-redesign-20261017)（35 项成果，HEAD `4caa2550`），旧本地工作树尚未清理。**新的 Career Nebula 视觉与页面改造**当前只形成已确认设计与实施任务书，尚未启动正式页面改造或将 Three.js 接入主分支。

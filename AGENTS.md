@@ -39,6 +39,7 @@
 - 新增/移动/删除资产、修改契约/目录/交接文档后及时更新 [资产与状态](docs/superpowers/资产与状态.md)；产品决策写主文档并更新决策索引；按需同步 README/导航，CLAUDE 仅维护补充约束。
 - AI 修复业务/脚本 bug 后，在 `docs/superpowers/traps/YYYY-MM-DD-简述.md` 记录“症状 → 根因 → 修复 → 教训”；按模块阅读既有陷阱，不在根指引复制完整索引。
   图谱集成新增记录：[画布矩形错位、密集命中与错误回退](docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)（2026-10-19）。
+  可读性修订记录：[关系显示分账、隐藏类型跳转与曲线相交](docs/superpowers/traps/2026-10-19-graph-visibility-and-hidden-neighbor.md)（2026-10-19）。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
 ## 5. Windows 与编码

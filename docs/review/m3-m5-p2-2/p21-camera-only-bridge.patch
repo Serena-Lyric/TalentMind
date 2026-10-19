@@ -1,0 +1,13 @@
+--- a/frontend/src/components/GraphPanorama.vue
++++ b/frontend/src/components/GraphPanorama.vue
+@@ -116 +116 @@
+-let overview = true
++let overview = !new URLSearchParams(window.location.search).has('graphCompare')
+@@ -158 +158 @@
+-const transform = reactive({ scale: 1, x: 0, y: 0 })
++const transform = reactive(({overview:{x:498.3153270726714,y:50.94583,scale:.20022320973593533},middle:{x:0,y:0,scale:.75},near:{x:144.2214,y:-12.15694,scale:1.35}} as Record<string,Transform>)[query.get('graphCompare') || ''] || {scale:1,x:0,y:0})
+--- a/frontend/src/graph/galaxy/background.ts
++++ b/frontend/src/graph/galaxy/background.ts
+@@ -46 +46 @@
+-    dust.update(clock)
++    dust.update(new URLSearchParams(window.location.search).has('graphCompare')?0:clock)
