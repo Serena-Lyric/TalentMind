@@ -35,6 +35,9 @@ def offline(monkeypatch, tmp_path):
 
     monkeypatch.setattr(mysql, "get_db", get_db)
     monkeypatch.setattr(boss.time, "sleep", lambda _: None)
+    monkeypatch.setattr(boss.browser, 'ensure_ready', lambda *a, **kw: {
+        'endpoint': 'http://127.0.0.1:9333', 'user_data_dir': str(tmp_path / 'profile'), 'can_collect': True})
+    monkeypatch.setattr(boss.browser, 'wait_access', lambda *a, **kw: {'can_collect': True})
     clients = []
 
     class Client:

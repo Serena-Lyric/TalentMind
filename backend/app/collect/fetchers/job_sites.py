@@ -111,6 +111,7 @@ SITES: dict[str, SiteSpec] = {
         card_selectors=(
             ".job-list-item",
             ".job-card-pc-container",
+            ".jobCardPcContainer",
             ".job-card-box",
             ".job-card",
             "[class*='job-card']",

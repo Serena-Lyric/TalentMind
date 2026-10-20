@@ -5,6 +5,7 @@ import json
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
 from websockets.sync.client import connect
@@ -12,6 +13,30 @@ from websockets.sync.client import connect
 
 class CdpError(RuntimeError):
     pass
+
+
+def host_matches(url: str, host: str) -> bool:
+    """Match a host boundary, never a URL substring or query parameter."""
+    parts = urlsplit(url)
+    name = (parts.hostname or '').lower().rstrip('.')
+    host = host.lower().rstrip('.')
+    return parts.scheme in {'https', 'http'} and (name == host or name.endswith('.' + host))
+
+
+def validate_endpoint(endpoint: str) -> None:
+    parts = urlsplit(endpoint)
+    if (parts.scheme not in {'http', 'ws'} or parts.hostname not in {'127.0.0.1', 'localhost', '::1'}
+            or parts.username or parts.password or not parts.port):
+        raise CdpError('CDP 仅允许无凭据的本机回环端点')
+
+
+def _same_browser(base: str, websocket: str) -> None:
+    validate_endpoint(websocket)
+    # HTTP discovery must not send us to a different local browser instance.
+    origin, target = urlsplit(base), urlsplit(websocket)
+    if (origin.port != target.port
+            or (origin.hostname or '').replace('localhost', '127.0.0.1') != (target.hostname or '').replace('localhost', '127.0.0.1')):
+        raise CdpError('CDP 返回了其他端口的 WebSocket')
 
 
 def _json_value(value: Any) -> Any:
@@ -47,6 +72,8 @@ def _read_devtools_active_port(user_data_dir: str | None) -> tuple[str, str] | N
 def _endpoint_candidates(endpoint: str, user_data_dir: str | None) -> tuple[list[str], list[str]]:
     http_endpoints: list[str] = []
     browser_websockets: list[str] = []
+    if endpoint.lower() != 'auto':
+        validate_endpoint(endpoint)
     if endpoint.startswith(("ws://", "wss://")):
         browser_websockets.append(endpoint)
     elif endpoint.lower() != "auto":
@@ -79,9 +106,7 @@ def _page_targets_from_http(base: str, target_url_contains: str = "") -> list[di
         and target.get("webSocketDebuggerUrl")
     ]
     if target_url_contains:
-        matched = [target for target in pages if target_url_contains in str(target.get("url", ""))]
-        if matched:
-            return matched
+        return [target for target in pages if host_matches(str(target.get("url", "")), target_url_contains)]
     return pages
 
 
@@ -114,12 +139,13 @@ def list_page_targets(
 
 class CdpClient:
     def __init__(self, websocket_url: str, session_id: str | None = None):
+        validate_endpoint(websocket_url)
         self._ws = connect(websocket_url, open_timeout=8, close_timeout=3, max_size=16 * 1024 * 1024)
         self._session_id = session_id
         self._next_id = 0
 
     @classmethod
-    def _connect_browser_target(cls, websocket_url: str, target_url_contains: str = "") -> "CdpClient":
+    def _connect_browser_target(cls, websocket_url: str, target_url_contains: str = "", target_id: str | None = None) -> "CdpClient":
         client = cls(websocket_url)
         try:
             result = client.call("Target.getTargets")
@@ -130,9 +156,9 @@ class CdpClient:
                 if target.get("type") == "page" and target.get("url")
             ]
             if target_url_contains:
-                matched = [target for target in pages if target_url_contains in str(target.get("url", ""))]
-                if matched:
-                    pages = matched
+                pages = [target for target in pages if host_matches(str(target.get("url", "")), target_url_contains)]
+            if target_id:
+                pages = [target for target in pages if target.get('targetId') == target_id]
             if not pages:
                 raise CdpError("浏览器级 CDP 没有可用页面目标")
             attached = client.call(
@@ -154,25 +180,31 @@ class CdpClient:
         endpoint: str,
         target_url_contains: str = "",
         user_data_dir: str | None = None,
+        target_id: str | None = None,
     ) -> "CdpClient":
         http_endpoints, browser_websockets = _endpoint_candidates(endpoint, user_data_dir)
         errors: list[str] = []
         for base in http_endpoints:
             try:
                 targets = _page_targets_from_http(base, target_url_contains)
+                if target_id:
+                    targets = [target for target in targets if target.get('id') == target_id]
                 if targets:
+                    _same_browser(base, targets[0]['webSocketDebuggerUrl'])
                     return cls(targets[0]["webSocketDebuggerUrl"])
             except (httpx.HTTPError, ValueError, CdpError) as exc:
                 errors.append(f"{base}: {exc}")
             try:
                 websocket_url = _browser_websocket_from_http(base)
+                if websocket_url:
+                    _same_browser(base, websocket_url)
                 if websocket_url and websocket_url not in browser_websockets:
                     browser_websockets.append(websocket_url)
-            except (httpx.HTTPError, ValueError) as exc:
+            except (httpx.HTTPError, ValueError, CdpError) as exc:
                 errors.append(f"{base}/json/version: {exc}")
         for websocket_url in browser_websockets:
             try:
-                return cls._connect_browser_target(websocket_url, target_url_contains)
+                return cls._connect_browser_target(websocket_url, target_url_contains, target_id)
             except (OSError, CdpError) as exc:
                 errors.append(f"{websocket_url}: {exc}")
         detail = "；".join(errors[-4:])
@@ -187,7 +219,7 @@ class CdpClient:
             message["sessionId"] = self._session_id
         self._ws.send(json.dumps(message))
         while True:
-            received = json.loads(self._ws.recv())
+            received = json.loads(self._ws.recv(timeout=15))
             if received.get("id") != request_id:
                 continue
             if "error" in received:

@@ -8,6 +8,8 @@
 
 模块状态见 [资产与状态](docs/superpowers/资产与状态.md)，历史裁决见 [决策跟踪](docs/superpowers/决策跟踪.md)；无需在这里重复维护摘要。
 
+- M1 prepare 只准备浏览器，不能触发采集；公开可访问与认证、完整详情分开判断，遇人工验证停止。见[浏览器访问陷阱](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)。
+
 - 真实图谱来源校验须同时绑定 JD/陈述/技能身份，Python 原文偏移按 Unicode 码点处理；不要以文件 hash 代替关联校验。见[真实链路陷阱](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)。
 
 - 真实JD结构分割不能切断共享否定、组合或整体加分范围；标注摘录须保留目标与上下文，未签审不作真值。见[结构与作用域陷阱](docs/superpowers/traps/2026-10-20-real-jd-structure-and-scope.md)。

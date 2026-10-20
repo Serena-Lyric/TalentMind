@@ -6,6 +6,7 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
+| [M1 浏览器运行环境](review/M1-browser-runtime.md) | #40 控制台/CLI 共用独立 Edge 准备、三平台访问状态与前端字段同步、只浏览器烟测和限制；未运行写库采集 |
 | [2026-10-20 全面实装总计划](superpowers/plans/2026-10-20-post-e2e-execution.md) | A 真实 JD 语义质量与重跑，B 共享空间星尘，C 产品语义与材料同步；三条新 Codex 对话与并行/验收边界 |
 | [当前术语与能力证据](team/TALENTMIND_TERMINOLOGY_AND_CAPABILITY_2026-10-20.md) | 区分历史图、未审真实陈述、职业正式目录与竞赛可用表述；供前端与材料成员统一引用 |
 | [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案；M2-01～60、相关 M1 输入与新增 M3/M5 创新方向、Career Nebula 第一批设计；确认不等于已实现 |

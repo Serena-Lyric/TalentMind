@@ -12,14 +12,12 @@ import re
 import subprocess
 import sys
 import threading
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from app.collect.boss_collect_loop import DEFAULT_CITIES, DEFAULT_KEYWORDS
-from app.collect.fetchers.job_sites import SITES
-from app.collect.fetchers.cdp import CdpClient, CdpError
+from app.collect import browser
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _STATE_DIR = _REPO_ROOT / "data" / "local" / "collection"
@@ -193,140 +191,31 @@ def _watch_process(run_id: str, process: subprocess.Popen[str]) -> None:
             _PROCESS = None
 
 
-def _find_edge_executable() -> str | None:
-    candidates = [
-        Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-        Path(os.environ.get("ProgramFiles", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-    ]
-    for candidate in candidates:
-        if candidate.is_file():
-            return str(candidate)
-    return None
-
-
-def _launch_edge(endpoint: str, user_data_dir: str | None, platform: str = "boss") -> int:
-    executable = _find_edge_executable()
-    if not executable:
-        raise RuntimeError("未找到 Microsoft Edge，无法自动拉起浏览器")
-    port = endpoint.rsplit(":", 1)[-1].split("/", 1)[0]
-    profile = Path(user_data_dir or (_REPO_ROOT / "data" / "local" / "edge-boss-cdp-profile")).expanduser()
-    profile.mkdir(parents=True, exist_ok=True)
-    entry_url = {"boss": "https://www.zhipin.com/", "zhaopin": "https://www.zhaopin.com/", "liepin": "https://www.liepin.com/"}.get(platform, "https://www.zhipin.com/")
-    process = subprocess.Popen(
-        [executable, f"--remote-debugging-port={port}", f"--user-data-dir={profile}",
-         "--no-first-run", "--no-default-browser-check", "--new-window", entry_url],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
-    )
-    return int(process.pid)
-
-
 def _ensure_browser(endpoint: str, user_data_dir: str | None, platform: str = "boss") -> dict[str, Any]:
-    current = get_cdp_status(endpoint, user_data_dir)
-    if current["reachable"]:
-        return current
-    _launch_edge(endpoint, user_data_dir, platform)
-    deadline = time.monotonic() + 20
-    while time.monotonic() < deadline:
-        time.sleep(0.5)
-        current = get_cdp_status(endpoint, user_data_dir)
-        if current["reachable"]:
-            return current
+    prepared = browser.prepare(platform, endpoint, user_data_dir)
+    current = get_cdp_status(prepared["endpoint"], prepared["user_data_dir"])
+    current["platform_access"][platform] = prepared
+    current["user_data_dir"] = prepared["user_data_dir"]
     return current
 
 
-def _page_login_state(endpoint: str, user_data_dir: str | None, pages: list[dict[str, Any]], host_hint: str = "zhipin.com") -> bool:
-    """Inspect visible page text only for a login gate; never reads credentials."""
-    if not pages:
-        return False
-    try:
-        client = CdpClient.connect_first_page(endpoint, target_url_contains=host_hint, user_data_dir=user_data_dir)
-        try:
-            snapshot = client.evaluate("""({url: location.href, title: document.title, text: (document.body?.innerText || '').slice(0, 3000)})""") or {}
-        finally:
-            client.close()
-        url = str(snapshot.get("url", "")).lower()
-        text_value = f"{url} {snapshot.get('title', '')} {snapshot.get('text', '')}".lower()
-        markers = ("请先登录", "登录后", "手机号登录", "扫码登录", "密码登录", "登录/注册")
-        return any(marker in text_value for marker in markers) or any(marker in url for marker in ("/login", "passport"))
-    except (CdpError, OSError, ValueError, KeyError):
-        return False
-
-
 def get_cdp_status(endpoint: str | None = None, user_data_dir: str | None = None) -> dict[str, Any]:
-    import httpx
-
-    endpoint = (endpoint or _DEFAULT_CONFIG["cdp_endpoint"]).rstrip("/")
-    user_data_dir = user_data_dir or _DEFAULT_CONFIG["user_data_dir"]
-    checked_at = _now()
-    try:
-        response = httpx.get(f"{endpoint}/json/list", timeout=3, trust_env=False)
-        response.raise_for_status()
-        targets = response.json()
-        if not isinstance(targets, list):
-            targets = []
-        pages = [target for target in targets if target.get("type") == "page"]
-        page_groups = {"boss": [target for target in pages if "zhipin.com" in str(target.get("url", "")) or "boss.com" in str(target.get("url", "")) or "BOSS" in str(target.get("title", ""))]}
-        for source, spec in SITES.items():
-            page_groups[source] = [target for target in pages if spec.host_hint in str(target.get("url", ""))]
-        boss_pages = page_groups["boss"]
-        login_required = _page_login_state(endpoint, user_data_dir, boss_pages, "zhipin.com")
-        platform_login_required = {"boss": login_required}
-        for source, spec in SITES.items():
-            platform_login_required[source] = _page_login_state(endpoint, user_data_dir, page_groups[source], spec.host_hint)
-        return {
-            "endpoint": endpoint,
-            "reachable": True,
-            "boss_page_count": len(boss_pages),
-            "platform_pages": {source: len(items) for source, items in page_groups.items()},
-            "platform_login_required": platform_login_required,
-            "login_required": login_required,
-            "last_checked_at": checked_at,
-            "page_targets": [
-                {"type": t.get("type", ""), "url": t.get("url", ""), "title": t.get("title", "")}
-                for t in pages[:20]
-            ],
-        }
-    except Exception as exc:
-        return {
-            "endpoint": endpoint,
-            "reachable": False,
-            "boss_page_count": 0,
-            "platform_pages": {"boss": 0, **{source: 0 for source in SITES}},
-            "platform_login_required": {"boss": False, **{source: False for source in SITES}},
-            "last_checked_at": checked_at,
-            "page_targets": [],
-            "login_required": False,
-            "error": str(exc),
-        }
+    result = browser.status(endpoint or _DEFAULT_CONFIG["cdp_endpoint"], user_data_dir or _DEFAULT_CONFIG["user_data_dir"])
+    result["last_checked_at"] = _now()
+    return result
 
 
 def prepare_browser(auto_start: bool = False, platform: str | None = None) -> dict[str, Any]:
-    """Open the controlled Edge profile, inspect login state, and optionally start one task."""
-    config = {**get_config(), **({"platform": platform} if platform else {})}
-    endpoint = str(config.get("cdp_endpoint") or _DEFAULT_CONFIG["cdp_endpoint"])
-    platform = str(config.get("platform") or "boss")
-    try:
-        cdp = _ensure_browser(endpoint, config.get("user_data_dir"), platform)
-    except TypeError:
-        cdp = _ensure_browser(endpoint, config.get("user_data_dir"))
-    if not cdp.get("reachable"):
-        return {"status": "cdp_unavailable", "cdp": cdp, "message": "无法连接 Edge CDP"}
-    platform = str(config.get("platform") or "boss")
-    platform_pages = cdp.get("platform_pages", {})
-    login_required = (cdp.get("platform_login_required") or {}).get(platform, cdp.get("login_required", False))
-    if login_required or not platform_pages.get(platform, cdp.get("boss_page_count", 0)):
-        label = {"boss": "BOSS", "zhaopin": "智联", "liepin": "猎聘"}.get(platform, platform)
-        return {"status": "login_required", "cdp": cdp, "message": f"请在已打开的 Edge {label} 页面完成登录并打开岗位页面"}
-    if auto_start:
-        try:
-            # 自动进入页面只触发单轮，持续采集仍需用户在控制台显式选择并启动。
-            task = start_task({"mode": "once", "rounds": 0, **({"platform": platform} if platform != "boss" else {})})
-            return {"status": "started", "cdp": cdp, "task": task, "message": "已登录，单轮采集任务已启动"}
-        except (ValueError, RuntimeError) as exc:
-            return {"status": "start_failed", "cdp": cdp, "message": str(exc)}
-    return {"status": "ready", "cdp": cdp, "message": "浏览器已连接，可以启动采集"}
+    """Prepare only. Legacy auto_start is accepted but can never start collection."""
+    config = get_config()
+    platform = platform or str(config.get("platform") or "boss")
+    cdp = _ensure_browser(str(config.get("cdp_endpoint") or _DEFAULT_CONFIG["cdp_endpoint"]),
+                          config.get("user_data_dir"), platform)
+    access = cdp["platform_access"][platform]
+    return {"status": "ready" if access["can_collect"] else access["access_state"],
+            "access_state": access["access_state"], "can_collect": access["can_collect"],
+            "cdp": cdp, "message": "仅准备浏览器；采集须显式启动", "auto_start_ignored": bool(auto_start)}
+
 
 def get_database_stats() -> dict[str, Any]:
     from sqlalchemy import text
@@ -552,15 +441,13 @@ def start_task(payload: dict[str, Any]) -> dict[str, Any]:
         if platform not in {"boss", "zhaopin", "liepin"}:
             raise ValueError("platform 必须为 boss、zhaopin 或 liepin")
         endpoint = str(config.get("cdp_endpoint") or _DEFAULT_CONFIG["cdp_endpoint"])
-        if bool(config.get("check_cdp_before_start", True)):
-            cdp = _ensure_browser(endpoint, config.get("user_data_dir"), platform)
-            if not cdp["reachable"]:
-                raise RuntimeError("浏览器已尝试启动但 CDP 仍不可达，请检查 Edge 是否被策略阻止")
-            pages = cdp.get("platform_pages", {})
-            login_required = (cdp.get("platform_login_required") or {}).get(platform, cdp.get("login_required", False))
-            if login_required or not pages.get(platform, cdp.get("boss_page_count", 0)):
-                label = {"boss": "BOSS", "zhaopin": "智联", "liepin": "猎聘"}[platform]
-                raise RuntimeError(f"浏览器已打开，请先登录{label}并打开岗位页面，再点击启动采集")
+        cdp = _ensure_browser(endpoint, config.get("user_data_dir"), platform)
+        access = cdp["platform_access"][platform]
+        if not access["can_collect"]:
+            raise RuntimeError(f"{platform}: {access['access_state']}，请先完成浏览器准备")
+        endpoint = cdp["endpoint"]
+        config["cdp_endpoint"] = endpoint
+        config["user_data_dir"] = cdp["user_data_dir"]
         run_id = f"{platform}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         state = _load_state()
         task = _empty_task(run_id, config)

@@ -7,6 +7,8 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 from app.collect.schema import RawJD
 
 BOSS_ORIGIN = "https://www.zhipin.com"
+BOSS_CARD_SELECTOR = '.job-card-wrapper, .job-card-box, .job-card, .job-list-box'
+BOSS_DESCRIPTION_SELECTORS = ('.job-sec-text', '.job-detail', '.job-description', '.job-detail-section')
 
 
 def _clean(value) -> str:

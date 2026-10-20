@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from collections import deque
+import pytest
 
 from app.collect.fetchers import cdp
 
@@ -48,7 +49,7 @@ class FakeWebSocket:
         else:
             self.received.append({"id": message["id"], "result": {}})
 
-    def recv(self):
+    def recv(self, **kwargs):
         return json.dumps(self.received.popleft())
 
     def close(self):
@@ -100,3 +101,44 @@ def test_list_page_targets_uses_active_port_when_fixed_endpoint_fails(monkeypatc
     )
     assert targets[0]["webSocketDebuggerUrl"] == "ws://page"
     assert calls == ["http://127.0.0.1:9222/json/list", "http://127.0.0.1:3180/json/list"]
+
+
+@pytest.mark.parametrize('url', ['https://www.liepin.com/job/1', 'https://zhipin.com.evil.test/', 'https://evil.test/?next=zhipin.com'])
+def test_http_missing_exact_platform_never_falls_back(monkeypatch, url):
+    monkeypatch.setattr(cdp, '_get_json', lambda _: [
+        {'type': 'page', 'url': url, 'webSocketDebuggerUrl': 'ws://127.0.0.1:9333/devtools/page/other'}])
+    assert cdp.list_page_targets('http://127.0.0.1:9333', target_url_contains='zhipin.com') == []
+
+
+def test_browser_websocket_missing_platform_never_attaches_other_page(monkeypatch):
+    ws = FakeWebSocket()
+    send = ws.send
+    def without_boss(raw):
+        send(raw)
+        if json.loads(raw)['method'] == 'Target.getTargets':
+            ws.received[-1]['result']['targetInfos'] = [{'targetId': 'other', 'type': 'page', 'url': 'https://www.liepin.com/'}]
+    ws.send = without_boss
+    monkeypatch.setattr(cdp, 'connect', lambda *a, **kw: ws)
+    with pytest.raises(cdp.CdpError):
+        cdp.CdpClient.connect_first_page('ws://127.0.0.1:9333/devtools/browser/id', 'zhipin.com')
+    assert all(item['method'] != 'Target.attachToTarget' for item in ws.sent)
+
+
+@pytest.mark.parametrize('endpoint', ['http://192.168.1.20:9333', 'ws://evil.test/devtools/browser/id', 'http://user:password@127.0.0.1:9333'])
+def test_remote_or_credentialed_cdp_rejected_before_io(monkeypatch, endpoint):
+    def io(*a, **kw):
+        pytest.fail('invalid endpoint must be rejected before network IO')
+    monkeypatch.setattr(cdp, '_get_json', io)
+    monkeypatch.setattr(cdp, 'connect', io)
+    with pytest.raises(cdp.CdpError):
+        cdp.CdpClient.connect_first_page(endpoint, 'zhipin.com')
+
+
+def test_http_discovery_cannot_redirect_websocket_to_other_local_browser(monkeypatch):
+    monkeypatch.setattr(cdp,'_get_json',lambda url: [
+        {'type':'page','url':'https://www.zhipin.com/', 'webSocketDebuggerUrl':'ws://127.0.0.1:9444/devtools/page/other'}]
+        if url.endswith('/json/list') else {'webSocketDebuggerUrl':'ws://127.0.0.1:9444/devtools/browser/other'})
+    def foreign(*a,**kw): pytest.fail('Must not connect to another browser port')
+    monkeypatch.setattr(cdp,'connect',foreign)
+    with pytest.raises(cdp.CdpError):
+        cdp.CdpClient.connect_first_page('http://127.0.0.1:9333','zhipin.com')

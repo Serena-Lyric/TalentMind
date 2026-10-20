@@ -1,6 +1,6 @@
 """智联/猎聘页面可见内容采集。
 
-仅连接用户已登录的浏览器 CDP 页面并读取可见 DOM；不读取 Cookie、密码，
+连接独立 Edge 的公开或用户人工认证页面并读取可见 DOM；不读取 Cookie、密码，
 不拦截请求，不调用未公开接口，不处理验证码或其他验证。
 """
 from __future__ import annotations
@@ -12,7 +12,7 @@ from typing import Iterable
 
 from sqlalchemy import text
 
-from app.collect.fetchers.cdp import CdpClient, CdpError
+from app.collect.fetchers.cdp import CdpClient
 from app.collect.fetchers.job_sites import (
     SITES,
     SiteSpec,
@@ -23,6 +23,7 @@ from app.collect.fetchers.job_sites import (
     normalize_job,
 )
 from app.collect.pipeline import run_pipeline
+from app.collect import browser
 
 
 def split_csv(value: str) -> list[str]:
@@ -45,27 +46,8 @@ def parse_cities(value: str) -> list[tuple[str, str]]:
     return cities
 
 
-def _page_state(client: CdpClient) -> dict:
-    state = client.evaluate(
-        "JSON.stringify({url: location.href, text: (document.body?.innerText || '').slice(0, 3000), "
-        "links: document.querySelectorAll('a[href*=\"/job/\"], a[href*=\"/job_detail/\"], a[href*=\"/a/\"]').length})"
-    )
-    return json.loads(state) if isinstance(state, str) else state
-
-
-def looks_like_login_or_challenge(client: CdpClient) -> bool:
-    state = _page_state(client)
-    url = str(state.get("url", "")).lower()
-    body = str(state.get("text", ""))
-    if any(token in url for token in ("/login", "passport", "captcha", "verify", "security")):
-        return True
-    markers = ("请登录", "登录后", "验证码", "安全验证", "访问验证", "异常访问")
-    return any(marker in body for marker in markers) and int(state.get("links", 0) or 0) == 0
-
-
 def extract_current_page(client: CdpClient, spec: SiteSpec) -> list[dict]:
-    if looks_like_login_or_challenge(client):
-        raise CdpError(f"{spec.source} 当前页面需要人工登录或处理验证: {client.evaluate('location.href')}")
+    browser.wait_access(client, spec.source)
     result = client.evaluate(build_search_extract_js(spec))
     return result if isinstance(result, list) else []
 
@@ -90,6 +72,8 @@ def run_fetch(
     no_details: bool = False,
     search_url_template: str | None = None,
     current_page_only: bool = False,
+    browser_timeout: float = 20,
+    login_timeout: float = 120,
 ) -> dict:
     spec = SITES.get(platform)
     if spec is None:
@@ -103,8 +87,12 @@ def run_fetch(
     if search_url_template:
         spec = SiteSpec(**{**spec.__dict__, "search_template": search_url_template})
 
+    prepared = browser.ensure_ready(platform, cdp_endpoint, user_data_dir,
+                                   timeout=browser_timeout, wait_for_login=login_timeout)
+    cdp_endpoint = prepared['endpoint']
+
     client = CdpClient.connect_first_page(
-        cdp_endpoint, user_data_dir=user_data_dir, target_url_contains=spec.host_hint
+        cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
     )
     collected: list[dict] = []
     try:
@@ -132,7 +120,7 @@ def run_fetch(
     details_count = 0
     if not no_details and detail_limit and jobs:
         detail_client = CdpClient.connect_first_page(
-            cdp_endpoint, user_data_dir=user_data_dir, target_url_contains=spec.host_hint
+            cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
         )
         try:
             for index, job in enumerate(jobs[:detail_limit], 1):
@@ -145,8 +133,7 @@ def run_fetch(
                     time.sleep(settle)
                 else:
                     detail_client.navigate(job["url"], settle_seconds=settle)
-                    if looks_like_login_or_challenge(detail_client):
-                        raise CdpError(f"{spec.source} 详情页需要人工登录或处理验证: {job['url']}")
+                browser.wait_access(detail_client, platform, max(5.0, settle * 2.0))
                 detail = detail_client.evaluate(build_detail_extract_js(spec))
                 if isinstance(detail, dict):
                     job.update({key: value for key, value in detail.items() if value and key != "url"})
@@ -189,8 +176,8 @@ def run_fetch(
 def main() -> int:
     parser = argparse.ArgumentParser(description="智联/猎聘页面可见内容采集")
     parser.add_argument("--platform", choices=sorted(SITES), required=True)
-    parser.add_argument("--keywords", required=True, help="逗号分隔关键词")
-    parser.add_argument("--cities", required=True, help="名称=平台城市值，例如 北京=530")
+    parser.add_argument("--keywords", help="逗号分隔关键词")
+    parser.add_argument("--cities", help="名称=平台城市值，例如 北京=530")
     parser.add_argument("--cdp", default="http://127.0.0.1:9333")
     parser.add_argument("--user-data-dir", default=None)
     parser.add_argument("--pages", type=int, default=1)
@@ -201,7 +188,17 @@ def main() -> int:
     parser.add_argument("--no-details", action="store_true")
     parser.add_argument("--current-page", action="store_true", help="只采集当前已打开且已登录的页面，不导航")
     parser.add_argument("--search-url-template", default=None, help="覆盖当前平台搜索 URL 模板，支持 {keyword}/{city}/{page}")
+    parser.add_argument('--prepare-only', action='store_true', help='只准备浏览器，不采集、不连接数据库')
+    parser.add_argument('--browser-timeout', type=float, default=20)
+    parser.add_argument('--login-timeout', type=float, default=120)
     args = parser.parse_args()
+    if args.prepare_only:
+        state = browser.prepare(args.platform, args.cdp, args.user_data_dir,
+                                args.browser_timeout, args.login_timeout)
+        print(json.dumps(state, ensure_ascii=False))
+        return 0 if state['can_collect'] else 2
+    if not args.keywords or not args.cities:
+        parser.error('采集必须提供 --keywords 和 --cities')
     result = run_fetch(
         args.platform,
         split_csv(args.keywords),
@@ -216,6 +213,8 @@ def main() -> int:
         no_details=args.no_details,
         current_page_only=args.current_page,
         search_url_template=args.search_url_template,
+        browser_timeout=args.browser_timeout,
+        login_timeout=args.login_timeout,
     )
     print(f"[fetch_cn_jobs] 完成: {result}")
     return 0
