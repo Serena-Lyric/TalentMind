@@ -85,6 +85,28 @@ def test_only_attempted_valid_details_persist_and_duplicate_counts_are_precise(o
     assert second['inserted']==0 and second['updated']==0 and second['skipped']==2
 
 
+def test_run_events_map_exact_rows_and_never_replace_current_body_with_history(offline, monkeypatch, tmp_path):
+    from app.collect import control
+    _, details, rows, run = offline
+    monkeypatch.setattr(control, '_STATE_DIR', tmp_path / 'events')
+    monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'events/state.json')
+    def capture(run_id):
+        return lambda value: control._parse_log_line(run_id, 'TM_EVENT ' + json.dumps(value, ensure_ascii=False, default=str))
+    run(on_event=capture('first'))
+    inserted = control.get_results('first')[0]
+    assert inserted['outcome'] == 'inserted'
+    assert inserted['jd_pool_id'] == rows()[0]['id']
+    assert inserted['quality'] is not None
+    details[card(1)['url']] = detail(1, description='负责本轮新的 Python 服务开发')
+    run(on_event=capture('second'))
+    skipped = control.get_results('second')[0]
+    assert skipped['outcome'] == 'skipped'
+    assert skipped['jd_pool_id'] == inserted['jd_pool_id']
+    assert skipped['raw_text'] == '负责本轮新的 Python 服务开发'
+    assert skipped['crawled_at'] is not None
+    assert '本轮新的' not in rows()[0]['raw_text']
+
+
 def test_limited_guest_detail_blocks_platform_and_is_not_inserted(offline,monkeypatch):
     _,_,rows,run=offline
     monkeypatch.setattr(cn.browser,'wait_access',lambda *a,**kw:{'can_collect':True,'content_limited':True})

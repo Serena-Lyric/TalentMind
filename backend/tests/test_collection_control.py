@@ -36,9 +36,9 @@ def test_prepare_browser_auto_start_never_collects(tmp_path, monkeypatch):
     state_path = tmp_path / "control-state.json"
     monkeypatch.setattr(control, "_STATE_DIR", tmp_path)
     monkeypatch.setattr(control, "_STATE_PATH", state_path)
-    config = {**control._DEFAULT_CONFIG, "mode": "continuous", "rounds": 9}
+    config = dict(control._DEFAULT_CONFIG)
     monkeypatch.setattr(control, "get_config", lambda: config)
-    monkeypatch.setattr(control, "_ensure_browser", lambda endpoint, user_data_dir, platform: {
+    monkeypatch.setattr(control, "_ensure_browser", lambda endpoint, user_data_dir, platform, target_url: {
         "endpoint": endpoint, "reachable": True, "boss_page_count": 1, "login_required": False,
         "platform_access": {"boss": {"access_state": "public_accessible", "can_collect": True}},
     })

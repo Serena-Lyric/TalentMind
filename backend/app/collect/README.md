@@ -1,5 +1,11 @@
 # M1 采集模块（backend/app/collect/）
 
+## 2026-10-21 统一产品操作入口
+
+在仓库根目录运行 `pwsh -File scripts/start-local.ps1`（PowerShell 7），或双击 `start_system.bat`。打开18080采集页，选择平台/城市/关键词，显式准备Edge，再显式启动单轮；不填写CDP参数。`stop_system.bat` / `scripts/stop-local.ps1` 等待采集整树停止及历史归档，保留原数据库容器/数据和Edge。完整验收见[集成报告](../../../docs/review/Product-integration-2026-10-21.md)。
+
+新API：`GET platforms`给平台城市，`GET results?run_id=…`读取该轮事件，`GET raw/{id}`读取当前jd_pool。正文端点须 `TALENTMIND_LOCAL_RAW=1`（统一入口仅为本地后端进程设置）及回环/本地Host/Origin；普通构建不携带正文。事件/日志/原像仍在忽略的data/local。职责/要求的明确标题分段只供原文核验，不代表M2技能或岗位分析已完成。
+
 > **2026-10-20 最新授权与运行状态**：[#43当日更新](https://github.com/Serena-Lyric/TalentMind/issues/43#issuecomment-6282375204)允许单平台×单关键词×单城市×一页、max-jobs5/detail-limit5的真实试采直接写已确认的现有MySQL jd_pool，无需每次新建DB。须核对运行时host/port/database、私有采前原像和采后精确INSERT/UPDATE；BOSS详情可补全旧列表行，不能仅删除新增ID回退。M2正式表、Neo4j和历史图不自动更新，集成测试仍隔离。当前preflight因CDP不可用未执行采集器；不是成功采集或零结果试采。详见[当前门禁](../../../docs/superpowers/plans/2026-10-20-staged-m1-m3-real-validation.md)及[证据口径](../../../docs/review/TalentMind-semantics-and-evidence-2026-10-20.md)。下方旧命令/循环示例是入口参考，不扩展本轮有界授权。
 
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。

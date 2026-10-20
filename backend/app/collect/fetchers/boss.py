@@ -70,7 +70,7 @@ def normalize_boss_job(raw: dict, detail: dict | None = None) -> RawJD | None:
     experience = _clean(detail.get("experience") or raw.get("experience") or _pick_experience(tags))
     degree = _clean(detail.get("degree") or raw.get("degree") or _pick_degree(tags))
     # 采集器会把详情字段合并回列表记录；这里同时兼容独立 detail 参数和合并后的 raw。
-    detail_text = _clean(detail.get("description") or raw.get("description"))
+    detail_text = str(detail.get("description") or raw.get("description") or "").replace("\r\n", "\n").replace("\r", "\n").strip()
     company_info = _clean(detail.get("company_info") or raw.get("company_info"))
     metadata = _metadata_text({**raw, "experience": experience, "degree": degree}, detail)
     chunks = [

@@ -11,7 +11,9 @@ import time
 import urllib.parse
 from functools import partial
 
-from app.collect.fetchers.boss import BOSS_CARD_SELECTOR, BOSS_DESCRIPTION_SELECTORS, deduplicate_jobs, normalize_boss_job
+from app.collect.events import emit_event
+
+from app.collect.fetchers.boss import BOSS_CARD_SELECTOR, BOSS_DESCRIPTION_SELECTORS, deduplicate_jobs, normalize_boss_job, normalize_url
 from app.collect.fetchers.cdp import CdpClient, CdpError, CdpConnectionError
 from app.collect.cleaner import clean, is_valid_jd
 from app.collect.pipeline import run_pipeline
@@ -60,7 +62,7 @@ SEARCH_EXTRACT_JS = r"""
 
 DETAIL_EXTRACT_JS = r"""
 (() => {
-  const text = (node) => (node?.innerText || node?.textContent || '').replace(/\s+/g, ' ').trim();
+  const text = (node) => (node?.innerText || node?.textContent || '').replace(/\r\n?/g, '\n').trim();
   const first = (selectors) => {
     for (const selector of selectors) {
       const node = document.querySelector(selector);
@@ -135,6 +137,7 @@ def run_fetch(
     no_details: bool = False,
     browser_timeout: float = 20,
     login_timeout: float = 120,
+    on_event=None,
 ) -> dict:
     if not keywords or not cities:
         raise ValueError("至少需要一个关键词和一个城市")
@@ -151,10 +154,18 @@ def run_fetch(
     provider = get_db()
     db = next(provider)
     created_ids: set[int] = set()
-    save_list = partial(save_incremental_jd_rows, created_ids=created_ids)
-    save_detail = partial(save_incremental_jd_rows, created_ids=created_ids, allow_updates=True)
+    def emit(event, **payload):
+        emit_event(on_event, 'boss', event, **payload)
+    stats = dict(listed=0, details=0, new=0, skipped=0, detail_attempted=0, detail_obtained=0,
+                 complete=0, inserted=0, updated=0, rejected=0, failed=0, unattempted=0,
+                 rejection_reasons={}, stop_reason=None)
+    def saved_event(item):
+        stats[item['outcome']] += 1
+        stats['new'] = stats['inserted']
+        emit('persisted', items=[item])
+    save_list = partial(save_incremental_jd_rows, created_ids=created_ids, on_saved=saved_event)
+    save_detail = partial(save_incremental_jd_rows, created_ids=created_ids, allow_updates=True, on_saved=saved_event)
     jobs: list[dict] = []
-    saved = 0
     details_count = 0
     try:
         client = CdpClient.connect_first_page(cdp_endpoint, target_url_contains="zhipin.com", target_id=prepared.get('target_id'))
@@ -177,7 +188,11 @@ def run_fetch(
                             page_urls = {job["url"] for job in deduplicate_jobs(page_jobs)}
                             raws = [raw for job in jobs if job["url"] in page_urls
                                     and (raw := normalize_boss_job(job))]
-                            saved += run_pipeline(db, raws, jd_saver=save_list)["jd_saved"]
+                            emit('listed', jobs=jobs)
+                            stats['listed'] = len(jobs)
+                            stats['unattempted'] = len(jobs)
+                            if no_details:
+                                run_pipeline(db, raws, jd_saver=save_list)
                         print(f"[fetch_boss_jobs] {city_name}/{keyword} 第 {page} 页: {len(page_jobs)} 条")
                         if max_jobs and len(jobs) >= max_jobs:
                             break
@@ -194,44 +209,63 @@ def run_fetch(
             try:
                 for index, job in enumerate(jobs[:detail_limit], 1):
                     details_count += 1
+                    stats['details'] = stats['detail_attempted'] = details_count
+                    stats['unattempted'] = len(jobs) - details_count
+                    emit('detail_attempt', job=job, index=index)
                     try:
                         detail_client.navigate(job["url"], settle_seconds=settle)
-                        browser.wait_access(detail_client, 'boss', max(5.0, settle * 2.0))
+                        access = browser.wait_access(detail_client, 'boss', max(5.0, settle * 2.0))
+                        if access.get('content_limited'):
+                            raise browser.AccessBlocked('limited_guest_content')
                         detail = detail_client.evaluate(DETAIL_EXTRACT_JS)
-                    except (browser.AccessBlocked, CdpConnectionError):
-                        # Login/challenge/unknown page must stop this explicit run.
+                    except (browser.AccessBlocked, CdpConnectionError) as exc:
+                        stats['failed'] += 1
+                        stats['stop_reason'] = str(exc)
+                        emit('failure', job=job, reason=str(exc))
+                        emit('finished', stats=stats)
                         raise
                     except Exception as exc:
+                        stats['failed'] += 1
+                        emit('failure', job=job, reason=str(exc))
                         print(f"[fetch_boss_jobs] 详情失败 {index}/{min(detail_limit, len(jobs))}: {exc}")
                         time.sleep(delay)
                         continue
-                    if isinstance(detail, dict):
-                        # 列表技能不能替占位详情证明正文有效，否则会挡住下一轮补全。
-                        detail_raw = normalize_boss_job({
-                            "url": job["url"], "title": job.get("title") or detail.get("title"),
-                            "description": detail.get("description"),
-                        })
-                        if not detail_raw or not is_valid_jd(clean(detail_raw)):
-                            time.sleep(delay)
-                            continue
-                        # 列表 URL 是稳定身份，不用详情跳转 URL 覆盖。
-                        job.update({key: value for key, value in detail.items() if value and key != "url"})
+                    reason = detail_rejection(job, detail)
+                    if isinstance(detail, dict) and str(detail.get('description') or '').strip():
+                        stats['detail_obtained'] += 1
+                    emit('detail', job=job, detail=detail, rejection=reason)
+                    if reason:
+                        stats['rejected'] += 1
+                        stats['rejection_reasons'][reason] = stats['rejection_reasons'].get(reason, 0) + 1
+                    else:
+                        stats['complete'] += 1
+                        job.update({key: value for key, value in detail.items() if value and key != 'url'})
                         raw = normalize_boss_job(job)
                         if raw:
-                            # 写库异常不能被当作浏览器错误吞掉，已提交批次仍然保留。
-                            saved += run_pipeline(db, [raw], jd_saver=save_detail)["jd_saved"]
+                            run_pipeline(db, [raw], jd_saver=save_detail)
                     time.sleep(delay)
             finally:
                 detail_client.close()
     finally:
         provider.close()
 
-    return {
-        "listed": len(jobs),
-        "new": saved,
-        "skipped": len(jobs) - saved,
-        "details": details_count,
-    }
+    emit('finished', stats=stats)
+    return stats
+
+
+def detail_rejection(job: dict, detail) -> str | None:
+    if not isinstance(detail, dict) or not str(detail.get('description') or '').strip():
+        return 'empty_detail'
+    if detail.get('description_truncated'):
+        return 'truncated_description'
+    if not detail.get('title') or ' '.join(detail['title'].split()) != ' '.join(job['title'].split()):
+        return 'title_mismatch'
+    if normalize_url(str(detail.get('url') or '')) != normalize_url(job['url']):
+        return 'identity_mismatch'
+    raw = normalize_boss_job({'url': job['url'], 'title': job['title'], 'description': detail['description']})
+    if not raw or not is_valid_jd(clean(raw)):
+        return 'invalid_detail_body'
+    return None
 
 
 

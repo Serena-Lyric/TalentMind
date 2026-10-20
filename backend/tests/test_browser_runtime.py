@@ -266,7 +266,7 @@ def test_os_query_ignores_renderer_processes_and_uses_one_listener_inventory(mon
                                 'listeners':[{'port':19444,'address':'127.0.0.1'}]}]
 
 
-def test_returned_ready_target_is_pinned_for_collection(browser_env):
+def test_existing_login_gate_cannot_borrow_another_ready_tab(browser_env, monkeypatch):
     b,profile,_,targets,_,pages=browser_env
     targets.extend([{'id':'old','type':'page','url':'https://passport.liepin.com/login'},
                     {'id':'ready','type':'page','url':'https://www.liepin.com/zhaopin/'}])
@@ -275,9 +275,10 @@ def test_returned_ready_target_is_pinned_for_collection(browser_env):
         def evaluate(self,script):
             return snapshot(text='请先登录') if self.target=='old' else snapshot(cards=2)
         def close(self):pass
-    b.CdpClient.connect_first_page=lambda *a,**kw: Client(kw.get('target_id','old'))
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a,**kw: Client(kw.get('target_id','old')))
     state=b.prepare('liepin',user_data_dir=str(profile),timeout=1)
-    assert state['can_collect'] and state['target_id']=='ready'
+    assert not state['can_collect'] and state['target_id']=='old'
+    assert state['access_state'] == 'login_required'
 
 
 def dom_snapshot(platform, elements):
@@ -328,9 +329,10 @@ def test_actual_liepin_current_camelcase_cards_are_publicly_accessible():
     assert runtime().classify_page(page,'liepin')['can_collect']
 
 
-def test_guest_partial_detail_is_reported_separately_from_public_list_access():
+def test_guest_partial_detail_blocks_collection_despite_visible_cards():
     result=runtime().classify_page(snapshot(cards=3,details=1,content_limited=True),'liepin')
-    assert result['can_collect'] and result['content_limited'] is True
+    assert not result['can_collect'] and result['content_limited'] is True
+    assert result['access_state'] == 'content_limited'
 
 
 def test_login_gate_after_old_error_uses_manual_login_deadline(browser_env,monkeypatch):
@@ -363,3 +365,87 @@ def test_new_ready_tab_is_found_after_initial_created_tab_stays_unknown(browser_
     monkeypatch.setattr(b.CdpClient,'connect_first_page',lambda *a,**kw:Client(kw.get('target_id')))
     state=b.prepare('liepin',user_data_dir=str(profile),timeout=2)
     assert state['can_collect'] and state['target_id']=='new'
+
+
+def test_prepare_search_from_authenticated_home_opens_target_once(browser_env, monkeypatch):
+    b, profile, _, targets, _, _ = browser_env
+    targets.append({'id': 'home', 'type': 'page', 'url': 'https://www.zhipin.com/'})
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101020100&query=Java&page=1'
+    class Client:
+        def __init__(self, target): self.target = target
+        def evaluate(self, script):
+            return snapshot(url=url if self.target == 'target' else 'https://www.zhipin.com/',
+                            authenticated=True, cards=2 if self.target == 'target' else 0)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client(kw['target_id']))
+    for _ in range(2):
+        result = b.prepare('boss', user_data_dir=str(profile), timeout=1, url=url)
+        assert result['can_collect'] and result['target_id'] == 'target'
+        assert result['target_url'] == url
+    assert len(targets) == 2
+    assert targets[0]['url'] == 'https://www.zhipin.com/'
+
+
+@pytest.mark.parametrize('gate,state', [
+    ({'login_visible': True}, 'login_required'),
+    ({'challenge_visible': True}, 'verification_required'),
+    ({'content_limited': True}, 'content_limited'),
+])
+def test_prepare_search_never_opens_another_tab_past_existing_gate(browser_env, monkeypatch, gate, state):
+    b, profile, _, targets, _, _ = browser_env
+    targets.append({'id': 'restricted', 'type': 'page', 'url': 'https://www.zhipin.com/'})
+    class Client:
+        def evaluate(self, script): return snapshot(url='https://www.zhipin.com/', cards=2, **gate)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client())
+    result = b.prepare('boss', user_data_dir=str(profile), timeout=1,
+                       url='https://www.zhipin.com/web/geek/jobs?city=101020100&query=Java&page=1')
+    assert result['access_state'] == state
+    assert result['can_collect'] is False
+    assert len(targets) == 1
+
+
+def test_unknown_search_cannot_borrow_ready_detail_or_create_duplicate(browser_env, monkeypatch):
+    b, profile, _, targets, _, _ = browser_env
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101020100&query=Java&page=1'
+    targets.extend([{'id': 'search', 'type': 'page', 'url': url},
+                    {'id': 'detail', 'type': 'page', 'url': 'https://www.zhipin.com/job_detail/other.html'}])
+    class Client:
+        def __init__(self, target): self.target = target
+        def evaluate(self, script):
+            return snapshot(url=url if self.target == 'search' else targets[1]['url'],
+                            details=1 if self.target == 'detail' else 0)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client(kw['target_id']))
+    for _ in range(2):
+        result = b.prepare('boss', user_data_dir=str(profile), timeout=1, url=url)
+        assert not result['can_collect']
+        assert result['reason'] == 'no_access_evidence'
+        assert result['target_id'] == 'search'
+    assert len(targets) == 2
+
+
+def test_redirected_search_recheck_keeps_same_tab_and_does_not_claim_home_is_ready(browser_env, monkeypatch):
+    b, profile, _, targets, _, _ = browser_env
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101020100&query=Java&page=1'
+    class Client:
+        def evaluate(self, script): return snapshot(url='https://www.zhipin.com/', cards=3)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client())
+    first = b.prepare('boss', user_data_dir=str(profile), timeout=1, url=url)
+    assert first['can_collect'] is False
+    assert first['reason'] == 'target_page_redirected'
+    targets[0]['url'] = 'https://www.zhipin.com/'
+    again = b.prepare('boss', user_data_dir=str(profile), timeout=1, url=url)
+    assert again['can_collect'] is False
+    assert again['target_id'] == first['target_id']
+    assert len(targets) == 1
+
+
+def test_search_target_diagnostic_excludes_credentials_and_unknown_query(browser_env):
+    b, profile, _, _, _, _ = browser_env
+    result = b.prepare('liepin', user_data_dir=str(profile), timeout=1,
+                       url='https://www.liepin.com/zhaopin/?key=Java&dqs=010&currentPage=1&token=SECRET')
+    assert result['target_url'] == 'https://www.liepin.com/zhaopin/?key=Java&dqs=010&currentPage=1'
+    with pytest.raises(ValueError):
+        b.prepare('liepin', user_data_dir=str(profile), url='https://name:SECRET@www.liepin.com/')

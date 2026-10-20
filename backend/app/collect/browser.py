@@ -10,7 +10,7 @@ from pathlib import Path
 import subprocess
 import threading
 import time
-from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 import httpx
 
@@ -25,6 +25,8 @@ ENTRY_URLS = {'boss': 'https://www.zhipin.com/web/geek/jobs?city=101010100&query
                  for key, spec in SITES.items()}}
 _LOCK = threading.RLock()
 _READY = {'public_accessible', 'authenticated_accessible', 'empty_results'}
+_BLOCKED = {'verification_required', 'login_required', 'content_limited'}
+_PREPARED_TARGETS: dict[tuple[str, str], tuple[str, str]] = {}
 
 
 class AccessBlocked(CdpError):
@@ -163,6 +165,8 @@ def classify_page(page: dict, platform: str) -> dict:
           or any(word in gate for word in ('扫码登录', '手机号登录', '密码登录', '登录/注册', '请登录', '请先登录'))
           or any(re.fullmatch(r'(?:请先登录|登录后查看(?:完整)?(?:职位|详情|内容)?)[！!。\s]*', line) for line in standalone)):
         state, reason = 'login_required', 'manual_login_gate'
+    elif page.get('content_limited') is True:
+        state, reason = 'content_limited', 'guest_content_limited'
     elif any(line in {'页面加载失败', '页面不存在', '网络异常', '服务异常', '访问出错'} for line in standalone):
         reason = 'visible_page_error'
     elif page.get('ready_state') not in {'interactive', 'complete'}:
@@ -177,6 +181,7 @@ def classify_page(page: dict, platform: str) -> dict:
             'authentication': 'authenticated' if page.get('authenticated') is True else 'unknown',
             'content_limited': bool(page.get('content_limited')),
             'reason': reason, 'url': urlunsplit((parts.scheme, parts.netloc, parts.path, '', '')),
+            'search_url': _search_target(url),
             'evidence': {'visible_cards': cards, 'visible_details': details}}
 
 
@@ -226,9 +231,23 @@ def _unavailable(state='cdp_unavailable', reason='no_owned_edge') -> dict:
     return {'access_state': state, 'can_collect': False, 'authentication': 'unknown', 'reason': reason}
 
 
-def _inspect_targets(endpoint: str, targets: list[dict], platform: str, target_id=None) -> dict:
-    pages = [page for page in targets if host_matches(str(page.get('url', '')), HOSTS[platform])
-             and (not target_id or page.get('id') == target_id)]
+def _search_target(url: str) -> str:
+    parts = urlsplit(url)
+    query = [(key, value) for key, value in parse_qsl(parts.query)
+             if key in {'city', 'query', 'page', 'jl', 'kw', 'key', 'dq', 'dqs', 'currentPage'}]
+    return urlunsplit((parts.scheme, parts.hostname or '', parts.path, urlencode(query), ''))
+
+
+def _same_search_target(observed: str, target: str) -> bool:
+    actual, expected = urlsplit(observed), urlsplit(target)
+    return (actual.scheme == expected.scheme and actual.hostname == expected.hostname
+            and actual.path.rstrip('/') == expected.path.rstrip('/')
+            and set(parse_qsl(expected.query)) <= set(parse_qsl(actual.query)))
+
+
+def _inspect_targets(endpoint: str, targets: list[dict], platform: str, target_id=None,
+                     target_url: str | None = None) -> dict:
+    pages = [page for page in targets if host_matches(str(page.get('url', '')), HOSTS[platform])]
     best = _unavailable('page_missing', 'target_page_missing')
     priority = {'page_missing': 0, 'page_error': 1, 'loading': 2, 'login_required': 3,
                 'empty_results': 4, 'public_accessible': 5, 'authenticated_accessible': 6}
@@ -242,9 +261,13 @@ def _inspect_targets(endpoint: str, targets: list[dict], platform: str, target_i
         finally:
             if client:
                 client.close()
-        # A visible challenge is never bypassed by switching to another tab.
-        if state['access_state'] == 'verification_required':
+        # Never bypass a manual access gate by choosing another same-platform tab.
+        if state['access_state'] in _BLOCKED:
             return state
+        if target_id and page.get('id') != target_id:
+            continue
+        if target_url and state['can_collect'] and not _same_search_target(state.get('search_url', ''), target_url):
+            state.update(access_state='page_error', can_collect=False, reason='target_page_redirected')
         if priority.get(state['access_state'], 0) > priority.get(best['access_state'], 0):
             best = state
     return best
@@ -288,10 +311,12 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
         validate_endpoint(endpoint)
     profile = _profile(user_data_dir)
     target = url or ENTRY_URLS[platform]
-    if not host_matches(target, HOSTS[platform]):
+    if (not host_matches(target, HOSTS[platform]) or urlsplit(target).scheme != 'https'
+            or urlsplit(target).username is not None or urlsplit(target).password is not None):
         raise ValueError('目标 URL 必须属于指定平台')
     deadline = time.monotonic() + timeout
-    base = {'endpoint': endpoint, 'user_data_dir': str(profile), 'platform': platform, 'timed_out': False}
+    base = {'endpoint': endpoint, 'user_data_dir': str(profile), 'platform': platform,
+            'timed_out': False, 'target_url': _search_target(target)}
     try:
         with _LOCK:
             sessions = _edge_sessions()
@@ -312,20 +337,29 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
             target_id = None
             matches = [t for t in targets if host_matches(str(t.get('url', '')), HOSTS[platform])]
             if url:
-                matches = [t for t in matches if t.get('url') == target]
+                existing = _inspect_targets(actual, matches, platform)
+                if existing['access_state'] in _BLOCKED:
+                    return {**base, **existing}
+                previous_url, previous_id = _PREPARED_TARGETS.get((str(profile), platform), ('', ''))
+                pinned = [t for t in matches if previous_url == target and t.get('id') == previous_id]
+                matches = pinned or [t for t in matches if _same_search_target(str(t.get('url', '')), target)]
             if not matches:
                 created = _create_page(actual, target) or {}
                 # Default preparation follows manual login into a new same-platform tab.
                 target_id = created.get('id') if url else None
             elif url:
                 target_id = matches[0].get('id')
+            if url:
+                if not target_id:
+                    return {**base, **_unavailable('page_missing', 'target_page_missing')}
+                _PREPARED_TARGETS[(str(profile), platform)] = (target, target_id)
         login_deadline = None
         while True:
             try:
-                state = _inspect_targets(actual, _page_targets(actual), platform, target_id)
+                state = _inspect_targets(actual, _page_targets(actual), platform, target_id, target if url else None)
             except (CdpError, OSError, TimeoutError, httpx.HTTPError):
                 state = _unavailable('loading', 'page_not_ready')
-            if state['can_collect'] or state['access_state'] == 'verification_required':
+            if state['can_collect'] or state['access_state'] in {'verification_required', 'content_limited'}:
                 return {**base, **state}
             if state['access_state'] == 'login_required':
                 if not wait_for_login:

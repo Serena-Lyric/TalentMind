@@ -37,7 +37,7 @@ def save_rows(db, rows: list[dict], batch_size: int = 1000) -> int:
     return len(rows)
 
 
-def save_incremental_jd_rows(db, rows: list[dict], *, created_ids: set[int], allow_updates: bool = False) -> int:
+def save_incremental_jd_rows(db, rows: list[dict], *, created_ids: set[int], allow_updates: bool = False, on_saved=None) -> int:
     """逐条提交，返回新增数；详情只补本轮新增行或可识别的历史纯列表行。
 
     不提供并发唯一性保证（既有契约无唯一键）；调用方须串行采集。
@@ -55,6 +55,8 @@ def save_incremental_jd_rows(db, rows: list[dict], *, created_ids: set[int], all
                 db.commit()
                 created_ids.add(result.lastrowid)
                 saved += 1
+                if on_saved:
+                    on_saved({**params, 'jd_pool_id': result.lastrowid, 'outcome': 'inserted'})
                 continue
             old_text = existing["raw_text"] or ""
             has_description = "职位描述:" in params["raw_text"] or "职位描述：" in params["raw_text"]
@@ -65,12 +67,17 @@ def save_incremental_jd_rows(db, rows: list[dict], *, created_ids: set[int], all
             )
             if (allow_updates and has_description and params["raw_text"] != old_text
                     and (existing["id"] in created_ids or (metadata_only and not existing["duties"]))):
-                db.execute(text(
+                result = db.execute(text(
                     "UPDATE jd_pool SET job_title=:job_title, raw_text=:raw_text, duties=:duties, "
                     "experience=:experience, quality=:quality, dup_group=:dup_group "
                     "WHERE id=:id AND source=:source AND source_detail=:source_detail AND raw_text=:old_text"
                 ), {**params, "id": existing["id"], "old_text": existing["raw_text"]})
                 db.commit()
+                if on_saved:
+                    on_saved({**params, 'jd_pool_id': existing['id'],
+                              'outcome': 'updated' if result.rowcount == 1 else 'skipped'})
+            elif on_saved:
+                on_saved({'source_detail': params['source_detail'], 'jd_pool_id': existing['id'], 'outcome': 'skipped'})
         except Exception:
             db.rollback()
             raise

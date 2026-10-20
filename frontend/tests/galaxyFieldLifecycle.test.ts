@@ -7,6 +7,11 @@ import {Group, Points} from 'three'
 import {fileURLToPath} from 'node:url'
 import {createGalaxyCamera} from '../src/graph/galaxy/camera.ts'
 
+test('空间回退保留真实数据集与相机参数',t=>{
+ const app=graphComponent(undefined,'?graphDataset=real&graphSpace=node-field-v1&graphCamera=fixed');t.after(app.stop)
+ assert.equal(app.state.legacySpaceHref,'?graphDataset=real&graphSpace=legacy&graphCamera=fixed#/graph')
+})
+
 test('real Vue layout path refreshes field coordinates and failed reload releases stale knowledge',async t=>{
  const app=graphComponent(undefined,'?nebulaDebug=1&graphSpace=node-field-v1');t.after(app.stop)
  const s=app.state,scene=new Group(),dust=createDust(scene),cache=createGalaxySpatialFieldCache()

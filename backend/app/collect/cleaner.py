@@ -89,6 +89,33 @@ def _extract_duties(text: str) -> str:
     return remainder.strip()
 
 
+_SOURCE_SECTION_HEADER = re.compile(
+    r"(?im)(?:^|(?<=[\s。；;！？!?]))[ \t]*(?:"
+    r"(?P<duties>(?:Key[ \t]+)?Responsibilities?|Essential[ \t]+Functions?|"
+    r"(?:Primary[ \t]+)?Duties?|职位描述|岗位职责|工作职责|工作内容|What[ \t]+You'?ll[ \t]+Do|Role)|"
+    r"(?P<requirements>Qualifications?|Requirements?|任职要求|岗位要求|职位要求|技能要求)|"
+    r"Education|Experience|Skills?|About[ \t]+(?:Us|the[ \t]+Company)|Benefits?|Perks|Compensation|"
+    r"We[ \t]+(?:Are|Offer|Value)|How[ \t]+to[ \t]+Apply|Equal[ \t]+Opportunity|Our[ \t]+Company|"
+    r"福利(?:待遇)?|公司介绍|公司简介|工作地址)"
+    r"(?:[ \t]*[:：][ \t]*|[ \t]*(?=\r?$))"
+)
+
+
+def source_sections(text: str | None) -> dict[str, str | None]:
+    """只读展示：沿用职责/边界标题词表，切原文；不改变清洗或存储规则。"""
+    text = text or ''
+    result = {'duties': None, 'requirements': None, 'structure_source': None}
+    headers = list(_SOURCE_SECTION_HEADER.finditer(text))
+    for index, header in enumerate(headers):
+        field = header.lastgroup
+        if field and result[field] is None:
+            end = headers[index + 1].start() if index + 1 < len(headers) else len(text)
+            result[field] = text[header.end():end].strip() or None
+    if result['duties'] or result['requirements']:
+        result['structure_source'] = '原文标题分段'
+    return result
+
+
 # ── 经验提取 ────────────────────────────────────────────
 
 EXPERIENCE_LINE_RE = re.compile(

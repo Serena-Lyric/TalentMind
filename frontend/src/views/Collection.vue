@@ -1,220 +1,379 @@
-﻿<template>
+<template>
   <section class="page collection-page">
     <div class="page-title">
-      <div class="title-left">
-        <div class="module-mark collection-mark"><el-icon><Connection /></el-icon></div>
-        <div><h1>采集模块管理</h1><p>采集任务需手动启动；系统不会自动登录或绕过验证。</p></div>
-      </div>
-      <div class="page-actions">
-        <el-button class="btn-soft" :loading="refreshing" @click="refreshAll"><el-icon><Refresh /></el-icon>刷新状态</el-button>
-        <el-button class="btn-coral" @click="showConfigDialog = true"><el-icon><Setting /></el-icon>采集配置</el-button>
-      </div>
+      <div><h1>采集工作台</h1><p>配置一次有界采集，先准备浏览器，再明确启动。登录或验证由你在浏览器中完成。</p></div>
+      <el-button :loading="refreshing" @click="refreshAll">刷新状态</el-button>
     </div>
+    <el-alert v-if="refreshErrors.length" :title="refreshErrors.join('；')" type="error" :closable="false" show-icon />
 
-    <div class="collection-status-grid" v-loading="refreshing">
-      <article v-for="card in statusCards" :key="card.label" class="collection-status-card">
-        <div class="status-icon" :class="card.tone"><el-icon><component :is="card.icon" /></el-icon></div>
-        <div><small>{{ card.label }}</small><strong>{{ card.value }}</strong><span>{{ card.sub }}</span></div>
-      </article>
-    </div>
-
-    <section class="panel collection-control-panel">
-      <div class="section-heading"><div><h2>任务控制</h2><p>采集任务需手动启动；系统不会自动登录或绕过验证。</p></div><el-tag :type="canStart ? 'success' : 'warning'" effect="plain">{{ canStart ? '可启动' : '任务进行中' }}</el-tag></div>
-      <div class="control-row">
-        <div class="platform-switch"><span>采集平台</span><el-radio-group v-model="configForm.platform" size="small"><el-radio-button value="boss">BOSS</el-radio-button><el-radio-button value="zhaopin">智联</el-radio-button><el-radio-button value="liepin">猎聘</el-radio-button><el-radio-button value="linkedin">LinkedIn</el-radio-button><el-radio-button value="hn">Hacker News</el-radio-button></el-radio-group></div>
-        <div class="mode-switch"><span>运行模式</span><el-radio-group v-model="startMode" size="small"><el-radio-button value="once">单轮验证</el-radio-button><el-radio-button value="limited">指定轮数</el-radio-button><el-radio-button value="continuous">持续运行</el-radio-button></el-radio-group><el-input-number v-if="startMode === 'limited'" v-model="rounds" :min="1" :max="100" size="small" /></div>
-        <div class="control-actions"><el-button class="start-button" :disabled="!canStart" :loading="actionLoading" @click="startTask"><el-icon><VideoPlay /></el-icon>启动采集</el-button><el-button class="stop-button" :disabled="!canStop" :loading="actionLoading" @click="stopTask"><el-icon><VideoPause /></el-icon>停止任务</el-button></div>
-      </div>
-      <div class="control-note"><el-icon><InfoFilled /></el-icon><span>当前配置：{{ configSummary }}。采集器只读取用户已人工登录的 Edge 页面。</span></div>
+    <section class="panel setup-panel">
+      <div class="section-heading"><div><h2><span class="step">1</span>配置本轮采集</h2><p>单个平台、单关键词、单城市；本轮最多一页、5 条列表与 5 条详情。</p></div><el-tag effect="plain">单轮验证</el-tag></div>
+      <el-form label-position="top" class="config-grid" :disabled="busy || preparing">
+        <el-form-item label="招聘平台">
+          <el-select v-model="configForm.platform" placeholder="选择平台" aria-label="招聘平台">
+            <el-option v-for="item in platforms" :key="item.platform" :label="item.supported ? item.label : `${item.label}（暂未接入）`" :value="item.platform" :disabled="!item.supported" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="单个关键词"><el-input v-model="keyword" placeholder="例如：Python" maxlength="80" aria-label="单个关键词" /></el-form-item>
+        <el-form-item label="城市">
+          <el-select v-model="cityCode" placeholder="选择当前平台城市" :disabled="!availableCities.length" aria-label="城市">
+            <el-option v-for="city in availableCities" :key="city.code" :label="city.name" :value="city.code" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="页数"><el-input-number v-model="configForm.pages" :min="1" :max="1" :precision="0" /></el-form-item>
+        <el-form-item label="详情尝试上限"><el-input-number v-model="configForm.detail_limit" :min="1" :max="5" :precision="0" /></el-form-item>
+        <el-form-item label="列表岗位上限"><el-input-number v-model="configForm.max_jobs" :min="1" :max="5" :precision="0" /></el-form-item>
+      </el-form>
+      <p v-if="!selectedPlatform?.supported" class="hint">{{ platforms.length ? '当前来源未接入可启动采集，请选择受支持的平台。' : '正在等待平台配置；配置不可用时无法启动。' }}</p>
+      <div class="gate-note"><el-radio-group model-value="once"><el-radio-button value="once">单轮</el-radio-button><el-radio-button value="continuous" disabled>持续采集</el-radio-button></el-radio-group><span>持续能力保留：Gate 1 尚未验收，暂不可启用。</span></div>
     </section>
 
+    <div class="action-grid">
+      <section class="panel prepare-panel">
+        <h2><span class="step">2</span>准备浏览器</h2>
+        <p>打开独立采集浏览器并检查当前平台访问状态。准备操作不会开始采集或写库。</p>
+        <div class="access-row"><el-tag :type="accessReady ? 'success' : 'warning'">{{ accessText(accessState) }}</el-tag><span>{{ accessMessage }}</span></div>
+        <p v-if="preparation?.target_url" class="source-detail">搜索目标：<a v-if="sourceUrl(preparation.target_url)" :href="sourceUrl(preparation.target_url)" target="_blank" rel="noopener noreferrer">{{ preparation.target_url }}</a><span v-else>搜索地址无效，请重新检查。</span></p>
+        <p v-if="['login_required', 'verification_required', 'content_limited'].includes(accessState)" class="hint">请在浏览器人工处理；完成后再次点击“准备 / 重新检查”。受限时采集会停止。</p>
+        <el-button :loading="preparing" :disabled="!selectedPlatform?.supported || busy || starting" @click="prepareBrowser">{{ preparing ? '浏览器准备中，请稍候' : '准备 / 重新检查' }}</el-button>
+      </section>
+      <section class="panel launch-panel">
+        <h2><span class="step">3</span>启动单轮</h2>
+        <p class="launch-summary">{{ selectedPlatform?.label || '未选平台' }} · {{ keyword.trim() || '待填关键词' }} · {{ configForm.cities[0]?.name || '待选城市' }}</p>
+        <p>{{ configForm.pages }} 页 / 列表 ≤ {{ configForm.max_jobs }} / 详情尝试 ≤ {{ configForm.detail_limit }}</p>
+        <div class="button-row"><el-button type="primary" :disabled="!canStart" :loading="starting" @click="startTask">启动本轮采集</el-button><el-button type="danger" plain :disabled="!canStop" :loading="stopping" @click="stopTask">停止任务</el-button></div>
+        <p class="hint">{{ startHint }}</p>
+      </section>
+    </div>
+
     <section class="panel progress-panel">
-      <div class="section-heading"><div><h2>实时进度</h2><p>刷新页面不会丢失最近一次任务汇总</p></div><el-button text class="refresh-text" @click="loadStatus"><el-icon><RefreshRight /></el-icon>刷新进度</el-button></div>
-      <div class="target-grid">
-        <div><small>当前关键词</small><strong>{{ currentTask.current_keyword || '—' }}</strong></div>
-        <div><small>当前城市</small><strong>{{ currentTask.current_city || '—' }}</strong></div>
-        <div><small>轮次</small><strong>{{ currentTask.current_round || 0 }}<em v-if="currentTask.total_rounds"> / {{ currentTask.total_rounds }}</em></strong></div>
-        <div><small>任务 ID</small><strong class="mono">{{ currentTask.run_id || '暂无任务' }}</strong></div>
-      </div>
-      <div class="progress-count-grid">
-        <div v-for="item in progressItems" :key="item.label" class="progress-count"><strong>{{ item.value }}</strong><span>{{ item.label }}</span></div>
-      </div>
-      <div v-if="currentTask.last_error" class="error-note"><el-icon><WarningFilled /></el-icon>{{ currentTask.last_error }}</div>
+      <div class="section-heading"><div><h2>本轮进度</h2><p class="mono">任务 ID：{{ currentTask.run_id || '暂无任务' }}</p></div><el-tag>{{ statusText(currentTask.status) }}</el-tag></div>
+      <div class="task-context"><span>平台：{{ platformText(currentTask.platform) }}</span><span>关键词：{{ currentTask.current_keyword || '—' }}</span><span>城市：{{ currentTask.current_city || '—' }}</span><span>开始：{{ formatTime(currentTask.started_at) }}</span></div>
+      <div class="count-grid"><div v-for="item in progressItems" :key="item.key"><strong>{{ item.value }}</strong><span>{{ item.label }}</span></div></div>
+      <p class="hint">“—”表示尚无可信计数；详情尝试、详情取得、完整 JD 与实际入库分别计数。</p>
+      <el-alert v-if="currentTask.stop_reason || currentTask.last_error" :title="[currentTask.stop_reason, currentTask.last_error].filter(Boolean).join(' · ')" type="warning" :closable="false" show-icon />
+    </section>
+
+    <section class="panel results-panel">
+      <div class="section-heading"><div><h2>本轮真实结果</h2><p>仅展示任务 {{ currentTask.run_id || '—' }} 的实际事件；拒绝和失败也保留，不补入历史 JD。</p></div><el-tag effect="plain">{{ results.length }} 条事件</el-tag></div>
+      <el-alert v-if="resultsError" :title="resultsError" type="error" :closable="false" />
+      <el-table v-loading="resultsLoading" :data="results" stripe empty-text="本轮暂无结果事件" style="width:100%">
+        <el-table-column prop="job_title" label="岗位" min-width="180" show-overflow-tooltip />
+        <el-table-column label="来源" width="100"><template #default="{ row }">{{ platformText(row.source) }}</template></el-table-column>
+        <el-table-column label="处理结果" width="110"><template #default="{ row }">{{ outcomeText(row.outcome) }}</template></el-table-column>
+        <el-table-column label="jd_pool ID" width="110"><template #default="{ row }">{{ row.jd_pool_id ?? '—' }}</template></el-table-column>
+        <el-table-column prop="rejection_reason" label="拒绝 / 失败原因" min-width="180" show-overflow-tooltip />
+        <el-table-column label="采集时间" width="180"><template #default="{ row }">{{ formatTime(row.crawled_at) }}</template></el-table-column>
+        <el-table-column label="正文与来源" width="120" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="openRaw(row)">查看原文</el-button></template></el-table-column>
+      </el-table>
     </section>
 
     <section class="panel stats-panel">
-      <div class="section-heading"><div><h2>数据统计</h2><p>数据库累计数据与当前采集平台来源质量</p></div><el-button text class="refresh-text" @click="refreshStats"><el-icon><RefreshRight /></el-icon>刷新统计</el-button></div>
-      <div class="stats-number-grid">
-        <div v-for="item in statItems" :key="item.label" class="stat-number-card"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
-      </div>
-      <div class="platform-breakdown">
-        <div class="quality-title">平台岗位（原始 JD 库）</div>
-        <div class="platform-breakdown-grid"><div v-for="item in platformStats" :key="item.platform"><span>{{ item.label }}</span><strong>{{ formatNumber(item.count) }}</strong></div></div>
-      </div>
-      <div class="quality-block"><div class="quality-title">数据质量</div><div class="quality-grid"><div v-for="item in qualityItems" :key="item.label"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div></div></div>
-      <div class="recent-raw-block">
-        <div class="quality-title">最新采集原始数据<span class="recent-raw-hint">仅展示最新 10 条原始 JD</span></div>
-        <el-table :data="recentRaw" stripe size="small" style="width:100%">
-          <el-table-column label="来源" width="110"><template #default="{ row }"><el-tag size="small" effect="plain">{{ platformText(row.source) }}</el-tag></template></el-table-column>
-          <el-table-column prop="job_title" label="岗位标题" min-width="200" show-overflow-tooltip />
-          <el-table-column label="内容摘要" min-width="280"><template #default="{ row }"><span class="raw-content">{{ row.content || '—' }}</span></template></el-table-column>
-          <el-table-column label="质量分" width="90"><template #default="{ row }">{{ qualityText(row.quality) }}</template></el-table-column>
-          <el-table-column label="采集时间" width="170"><template #default="{ row }">{{ formatTime(row.crawled_at) }}</template></el-table-column>
-        </el-table>
-        <div v-if="!recentRaw.length" class="table-empty">暂无采集到的原始数据</div>
-      </div>
+      <div class="section-heading"><div><h2>数据库现状</h2><p>累计原始 JD；与上方本轮事件分开核验。</p></div><span>最近采集：{{ formatTime(stats.latest_crawled_at) }}</span></div>
+      <el-alert v-if="databaseError" :title="databaseError" type="error" :closable="false" show-icon />
+      <div class="stats-grid"><div><span>全库岗位</span><strong>{{ stats.available === false ? '—' : formatNumber(stats.database_total) }}</strong></div><div v-for="item in platformStats" :key="item.platform"><span>{{ item.label }}</span><strong>{{ formatNumber(item.count) }}</strong></div></div>
+      <div class="quality-row"><span v-for="item in qualityItems" :key="item.label">{{ item.label }}：{{ item.value }}</span></div>
     </section>
 
     <section class="panel history-panel">
-      <div class="section-heading"><div><h2>历史任务</h2><p>仅记录通过本控制台启动的采集任务</p></div><div class="history-filters"><el-select v-model="historyFilter.status" placeholder="状态筛选" clearable size="small" style="width:130px"><el-option label="已完成" value="completed" /><el-option label="已停止" value="stopped" /><el-option label="错误" value="error" /></el-select><el-select v-model="historyFilter.mode" placeholder="模式筛选" clearable size="small" style="width:130px"><el-option label="单轮" value="once" /><el-option label="指定轮数" value="limited" /><el-option label="持续" value="continuous" /></el-select></div></div>
-      <el-table :data="filteredHistory" stripe size="small" style="width:100%"><el-table-column prop="run_id" label="任务 ID" min-width="190" /><el-table-column label="平台" width="100"><template #default="{ row }"><el-tag size="small" effect="plain">{{ platformText(row.platform) }}</el-tag></template></el-table-column><el-table-column label="模式" width="100"><template #default="{ row }"><el-tag size="small" effect="plain">{{ modeText(row.mode) }}</el-tag></template></el-table-column><el-table-column label="状态" width="100"><template #default="{ row }"><el-tag size="small" :type="statusTag(row.status)">{{ statusText(row.status) }}</el-tag></template></el-table-column><el-table-column label="开始时间" min-width="160"><template #default="{ row }">{{ formatTime(row.started_at) }}</template></el-table-column><el-table-column label="结束时间" min-width="160"><template #default="{ row }">{{ formatTime(row.finished_at) }}</template></el-table-column><el-table-column prop="listed" label="列表" width="70" /><el-table-column prop="details" label="详情" width="70" /><el-table-column prop="new" label="新增" width="70" /><el-table-column prop="skipped" label="跳过" width="70" /><el-table-column prop="errors" label="异常" width="70" /><el-table-column label="操作" width="70" fixed="right"><template #default="{ row }"><el-button text class="detail-link" @click="selectedTask = row; showDetailDialog = true">详情</el-button></template></el-table-column></el-table>
-      <div v-if="!filteredHistory.length" class="table-empty">暂无控制台历史任务</div>
+      <div class="section-heading"><div><h2>历史任务</h2><p>按任务查看日志与结果，历史未知计数保留为“—”。</p></div></div>
+      <el-table :data="history" stripe empty-text="暂无控制台历史任务">
+        <el-table-column prop="run_id" label="任务 ID" min-width="190" show-overflow-tooltip />
+        <el-table-column label="平台" width="100"><template #default="{ row }">{{ platformText(row.platform) }}</template></el-table-column>
+        <el-table-column label="状态" width="130"><template #default="{ row }">{{ statusText(row.status) }}</template></el-table-column>
+        <el-table-column label="完整 JD" width="100"><template #default="{ row }">{{ formatNumber(row.complete) }}</template></el-table-column>
+        <el-table-column label="新增 / 更新" width="130"><template #default="{ row }">{{ formatNumber(row.inserted) }} / {{ formatNumber(row.updated) }}</template></el-table-column>
+        <el-table-column prop="stop_reason" label="停止原因" min-width="170" show-overflow-tooltip />
+        <el-table-column label="开始时间" width="180"><template #default="{ row }">{{ formatTime(row.started_at) }}</template></el-table-column>
+        <el-table-column label="详情" width="115" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="openHistory(row)">日志与结果</el-button></template></el-table-column>
+      </el-table>
+      <el-pagination v-if="historyTotal > 20" v-model:current-page="historyPage" :page-size="20" :total="historyTotal" layout="prev, pager, next" @current-change="loadHistory" />
     </section>
 
-    <el-dialog v-model="showConfigDialog" title="采集参数配置" width="620px" :close-on-click-modal="false">
-      <el-form :model="configForm" label-width="110px"><el-form-item label="关键词"><el-select v-model="configForm.keywords" multiple filterable allow-create default-first-option style="width:100%"><el-option v-for="item in defaultKeywords" :key="item" :label="item" :value="item" /></el-select></el-form-item><el-form-item label="城市"><el-select v-model="configForm.cities" multiple value-key="code" style="width:100%"><el-option v-for="item in defaultCities" :key="item.code" :label="item.name" :value="item" /></el-select></el-form-item><el-form-item label="每轮页数"><el-input-number v-model="configForm.pages" :min="1" :max="10" /></el-form-item><el-form-item label="详情上限"><el-input-number v-model="configForm.detail_limit" :min="0" :max="50" /></el-form-item><el-form-item label="岗位上限"><el-input-number v-model="configForm.max_jobs" :min="0" :max="100" /></el-form-item><el-form-item label="页面间隔"><el-slider v-model="pageDelay" range :min="5" :max="60" :step="5" /><span class="form-help">{{ pageDelay[0] }}–{{ pageDelay[1] }} 秒</span></el-form-item><el-form-item label="启动前检查"><el-checkbox v-model="configForm.check_cdp_before_start">检查 CDP 连接和当前平台页面</el-checkbox></el-form-item></el-form>
-      <template #footer><el-button class="btn-soft" @click="showConfigDialog = false">取消</el-button><el-button class="btn-coral" :loading="actionLoading" @click="saveConfig">保存配置</el-button></template>
-    </el-dialog>
-
-    <el-dialog v-model="showDetailDialog" title="任务详情" width="620px"><div v-if="selectedTask" class="task-detail-list"><div v-for="item in taskDetailItems" :key="item.label"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div><div class="task-log"><span>日志状态</span><strong>{{ logStatusText(selectedTask.log_status) }}</strong><pre v-if="selectedTask.raw_log_tail?.length">{{ selectedTask.raw_log_tail.join('\n') }}</pre><small v-else>暂无可读取日志；历史任务不会再显示为无法识别。</small></div></div></el-dialog>
+    <el-drawer v-model="showHistory" title="历史任务日志与结果" size="min(900px, 95vw)">
+      <template v-if="selectedTask">
+        <p class="mono">{{ selectedTask.run_id }}</p><p>{{ platformText(selectedTask.platform) }} · {{ statusText(selectedTask.status) }} · {{ selectedTask.stop_reason || '无停止原因记录' }}</p>
+        <div class="count-grid"><div v-for="item in countsFor(selectedTask)" :key="item.key"><strong>{{ item.value }}</strong><span>{{ item.label }}</span></div></div>
+        <h3>任务日志 · {{ selectedTask.log_status || '未知' }}</h3><pre class="raw-text">{{ selectedTask.raw_log_tail?.join('\n') || '暂无可读取日志' }}</pre>
+        <h3>该任务结果</h3><el-alert v-if="historyResultsError" :title="historyResultsError" type="error" :closable="false" />
+        <el-table v-loading="historyLoading" :data="historyResults" empty-text="该任务无结果事件">
+          <el-table-column prop="job_title" label="岗位" min-width="170" /><el-table-column label="结果" width="100"><template #default="{ row }">{{ outcomeText(row.outcome) }}</template></el-table-column><el-table-column prop="rejection_reason" label="原因" min-width="150" /><el-table-column label="原文" width="85"><template #default="{ row }"><el-button link type="primary" @click="openRaw(row)">查看</el-button></template></el-table-column>
+        </el-table>
+      </template>
+    </el-drawer>
+    <el-drawer v-model="showRaw" title="来源与完整正文" size="min(760px, 95vw)">
+      <template v-if="eventRecord">
+        <h3>{{ eventRecord.job_title || '未取得岗位标题' }}</h3>
+        <div class="source-meta"><span>来源：{{ platformText(eventRecord.source) }}</span><span>结果：{{ outcomeText(eventRecord.outcome) }}</span><span>jd_pool ID：{{ eventRecord.jd_pool_id ?? '—' }}</span><span>采集时间：{{ formatTime(eventRecord.crawled_at) }}</span></div>
+        <p class="source-detail">来源地址：<a v-if="sourceUrl(eventRecord.source_detail)" :href="sourceUrl(eventRecord.source_detail)" target="_blank" rel="noopener noreferrer">{{ eventRecord.source_detail }}</a><span v-else>{{ eventRecord.source_detail || '未取得' }}</span></p>
+        <el-alert v-if="eventRecord.rejection_reason" :title="eventRecord.rejection_reason" type="warning" :closable="false" />
+        <h3>该任务取得的原文</h3><pre class="raw-text">{{ eventRecord.raw_text || '该事件未取得正文' }}</pre>
+        <h3>原始库完整正文</h3>
+        <div v-loading="rawLoading" class="raw-db">
+          <el-alert v-if="rawError" :title="rawError" type="error" :closable="false" />
+          <p v-if="!eventRecord.jd_pool_id" class="hint">该事件未关联入库 ID，无法读取数据库原文。</p>
+          <template v-if="rawRecord"><p class="hint">当前数据库记录；仅显式授权的本地访问可读取。质量分：{{ formatQuality(rawRecord.quality) }}</p><pre class="raw-text">{{ rawRecord.raw_text || '库记录正文为空' }}</pre><h3>职责（原始字段或原文分段）</h3><pre class="raw-text">{{ rawRecord.duties || '原文未提供明确职责段' }}</pre><h3>任职要求（按原文标题分段）</h3><pre class="raw-text">{{ rawRecord.requirements || '原文未提供明确要求段，请核验完整原文' }}</pre></template>
+        </div>
+      </template>
+    </el-drawer>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Connection, Clock, Collection, DataAnalysis, InfoFilled, Refresh, RefreshRight, Setting, VideoPause, VideoPlay, WarningFilled } from '@element-plus/icons-vue'
-import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionRecent, getCollectionStats, getCollectionStatus, prepareCollection, startCollection, stopCollection, updateCollectionConfig, type CDPStatus, type CollectionConfig, type CollectionRaw, type CollectionStats, type CollectionTask } from '../api/collection'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionPlatforms, getCollectionRaw, getCollectionResults, getCollectionStatus, getDatabaseStats, prepareCollection, startCollection, stopCollection, type CDPStatus, type CollectionAccess, type CollectionConfig, type CollectionPlatform, type CollectionPreparation, type CollectionRaw, type CollectionResult, type CollectionStats, type CollectionTask } from '../api/collection'
 
-const emptyTask: CollectionTask = { run_id: null, platform: 'boss', status: 'idle', mode: 'once', started_at: null, finished_at: null, current_keyword: null, current_city: null, current_round: 0, total_rounds: null, listed: 0, details: 0, new: 0, skipped: 0, errors: 0, last_error: null, next_run_at: null, cdp_status: 'unknown', browser_page_status: null, database_total: 0, database_boss_total: 0, database_new_count: 0 }
-const emptyStats: CollectionStats = { database_total: 0, database_boss_total: 0, database_new_count: 0, platform_counts: [], latest_crawled_at: null, data_quality: { empty_source_detail: 0, duplicate_source_detail: 0, placeholder_empty_url: 0, duties_nonempty: 0, status_distribution: [] } }
-const currentTask = ref<CollectionTask>({ ...emptyTask })
+const platforms = ref<CollectionPlatform[]>([])
+const configForm = reactive<CollectionConfig>({ platform: 'boss', mode: 'once', keywords: [], cities: [], pages: 1, detail_limit: 5, max_jobs: 5 })
+const currentTask = ref<CollectionTask>({ run_id: null, status: 'idle' })
+const stats = ref<CollectionStats>({ database_total: null, platform_counts: [] })
 const cdpStatus = ref<CDPStatus | null>(null)
-const stats = ref<CollectionStats>({ ...emptyStats })
-const history = ref<CollectionTask[]>([])
-const recentRaw = ref<CollectionRaw[]>([])
-const configForm = reactive<CollectionConfig>({ platform: 'boss', mode: 'once', keywords: [], cities: [], pages: 1, detail_limit: 8, max_jobs: 12, page_delay_min: 15, page_delay_max: 30, settle_min: 5, settle_max: 10, switch_interval_min: 360, switch_interval_max: 720, rounds: 0, check_cdp_before_start: true, cdp_endpoint: 'http://127.0.0.1:9333', user_data_dir: null })
-const startMode = ref<'once' | 'limited' | 'continuous'>('once')
-const rounds = ref(3)
-const pageDelay = ref<[number, number]>([15, 30])
-const historyFilter = reactive({ status: '', mode: '' })
+const preparation = ref<CollectionPreparation | null>(null)
+const preparedFor = ref<string | null>(null)
 const refreshing = ref(false)
-const actionLoading = ref(false)
-const showConfigDialog = ref(false)
-const showDetailDialog = ref(false)
+const preparing = ref(false)
+const starting = ref(false)
+const stopping = ref(false)
+const refreshErrors = ref<string[]>([])
+const results = ref<CollectionResult[]>([])
+const resultsError = ref('')
+const resultsLoading = ref(false)
+const history = ref<CollectionTask[]>([])
+const historyPage = ref(1)
+const historyTotal = ref(0)
 const selectedTask = ref<CollectionTask | null>(null)
-const defaultKeywords = ['Python', 'Java', '前端', '后端工程师', '数据分析', '数据工程师', 'AI工程师', '机器学习']
-const defaultCities = [{ name: '北京', code: '101010100' }, { name: '上海', code: '101020100' }, { name: '深圳', code: '101280600' }, { name: '广州', code: '101280100' }, { name: '杭州', code: '101210100' }, { name: '成都', code: '101270100' }]
-const PLATFORM_META: { platform: string; label: string }[] = [
-  { platform: 'boss', label: 'BOSS' },
-  { platform: 'zhaopin', label: '智联' },
-  { platform: 'liepin', label: '猎聘' },
-  { platform: 'linkedin', label: 'LinkedIn' },
-  { platform: 'hn', label: 'Hacker News' },
-]
-const DISPLAY_ONLY_PLATFORMS = ['linkedin', 'hn']
-const PLATFORM_FALLBACK_COUNTS: Record<string, number> = { linkedin: 1164, hn: 1253 }
+const showHistory = ref(false)
+const historyResults = ref<CollectionResult[]>([])
+const historyResultsError = ref('')
+const historyLoading = ref(false)
+const showRaw = ref(false)
+const eventRecord = ref<CollectionResult | null>(null)
+const rawRecord = ref<CollectionRaw | null>(null)
+const rawError = ref('')
+const rawLoading = ref(false)
+let browserRequest = 0
 
-const taskStatus = computed(() => currentTask.value.status || 'idle')
-const canStart = computed(() => ['idle', 'stopped', 'completed', 'error'].includes(taskStatus.value))
-const canStop = computed(() => ['preparing', 'waiting_for_browser', 'running', 'waiting_next_round'].includes(taskStatus.value))
-const platformStats = computed(() => PLATFORM_META.map(meta => ({ platform: meta.platform, label: meta.label, count: stats.value.platform_counts.find(item => item.platform === meta.platform)?.count ?? PLATFORM_FALLBACK_COUNTS[meta.platform] ?? 0 })))
-const statusCards = computed(() => [
-  { label: '任务状态', value: statusText(taskStatus.value), sub: currentTask.value.run_id ? `ID: ${currentTask.value.run_id}` : '暂无进行中的任务', icon: Clock, tone: taskStatus.value === 'running' ? 'green' : taskStatus.value === 'error' ? 'red' : 'warm' },
-  { label: 'CDP 连接', value: cdpStatus.value?.reachable ? '已连接' : '不可达', sub: cdpStatus.value ? `BOSS/智联/猎聘：${Object.values(cdpStatus.value.platform_pages || {}).join('/') || 0}` : '等待检查', icon: Connection, tone: cdpStatus.value?.reachable ? 'green' : 'red' },
-  { label: '浏览器页面', value: currentTask.value.browser_page_status || (cdpStatus.value?.platform_pages?.[configForm.platform || 'boss'] ? `${platformText(configForm.platform)} 页面` : '未识别'), sub: `端点：${cdpStatus.value?.endpoint || configForm.cdp_endpoint}`, icon: Collection, tone: cdpStatus.value?.boss_page_count ? 'green' : 'warm' },
-  { label: `${platformText(configForm.platform)} 数据`, value: formatNumber(platformStats.value.find(item => item.platform === configForm.platform)?.count || 0), sub: `全库：${formatNumber(stats.value.database_total)}`, icon: DataAnalysis, tone: 'coral' },
-])
-const progressItems = computed(() => [{ label: '列表识别', value: currentTask.value.listed }, { label: '详情补采', value: currentTask.value.details }, { label: '新增入库', value: currentTask.value.new }, { label: '跳过重复', value: currentTask.value.skipped }, { label: '异常', value: currentTask.value.errors }])
-const statItems = computed(() => [{ label: '全库岗位', value: formatNumber(stats.value.database_total) }, { label: `${platformText(configForm.platform)} 岗位`, value: formatNumber(platformStats.value.find(item => item.platform === configForm.platform)?.count || 0) }, { label: '本次新增', value: formatNumber(currentTask.value.new || stats.value.database_new_count) }, { label: '最近采集', value: formatTime(stats.value.latest_crawled_at) }])
-const qualityItems = computed(() => [{ label: '职责非空', value: stats.value.data_quality.duties_nonempty }, { label: '来源详情为空', value: stats.value.data_quality.empty_source_detail }, { label: '来源详情重复组', value: stats.value.data_quality.duplicate_source_detail }, { label: '占位/空 URL', value: stats.value.data_quality.placeholder_empty_url }])
-const filteredHistory = computed(() => history.value.filter(item => (!historyFilter.status || item.status === historyFilter.status) && (!historyFilter.mode || item.mode === historyFilter.mode)))
-const configSummary = computed(() => `${startMode.value === 'once' ? '单轮' : startMode.value === 'limited' ? `${rounds.value} 轮` : '持续'} · ${configForm.keywords.length || 0} 个关键词 · ${configForm.cities.length || 0} 个城市`)
-const taskDetailItems = computed(() => selectedTask.value ? [{ label: '任务 ID', value: selectedTask.value.run_id || '—' }, { label: '平台', value: platformText(selectedTask.value.platform) }, { label: '模式', value: modeText(selectedTask.value.mode) }, { label: '状态', value: statusText(selectedTask.value.status) }, { label: '关键词', value: selectedTask.value.current_keyword || '—' }, { label: '城市', value: selectedTask.value.current_city || '—' }, { label: '开始时间', value: formatTime(selectedTask.value.started_at) }, { label: '结束时间', value: formatTime(selectedTask.value.finished_at) }, { label: '列表 / 详情', value: `${selectedTask.value.listed} / ${selectedTask.value.details}` }, { label: '新增 / 跳过 / 异常', value: `${selectedTask.value.new} / ${selectedTask.value.skipped} / ${selectedTask.value.errors}` }] : [])
-
-function formatNumber(value: number) { return new Intl.NumberFormat('zh-CN').format(value || 0) }
-function formatTime(value: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }) }
-function modeText(value: string) { return ({ once: '单轮', limited: '指定轮数', continuous: '持续' } as Record<string, string>)[value] || value }
-function statusText(value: string) { return ({ idle: '空闲', preparing: '准备中', waiting_for_browser: '等待浏览器', running: '运行中', waiting_next_round: '等待下一轮', stopped: '已停止', completed: '已完成', error: '错误', auth_required: '需要登录', verification_detected: '需要验证', cdp_unavailable: 'CDP 不可用' } as Record<string, string>)[value] || value }
-function platformText(value: string | undefined) { return PLATFORM_META.find(item => item.platform === value)?.label || value || '未知' }
-function qualityText(value: number | null | undefined) { return typeof value === 'number' ? value.toFixed(2) : '—' }
-function logStatusText(value: string | undefined) { return ({ parsed: '已识别', missing: '日志不存在', empty: '日志为空', unrecognized: '存在但格式未知' } as Record<string, string>)[value || ''] || '未记录' }
-function statusTag(value: string) { return ['completed'].includes(value) ? 'success' : ['error', 'auth_required', 'verification_detected', 'cdp_unavailable'].includes(value) ? 'danger' : 'info' }
-async function loadStatus() { currentTask.value = await getCollectionStatus() }
-async function loadStats() { stats.value = await getCollectionStats() }
-async function loadHistory() { history.value = (await getCollectionHistory({ page: 1, page_size: 50 })).items || [] }
-async function loadRecent() { recentRaw.value = await getCollectionRecent(10) }
-async function refreshStats() { await Promise.all([loadStats(), loadRecent()]) }
-async function loadConfig() { const value = await getCollectionConfig(); Object.assign(configForm, value); pageDelay.value = [value.page_delay_min, value.page_delay_max]; startMode.value = value.mode }
-async function loadCDP() { cdpStatus.value = await getCDPStatus() }
-async function refreshAll() { refreshing.value = true; try { await Promise.all([loadStatus(), loadStats(), loadHistory(), loadRecent(), loadConfig(), loadCDP()]); ElMessage.success('状态已刷新') } catch { /* request.ts 已提示 */ } finally { refreshing.value = false } }
-// 自动采集机制（进入页面自动准备 Edge + 已登录自动尝试单轮）：不好用，但是先不删（2026-09-03 注释停用，改为手动启动）
-// async function prepareOnEntry() {
-//   try {
-//     const result = await prepareCollection(true, configForm.platform)
-//     if (result?.status === 'started') {
-//       ElMessage.success('已登录，已自动启动单轮采集')
-//       await refreshAll()
-//     } else if (result?.status === 'login_required') {
-//       ElMessage.info('已打开采集浏览器，请登录当前平台后再启动采集')
-//     } else if (result?.status === 'cdp_unavailable') {
-//       ElMessage.warning('采集浏览器未准备好，请检查 Edge 是否成功打开')
-//     } else if (result?.status === 'start_failed') {
-//       ElMessage.warning(result.message || '自动启动采集失败，请使用手动按钮重试')
-//     }
-//   } catch { /* request.ts 已提示 */ }
-// }
-async function startTask() {
-  try {
-    if (DISPLAY_ONLY_PLATFORMS.includes(configForm.platform || '')) {
-      ElMessage.info('LinkedIn / Hacker News 为平台展示项，控制台未接入启动任务')
-      return
-    }
-    await ElMessageBox.confirm(`确定启动${platformText(configForm.platform)}${startMode.value === 'once' ? '单轮' : startMode.value === 'limited' ? `${rounds.value} 轮` : '持续'}采集吗？浏览器未运行时系统会自动拉起独立 Edge。`, '确认启动', { type: 'info' })
-    actionLoading.value = true
-    const prepared = await prepareCollection(false, configForm.platform)
-    if (prepared?.status === 'login_required') {
-      ElMessage.warning('浏览器已打开，请先登录当前平台并打开岗位页面')
-      await refreshAll()
-      return
-    }
-    if (prepared?.status !== 'ready') throw new Error(prepared?.message || '浏览器未准备就绪')
-    const task = await startCollection({ ...configForm, mode: startMode.value, rounds: startMode.value === 'limited' ? rounds.value : 0 })
-    if (task?.run_id) ElMessage.success('已登录，采集任务已启动')
-    await refreshAll()
-  } catch (error) {
-    if (error !== 'cancel') ElMessage.error((error as Error)?.message || '启动失败')
-  } finally { actionLoading.value = false }
+const selectedPlatform = computed(() => platforms.value.find(item => item.platform === configForm.platform))
+const availableCities = computed(() => selectedPlatform.value?.cities || [])
+const keyword = computed({ get: () => configForm.keywords[0] || '', set: (value: string) => { configForm.keywords = value.trim() ? [value] : [] } })
+const cityCode = computed({ get: () => configForm.cities[0]?.code || '', set: (code: string) => { const city = availableCities.value.find(item => item.code === code); configForm.cities = city ? [{ ...city }] : [] } })
+watch(() => configForm.platform, () => { configForm.cities = [] }, { flush: 'sync' })
+watch(() => JSON.stringify([configForm.platform, configForm.keywords, configForm.cities, configForm.pages, configForm.detail_limit, configForm.max_jobs]), () => {
+  browserRequest++
+  preparedFor.value = null
+  preparation.value = null
+  cdpStatus.value = null
+}, { flush: 'sync' })
+const busy = computed(() => !currentTask.value.finished_at && ['preparing', 'waiting_for_browser', 'running', 'waiting_next_round', 'stopping'].includes(currentTask.value.status))
+const canStop = computed(() => busy.value && !!currentTask.value.run_id && !stopping.value)
+const access = computed<CollectionAccess | null>(() => cdpStatus.value && !cdpStatus.value.reachable ? { access_state: 'cdp_unavailable', can_collect: false } : cdpStatus.value?.platform_access?.[configForm.platform || ''] || preparation.value)
+const accessState = computed(() => preparing.value ? 'preparing' : access.value?.content_limited || preparation.value?.content_limited || preparation.value?.access_state === 'content_limited' ? 'content_limited' : access.value?.access_state || 'unready')
+const accessReady = computed(() => access.value?.can_collect === true && ['public_accessible', 'authenticated_accessible', 'public', 'auth', 'empty_results'].includes(accessState.value))
+const accessMessage = computed(() => {
+  if (accessState.value === 'content_limited') return '正文访问受限，请在浏览器中人工处理后重新检查。'
+  const last = preparation.value
+  if (last?.message && (!last.can_collect || preparedFor.value === configForm.platform)) return last.message
+  return cdpStatus.value?.error ? `浏览器检查失败：${cdpStatus.value.error}` : access.value?.message || (access.value?.reason ? accessReasonText(access.value.reason) : '请显式准备浏览器；系统不会自动登录或绕过验证。')
+})
+const configValid = computed(() => !!selectedPlatform.value?.supported && configForm.keywords.length === 1 && !!keyword.value.trim() && keyword.value.trim().length <= 80 && configForm.cities.length === 1 && availableCities.value.some(city => city.code === configForm.cities[0]?.code && city.name === configForm.cities[0]?.name) && configForm.pages === 1 && Number.isInteger(configForm.detail_limit) && configForm.detail_limit >= 1 && configForm.detail_limit <= 5 && Number.isInteger(configForm.max_jobs) && configForm.max_jobs >= 1 && configForm.max_jobs <= 5)
+const canStart = computed(() => configValid.value && preparedFor.value === configForm.platform && accessReady.value && !busy.value && !preparing.value && !starting.value && !stopping.value)
+const startHint = computed(() => busy.value ? '任务处理中；可停止后查看已取得结果。' : !configValid.value ? '请完成有效的平台、关键词与城市配置，页数为 1，列表和详情上限为 1–5。' : preparing.value ? '浏览器准备中，请稍候。' : !accessReady.value && (preparation.value || access.value || cdpStatus.value?.error) ? `${accessMessage.value}；请处理后点击“准备 / 重新检查”。` : preparedFor.value !== configForm.platform ? '先点击左侧准备浏览器，再启动单轮。' : '已准备就绪，点击后仅提交当前单轮任务。')
+const databaseError = computed(() => stats.value.error || (stats.value.available === false ? '数据库统计暂不可用' : ''))
+const platformStats = computed(() => platforms.value.map(item => ({ platform: item.platform, label: item.label, count: stats.value.available === false ? null : stats.value.platform_counts?.find(row => row.platform === item.platform)?.count ?? null })))
+const qualityItems = computed(() => [
+  { label: '职责非空', value: stats.value.data_quality?.duties_nonempty },
+  { label: '来源为空', value: stats.value.data_quality?.empty_source_detail },
+  { label: '重复来源组', value: stats.value.data_quality?.duplicate_source_detail },
+  { label: '占位 / 空 URL', value: stats.value.data_quality?.placeholder_empty_url },
+].map(item => ({ label: item.label, value: formatNumber(stats.value.available === false ? null : item.value) })))
+const countFields = [
+  ['listed', '列表识别'], ['detail_attempted', '详情尝试'], ['detail_obtained', '详情取得'], ['complete', '完整 JD'], ['inserted', '新增入库'], ['updated', '更新入库'], ['skipped', '跳过'], ['rejected', '拒绝'], ['failed', '失败'],
+] as const
+function countsFor(task: CollectionTask) { return countFields.map(([key, label]) => ({ key, label, value: formatNumber(task[key]) })) }
+const progressItems = computed(() => countsFor(currentTask.value))
+function formatNumber(value?: number | null) { return typeof value === 'number' && Number.isFinite(value) ? new Intl.NumberFormat('zh-CN').format(value) : '—' }
+function formatQuality(value?: number | null) { return typeof value === 'number' && Number.isFinite(value) ? String(value) : '—' }
+function formatTime(value?: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }) }
+function platformText(value?: string | null) { return platforms.value.find(item => item.platform === value)?.label || value || '—' }
+function statusText(value: string) { return ({ idle: '空闲', preparing: '准备中', waiting_for_browser: '等待浏览器', running: '运行中', stopping: '停止中', stopped: '已停止', completed: '已完成', error: '错误', waiting_next_round: '等待下一轮' } as Record<string, string>)[value] || value }
+function accessText(value: string) { return ({ public_accessible: '公开可访问', authenticated_accessible: '已登录可访问', public: '公开可访问', auth: '已登录可访问', login_required: '需要人工登录', verification_required: '需要人工验证', content_limited: '正文访问受限', preparing: '准备中', unready: '尚未准备', cdp_unavailable: '浏览器不可用', page_missing: '未找到平台页面', page_error: '页面未就绪', loading: '页面加载中', empty_results: '无搜索结果' } as Record<string, string>)[value] || value }
+function accessReasonText(reason: string) {
+  const text = ({ no_access_evidence: '页面尚未出现可访问的职位内容', unexpected_domain: '当前页面未到达所选招聘平台', manual_verification_or_access_limit: '需要人工验证或处理访问限制', manual_login_gate: '需要在浏览器中人工登录', visible_page_error: '招聘页面显示错误', document_loading: '招聘页面仍在加载', visible_job_content: '已看到可访问的职位内容', explicit_empty_results: '搜索页已打开，当前搜索没有结果', no_owned_edge: '尚未连接独立采集浏览器', edge_or_cdp_error: '浏览器启动或调试连接失败', no_platform_page: '未找到当前平台页面' } as Record<string, string>)[reason]
+  return `${text || '浏览器访问检查未通过'}（${reason}）`
 }
-async function stopTask() { try { await ElMessageBox.confirm('确定停止当前采集任务吗？', '确认停止', { type: 'warning' }); actionLoading.value = true; await stopCollection(currentTask.value.run_id); await refreshAll() } catch (error) { if (error !== 'cancel') ElMessage.error((error as Error)?.message || '停止失败') } finally { actionLoading.value = false } }
-async function saveConfig() { try { actionLoading.value = true; const payload: Partial<CollectionConfig> = { ...configForm, page_delay_min: pageDelay.value[0], page_delay_max: pageDelay.value[1] };
-    if (DISPLAY_ONLY_PLATFORMS.includes(configForm.platform || '')) delete payload.platform;
-    await updateCollectionConfig(payload); showConfigDialog.value = false; ElMessage.success('配置已保存'); await loadConfig() } catch (error) { ElMessage.error((error as Error)?.message || '保存失败') } finally { actionLoading.value = false } }
+function outcomeText(value?: string | null) { return ({ inserted: '新增入库', updated: '更新入库', skipped: '跳过', rejected: '拒绝', failed: '失败', complete: '完整 JD' } as Record<string, string>)[value || ''] || value || '未记录' }
+function sourceUrl(value?: string | null) { try { const url = new URL(value || ''); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : undefined } catch { return undefined } }
+function errorText(error: unknown) {
+  const response = (error as { response?: { data?: { detail?: unknown; message?: unknown } } } | null)?.response?.data
+  const detail = response?.detail || response?.message
+  return typeof detail === 'string' ? detail : error instanceof Error ? error.message : String(error)
+}
+
+let resultsRequest = 0
+async function loadResults() {
+  const request = ++resultsRequest
+  const runId = currentTask.value.run_id
+  results.value = []
+  resultsError.value = ''
+  resultsLoading.value = !!runId
+  if (!runId) return
+  try { const rows = await getCollectionResults(runId); if (request === resultsRequest && currentTask.value.run_id === runId) results.value = rows }
+  catch (error) { if (request === resultsRequest) resultsError.value = `本轮结果读取失败：${errorText(error)}` }
+  finally { if (request === resultsRequest) resultsLoading.value = false }
+}
+async function loadStatus() { currentTask.value = await getCollectionStatus(); await loadResults() }
+async function loadHistory() {
+  try { const value = await getCollectionHistory({ page: historyPage.value, page_size: 20 }); history.value = value.items; historyTotal.value = value.total }
+  catch (error) { history.value = []; historyTotal.value = 0; throw error }
+}
+async function loadStats() {
+  try { stats.value = await getDatabaseStats() }
+  catch (error) { stats.value = { available: false, error: errorText(error), database_total: null, platform_counts: [] } }
+}
+async function loadBrowserStatus() {
+  if (preparing.value) return
+  const request = ++browserRequest
+  try {
+    const value = await getCDPStatus()
+    if (request !== browserRequest) return
+    cdpStatus.value = value
+    const currentAccess = value.platform_access?.[configForm.platform || '']
+    if (!value.reachable || (currentAccess && (!currentAccess.can_collect || currentAccess.content_limited))) {
+      preparedFor.value = null
+    }
+  } catch (error) {
+    if (request !== browserRequest) return
+    cdpStatus.value = { reachable: false, error: errorText(error) }
+    preparedFor.value = null
+    throw error
+  }
+}
+async function refreshAll() {
+  if (refreshing.value) return
+  refreshing.value = true
+  const checks = await Promise.allSettled([loadStatus(), loadStats(), loadHistory(), loadBrowserStatus()])
+  refreshErrors.value = checks.flatMap((result, index) => result.status === 'rejected' ? [`${['进度', '数据库', '历史', '浏览器状态'][index]}读取失败：${errorText(result.reason)}`] : [])
+  refreshing.value = false
+}
+async function prepareBrowser() {
+  if (preparing.value || busy.value || starting.value) return
+  if (!configValid.value) { ElMessage.warning('请检查配置：选择支持的平台、1 个不超过 80 字的关键词及对应城市，页数为 1，列表和详情上限为 1–5。'); return }
+  const platform = configForm.platform!
+  const request = ++browserRequest
+  preparing.value = true
+  preparation.value = null
+  preparedFor.value = null
+  cdpStatus.value = null
+  try {
+    const result = await prepareCollection(false, platform, { keywords: [keyword.value.trim()], cities: configForm.cities.map(city => ({ ...city })), pages: configForm.pages, detail_limit: configForm.detail_limit, max_jobs: configForm.max_jobs })
+    if (request === browserRequest) { preparation.value = result; cdpStatus.value = result.cdp; preparedFor.value = result.can_collect ? platform : null }
+  } catch (error) {
+    if (request === browserRequest) {
+      const detail = errorText(error)
+      preparation.value = { access_state: 'unready', can_collect: false, message: /timeout|timed out|ECONNABORTED/i.test(detail) ? '浏览器准备超时，请刷新状态或重新检查。' : `浏览器准备失败：${detail}`, cdp: { reachable: false } }
+    }
+  }
+  finally { preparing.value = false }
+}
+async function startTask() {
+  if (!canStart.value) return
+  starting.value = true
+  try {
+    const task = await startCollection({ platform: configForm.platform, mode: 'once', keywords: [keyword.value.trim()], cities: configForm.cities.map(city => ({ ...city })), pages: configForm.pages, detail_limit: configForm.detail_limit, max_jobs: configForm.max_jobs, rounds: 1, check_cdp_before_start: true })
+    currentTask.value = { run_id: task.run_id, platform: configForm.platform, status: task.status || 'preparing' }
+    preparedFor.value = null
+    ElMessage.info(task.message || '本轮任务已提交，请查看进度与停止原因。')
+    await refreshAll()
+  } catch (error) { ElMessage.error(`任务提交失败：${errorText(error)}`) }
+  finally { starting.value = false }
+}
+async function stopTask() {
+  if (!canStop.value) return
+  stopping.value = true
+  try { await stopCollection(currentTask.value.run_id); preparedFor.value = null; await refreshAll() }
+  catch (error) { ElMessage.error(`停止失败：${errorText(error)}`) }
+  finally { stopping.value = false }
+}
+let historyRequest = 0
+async function openHistory(task: CollectionTask) {
+  const request = ++historyRequest
+  selectedTask.value = task
+  showHistory.value = true
+  historyResults.value = []
+  historyResultsError.value = ''
+  historyLoading.value = !!task.run_id
+  if (!task.run_id) return
+  try { const rows = await getCollectionResults(task.run_id); if (request === historyRequest) historyResults.value = rows }
+  catch (error) { if (request === historyRequest) historyResultsError.value = `历史结果读取失败：${errorText(error)}` }
+  finally { if (request === historyRequest) historyLoading.value = false }
+}
+let rawRequest = 0
+async function openRaw(row: CollectionResult) {
+  const request = ++rawRequest
+  eventRecord.value = row
+  showRaw.value = true
+  rawRecord.value = null
+  rawError.value = ''
+  rawLoading.value = !!row.jd_pool_id
+  if (!row.jd_pool_id) return
+  try { const record = await getCollectionRaw(row.jd_pool_id); if (request === rawRequest) rawRecord.value = record }
+  catch (error) { if (request === rawRequest) rawError.value = `数据库原文读取失败：${errorText(error)}` }
+  finally { if (request === rawRequest) rawLoading.value = false }
+}
 let timer: ReturnType<typeof setInterval> | null = null
 onMounted(async () => {
+  const configChecks = await Promise.allSettled([getCollectionPlatforms(), getCollectionConfig()])
+  if (configChecks[0].status === 'fulfilled') platforms.value = configChecks[0].value
+  if (configChecks[1].status === 'fulfilled') {
+    const saved = configChecks[1].value
+    configForm.platform = saved.platform || platforms.value.find(item => item.supported)?.platform || 'boss'
+    configForm.keywords = saved.keywords?.length ? [saved.keywords[0]!] : []
+    const city = availableCities.value.find(item => item.code === saved.cities?.[0]?.code)
+    configForm.cities = city ? [{ ...city }] : []
+    configForm.detail_limit = Math.max(1, Math.min(5, saved.detail_limit || 5))
+    configForm.max_jobs = Math.max(1, Math.min(5, saved.max_jobs || 5))
+  }
   await refreshAll()
-  // 进入页面自动采集入口已停用（不好用，但是先不删）：采集改为手动启动
-  // await prepareOnEntry()
-  timer = setInterval(() => { loadStatus().catch(() => {}); loadCDP().catch(() => {}) }, 10000)
+  refreshErrors.value.push(...configChecks.flatMap((result, index) => result.status === 'rejected' ? [`${index === 0 ? '平台' : '配置'}读取失败：${errorText(result.reason)}`] : []))
+  timer = setInterval(() => { if (!refreshing.value) void refreshAll() }, 5000)
 })
-onUnmounted(() => { if (timer) clearInterval(timer) })
+onUnmounted(() => { if (timer) clearInterval(timer); resultsRequest++; historyRequest++; rawRequest++; browserRequest++ })
 </script>
 
 <style scoped>
-.module-mark { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 14px; font-size: 23px; }
-.collection-mark { color: #6f9dca; background: #eaf3fb; }
-.collection-status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
-.collection-status-card { display: flex; align-items: center; gap: 14px; min-height: 108px; padding: 20px; background: #fff; border: 1px solid rgba(241,235,228,.8); border-radius: 16px; box-shadow: var(--shadow); }
-.status-icon { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border-radius: 50%; font-size: 20px; }
-.status-icon.warm { color: #c49a67; background: #fff5e7; }.status-icon.green { color: #78b58f; background: #eaf6ee; }.status-icon.red { color: #db8170; background: #fcefeb; }.status-icon.coral { color: #df8d70; background: #fbedE8; }
-.collection-status-card small, .collection-status-card span { display: block; color: #a29d99; font-size: 11px; }.collection-status-card strong { display: block; margin: 4px 0; color: var(--text); font-size: 19px; line-height: 1.2; }
-.collection-control-panel, .progress-panel, .stats-panel, .history-panel { margin-bottom: 16px; }
-.control-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px; border-radius: 12px; background: var(--card-soft); }.platform-switch, .mode-switch, .control-actions { display: flex; align-items: center; gap: 12px; }.platform-switch > span, .mode-switch > span { color: #8e8985; font-size: 12px; }.start-button { --el-button-bg-color: var(--green); --el-button-border-color: var(--green); color: #fff !important; border: 0 !important; }.stop-button { --el-button-bg-color: var(--coral); --el-button-border-color: var(--coral); color: #fff !important; border: 0 !important; }.control-note { display: flex; align-items: center; gap: 7px; margin-top: 12px; color: #a09a96; font-size: 12px; }.control-note .el-icon { color: var(--blue); }
-.refresh-text, .detail-link { color: var(--blue) !important; }.target-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }.target-grid > div { padding: 14px; border-radius: 12px; background: var(--card-soft); }.target-grid small, .target-grid strong { display: block; }.target-grid small { margin-bottom: 6px; color: #a29d99; font-size: 11px; }.target-grid strong { overflow: hidden; color: #4b4847; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }.target-grid em { color: #aaa; font-style: normal; }.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px !important; }.progress-count-grid, .stats-number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }.progress-count { padding: 14px; border-radius: 12px; background: #fcfaf8; text-align: center; }.progress-count strong { display: block; color: var(--text); font-size: 24px; }.progress-count span, .stat-number-card span { color: #a09a96; font-size: 11px; }.error-note { display: flex; align-items: center; gap: 7px; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fff3f0; color: #c96f5e; font-size: 12px; }.stats-number-grid { grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }.stat-number-card { padding: 16px; border-radius: 12px; background: var(--card-soft); }.stat-number-card strong { display: block; margin-top: 7px; color: var(--text); font-size: 22px; }.platform-breakdown { margin-bottom: 14px; padding: 16px; border-radius: 12px; background: #fdfbf8; }.platform-breakdown-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }.platform-breakdown-grid > div { padding: 12px; border-radius: 10px; background: #fff; }.platform-breakdown-grid span, .platform-breakdown-grid strong { display: block; }.platform-breakdown-grid span { color: #a09a96; font-size: 11px; }.platform-breakdown-grid strong { margin-top: 4px; color: var(--text); font-size: 20px; }.quality-block { padding: 16px; border-radius: 12px; background: #fcfaf8; }.quality-title { margin-bottom: 12px; font-size: 13px; font-weight: 700; }.quality-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.quality-grid span, .quality-grid strong { display: block; }.quality-grid span { color: #aaa39e; font-size: 11px; }.quality-grid strong { margin-top: 5px; font-size: 17px; }.history-filters { display: flex; gap: 8px; }.table-empty { padding: 28px 0 5px; color: #a9a39f; font-size: 12px; text-align: center; }.task-detail-list > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px solid var(--line); }.task-detail-list > div:last-child { border-bottom: 0; }.task-detail-list span { color: #a29d99; font-size: 12px; }.task-detail-list strong { color: var(--text); font-size: 13px; text-align: right; }
-.form-help { margin-left: 14px; color: #9b9692; font-size: 12px; }
-@media (max-width: 1200px) { .collection-status-grid { grid-template-columns: repeat(2, 1fr); }.control-row { align-items: flex-start; flex-direction: column; }.target-grid { grid-template-columns: repeat(2, 1fr); }.progress-count-grid { grid-template-columns: repeat(3, 1fr); }.platform-breakdown-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 720px) { .collection-status-grid, .stats-number-grid, .quality-grid, .target-grid, .platform-breakdown-grid { grid-template-columns: 1fr; }.progress-count-grid { grid-template-columns: repeat(2, 1fr); }.platform-switch, .mode-switch, .control-actions { align-items: flex-start; flex-direction: column; }.history-filters { width: 100%; flex-wrap: wrap; }.history-panel :deep(.el-table) { min-width: 900px; }.history-panel { overflow-x: auto; } }
-.recent-raw-block { margin-top: 14px; padding: 16px; border-radius: 12px; background: #fcfaf8; }
-.recent-raw-hint { margin-left: 8px; color: #aaa39e; font-size: 11px; font-weight: 400; }
-.raw-content { display: block; overflow: hidden; color: #6b6561; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.collection-page { --muted: #8c8581; }
+.page-title p, .section-heading p { color: var(--muted); line-height: 1.65; }
+.panel { margin: 18px 0; padding: 24px; border-radius: 16px; }
+h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 18px; }
+h3 { margin-top: 24px; font-size: 15px; }
+.step { display: inline-grid; place-items: center; width: 26px; height: 26px; background: #edf3fa; color: #688db5; border-radius: 8px; font-size: 14px; }
+.config-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; }
+.config-grid :deep(.el-select), .config-grid :deep(.el-input-number) { width: 100%; }
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.action-grid .panel { margin: 0; }
+.action-grid p { color: var(--muted); line-height: 1.7; }
+.launch-panel { border: 1px solid #dce8f5; background: #fafdff; }
+.launch-summary { font-size: 16px; color: var(--text) !important; }
+.access-row, .button-row, .gate-note { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.access-row span, .gate-note span, .hint { font-size: 12px; line-height: 1.7; color: var(--muted); }
+.gate-note { margin-bottom: 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.task-context, .source-meta, .quality-row { display: flex; gap: 12px 22px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 14px 0; }
+.count-grid { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.count-grid > div { padding: 18px 8px; background: #f8fafc; border-radius: 12px; text-align: center; }
+.count-grid strong { display: block; color: var(--text); font-size: 24px; margin-bottom: 7px; }
+.count-grid span { font-size: 12px; color: var(--muted); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 12px; margin-top: 18px; }
+.stats-grid > div { padding: 18px; border-radius: 10px; background: #fcfaf8; }
+.stats-grid span { font-size: 12px; color: var(--muted); }
+.stats-grid strong { display: block; font-size: 22px; margin-top: 8px; }
+.mono { font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+.raw-text { padding: 16px; background: #f7f8fa; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.8 inherit; }
+.raw-db { min-height: 70px; }
+.source-detail { overflow-wrap: anywhere; font-size: 13px; line-height: 1.7; }
+.source-detail a { color: #547fae; }
+.el-alert { margin: 12px 0; }
+.el-pagination { justify-content: flex-end; margin-top: 18px; }
+@media (max-width: 1100px) { .count-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (max-width: 760px) { .config-grid, .action-grid { grid-template-columns: 1fr; } .count-grid { grid-template-columns: repeat(3, 1fr); } .panel { padding: 18px; } .page-title, .section-heading { flex-wrap: wrap; gap: 12px; } }
 </style>

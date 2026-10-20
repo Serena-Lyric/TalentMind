@@ -24,7 +24,8 @@ def isolated_control(tmp_path,monkeypatch):
     monkeypatch.setattr(control,'_STATE_DIR',tmp_path/'collection')
     monkeypatch.setattr(control,'_STATE_PATH',tmp_path/'collection/state.json')
     monkeypatch.setattr(control,'_PROCESS',None)
-    monkeypatch.setattr(control,'_ensure_browser',lambda endpoint,profile,platform:{
+    monkeypatch.setattr(control,'_STARTING_RUN',None)
+    monkeypatch.setattr(control,'_ensure_browser',lambda endpoint,profile,platform,target_url:{
         'endpoint':'http://127.0.0.1:19444','user_data_dir':str(tmp_path/'profile'),
         'platform_access':{platform:{'can_collect':True,'access_state':'public_accessible'}}})
     return tmp_path
@@ -37,14 +38,15 @@ def test_controller_preserves_historical_custom_template_and_once_limit(isolated
         def __init__(self,args,**kw):launched.append((args,kw))
         def poll(self):return None
     class Thread:
-        def __init__(self,*a,**kw):pass
-        def start(self):pass
+        def __init__(self,*a,**kw):self.target=kw.get('target');self.args=kw.get('args',())
+        def start(self):
+            if self.target is control._launch_task:self.target(*self.args)
     monkeypatch.setattr(control.subprocess,'Popen',Process)
     monkeypatch.setattr(control.threading,'Thread',Thread)
     template='https://www.liepin.com/zhaopin/?city={city}&dq={city}&currentPage={page}&key={keyword}'
-    assert control.update_config({'search_url_template':template})['search_url_template']==template
+    assert control.update_config({'platform':'liepin','search_url_template':template})['search_url_template']==template
     control.start_task({'platform':'liepin','mode':'once','keywords':['Python'],
-                        'cities':[{'name':'北京','code':'010'}],'pages':1,'max_jobs':5,'detail_limit':5})
+                        'cities':[{'name':'北京','code':'北京'}],'pages':1,'max_jobs':5,'detail_limit':5})
     args,_=launched[0]
     assert args[args.index('--search-url-template')+1]==template
     assert '--once' in args and '--forever' not in args
@@ -67,8 +69,9 @@ def test_worker_receives_resolved_parent_settings_instead_of_unresolved_env(isol
         def __init__(self,args,**kw):launched.append(kw)
         def poll(self):return None
     class Thread:
-        def __init__(self,*a,**kw):pass
-        def start(self):pass
+        def __init__(self,*a,**kw):self.target=kw.get('target');self.args=kw.get('args',())
+        def start(self):
+            if self.target is control._launch_task:self.target(*self.args)
     monkeypatch.setattr(control.subprocess,'Popen',Process)
     monkeypatch.setattr(control.threading,'Thread',Thread)
     control.start_task({'platform':'liepin','mode':'once'})
@@ -192,12 +195,13 @@ cn.CdpClient.connect_first_page=lambda *a,**kw:Client()
     process=None
     try:
         launched=control.start_task({'platform':'liepin','mode':'once','keywords':['Python'],
-            'cities':[{'name':'Synthetic','code':'010'}],'pages':1,'max_jobs':5,'detail_limit':5,
+            'cities':[{'name':'北京','code':'北京'}],'pages':1,'max_jobs':5,'detail_limit':5,
             'page_delay_min':0,'page_delay_max':0,'settle_min':0,'settle_max':0})
+        control._START_THREAD.join(timeout=5)
         process=processes[0]
         assert process.wait(timeout=15)==0
-        threads[0].join(timeout=10)
-        assert not threads[0].is_alive()
+        for thread in threads:thread.join(timeout=10)
+        assert all(not thread.is_alive() for thread in threads)
         state=control._load_state()
         task=state['current_task']
         assert task['run_id']==launched['run_id'] and task['status']=='completed'

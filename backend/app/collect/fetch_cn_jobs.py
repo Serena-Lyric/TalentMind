@@ -10,7 +10,6 @@ import json
 import time
 from typing import Iterable
 
-from sqlalchemy import text
 from websockets.exceptions import WebSocketException
 
 from app.collect.fetchers.cdp import CdpClient, CdpError
@@ -27,6 +26,8 @@ from app.collect.fetchers.job_sites import (
 from app.collect.pipeline import run_pipeline
 from app.collect.cleaner import clean, is_valid_jd
 from app.collect import browser
+from app.collect.events import emit_event
+from app.collect.repository import save_incremental_jd_rows
 
 
 def split_csv(value: str) -> list[str]:
@@ -121,8 +122,7 @@ def run_fetch(
         cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
     )
     def emit(event: str, **payload):
-        if on_event:
-            on_event({"event": event, "platform": platform, **payload})
+        emit_event(on_event, platform, event, **payload)
 
     collected: list[dict] = []
     try:
@@ -201,14 +201,14 @@ def run_fetch(
         provider = get_db()
         db = next(provider)
         try:
-            existing = {row[0] for row in db.execute(
-                text("SELECT source_detail FROM jd_pool WHERE source=:source AND source_detail IS NOT NULL"),
-                {'source': spec.source}).all()}
-            new_raws = [raw for raw in raws if raw.source_detail not in existing]
-            stats['skipped'] = len(raws) - len(new_raws)
-            saved = run_pipeline(db, new_raws)['jd_saved'] if new_raws else 0
+            def saved_event(item):
+                if item['outcome'] == 'skipped':
+                    stats['skipped'] += 1
+                emit('persisted', items=[item])
+            def saver(session, rows):
+                return save_incremental_jd_rows(session, rows, created_ids=set(), on_saved=saved_event)
+            saved = run_pipeline(db, raws, jd_saver=saver)['jd_saved']
             stats['new'] = stats['inserted'] = int(saved)
-            emit('persisted', source_details=[raw.source_detail for raw in new_raws], inserted=int(saved))
         except Exception:
             db.rollback()
             raise

@@ -41,6 +41,8 @@
   M1 浏览器记录：[准备/采集分离、端点归属与访问状态](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)（2026-10-20）。
   M1 详情记录：[列表回落、换行及推荐字段污染](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)（2026-10-20）。
   M1 控制记录：[历史循环接口、子进程配置/编码与停止状态](docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)（2026-10-20）。
+  产品集成记录：[启动归属、任务停止与原文边界](docs/superpowers/traps/2026-10-21-product-integration.md)（2026-10-21）。
+  准备目标记录：[重新检查未就绪与异步旧状态覆盖](docs/superpowers/traps/2026-10-21-collection-prepare-target.md)（2026-10-21）。
   图谱集成新增记录：[画布矩形错位、密集命中与错误回退](docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)（2026-10-19）。
   可读性修订记录：[关系显示分账、隐藏类型跳转与曲线相交](docs/superpowers/traps/2026-10-19-graph-visibility-and-hidden-neighbor.md)（2026-10-19）。
   三维改造记录：[相机过渡、最终姿态同步与派生端点](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)（2026-10-19）。

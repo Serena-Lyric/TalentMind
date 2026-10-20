@@ -1,5 +1,7 @@
 # TalentMind
 
+> **2026-10-21 统一产品集成候选**：本工作区运行 `pwsh -File scripts/start-local.ps1`，访问 `http://127.0.0.1:18080/#/collection`；停止用 `pwsh -File scripts/stop-local.ps1`。入口检查原有Docker容器、本树依赖、后端健康与真实API代理，不自动采集。合并版本、真实验收与限制见[本轮报告](docs/review/Product-integration-2026-10-21.md)。
+
 > **2026-10-20 M1 历史链路接入**：补齐原控制台到平台循环的配置/编码/质量统计与停止处理，真实子进程离线闭环通过。用户选择先处理离线修复，本轮未实采，Gate1与日常恢复仍待真实条件；[历史对照及验收报告](docs/review/M1-historical-chain.md)。
 
 > **2026-10-20 M1 Gate 1**：单次猎聘真实搜索遇安全验证停止，未取得候选/详情、未写库，Gate 1未通过。CN详情门禁/换行/来源绑定修复已离线回归；真实结果、限制、回退及仅准备的N/H入口见[验收报告](docs/review/M1-gate1-live.md)，未启动M2。
@@ -207,9 +209,9 @@ pnpm run dev
 日常联调可双击根目录快捷程序，替代上面第 2–3 步手动操作：
 
 - **启动**：`start_system.bat` —— 拉起 Docker 容器 + 后端 (18000) + 前端 (18080)，就绪后打开浏览器（不启动数据采集）；
-- **关闭**：`stop_system.bat`（2026-09-04 新增）—— 停止后端、前端与 Docker 容器（MySQL/Neo4j/Redis，命名卷数据保留，不退出 Docker Desktop）；只想关前后端、保留数据库运行时，改用 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\stop_system.ps1 -KeepDocker`。
+- **关闭**：`stop_system.bat` —— 等待本工作区采集子任务退出与历史归档，再停止本入口的前后端；原数据库容器、数据卷和独立Edge保留。
 
-逻辑位于 `scripts\start_system.ps1` / `scripts\stop_system.ps1`，按端口用 `Get-NetTCPConnection` + `Stop-Process` 定位并清理进程。
+统一逻辑位于 `scripts\start-local.ps1` / `scripts\stop-local.ps1`，要求 PowerShell 7（`pwsh`）。依据保存的进程实例和监听归属检查，不将占用端口视为可复用应用；旧 `*_system.ps1` 保留历史兼容，当前双击入口已改指向统一脚本。
 
 ## 测试
 

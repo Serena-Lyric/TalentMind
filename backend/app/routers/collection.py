@@ -5,13 +5,47 @@ API 只做任务生命周期与状态展示的薄封装，采集逻辑仍位于 
 from __future__ import annotations
 
 from typing import Any
+import os
+from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Body, Query, Request, HTTPException
 
 from app.collect import control
 from app.response import BizError, ok
 
 router = APIRouter()
+
+
+def _require_local_raw(request: Request) -> None:
+    local = {'127.0.0.1', '::1', 'localhost'}
+    host = urlsplit('http://' + request.headers.get('host', '')).hostname
+    origin = request.headers.get('origin')
+    origin_url = urlsplit(origin) if origin else None
+    if (os.environ.get('TALENTMIND_LOCAL_RAW') != '1' or not request.client
+            or request.client.host not in {'127.0.0.1', '::1'} or host not in local
+            or (origin_url is not None and (origin_url.scheme not in {'http', 'https'} or origin_url.hostname not in local))
+            or request.headers.get('sec-fetch-site') == 'cross-site'):
+        raise HTTPException(status_code=403, detail='仅允许已启用的本地原文访问')
+
+
+@router.get('/collection/platforms')
+def collection_platforms():
+    return ok(control.get_platforms())
+
+
+@router.get('/collection/results')
+def collection_results(request: Request, run_id: str = Query(...)):
+    _require_local_raw(request)
+    return ok(_biz_call(control.get_results, run_id))
+
+
+@router.get('/collection/raw/{raw_id}')
+def collection_raw(raw_id: int, request: Request):
+    _require_local_raw(request)
+    result = control.get_raw(raw_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail='原始 JD 不存在')
+    return ok(result)
 
 
 def _biz_call(fn, *args, **kwargs):
@@ -39,7 +73,9 @@ def collection_cdp_status():
 
 @router.post("/collection/prepare")
 def collection_prepare(payload: dict[str, Any] = Body(default={} )):
-    return ok(control.prepare_browser(auto_start=bool(payload.get("auto_start", False)), platform=payload.get("platform")))
+    return ok(_biz_call(control.prepare_browser, auto_start=bool(payload.get("auto_start", False)),
+                        platform=payload.get("platform"),
+                        config_payload={key: value for key, value in payload.items() if key != 'auto_start'}))
 
 
 @router.get("/collection/database-stats")

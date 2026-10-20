@@ -60,7 +60,7 @@
       </div>
       <details class="snapshot-note technical-info"><summary>技术信息 / 版本与诊断</summary>
       <p class="snapshot-note">{{ realMode ? '已有真实 JD 的独立版本，非实时数据库' : '已核验历史交接快照' }}<br />非新版标准岗位目录</p>
-      <p v-if="nodeFieldMode" class="snapshot-note">node-field-v1 候选：背景分布由原旋臂与知识坐标平滑混合。节点位置不变，星尘不表达职业分类或社区。<a href="?graphSpace=legacy#/graph">回退 P2.5 空间</a></p>
+      <p v-if="nodeFieldMode" class="snapshot-note">node-field-v1 候选：背景分布由原旋臂与知识坐标平滑混合。节点位置不变，星尘不表达职业分类或社区。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · seed 42<br />{{ realMode ? '仅无冲突、无条件的明确必备/加分单项参与相似计算；其余陈述仍保留。' : 'layout-v1 · PR32@377e9b8。' }}只用于候选空间布局，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
@@ -156,6 +156,9 @@ let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
+const legacySpaceQuery = new URLSearchParams(query)
+legacySpaceQuery.set('graphSpace','legacy')
+const legacySpaceHref = `?${legacySpaceQuery}#/graph`
 const realMode=query.get('graphDataset')==='real'
 const realSources=shallowRef<RealSources|null>(null),realManifest=shallowRef<RealManifest|null>(null)
 const sourceRecord=shallowRef<SourceRecord|null>(null),sourceQuote=ref('')
