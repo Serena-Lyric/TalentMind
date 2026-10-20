@@ -9,6 +9,7 @@
 模块状态见 [资产与状态](docs/superpowers/资产与状态.md)，历史裁决见 [决策跟踪](docs/superpowers/决策跟踪.md)；无需在这里重复维护摘要。
 
 - M1 prepare 只准备浏览器，不能触发采集；公开可访问与认证、完整详情分开判断，遇人工验证停止。见[浏览器访问陷阱](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)。
+- CN详情失败、游客截断或身份未核实不能用列表技能补成完整JD；正文换行及目标容器须保留。见[详情门禁陷阱](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)。
 
 - 真实图谱来源校验须同时绑定 JD/陈述/技能身份，Python 原文偏移按 Unicode 码点处理；不要以文件 hash 代替关联校验。见[真实链路陷阱](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)。
 

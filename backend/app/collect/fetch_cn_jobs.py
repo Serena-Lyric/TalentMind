@@ -11,8 +11,9 @@ import time
 from typing import Iterable
 
 from sqlalchemy import text
+from websockets.exceptions import WebSocketException
 
-from app.collect.fetchers.cdp import CdpClient
+from app.collect.fetchers.cdp import CdpClient, CdpError
 from app.collect.fetchers.job_sites import (
     SITES,
     SiteSpec,
@@ -21,8 +22,10 @@ from app.collect.fetchers.job_sites import (
     build_search_extract_js,
     deduplicate_jobs,
     normalize_job,
+    normalize_url,
 )
 from app.collect.pipeline import run_pipeline
+from app.collect.cleaner import clean, is_valid_jd
 from app.collect import browser
 
 
@@ -57,6 +60,28 @@ def fetch_search_page(client: CdpClient, spec: SiteSpec, url: str, settle: float
     return extract_current_page(client, spec)
 
 
+def detail_rejection(spec: SiteSpec, job: dict, detail) -> str | None:
+    """A list card cannot prove its detail body or identity is complete."""
+    if not isinstance(detail, dict) or not str(detail.get('description') or '').strip():
+        return 'empty_detail'
+    if detail.get('description_truncated'):
+        return 'truncated_description'
+    if job.get('_dom'):
+        # A title or card index alone cannot bind an asynchronous detail panel.
+        return 'unverified_dom_identity'
+    title = ' '.join(str(detail.get('title') or '').split())
+    if not title:
+        return 'missing_detail_title'
+    if title.casefold() != ' '.join(str(job.get('title') or '').split()).casefold():
+        return 'title_mismatch'
+    if not job.get('_dom') and normalize_url(spec, str(detail.get('url') or '')) != normalize_url(spec, job['url']):
+        return 'identity_mismatch'
+    raw = normalize_job(spec, {'url': job['url'], 'title': title}, {'description': detail['description']})
+    if not raw or not is_valid_jd(clean(raw)):
+        return 'invalid_detail_body'
+    return None
+
+
 def run_fetch(
     platform: str,
     keywords: Iterable[str],
@@ -74,6 +99,7 @@ def run_fetch(
     current_page_only: bool = False,
     browser_timeout: float = 20,
     login_timeout: float = 120,
+    on_event=None,
 ) -> dict:
     spec = SITES.get(platform)
     if spec is None:
@@ -94,83 +120,102 @@ def run_fetch(
     client = CdpClient.connect_first_page(
         cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
     )
+    def emit(event: str, **payload):
+        if on_event:
+            on_event({"event": event, "platform": platform, **payload})
+
     collected: list[dict] = []
     try:
         if current_page_only:
-            jobs = extract_current_page(client, spec)
-            collected.extend(jobs)
-            print(f"[fetch_cn_jobs] {platform} 当前页面: {len(jobs)} 条", flush=True)
+            collected = deduplicate_jobs(spec, extract_current_page(client, spec))
+            if max_jobs:
+                collected = collected[:max_jobs]
         else:
-            for keyword in keywords:
-                for city_name, city_code in cities:
-                    for page in range(1, pages + 1):
-                        url = spec.search_url(keyword, city_code, page)
-                        jobs = fetch_search_page(client, spec, url, settle)
-                        collected.extend(jobs)
-                        print(f"[fetch_cn_jobs] {platform} {city_name}/{keyword} 第 {page} 页: {len(jobs)} 条", flush=True)
-                        if page < pages:
-                            time.sleep(delay)
+            queries = ((keyword, name, code, page) for keyword in keywords
+                       for name, code in cities for page in range(1, pages + 1))
+            for keyword, city_name, city_code, page in queries:
+                incoming = fetch_search_page(client, spec, spec.search_url(keyword, city_code, page), settle)
+                collected = deduplicate_jobs(spec, collected + incoming)
+                if max_jobs:
+                    collected = collected[:max_jobs]
+                print(f"[fetch_cn_jobs] {platform} {city_name}/{keyword} 第 {page} 页: 候选 {len(collected)} 条", flush=True)
+                if max_jobs and len(collected) >= max_jobs:
+                    break
+                if page < pages:
+                    time.sleep(delay)
     finally:
         client.close()
 
-    jobs = deduplicate_jobs(spec, collected)
-    if max_jobs:
-        jobs = jobs[:max_jobs]
-
-    details_count = 0
+    jobs = collected
+    emit('listed', jobs=jobs)
+    stats = dict(platform=platform, listed=len(jobs), details=0, detail_attempted=0,
+                 detail_obtained=0, complete=0, inserted=0, updated=0, new=0,
+                 skipped=0, rejected=0, failed=0, unattempted=len(jobs),
+                 rejection_reasons={}, stop_reason=None)
+    accepted = list(jobs) if no_details else []
     if not no_details and detail_limit and jobs:
         detail_client = CdpClient.connect_first_page(
             cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
         )
         try:
             for index, job in enumerate(jobs[:detail_limit], 1):
-                if job.get("_dom"):
-                    card_index = int(job.get("_card_index", -1))
-                    result = detail_client.evaluate(build_activate_card_js(spec, card_index))
-                    if not isinstance(result, dict) or not result.get("clicked"):
-                        print(f"[fetch_cn_jobs] {spec.source} 无法激活页面卡片 {card_index}", flush=True)
-                        continue
-                    time.sleep(settle)
-                else:
-                    detail_client.navigate(job["url"], settle_seconds=settle)
-                browser.wait_access(detail_client, platform, max(5.0, settle * 2.0))
-                detail = detail_client.evaluate(build_detail_extract_js(spec))
-                if isinstance(detail, dict):
-                    job.update({key: value for key, value in detail.items() if value and key != "url"})
-                details_count += 1
-                print(f"[fetch_cn_jobs] {platform} 详情 {index}/{min(detail_limit, len(jobs))}", flush=True)
+                stats['detail_attempted'] += 1
+                stats['details'] += 1
+                stats['unattempted'] -= 1
+                emit('detail_attempt', index=index, job=job)
+                try:
+                    if job.get('_dom'):
+                        result = detail_client.evaluate(build_activate_card_js(spec, int(job.get('_card_index', -1))))
+                        if not isinstance(result, dict) or not result.get('clicked'):
+                            raise CdpError('card_activation_failed')
+                        time.sleep(settle)
+                    else:
+                        detail_client.navigate(job['url'], settle_seconds=settle)
+                    access = browser.wait_access(detail_client, platform, max(5.0, settle * 2.0))
+                    if access.get('content_limited'):
+                        raise browser.AccessBlocked('limited_guest_content')
+                    detail = detail_client.evaluate(build_detail_extract_js(spec))
+                    if isinstance(detail, dict) and str(detail.get('description') or '').strip():
+                        stats['detail_obtained'] += 1
+                    reason = detail_rejection(spec, job, detail)
+                    emit('detail', index=index, job=job, detail=detail, access=access, rejection=reason)
+                    if reason:
+                        stats['rejected'] += 1
+                        stats['rejection_reasons'][reason] = stats['rejection_reasons'].get(reason, 0) + 1
+                    else:
+                        accepted.append({**job, **{key: value for key, value in detail.items() if value and key != 'url'}})
+                        stats['complete'] += 1
+                except (CdpError, WebSocketException, OSError, TimeoutError) as exc:
+                    stats['failed'] += 1
+                    stats['stop_reason'] = str(exc)
+                    emit('failure', index=index, job=job, reason=str(exc))
+                    break
                 if index < min(detail_limit, len(jobs)):
                     time.sleep(delay)
         finally:
             detail_client.close()
 
-    raws = [raw for job in jobs if (raw := normalize_job(spec, job))]
-    if not raws:
-        return {"platform": platform, "listed": len(jobs), "details": details_count, "new": 0, "skipped": 0}
-
-    from app.db.mysql import get_db
-    db = next(get_db())
-    try:
-        existing = {
-            row[0]
-            for row in db.execute(
+    raws = [raw for job in accepted if (raw := normalize_job(spec, job))]
+    if raws:
+        from app.db.mysql import get_db
+        provider = get_db()
+        db = next(provider)
+        try:
+            existing = {row[0] for row in db.execute(
                 text("SELECT source_detail FROM jd_pool WHERE source=:source AND source_detail IS NOT NULL"),
-                {"source": spec.source},
-            ).all()
-        }
-        new_raws = [raw for raw in raws if raw.source_detail not in existing]
-        stats = run_pipeline(db, new_raws) if new_raws else {"jd_saved": 0}
-    finally:
-        db.close()
-
-    saved = int(stats.get("jd_saved", 0))
-    return {
-        "platform": platform,
-        "listed": len(jobs),
-        "details": details_count,
-        "new": saved,
-        "skipped": len(raws) - saved,
-    }
+                {'source': spec.source}).all()}
+            new_raws = [raw for raw in raws if raw.source_detail not in existing]
+            stats['skipped'] = len(raws) - len(new_raws)
+            saved = run_pipeline(db, new_raws)['jd_saved'] if new_raws else 0
+            stats['new'] = stats['inserted'] = int(saved)
+            emit('persisted', source_details=[raw.source_detail for raw in new_raws], inserted=int(saved))
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            provider.close()
+    emit('finished', stats=stats)
+    return stats
 
 
 def main() -> int:
@@ -217,7 +262,7 @@ def main() -> int:
         login_timeout=args.login_timeout,
     )
     print(f"[fetch_cn_jobs] 完成: {result}")
-    return 0
+    return 2 if result.get("stop_reason") else 0
 
 
 if __name__ == "__main__":

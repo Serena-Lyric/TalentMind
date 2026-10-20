@@ -117,6 +117,7 @@ SITES: dict[str, SiteSpec] = {
             "[class*='job-card']",
         ),
         title_selectors=(
+            ".jobTitleBox",
             ".job-title",
             ".job-name",
             "[class*='job-title']",
@@ -222,7 +223,7 @@ def normalize_job(spec: SiteSpec, raw: dict, detail: dict | None = None) -> RawJ
         return None
 
     experience = clean(detail.get("experience") or raw.get("experience"))
-    description = clean(detail.get("description") or raw.get("description"))
+    description = str(detail.get("description") or raw.get("description") or '').replace('\r\n', '\n').strip()
     company_info = clean(detail.get("company_info") or raw.get("company_info"))
     raw_text = "\n\n".join(
         chunk
@@ -343,24 +344,41 @@ def build_detail_extract_js(spec: SiteSpec) -> str:
     const rect = node.getBoundingClientRect();
     return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
   }};
-  const root = {"document.querySelector('.job-detail-panel') || document" if spec.source == "zhaopin" else "document"};
-  const first = (selectors) => {{
+  const root = {"document.querySelector('.job-detail-panel')" if spec.source == "zhaopin" else "document"};
+  const metadataRoot = {"document.querySelector('.job-apply-container')" if spec.source == "liepin" else "root"};
+  const first = (selectors, scope = metadataRoot) => {{
     for (const selector of selectors) {{
-      const nodes = root.querySelectorAll(selector);
+      const nodes = scope?.querySelectorAll(selector) || [];
       for (const node of nodes) if (visible(node) && text(node)) return text(node);
     }}
     return '';
   }};
+  const descriptionSelectors = {_js_array(('.job-intro-container',) if spec.source == 'liepin' else spec.description_selectors)};
+  let description = '', descriptionSelector = '', descriptionTruncated = false;
+  for (const selector of descriptionSelectors) {{
+    const node = [...(root?.querySelectorAll(selector) || [])].find(n => visible(n) && text(n));
+    if (!node) continue;
+    description = (node.innerText || node.textContent || '').replace(/\\r\\n/g, '\\n').trim();
+    descriptionSelector = selector;
+    descriptionTruncated = [node, ...node.querySelectorAll('p,pre,section,article,div')].some(part => {{
+      const style = getComputedStyle(part);
+      return visible(part) && text(part) && (style.overflowY === 'hidden' || Number(style.webkitLineClamp) > 0)
+        && part.scrollHeight > part.clientHeight + 2;
+    }});
+    break;
+  }}
   return {{
     url: location.href,
     title: first({_js_array(spec.title_selectors)}),
-    company: first({_js_array(spec.company_selectors)}),
+    company: {"first(['.name'], document.querySelector('.job-apply-header-bottom'))" if spec.source == "liepin" else "first(" + _js_array(spec.company_selectors) + ")"},
     salary: first({_js_array(spec.salary_selectors)}),
     location: first({_js_array(spec.location_selectors)}),
     experience: first({_js_array(spec.experience_selectors)}),
     degree: first({_js_array(spec.degree_selectors)}),
-    description: first({_js_array(spec.description_selectors)}),
-    company_info: first({_js_array(spec.company_info_selectors)}),
+    description,
+    description_selector: descriptionSelector,
+    description_truncated: descriptionTruncated,
+    company_info: first({_js_array(('.company-intro-container',) if spec.source == 'liepin' else spec.company_info_selectors)}, root),
   }};
 }})()
 """

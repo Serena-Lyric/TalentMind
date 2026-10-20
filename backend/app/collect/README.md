@@ -3,6 +3,14 @@
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。
 > 合规红线：只读取公开数据或用户人工登录后页面可见内容；不绕过登录/验证码/反爬，不伪造 source（D17/D38）。
 
+## 2026-10-20 Gate 1：CN详情与入库分账
+
+`fetch_cn_jobs.run_fetch` 的默认详情模式现在仅将已核验的有效、非截断且同一来源身份的正文交给原pipeline，不再将失败后的列表卡入库。保留详情换行和既有职责提取边界；猎聘元信息与正文限定目标区域，不能回退推荐字段。DOM-only卡片在不能证明异步面板身份时拒绝为 `unverified_dom_identity`；不因标题同名就合并。游客限制/验证/断线停止平台，并保留此前取得的good详情。显式 `--no-details` 仍是单独列表模式，完整计数为0；真实Gate1未使用此模式。
+
+返回新增 `detail_attempted/detail_obtained/complete/inserted/updated/rejected/failed/unattempted/rejection_reasons/stop_reason`；`details` 保留尝试口径、`new`为INSERT别名，`skipped`仅为合格详情的既有身份去重跳过，不能把质量拒绝混入跳过。CN历史去重规则仍跳过既有身份、无自动UPDATE。限制发生在搜索之前时会抛出访问异常，尚无记录级统计，验收应另记搜索级失败。循环收到stop_reason即停，CLI退出码为2。
+
+程序调用可用 `on_event` 保存候选/详情/失败/持久化证据；回调内容含原文及身份，仅允许保存本地私有路径，不入Git。2026-10-20真实单次猎聘搜索被安全验证阻断，实际候选/详情/写入均0；不是修复已通过真实入库验收。新备份、命令、测试、回退和N/H下一阶段入口见[Gate1报告](../../../docs/review/M1-gate1-live.md)。
+
 ## 2026-10-20 浏览器准备接口（#40 待外部审查）
 
 `browser.py` 统一独立 Edge 启动、动态端口发现、目标页面准备与访问检查。控制台和直接 CLI 共用；不改清洗、去重和持久化。默认 profile 为本工作树忽略的 `data/local/edge-boss-cdp-profile`，不使用日常 Edge。启动使用动态端口和 `127.0.0.1`；仅复用可核实 profile、主进程及回环监听的 Edge，过期端口文件或无关 CDP 不作为身份凭据。受控采集锁定准备返回的 endpoint/target_id，不再使用 profile 二次回退。

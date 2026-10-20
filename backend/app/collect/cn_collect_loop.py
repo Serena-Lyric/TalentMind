@@ -87,6 +87,8 @@ def run_loop(
                 search_url_template=search_url_template,
             )
             print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} 第 {index} 轮完成: {result}", flush=True)
+            if result.get('stop_reason'):
+                return 2
         except CdpError as exc:
             print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} CDP/登录状态异常，停止循环: {exc}", flush=True)
             return 2
