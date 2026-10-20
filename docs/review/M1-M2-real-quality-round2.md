@@ -2,6 +2,8 @@
 
 2026-10-20（Asia/Singapore）。交付状态：独立候选，等待外部复审；不合并、不切换生产。
 
+实现提交 `2c51aa58b2738291186c5d06e6bf4a88678b31ef` 已推送，叠加 [Draft PR #40](https://github.com/Serena-Lyric/TalentMind/pull/40) 已创建并附当前聊天；实查 OPEN、isDraft=true、mergedAt=null、autoMergeRequest=null，暂无远端CI。后续交付登记只修改文档，不改变上述实际实验版本。
+
 ## 基线与实现
 
 从 #39 文档 HEAD `e20e6ffb9dd524aefbf1aa568ec27ee89cda0c31` 建立独立工作树 `m1-m2-quality-replay/TalentMind`、功能分支 `codex/m1-m2-quality-replay`。#38 核验仍为 `e2e07ecd3361ea33b4a9add2d17b453399162943`。PR base 为 `docs/post-e2e-implementation-20261020`；这里只审查相对 #39 的增量，不将上游堆叠功能计为本次实现。
