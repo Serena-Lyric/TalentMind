@@ -20,7 +20,7 @@ from ..job_analysis.governance.extract import verify_evidence
 from .candidate_layout import build_layout, snapshot_hash
 from .research.algorithms import pair_scores, community_run
 
-VERSION = "real-jd-e2e-v1"
+VERSION = "real-jd-quality-replay-v2"
 ROOT = Path(__file__).resolve().parents[3]
 
 

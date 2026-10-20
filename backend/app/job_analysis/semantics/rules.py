@@ -9,17 +9,20 @@ from ..foundation.models import AnalyzerSpec
 from ..foundation.runner import dictionary
 from .models import resolve
 
-RULESET = "bounded-skill-clauses-v2"
+RULESET = "bounded-skill-clauses-v3"
 HEADINGS = {"任职要求": "requirements", "岗位要求": "requirements", "技能要求": "requirements",
     "加分项": "preferred", "优先条件": "preferred", "加分条件": "preferred",
-    "技术栈": "stack", "工作职责": "duties", "岗位职责": "duties"}
+    "技术栈": "stack", "工作职责": "duties", "岗位职责": "duties",
+    "职位要求": "requirements", "任职条件": "requirements", "任职资格": "requirements",
+    "兼职要求": "requirements"}
 DEGREES = {"基础了解": "basic", "了解": "basic", "熟悉": "familiar",
     "熟练掌握": "proficient", "熟练": "proficient", "精通": "expert"}
-VERB = r"(?:基础了解|了解|熟悉|熟练掌握|熟练|精通|掌握|具备)"
+VERB = r"(?:基础了解|了解|熟悉|熟练掌握|熟练使用|熟练|精通|掌握|具备)"
 MODAL = r"(?:必须|需要|要求|需|须|应)"
 # These affect the containing sentence/adjacent lines, not merely the matched skill token.
 RISK = re.compile(r"如果|若|仅当|除非|针对|对于|前端岗位|后端岗位|公司|我司|本团队|例如|示例|教程|曾经|过去|并非|不是|不但|而且|非本岗位|据说|可能|待定|视情况|候选人以外")
 SCOPE_RISK = re.compile(r"如果|若|仅当|除非|当.+时|仅适用|适用于|仅限|限于|仅对|只对|针对|对于|前端岗位|后端岗位|不必满足|无须满足|无需满足|不需要满足|条件.{0,8}见")
+GROUP_SCOPE_RISK = re.compile(r'[二三四五六七八九十\d]+选[一二三\d]+|满足.{0,8}(?:一项|其一)|(?:以上|上述|以下)(?:技能|要求|条件|能力|条款|满足)')
 
 
 def evidence(record, field, start, end):
@@ -42,34 +45,65 @@ def occurrences(text, aliases):
     return sorted(accepted)
 
 
+NUMBER = r"(?:[（(]\d{1,2}[)）]|\d{1,2}[、.．](?!\d))"
+
+
+def logical_lines(text):
+    # Split structural markers by original offsets; never rewrite the evidence string.
+    labels = '|'.join(re.escape(h) for h in sorted(HEADINGS, key=len, reverse=True))
+    marker = rf"(?<!\S)(?:[【\[](?:{labels})[】\]]|(?:{labels})(?=[:：]|\s+{NUMBER}))|(?:(?<!\S)|(?<=[:：])){NUMBER}"
+    for line in re.finditer(r"[^\n]+", text):
+        cuts = sorted({line.start(), *(line.start() + m.start() for m in re.finditer(marker, line[0]))})
+        for a, b in zip(cuts, cuts[1:] + [line.end()]):
+            if text[a:b].strip():
+                yield a, b
+
+
 def units(text, default_section, aliases):
     """Yield original offsets without normalizing the source; headings persist by field."""
     section = default_section
     header_start = None
-    lines = list(re.finditer(r"[^\n]+", text))
+    lines = list(logical_lines(text))
     for index, line in enumerate(lines):
-        start, end = line.span()
-        value = line.group()
+        start, end = line
+        value = text[start:end]
         standalone = value.strip().strip("#【】[] ")
         if standalone in HEADINGS:
             section, header_start = HEADINGS[standalone], start
             continue
-        heading = re.match(r"\s*(?:[【\[])?([^:：\]】]+)(?:[】\]])?[:：]", value)
+        heading = re.match(r"\s*(?:[【\[]([^\]】]+)[】\]][:：]?|([^:：\]】]+)[:：])", value)
+        if not heading:
+            labels = '|'.join(re.escape(h) for h in HEADINGS)
+            heading = re.match(rf"\s*({labels})(?=\s+{NUMBER})", value)
         if heading:
-            label = heading[1].strip()
+            label = next(g for g in heading.groups() if g is not None).strip()
             section = HEADINGS.get(label, "unknown_section")
             header_start = start
             if label in HEADINGS:
                 start += heading.end()
             # Unknown headings remain in the yielded text, including empty-body labels.
-        context_start = header_start if header_start is not None else lines[max(0, index - 1)].start()
-        context_end = lines[min(len(lines) - 1, index + 1)].end()
+        numbering = re.match(rf"\s*{NUMBER}\s*", text[start:end])
+        if numbering:
+            start += numbering.end()
+        context_start = header_start if header_start is not None else lines[max(0, index - 1)][0]
+        context_end = lines[min(len(lines) - 1, index + 1)][1]
         for sentence in re.finditer(r"[^。；;]+", text[start:end]):
             a, b = start + sentence.start(), start + sentence.end()
             whole = text[a:b]
+            if not whole.strip():
+                continue
             # Only this explicit contrast has an implemented cross-clause scope.
-            parts = re.finditer(r"[^，,]+", whole) if re.fullmatch(
-                r"\s*(?:不要求|无需|不需要).+[，,]\s*但(?:是)?(?:需|需要|必须).+", whole) else [re.match(r"[\s\S]+", whole)]
+            split_contrast = re.fullmatch(r"\s*(?:不要求|无需|不需要).+[，,]\s*但(?:是)?(?:需|需要|必须).+", whole)
+            comma_parts = list(re.finditer(r"[^，,]+", whole))
+            def templated(part):
+                candidate = part[0]
+                for a, b, _ in reversed(occurrences(candidate, aliases)):
+                    candidate = candidate[:a] + '\ufdd0' + candidate[b:]
+                return re.sub(r'\s+', '', candidate)
+            templates = [templated(part) for part in comma_parts]
+            split_capabilities = (len(comma_parts) > 1 and not RISK.search(whole)
+                and all(classify(t, section, False)[0] in ('required', 'preferred') for t in templates))
+            parts = comma_parts if split_contrast or split_capabilities else [re.match(r"[\s\S]+", whole)]
             for part in parts:
                 x, y = a + part.start(), a + part.end()
                 while x < y and text[x].isspace():
@@ -108,7 +142,7 @@ def classify(template, section, risky):
         if section in ("duties", "stack", "title", "experience"):
             return "uncertain", None, "requirement_in_non_requirement_section"
         return "preferred" if section == "preferred" else "required", None, "explicit_requirement"
-    if full(VERB + r"S(?:基础)?") and section in ("requirements", "preferred"):
+    if full(VERB + r"S(?:基础|语言|数据库)?") and section in ("requirements", "preferred"):
         return "preferred" if section == "preferred" else "required", None, "section_capability"
     if full(r"S(?:(?:和|及|与|、|/|或)S)*") or full(
             r"(?:负责)?(?:工作中)?(?:使用|运用)S(?:开发服务|开发软件|开发|工作)?"):
@@ -121,7 +155,7 @@ def extract(record, aliases):
     scope_evidence = []
     for field in ("raw_text", "requirements", "duties", "experience", "job_title"):
         for fragment in re.finditer(r"[^\n。；;]+", record.payload.get(field, "")):
-            if SCOPE_RISK.search(fragment[0]):
+            if SCOPE_RISK.search(fragment[0]) or GROUP_SCOPE_RISK.search(fragment[0]):
                 scope_evidence.append(evidence(record, field, *fragment.span()))
     for field, default in (("raw_text", "unspecified"), ("requirements", "requirements"),
                            ("duties", "duties"), ("experience", "experience"), ("job_title", "title")):

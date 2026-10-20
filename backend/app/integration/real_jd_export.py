@@ -67,12 +67,14 @@ def export_sample(env, output, per_platform=40):
     return provenance
 
 
-def export_sql(sql_path, output, per_platform=40):
+def export_sql(sql_path, output, per_platform=40, *, offset=0):
     """Read only the named table in a mysqldump; never execute SQL."""
     from ..job_analysis.db import _split_sql_values
     output = validate_destination(output)
     if not 1 <= per_platform <= 100:
         raise ValueError("per-platform must be 1..100")
+    if type(offset) is not int or offset < 0:
+        raise ValueError("offset must be a nonnegative integer")
     data = Path(sql_path).read_bytes()
     text = data.decode("utf-8-sig")
     create = re.search(r"CREATE TABLE `jd_pool` \((.*?)\n\)", text, re.S)
@@ -115,13 +117,13 @@ def export_sql(sql_path, output, per_platform=40):
                 pos += 1
     if not rows or len({r["id"] for r in rows}) != len(rows):
         raise ValueError("empty or duplicate jd_pool identities")
-    selected = [r for platform in ("boss", "zhaopin", "liepin") for r in sorted((r for r in rows if r["source"] == platform), key=lambda r: r["id"])[:per_platform]]
+    selected = [r for platform in ("boss", "zhaopin", "liepin") for r in sorted((r for r in rows if r["source"] == platform), key=lambda r: r["id"])[offset:offset + per_platform]]
     output.mkdir(parents=True)
     encoded = (json.dumps(selected, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode()
     (output / "input.json").write_bytes(encoded)
     provenance = dict(schema_version="m1-readonly-sample-1", source_kind="preserved_mysqldump_not_live_database",
         source_sha256=hashlib.sha256(data).hexdigest(), source_filename=Path(sql_path).name,
-        selection="boss,zhaopin,liepin; ORDER BY id ASC; fixed per-platform LIMIT", per_platform=per_platform,
+        selection="boss,zhaopin,liepin; ORDER BY id ASC; fixed per-platform OFFSET/LIMIT", per_platform=per_platform, offset=offset,
         available_counts=dict(Counter(r["source"] for r in rows)), available_total=len(rows),
         counts_by_source=dict(Counter(r["source"] for r in selected)), input_sha256=hashlib.sha256(encoded).hexdigest(),
         identities=[dict(id=r["id"], source=r["source"]) for r in selected])
@@ -136,8 +138,11 @@ def main():
     origin.add_argument("--sql", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--per-platform", type=int, default=40)
+    parser.add_argument("--offset", type=int, default=0, help="SQL-only disjoint per-platform ID window")
     args = parser.parse_args()
-    result = export_sql(args.sql, args.output, args.per_platform) if args.sql else export_sample(args.env, args.output, args.per_platform)
+    if args.offset and not args.sql:
+        parser.error("offset requires --sql")
+    result = export_sql(args.sql, args.output, args.per_platform, offset=args.offset) if args.sql else export_sample(args.env, args.output, args.per_platform)
     print(json.dumps({k: v for k, v in result.items() if k != "identities"}, ensure_ascii=True))
 
 

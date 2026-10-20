@@ -10,6 +10,8 @@
 
 - 真实图谱来源校验须同时绑定 JD/陈述/技能身份，Python 原文偏移按 Unicode 码点处理；不要以文件 hash 代替关联校验。见[真实链路陷阱](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)。
 
+- 真实JD结构分割不能切断共享否定、组合或整体加分范围；标注摘录须保留目标与上下文，未签审不作真值。见[结构与作用域陷阱](docs/superpowers/traps/2026-10-20-real-jd-structure-and-scope.md)。
+
 - P2.5维护：主体类型由知识身份决定；密度只影响视觉占用，不改布局、可见性或拾取；关系颜色与事实类型分离。见[视觉陷阱](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)，验收证据见[P2.5报告](docs/review/M3-M5-P2-5.md)。
 
 - P2.3相机维护补充：控制器`stop()`不等于原位中断，须同步当前/结束状态并处理最后吸附帧；见[相机陷阱](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)。产品原则仍按主文档§8，实现与验收证据集中在[P2.3报告](docs/review/M3-M5-P2-3.md)，不在此复制状态清单。
