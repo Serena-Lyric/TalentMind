@@ -1,6 +1,6 @@
 # TalentMind 文档地图（docs/ 导航）
 
-> 更新：2026-10-17。本文负责导航；产品方案、实际实现、历史记录和 Agent 规则分别维护，按下表及明确替代关系读取。历史材料仅供溯源，不自动授权执行。
+> 更新：2026-10-20。本文负责导航；产品方案、实际实现、历史记录和 Agent 规则分别维护，按下表及明确替代关系读取。历史材料仅供溯源，不自动授权执行。
 
 ## 主文档（按任务选择）
 
@@ -9,6 +9,8 @@
 | [M1历史控制链路](review/M1-historical-chain.md) | 历史入口与第三轮差异、原control/循环的离线子进程验收、配置/编码/统计修复；未恢复实采或日常运行 |
 | [M1 Gate 1真实验收](review/M1-gate1-live.md) | 猎聘单页真实搜索因安全验证阻断；零候选/详情/写入，详情门禁修复与N/H准备；Gate 1未通过、不启动M2 |
 | [M1 浏览器运行环境](review/M1-browser-runtime.md) | #40 控制台/CLI 共用独立 Edge 准备、三平台访问状态与前端字段同步、只浏览器烟测和限制；未运行写库采集 |
+| [全站语义问题表与材料交付（2026-10-20）](review/TalentMind-semantics-and-evidence-2026-10-20.md) | 29项页面建议及成员责任；#38/#40双版本、零确认需求、M1因CDP未启动和最终讲稿；本轮仅改文档 |
+| [2026-10-20 M1→M3 分阶段真实数据准入计划](superpowers/plans/2026-10-20-staged-m1-m3-real-validation.md) | Gate0核实目标与采前原像 → 有界M1可写现有jd_pool → M2新旧分别验证 → M3隔离小批 → 全量历史稳定性；#43取代必须新建隔离DB的旧前提，集成测试仍隔离 |
 | [2026-10-20 全面实装总计划](superpowers/plans/2026-10-20-post-e2e-execution.md) | A 真实 JD 语义质量与重跑，B 共享空间星尘，C 产品语义与材料同步；三条新 Codex 对话与并行/验收边界 |
 | [当前术语与能力证据](team/TALENTMIND_TERMINOLOGY_AND_CAPABILITY_2026-10-20.md) | 区分历史图、未审真实陈述、职业正式目录与竞赛可用表述；供前端与材料成员统一引用 |
 | [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案；M2-01～60、相关 M1 输入与新增 M3/M5 创新方向、Career Nebula 第一批设计；确认不等于已实现 |
