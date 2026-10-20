@@ -48,6 +48,7 @@
   P2.5视觉记录：[主体类型、密度和端点渐变](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)（2026-10-19）。
   真实链路记录：[来源绑定、组合冲突和 Unicode 偏移](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)（2026-10-20）。
   真实质量记录：[结构分割、共享范围与标注上下文](docs/superpowers/traps/2026-10-20-real-jd-structure-and-scope.md)（2026-10-20）。
+  空间场记录：[银河空间分离与空图残留](docs/superpowers/traps/2026-10-20-galaxy-spatial-field-and-empty-layer.md)（2026-10-20）。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
 ## 5. Windows 与编码

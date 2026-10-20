@@ -47,8 +47,9 @@ function tint(position, random) {
   return color;
 }
 
-export function generateParticles(kind) {
-  const count = CONFIG.particles[kind], random = randomSource(CONFIG.seed + Object.keys(CONFIG.particles).indexOf(kind) * 997);
+export function generateParticles(kind, field = null) {
+  const count = CONFIG.particles[kind], seed = field?.nodeCount && kind !== 'field' ? field.seed : CONFIG.seed;
+  const random = randomSource(seed + Object.keys(CONFIG.particles).indexOf(kind) * 997);
   const position = new Float32Array(count * 3), color = new Float32Array(count * 3), scale = new Float32Array(count), phase = new Float32Array(count);
   for (let i = 0; i < count; i++) {
     let p;
@@ -68,6 +69,7 @@ export function generateParticles(kind) {
         p = [anchor[0] + gaussian(random) * 2.4, gaussian(random) * 1.2, anchor[2] + gaussian(random) * 2.4];
       }
     }
+    if (field && field.nodeCount && kind !== 'field') p = field.sample(p, random, kind);
     position.set(p, i * 3);
     const c = kind === 'field' ? new THREE.Color('#7385ac').multiplyScalar(.4 + random() * .5) : tint(p, random);
     if (kind === 'stars') c.lerp(new THREE.Color('#c7daee'), .25);
