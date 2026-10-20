@@ -1,0 +1,79 @@
+{
+  "pairs": [
+    {
+      "scene": "overview",
+      "sameCamera": true,
+      "sameViewport": true,
+      "sameInput": true,
+      "frozen": true,
+      "viewport": {
+        "dpr": 1.5,
+        "height": 948,
+        "width": 1699
+      }
+    },
+    {
+      "scene": "middle",
+      "sameCamera": true,
+      "sameViewport": true,
+      "sameInput": true,
+      "frozen": true,
+      "viewport": {
+        "dpr": 1.5,
+        "height": 948,
+        "width": 1699
+      }
+    },
+    {
+      "scene": "near",
+      "sameCamera": true,
+      "sameViewport": true,
+      "sameInput": true,
+      "frozen": true,
+      "viewport": {
+        "dpr": 1.5,
+        "height": 948,
+        "width": 1699
+      }
+    },
+    {
+      "scene": "side",
+      "sameCamera": true,
+      "sameViewport": true,
+      "sameInput": true,
+      "frozen": true,
+      "viewport": {
+        "dpr": 1.5,
+        "height": 948,
+        "width": 1699
+      }
+    },
+    {
+      "scene": "tail-orbit",
+      "sameCamera": true,
+      "sameViewport": true,
+      "sameInput": true,
+      "frozen": true,
+      "viewport": {
+        "dpr": 1.5,
+        "height": 948,
+        "width": 1699
+      }
+    },
+    {
+      "scene": "returned",
+      "sameCamera": true,
+      "sameViewport": true,
+      "sameInput": true,
+      "frozen": true,
+      "viewport": {
+        "dpr": 1.5,
+        "height": 948,
+        "width": 1699
+      }
+    }
+  ],
+  "orbitResetExact": true,
+  "performanceComparable": false,
+  "reason": "browser background/occlusion throttling mixed with foreground samples"
+}

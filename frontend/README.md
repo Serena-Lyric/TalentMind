@@ -15,6 +15,12 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ## 启动
 
+### 节点引导空间候选（2026-10-20，#37 增量）
+
+`/?graphSpace=node-field-v1#/graph` 显式启用平滑节点密度与基础旋臂混合的背景空间，节点坐标与星体语义不变。省略参数或 `/?graphSpace=legacy#/graph` 回退原P2.5空间；原P2.4/P2.3/Canvas回退保留。世界坐标范围固定，窗口resize/相机操作不重采样。版本、统计、实际截图及未验收边界见[空间场报告](../docs/review/M3-node-guided-galaxy-field.md)。真实71/52节点本轮仅作私有布局算法统计，尚未在此分支正式Vue集成。
+
+复现历史空间统计：在 `frontend` 执行 `node --experimental-strip-types scripts/measureGalaxyField.ts`。可追加显式只读layout路径；仅输出聚合空间指标/摘要，不输出节点身份或JD原文。
+
 ### P2.4 恒星与交互（2026-10-19，PR35追加候选）
 
 正式 `/#/graph` 新增四类程序化星体与独立装饰过渡，默认无线；选中显示真实直连且保留非邻居。类型标识、恒星色温与业务统计各自独立。技术信息可切换外观预设；“定位全部关联”与“近距离观察”是主动镜头操作。测试/实际截图/222原边/开销见[P2.4报告](../docs/review/M3-M5-P2-4.md)。`/?graphStars=p23#/graph` 回退星点外观并保留新交互；精确P2.3见提交33b2142。以下历史段落保留各自版本语境。
