@@ -4,6 +4,7 @@ import { generateParticles } from './generate.js';
 
 export function createDust(scene, crisp = false) {
   const layers = [];
+  let currentField = null;
   for (const kind of Object.keys(CONFIG.particles)) {
     const data = generateParticles(kind), geometry = new THREE.BufferGeometry();
     for (const [name, size] of [['position', 3], ['color', 3], ['scale', 1], ['phase', 1]]) geometry.setAttribute(name === 'position' ? name : `a${name}`, new THREE.BufferAttribute(data[name], size));
@@ -42,6 +43,15 @@ export function createDust(scene, crisp = false) {
     scene.add(points); layers.push(points);
   }
   return {
+    setField(field) {
+      if (field === currentField) return;
+      currentField = field;
+      layers.forEach((points, index) => {
+        const data = generateParticles(Object.keys(CONFIG.particles)[index], field);
+        points.geometry.dispose();
+        for (const [name, size] of [['position', 3], ['color', 3], ['scale', 1], ['phase', 1]]) points.geometry.setAttribute(name === 'position' ? name : `a${name}`, new THREE.BufferAttribute(data[name], size));
+      });
+    },
     update(clock) { for (const points of layers) points.material.uniforms.clock.value = clock; },
     resize(height, dpr) { layers.forEach((points, index) => { points.material.uniforms.pixels.value = height * dpr; points.material.uniforms.maxPixels.value = Object.values(CONFIG.maxSprite)[index] * dpr;points.material.uniforms.pixelRatio.value=dpr; }); },
     count: Object.values(CONFIG.particles).reduce((sum, value) => sum + value, 0),

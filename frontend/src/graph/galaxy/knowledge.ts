@@ -31,6 +31,8 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
  const lines=new THREE.LineSegments(lineGeometry,lineMaterial);lines.frustumCulled=false;lines.renderOrder=1;group.add(lines)
  function disposePoints(){for(const layer of pointLayers){group.remove(layer.object);layer.object.geometry.dispose();(layer.object.material as THREE.Material).dispose()}pointLayers.length=0;textures.forEach(t=>t.dispose());textures.length=0}
  function setData(nextNodes:GraphNode[],nextEdges:GraphEdge[],layout:LayoutNode[]) {
+  lineGeometry.dispose();lineGeometry.setDrawRange(0,0)
+  for(const name of Object.keys(lineGeometry.attributes))lineGeometry.deleteAttribute(name)
   disposePoints();nodes=nextNodes;edges=nextEdges;meta=new Map(layout.map(n=>[n.id,n]));positions.clear();byId.clear();bounds.clear();projection.clear();metrics.clear();planKey='';edgeKey='';dataRevision++
   for(const node of nodes){byId.set(node.id,node);positions.set(node.id,spatialPoint(node,meta.get(node.id)!))}
   disposeDust()

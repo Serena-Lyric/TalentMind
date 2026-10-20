@@ -54,6 +54,7 @@
       </div>
       <details class="snapshot-note technical-info"><summary>技术信息 / 版本与诊断</summary>
       <p class="snapshot-note">已核验历史交接快照<br />非实时数据库 · 非新版标准岗位目录</p>
+      <p v-if="nodeFieldMode" class="snapshot-note">node-field-v1 候选：背景分布由原旋臂与知识坐标平滑混合。节点位置不变，星尘不表达职业分类或社区。<a href="?graphSpace=legacy#/graph">回退 P2.5 空间</a></p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · PR32@377e9b8<br />layout-v1 · seed 42。只用于候选空间布局；默认不显示社区分析层，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
@@ -134,6 +135,7 @@ import { cameraKey, type GalaxyCamera, type CameraState } from '../graph/galaxy/
 import type { SpatialKnowledge } from '../graph/galaxy/knowledge'
 import { stellarProfile, stellarNames, STELLAR_TYPES, type StellarType } from '../graph/galaxy/stellarAppearance'
 import { knowledgeProfile } from '../graph/galaxy/visualSemantics'
+import type { FieldInput } from '../graph/galaxy/GalaxySpatialField'
 
 const comparison=comparisonSettings(window.location.search)
 const visual=comparison.visual
@@ -146,6 +148,7 @@ const stellarMode=query.get('graphStars')!=='p23'
 const semanticMode=stellarMode&&query.get('graphStars')!=='p24'
 const stellarPreset=ref<StellarType|''>('')
 const spatialMode=query.get('graphCamera')!=='fixed'&&visual==='p22'&&!comparison.preset
+const nodeFieldMode=spatialMode&&query.get('graphSpace')==='node-field-v1'
 const cameraRig=shallowRef<GalaxyCamera|null>(null)
 let spatialKnowledge:SpatialKnowledge|null=null,spatialDirty=true,disposed=false,composing=false
 const cameraKeys=new Set<string>()
@@ -163,7 +166,7 @@ const rootRef = ref<HTMLElement | null>(null)
 const canvasWrapRef = ref<HTMLElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const galaxyRef = ref<HTMLCanvasElement | null>(null)
-let galaxy: {resize:(w:number,h:number)=>void;dispose:()=>void;stats:()=>unknown;reference:(nodes:DrawNode[],ids:Set<string>,selected:string|null)=>void} | null = null
+let galaxy: {resize:(w:number,h:number)=>void;dispose:()=>void;stats:()=>unknown;setSpatialField:(input:FieldInput|null)=>void;reference:(nodes:DrawNode[],ids:Set<string>,selected:string|null)=>void} | null = null
 let starSprites:ReturnType<typeof createStarSprites>|null=null
 const artifact = shallowRef<LayoutArtifact | null>(null)
 const meta = computed(() => new Map(artifact.value?.nodes.map(n=>[n.id,n]) || []))
@@ -269,6 +272,13 @@ async function buildLayout(data: GraphData, generation: number) {
   nodeById.clear()
   drawNodes.value.forEach(node => nodeById.set(node.id, node))
   if(spatialKnowledge)spatialKnowledge.setData(nodes,data.edges,artifact.value!.nodes)
+  syncSpatialField()
+}
+
+function syncSpatialField() {
+  if(!nodeFieldMode||!galaxy||!spatialKnowledge||!artifact.value)return
+  galaxy.setSpatialField({layoutVersion:artifact.value.schema_version,snapshotHash:artifact.value.snapshot_sha256_lf,seed:261018,viewSize:200,
+    positions:[...spatialKnowledge.positions].map(([id,p])=>({id,x:p.x,y:p.y,z:p.z}))})
 }
 
 function resizeCanvas() {
@@ -617,6 +627,7 @@ async function stepSearch(direction: 1 | -1) {
 async function loadGraph() {
   const generation = ++loadGeneration
   loading.value = true
+  loadError.value = ''
   try {
     const result = await loadHistoricalGraph()
     const data = result.graph
@@ -629,7 +640,13 @@ async function loadGraph() {
     await nextTick()
     resizeCanvas()
     if (overview && !selectedNode.value) fitGraph()
-  } catch(error) { if (generation === loadGeneration) {loadError.value=String(error);ElMessage.error('历史快照或版本校验失败')} }
+  } catch(error) { if (generation === loadGeneration) {
+    if(nodeFieldMode){
+      galaxy?.setSpatialField(null);spatialKnowledge?.setData([],[],[]);artifact.value=null;graphData.value={nodes:[],edges:[],stats:{totalNodes:0,totalEdges:0,added:0,removed:0,changed:0}};drawNodes.value=[];nodeById.clear();highlightNode(null)
+      const canvas=canvasRef.value,ctx=canvas?.getContext('2d');if(canvas&&ctx){ctx.save();ctx.resetTransform();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.restore()}
+    }
+    loadError.value=String(error);ElMessage.error('历史快照或版本校验失败')
+  } }
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
 // 快照只属于当前选中身份；同步失效，避免同一轮改选后展开误用旧快照。
@@ -691,6 +708,7 @@ onMounted(async () => {
     if(disposed||!galaxyRef.value)return
     if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value,stellarMode,semanticMode?'p25':'p24');if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
     galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial,pointLimit:spatialKnowledge.setPointLimit}:undefined})
+    syncSpatialField()
     resizeCanvas()
     if(cameraRig.value)fitGraph()
     if(debug)statsTimer=setInterval(()=>{if(rootRef.value)rootRef.value.dataset.galaxyStats=JSON.stringify(galaxy?.stats())},500)

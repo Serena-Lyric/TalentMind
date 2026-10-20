@@ -14,6 +14,7 @@ import type { VisualVariant } from '../comparisonView'
 import type { GalaxyCamera } from './camera'
 // @ts-expect-error Original P1-A.2 knowledge shader; replay only, no synthetic data fallback.
 import { createKnowledge } from './p1a2Knowledge.js'
+import { createGalaxySpatialFieldCache, type FieldInput } from './GalaxySpatialField'
 
 export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void, options:{visual:VisualVariant;frozen:boolean;diagnostics?:boolean;spatial?:{rig:GalaxyCamera;group:THREE.Group;frame:(delta:number)=>void;pointLimit?:(value:number)=>void}}={visual:'p22',frozen:false}) {
   const renderer = new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'})
@@ -27,6 +28,8 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
   const camera=options.spatial?.rig.displayCamera??fixedCamera
   const dustGroup=new THREE.Group();scene.add(dustGroup)
   const dust=createDust(dustGroup,options.visual==='p22')
+  const fieldCache=createGalaxySpatialFieldCache()
+  let fieldBuildMs=0,particleBuildMs=0,fieldBinding:Pick<FieldInput,'snapshotHash'|'layoutVersion'|'seed'|'viewSize'>|null=null
   // Fixed tilted disk: same transform as #28 knowledge Canvas, no orbit or auto-flight.
   if(!options.spatial)dustGroup.rotation.x=Math.asin(.65)
   if(options.spatial)scene.add(options.spatial.group)
@@ -79,12 +82,19 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
   }
   const heap=()=>{const value=(performance as Performance&{memory?:{usedJSHeapSize:number;totalJSHeapSize:number}}).memory;return value?{usedJSHeapSize:value.usedJSHeapSize,totalJSHeapSize:value.totalJSHeapSize}:null}
   return {resize,
+    setSpatialField(input:FieldInput|null){
+      const start=performance.now(),field=input?fieldCache.get(input):null
+      fieldBuildMs=performance.now()-start
+      const particlesStart=performance.now();dust.setField(field);particleBuildMs=performance.now()-particlesStart
+      fieldBinding=input?{snapshotHash:input.snapshotHash,layoutVersion:input.layoutVersion,seed:input.seed,viewSize:input.viewSize}:null
+      if(!input)fieldCache.clear()
+    },
     reference(nodes:(GraphNode&{point:Point})[],ids:Set<string>,selected:string|null) {
       if(options.visual!=='p1a2')return
       if(referenceNodes!==nodes){disposeObjects(referenceGroup);referenceGroup.clear();knowledge=createKnowledge(referenceGroup,{nodes:nodes.map(n=>({id:n.id,type:n.kind==='job'?0:n.kind==='skill'?2:3,position:[n.point.x/30,-n.point.y/30,0]})),edges:[]});referenceNodes=nodes}
       knowledge.filter({nodeIds:ids,edgeIndices:[]});knowledge.select(selected)
     },
-    stats:()=>({frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),heap:heap(),resources:{...renderer.info.memory,calls:renderer.info.render.calls},particles:dust.count,pointSizeRange,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:options.spatial?'perspective':'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
-    dispose(){stopped=true;cancelAnimationFrame(frame);canvas.removeEventListener('webglcontextlost',lost);disposeObjects(scene);composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose();if(options.diagnostics)console.info('nebula-disposed',JSON.stringify({...renderer.info.memory,frameCancelled:true}))}
+    stats:()=>({spatialField:{...fieldCache.stats(),binding:fieldBinding,fieldBuildMs,particleBuildMs},frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),heap:heap(),resources:{...renderer.info.memory,calls:renderer.info.render.calls},particles:dust.count,pointSizeRange,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:options.spatial?'perspective':'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
+    dispose(){stopped=true;cancelAnimationFrame(frame);fieldCache.clear();canvas.removeEventListener('webglcontextlost',lost);disposeObjects(scene);composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose();if(options.diagnostics)console.info('nebula-disposed',JSON.stringify({...renderer.info.memory,frameCancelled:true}))}
   }
 }
