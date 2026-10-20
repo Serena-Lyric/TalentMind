@@ -35,6 +35,9 @@ def offline(monkeypatch, tmp_path):
 
     monkeypatch.setattr(mysql, "get_db", get_db)
     monkeypatch.setattr(boss.time, "sleep", lambda _: None)
+    monkeypatch.setattr(boss.browser, 'ensure_ready', lambda *a, **kw: {
+        'endpoint': 'http://127.0.0.1:9333', 'user_data_dir': str(tmp_path / 'profile'), 'can_collect': True})
+    monkeypatch.setattr(boss.browser, 'wait_access', lambda *a, **kw: {'can_collect': True})
     clients = []
 
     class Client:
@@ -79,6 +82,22 @@ def offline(monkeypatch, tmp_path):
 
 def card(key, **kwargs):
     return {"url": f"https://www.zhipin.com/job_detail/{key}.html", "title": "合成 Python 岗位", **kwargs}
+
+
+def test_boss_transport_close_stops_before_next_detail_and_keeps_committed_good(offline,monkeypatch):
+    from app.collect.fetchers.cdp import CdpConnectionError
+    Client,rows,run=offline
+    monkeypatch.setattr(boss,'_fetch_search_page',lambda *a:[card('good'),card('closed'),card('never')])
+    attempted=[]
+    def detail(self,script):
+        attempted.append(self.url)
+        if '/good.html' in self.url:return {'description':'岗位职责：负责 Python 服务开发'}
+        raise CdpConnectionError('synthetic transport closed')
+    monkeypatch.setattr(Client,'evaluate',detail)
+    with run(pages=1,detail_limit=3) as collect:
+        with pytest.raises(CdpConnectionError):collect()
+    assert len(attempted)==2 and len(rows())==1
+    assert rows()[0]['source_detail'].endswith('/good.html')
 
 
 def test_committed_list_survives_next_page_browser_failure(offline, monkeypatch):

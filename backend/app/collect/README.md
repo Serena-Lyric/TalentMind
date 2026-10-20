@@ -3,6 +3,43 @@
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。
 > 合规红线：只读取公开数据或用户人工登录后页面可见内容；不绕过登录/验证码/反爬，不伪造 source（D17/D38）。
 
+## 2026-10-20 历史控制器接入补修
+
+正式管理入口仍为 `control.start_task` → 原平台循环 → 原 `run_fetch` → pipeline。`mode=once` 只传 `--once`，不进入轮间等待。CN的可选配置 `search_url_template` 已可保存并原样传给CLI；空字符串可清除覆盖、回到原模块默认模板。本轮仅验证转发，不在受限会话应用历史模板重新探测。
+
+worker接收父进程实际解析的Settings并固定UTF-8输出，与watcher编码一致；父进程须先具备有效配置，不猜主仓.env或默认库。新增质量计数和stop_reason进入任务/历史，`quality_metrics_available=false` 时不能把旧details当作详情成功数，新任务未取得质量计数时为None。单轮业务异常非0，CDP传输中断在原循环停止，BOSS不再吞掉此类断线；旧普通单条页面故障的有限容错保留。
+
+已用真实子进程运行原CN `--once`、原fetch/SQL和watcher/history的离线临时SQLite回归；合成浏览器/服务边界替换，不是实采。用户确认猎聘验证未处理，本轮未调用真实采集入口、未读写真实MySQL，不能恢复日常或continuous。历史成功日志、与run_live差异、前端可选字段说明及恢复准入见[历史链路报告](../../../docs/review/M1-historical-chain.md)。
+
+## 2026-10-20 Gate 1：CN详情与入库分账
+
+`fetch_cn_jobs.run_fetch` 的默认详情模式现在仅将已核验的有效、非截断且同一来源身份的正文交给原pipeline，不再将失败后的列表卡入库。保留详情换行和既有职责提取边界；猎聘元信息与正文限定目标区域，不能回退推荐字段。DOM-only卡片在不能证明异步面板身份时拒绝为 `unverified_dom_identity`；不因标题同名就合并。游客限制/验证/断线停止平台，并保留此前取得的good详情。显式 `--no-details` 仍是单独列表模式，完整计数为0；真实Gate1未使用此模式。
+
+返回新增 `detail_attempted/detail_obtained/complete/inserted/updated/rejected/failed/unattempted/rejection_reasons/stop_reason`；`details` 保留尝试口径、`new`为INSERT别名，`skipped`仅为合格详情的既有身份去重跳过，不能把质量拒绝混入跳过。CN历史去重规则仍跳过既有身份、无自动UPDATE。限制发生在搜索之前时会抛出访问异常，尚无记录级统计，验收应另记搜索级失败。循环收到stop_reason即停，CLI退出码为2。
+
+程序调用可用 `on_event` 保存候选/详情/失败/持久化证据；回调内容含原文及身份，仅允许保存本地私有路径，不入Git。2026-10-20真实单次猎聘搜索被安全验证阻断，实际候选/详情/写入均0；不是修复已通过真实入库验收。新备份、命令、测试、回退和N/H下一阶段入口见[Gate1报告](../../../docs/review/M1-gate1-live.md)。
+
+## 2026-10-20 浏览器准备接口（#40 待外部审查）
+
+`browser.py` 统一独立 Edge 启动、动态端口发现、目标页面准备与访问检查。控制台和直接 CLI 共用；不改清洗、去重和持久化。默认 profile 为本工作树忽略的 `data/local/edge-boss-cdp-profile`，不使用日常 Edge。启动使用动态端口和 `127.0.0.1`；仅复用可核实 profile、主进程及回环监听的 Edge，过期端口文件或无关 CDP 不作为身份凭据。受控采集锁定准备返回的 endpoint/target_id，不再使用 profile 二次回退。
+
+**准备不采集：** `/collection/prepare` 永不启动采集，旧 `auto_start` 参数仍接受但忽略。`/collection/cdp-status` 只检查，不启动浏览器。只有显式 `/collection/start` 或不带 `--prepare-only` 的采集 CLI 才可能写原始层。旧 `check_cdp_before_start=false` 不再跳过访问门禁。
+
+```powershell
+# backend/ 下；也可以指定已有、依赖齐全的 Python 完整路径
+python -m app.collect.fetch_boss_jobs --prepare-only --login-timeout 0
+python -m app.collect.fetch_cn_jobs --platform liepin --prepare-only --login-timeout 0
+python -m app.collect.fetch_cn_jobs --platform zhaopin --prepare-only --login-timeout 0
+# 独立准备入口，不需要关键词/城市或数据库配置；等待人工登录最多 120 秒
+python -m app.collect.browser --platform boss --browser-timeout 20 --login-timeout 120
+```
+
+准备成功退出码 0，需要人工处理/超时/错误退出码 2。单次采集 CLI 的 `--browser-timeout` 默认 20 秒，`--login-timeout` 默认 120 秒；等待人工登录只轮询准备状态，**不会自行启动采集**。显式采集入口在准备成功后才进入原采集流程；循环通过同一个 run_fetch 复用该能力。验证码/安全验证/访问限制立即返回并停止该平台，不轮询穿过验证；人工完成后须重新发起准备。`--cdp` 只接受本机回环或 `auto`，实际端口以返回值为准；默认启动采用动态端口，因此不要求原示例中的 9333 可用。
+
+访问状态和前端兼容字段见 [接口说明](../../../docs/review/M1-browser-runtime.md#接口与前端同步)。没有内容证据的页面不会被判为已登录；登录入口与正文同时可见不等于整页被阻断。猎聘/智联按实际公开访问能力判断，不强制登录；公开内容也可能截断，`content_limited=true` 不能当作完整详情成功。
+
+2026-10-20 只浏览器烟测：BOSS 搜索触发人工验证并停止；猎聘匿名搜索及单个详情可访问；智联匿名列表可访问、分栏详情有游客限制。全部未连接数据库、未运行实采。DOM 容器计数不等于独立职位数量或采集成功数；详见 [阶段报告](../../../docs/review/M1-browser-runtime.md)。下方旧登录要求、端口和运行数量均保留历史语境。
+
 > **2026-10-15 核查**：本轮只做离线开发和测试。下表数量、PID、登录/注销状态均为带日期的历史记录，不代表当前机器实时状态。每日脚本的 `data/local/PAUSE_COLLECT` 只约束该脚本，直接 CLI 不检查它。控制台进入页不自动准备 Edge 或启动采集；手动启动可选 BOSS/智联/猎聘，LinkedIn/HN 仅展示。
 
 ## 一、数据源与产出

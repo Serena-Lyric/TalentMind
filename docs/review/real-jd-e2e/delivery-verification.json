@@ -1,0 +1,49 @@
+{
+  "sqlite_integrity": "ok",
+  "sqlite_counts": {
+    "b1_members": 120,
+    "b2_members": 22,
+    "b22_results": 22,
+    "b22_reviews": 0
+  },
+  "review_events": 0,
+  "links_missing": [],
+  "screenshots": {
+    "corrupt-bundle-rejected.jpg": {
+      "width": 1413,
+      "height": 918,
+      "sha256": "46a32be3981f3253dc6671914b858ea59daeadc27a788f285d89e762de670282"
+    },
+    "final-overview.jpg": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "041415f699fdebaef804403a1329532faf23929722adff12317a3406851df22b"
+    },
+    "final-python-selected.jpg": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "6bbc402c294e3a42fc04771b454b67dd188bbc6eb183093566e4e1025586100c"
+    },
+    "final-rejected-source.jpg": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "64ec5f9ee32c47d1bf76afa68401b36b9415052a802d0287f2394038e56c4a20"
+    },
+    "final-relation-source.jpg": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "ec97aaa32e8927635dc3ab07e19f270b74206536d5a45d5116c337a8b91cc230"
+    },
+    "historical-fallback.jpg": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "ab07c34fe266a2b9cfa87956e2af47eb6033f8337d4c252d8c126b9c8f529bdd"
+    }
+  },
+  "replay_identical": {
+    "facts.json": true,
+    "derived.json": true,
+    "layout.json": true
+  },
+  "historical_graph_sha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2"
+}

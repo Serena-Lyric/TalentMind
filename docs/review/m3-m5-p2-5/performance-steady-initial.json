@@ -1,0 +1,64 @@
+{
+  "galaxy": {
+    "frames": {
+      "samples": 541,
+      "p50": 16.69999999999891,
+      "p95": 17.100000000000364
+    },
+    "renderSubmissionMs": {
+      "samples": 541,
+      "p50": 0.4000000059604645,
+      "p95": 0.9000000059604645
+    },
+    "heap": {
+      "usedJSHeapSize": 123603329,
+      "totalJSHeapSize": 184699325
+    },
+    "resources": {
+      "geometries": 11,
+      "textures": 13,
+      "calls": 23
+    },
+    "particles": 214200,
+    "pointSizeRange": [
+      1,
+      1024
+    ],
+    "visual": "p22",
+    "frozen": true,
+    "clock": 0,
+    "dpr": 1.0000000298023224,
+    "fixedProjection": "perspective",
+    "renderer": "WebGL2"
+  },
+  "source_path": "docs/review/m3-m5-p2-5/p25-side.json",
+  "note": "Initial logical1600x900 view, PNG export was1437x900; telemetry retained independently from fullPage rephotography.",
+  "camera": {
+    "position": [
+      57.45361183392635,
+      8.304881237291601,
+      257.1733101137655
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "quaternion": [
+      -0.015657125650020077,
+      0.1096628474354952,
+      0.0017276403062779632,
+      0.993844016718766
+    ],
+    "distance": 263.6436989575135,
+    "roll": 0,
+    "fov": 43,
+    "zoom": 1
+  },
+  "source_commit": "02df2fc986385acb7ebd9b5ba0db6c2702abd763"
+}

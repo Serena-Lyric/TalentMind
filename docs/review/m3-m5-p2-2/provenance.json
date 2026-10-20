@@ -1,0 +1,47 @@
+{
+  "p21_base": "452c98fd69dff23e0aadf7683aae6f0cbf519ea7",
+  "p1a2_source": "e7771d070abd54532efd9c813e9434d5af87459c",
+  "p1a2_shaders_byte_exact": true,
+  "p1a2_shader_sha256": {
+    "vertexShader": "792e4c5c47ece5a6e03395a6597bcca319ea5ab71d3a6a600839155ec496e561",
+    "fragmentShader": "dfe26d1483bb0ce9ab87a558ee03019b06ff66dc0e34b5238ea7f05157f26139"
+  },
+  "p21_original_evidence": {
+    "docs/review/m3-m5-p2-1/backend-offline.log": "6bc3dbfcf5a0228e1538a2d84da0b8ba222d07ea730b911f550cd41c4f782964",
+    "docs/review/m3-m5-p2-1/browser-observations.json": "c614de1c99c836d6ff097daa778e42ac1ffd1b9ee34a79691755e1eeb5a17696",
+    "docs/review/m3-m5-p2-1/code-self-review.md": "b78bb5a01f3f946e482648f7b874eb1766999dae46a23048cbbdcb3a903fb027",
+    "docs/review/m3-m5-p2-1/derived-overlay.jpg": "cfcde9127c79efc23234cd0aaf51346f052780a30878fc76cca6bb3aa781b034",
+    "docs/review/m3-m5-p2-1/frontend-build.log": "4900e299f7d817eca187c0f79c9743104c1d176a293496ad0e33799da3abf3d8",
+    "docs/review/m3-m5-p2-1/frontend-tests.log": "a624f92c23b2a9951282cc0b69f87e877aa5c532f6810cd4f4966cf364fd22de",
+    "docs/review/m3-m5-p2-1/industry-detail.jpg": "46f6934ef8643263be7e4054071601982e4e4fa5f26b29cf21d6757b14475404",
+    "docs/review/m3-m5-p2-1/job-detail.jpg": "c0c5ea65a324375de7cb90dd0d7b230050ca5b552a344c7a1b352b7a1b5bd9c7",
+    "docs/review/m3-m5-p2-1/legacy-fallback.jpg": "06397af38c3c1b6b7a29d432b2e83a196be4d0666b06fe158d87b10010354d25",
+    "docs/review/m3-m5-p2-1/media-validation.log": "9a0fc07a7f0b956e20bbc56ae8d347948155d619889a89d750f6c6f430ae22a2",
+    "docs/review/m3-m5-p2-1/middle.jpg": "271e20a2dc55d47810538b17eb1fe5f232ee099853961cd134288c6a6181ee2f",
+    "docs/review/m3-m5-p2-1/near-unselected.jpg": "c621d6f936c198c5162ac4837c96919fdb918ca7be8ed92d514fb6c9bd2a3221",
+    "docs/review/m3-m5-p2-1/near.jpg": "a8974eddabfc471807f3989f8eac02b1ab5781406f39a662da6648731ffb637b",
+    "docs/review/m3-m5-p2-1/overview.jpg": "866c8b6c15b7b5dda01b6c15abef0a88c4a613da566282dec253ab9bae7503b3",
+    "docs/review/m3-m5-p2-1/performance.json": "0e6a758fd1f6f3ba54bdb009e32833028ce092d103a1e3cf3514f4959f70b56a",
+    "docs/review/m3-m5-p2-1/production-all-neighbors.jpg": "5f1b6abb49cb1a783dd0fa7ff78ccd630d68a7f084c9a12ccbbbb18a6c33bb34",
+    "docs/review/m3-m5-p2-1/production-layout-failure.jpg": "ea7db210832673c2960b66d13820a4c6617246fa736c320c808f51cd9d737742",
+    "docs/review/m3-m5-p2-1/production-login-guard.jpg": "0751b19fa324633883081b76208212427b0d76db335d0b746e01a2bd116a587f",
+    "docs/review/m3-m5-p2-1/production-overview.jpg": "def8cf81bf5ee0b4ab72749d134f4df6bde0ab7f915cc4550ca4c7a03d6e8b7e",
+    "docs/review/m3-m5-p2-1/production-python-selected.jpg": "fde8fc0b022e9c4cba3bda6069cf9b8f0164084ec2ced3f2bf3ebf2e5ae66bcb",
+    "docs/review/m3-m5-p2-1/python-all-neighbors.jpg": "e94a8df2c75f654b7b1009b256fc7cfe4587d2b6618fddf313c9d3d2d31c9aec",
+    "docs/review/m3-m5-p2-1/python-last-page.jpg": "81de5a792779261232a042655679834ec78ec5e68d3564872c1a0e9c73b1b4c9",
+    "docs/review/m3-m5-p2-1/python-selected.jpg": "56b21c053ce2bb9bfbc7dea4d5048ff223d0c105bca0df620747ba4fe60a2592",
+    "docs/review/m3-m5-p2-1/recording-timeline.json": "1b6c6ed785026eee58713b9035558a71bd232ac822c8d9e3e71155a0e9c16bdf",
+    "docs/review/m3-m5-p2-1/reference-lab-build.log": "f199f0b2a6905d8a3f06691d6b2fd8054b5e9273fe5df143cdeb7ce4e99cdb6f",
+    "docs/review/m3-m5-p2-1/route-interactions.webm": "73a6fd0a7a1b79d49cee70cac6252509eb950a2d7ed030e0fbcf4e2064a49534"
+  },
+  "snapshot_sha256_lf": "e8e3fe6aab4ffd359a16c8c62ee8edd4684504266fafe1534d36599cd7af742f",
+  "layout_sha256_lf": "927693b19efdc7c1c91f77a3d03d28e4198ee125f43ff5b5eb27ee5056fbfea3",
+  "p22_core_commit": "0873c343af21fabf9c0d0dd262b5a303543695c2",
+  "p22_render_sources_sha256_lf": {
+    "frontend/src/components/GraphPanorama.vue": "9663d9a97ac475b607f5f0cabbd2012e8b986e1ce8e8175d3e418ee992541f97",
+    "frontend/src/graph/starPresentation.ts": "f9e13e02f98085d7ae0b171214de39de2c2ae5dfb3894b0226ec9eea9239bb92",
+    "frontend/src/graph/relationReadability.ts": "c44272b705a2afe224e5e291ce6c32c9a61a90fce4aaf5a18b9aabd0a65bd039",
+    "frontend/src/graph/galaxy/background.ts": "17fb7004da618fb1f109e0453a9f2be021ca946026513a9c1f384b0e69b31381",
+    "frontend/src/graph/galaxy/particles.js": "d36e37a8090696a685c62355e7d17fbdfc5cfa2235467d415a16da558879b326"
+  }
+}

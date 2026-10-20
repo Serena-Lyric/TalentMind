@@ -1,0 +1,1559 @@
+{
+  "bundle": "index-cff0ca4c.js",
+  "checks": [
+    {
+      "expected": 0,
+      "actual": 0,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 24,
+      "actual": 24,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 40,
+      "actual": 40,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 70,
+      "actual": 70,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 114,
+      "actual": 114,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 121,
+      "actual": 121,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 175,
+      "actual": 175,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 182,
+      "actual": 182,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 205,
+      "actual": 205,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 227,
+      "actual": 227,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 274,
+      "actual": 274,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 336,
+      "actual": 336,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 388,
+      "actual": 388,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 417,
+      "actual": 417,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 424,
+      "actual": 424,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 460,
+      "actual": 460,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 479,
+      "actual": 479,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 497,
+      "actual": 497,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 524,
+      "actual": 524,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 540,
+      "actual": 540,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 591,
+      "actual": 591,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 606,
+      "actual": 606,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 667,
+      "actual": 667,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 684,
+      "actual": 684,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 731,
+      "actual": 731,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 787,
+      "actual": 787,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 880,
+      "actual": 880,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 938,
+      "actual": 938,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 962,
+      "actual": 962,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 991,
+      "actual": 991,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 998,
+      "actual": 998,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1043,
+      "actual": 1043,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1057,
+      "actual": 1057,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1099,
+      "actual": 1099,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1131,
+      "actual": 1131,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1209,
+      "actual": 1209,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1277,
+      "actual": 1277,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1323,
+      "actual": 1323,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1432,
+      "actual": 1432,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1447,
+      "actual": 1447,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1471,
+      "actual": 1471,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1551,
+      "actual": 1551,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1608,
+      "actual": 1608,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1633,
+      "actual": 1633,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1657,
+      "actual": 1657,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1667,
+      "actual": 1667,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1683,
+      "actual": 1683,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1743,
+      "actual": 1743,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1776,
+      "actual": 1776,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1811,
+      "actual": 1811,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1838,
+      "actual": 1838,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1861,
+      "actual": 1861,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1879,
+      "actual": 1879,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 1899,
+      "actual": 1899,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2018,
+      "actual": 2018,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2025,
+      "actual": 2025,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2038,
+      "actual": 2038,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2057,
+      "actual": 2057,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2062,
+      "actual": 2062,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2073,
+      "actual": 2073,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2105,
+      "actual": 2105,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2174,
+      "actual": 2174,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2180,
+      "actual": 2180,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2227,
+      "actual": 2227,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2235,
+      "actual": 2235,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2278,
+      "actual": 2278,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2292,
+      "actual": 2292,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2300,
+      "actual": 2300,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2312,
+      "actual": 2312,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2354,
+      "actual": 2354,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2380,
+      "actual": 2380,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2396,
+      "actual": 2396,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2422,
+      "actual": 2422,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2504,
+      "actual": 2504,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2525,
+      "actual": 2525,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2550,
+      "actual": 2550,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2576,
+      "actual": 2576,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2600,
+      "actual": 2600,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2609,
+      "actual": 2609,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2679,
+      "actual": 2679,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2704,
+      "actual": 2704,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2712,
+      "actual": 2712,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2765,
+      "actual": 2765,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2857,
+      "actual": 2857,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2893,
+      "actual": 2893,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2907,
+      "actual": 2907,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 2958,
+      "actual": 2958,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3000,
+      "actual": 3000,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3277,
+      "actual": 3277,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3328,
+      "actual": 3328,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3453,
+      "actual": 3453,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3519,
+      "actual": 3519,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3530,
+      "actual": 3530,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3536,
+      "actual": 3536,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3569,
+      "actual": 3569,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3594,
+      "actual": 3594,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3626,
+      "actual": 3626,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3662,
+      "actual": 3662,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3682,
+      "actual": 3682,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3720,
+      "actual": 3720,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3775,
+      "actual": 3775,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3835,
+      "actual": 3835,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3866,
+      "actual": 3866,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3918,
+      "actual": 3918,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 3952,
+      "actual": 3952,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4003,
+      "actual": 4003,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4039,
+      "actual": 4039,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4047,
+      "actual": 4047,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4117,
+      "actual": 4117,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4149,
+      "actual": 4149,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4188,
+      "actual": 4188,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4221,
+      "actual": 4221,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4301,
+      "actual": 4301,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4335,
+      "actual": 4335,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4361,
+      "actual": 4361,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4450,
+      "actual": 4450,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4485,
+      "actual": 4485,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4495,
+      "actual": 4495,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4511,
+      "actual": 4511,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4529,
+      "actual": 4529,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4574,
+      "actual": 4574,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4594,
+      "actual": 4594,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4609,
+      "actual": 4609,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4623,
+      "actual": 4623,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4642,
+      "actual": 4642,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4662,
+      "actual": 4662,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4689,
+      "actual": 4689,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4704,
+      "actual": 4704,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4773,
+      "actual": 4773,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4860,
+      "actual": 4860,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 4894,
+      "actual": 4894,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5076,
+      "actual": 5076,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5087,
+      "actual": 5087,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5105,
+      "actual": 5105,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5159,
+      "actual": 5159,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5167,
+      "actual": 5167,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5191,
+      "actual": 5191,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5306,
+      "actual": 5306,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5324,
+      "actual": 5324,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5348,
+      "actual": 5348,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5486,
+      "actual": 5486,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5511,
+      "actual": 5511,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5531,
+      "actual": 5531,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5610,
+      "actual": 5610,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5628,
+      "actual": 5628,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5776,
+      "actual": 5776,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5810,
+      "actual": 5810,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5827,
+      "actual": 5827,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5850,
+      "actual": 5850,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5921,
+      "actual": 5921,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5945,
+      "actual": 5945,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5963,
+      "actual": 5963,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 5969,
+      "actual": 5969,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6021,
+      "actual": 6021,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6141,
+      "actual": 6141,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6161,
+      "actual": 6161,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6307,
+      "actual": 6307,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6349,
+      "actual": 6349,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6377,
+      "actual": 6377,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6380,
+      "actual": 6380,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6476,
+      "actual": 6476,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6502,
+      "actual": 6502,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6696,
+      "actual": 6696,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6741,
+      "actual": 6741,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6770,
+      "actual": 6770,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6786,
+      "actual": 6786,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6799,
+      "actual": 6799,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6852,
+      "actual": 6852,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6858,
+      "actual": 6858,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 6914,
+      "actual": 6914,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7127,
+      "actual": 7127,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7164,
+      "actual": 7164,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7177,
+      "actual": 7177,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7204,
+      "actual": 7204,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7258,
+      "actual": 7258,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7336,
+      "actual": 7336,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7343,
+      "actual": 7343,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7395,
+      "actual": 7395,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7472,
+      "actual": 7472,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7477,
+      "actual": 7477,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7608,
+      "actual": 7608,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7717,
+      "actual": 7717,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7753,
+      "actual": 7753,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7791,
+      "actual": 7791,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 7900,
+      "actual": 7900,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 8322,
+      "actual": 8322,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 8404,
+      "actual": 8404,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 8785,
+      "actual": 8785,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 8946,
+      "actual": 8946,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 8992,
+      "actual": 8992,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9022,
+      "actual": 9022,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9049,
+      "actual": 9049,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9077,
+      "actual": 9077,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9099,
+      "actual": 9099,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9117,
+      "actual": 9117,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9368,
+      "actual": 9368,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9376,
+      "actual": 9376,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9430,
+      "actual": 9430,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9557,
+      "actual": 9557,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9615,
+      "actual": 9615,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9629,
+      "actual": 9629,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9660,
+      "actual": 9660,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9677,
+      "actual": 9677,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9695,
+      "actual": 9695,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9704,
+      "actual": 9704,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9730,
+      "actual": 9730,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9796,
+      "actual": 9796,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9814,
+      "actual": 9814,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9838,
+      "actual": 9838,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 9964,
+      "actual": 9964,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10011,
+      "actual": 10011,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10024,
+      "actual": 10024,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10242,
+      "actual": 10242,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10421,
+      "actual": 10421,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10443,
+      "actual": 10443,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10487,
+      "actual": 10487,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10495,
+      "actual": 10495,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10508,
+      "actual": 10508,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10534,
+      "actual": 10534,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10544,
+      "actual": 10544,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10555,
+      "actual": 10555,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    },
+    {
+      "expected": 10641,
+      "actual": 10641,
+      "selected": "skill:python",
+      "submitted": 222,
+      "geometryBuilds": 11
+    }
+  ]
+}

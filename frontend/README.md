@@ -1,5 +1,7 @@
 # frontend — TalentMind 前端（M5）
 
+真实 JD 隔离候选通过 `M3_REAL_PREVIEW_DIR=<私有bundle>` 启动 localhost Vite，并显式打开 `?graphDataset=real#/graph`。原始来源和五态保持可回溯，普通构建不携带私有数据；不带参数仍为历史 P2.5。完整运行命令、真实浏览器证据及限制见[链路交付](../docs/review/M1-M5-real-jd-e2e.md)。
+
 TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Plus + ECharts + Pinia。
 
 ## 页面
@@ -14,6 +16,28 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 - 技能学习路径：基于岗位技能目录、JD 原文证据与当前简历命中生成确定性缺口与「基础→核心→专项→加分」分层分步路径，阶段内逐技能有序展示，并给出针对性改进建议（含类别/别名/同类别简历衔接），不虚构课程、时长或资源链接
 
 ## 启动
+
+### P2.4 恒星与交互（2026-10-19，PR35追加候选）
+
+正式 `/#/graph` 新增四类程序化星体与独立装饰过渡，默认无线；选中显示真实直连且保留非邻居。类型标识、恒星色温与业务统计各自独立。技术信息可切换外观预设；“定位全部关联”与“近距离观察”是主动镜头操作。测试/实际截图/222原边/开销见[P2.4报告](../docs/review/M3-M5-P2-4.md)。`/?graphStars=p23#/graph` 回退星点外观并保留新交互；精确P2.3见提交33b2142。以下历史段落保留各自版本语境。
+
+### P2.3 三维知识银河（2026-10-19，独立Draft候选）
+
+当前候选 `/#/graph` 默认中心环绕三维：左拖旋转、右拖/WASD屏幕平移、Q/E滚转、滚轮缩放、R恢复。控制器基础相机与滚转显示相机分离；知识星体、原边、标签和拾取共享投影，原历史快照和来源索引保持。展示深度不代表语义距离，历史岗位未自动分八类。完整运行、80项前端测试、配对性能和实机限制见 [P2.3报告](../docs/review/M3-M5-P2-3.md)。
+
+回退 `/?graphCamera=fixed&graphVisual=p22#/graph`、`/?graphCamera=fixed&graphVisual=p21#/graph`、`/#/graph?graphRenderer=legacy`。下列P2.2/P2.1段落保留当时实现语境；最终产品验收仍待独立审核和用户确认。
+
+### P2.2 星体与关系可读性修订（PR33追加，待视觉验收）
+
+默认正式 `/#/graph` 已使用修订版星体、逐边关系对账、独立原边曲线/高亮和标签避让。历史Industry只称旧场景投影，社区说明折叠、派生相似默认关闭。原输入/布局不变；三方真实截图、性能成本与遗留见 [P2.2报告](../docs/review/M3-M5-P2-2.md)。
+
+P2.1视觉回退为 `/?graphVisual=p21#/graph`，旧Canvas仍为 `/#/graph?graphRenderer=legacy`。受控比较使用 `/?graphVisual=p1a2|p21|p22&graphCompare=overview|middle|near#/graph`（分别选一个值），统一输入/布局/固定投影并冻结时钟；p1a2只回放原知识点shader，不冒充原独立站相机。全景重绘成本仍高于P2.1，不以帧间隔采样宣称全面性能提升。
+
+### M3/M5-P2.1 集成候选（2026-10-19，待独立审核）
+
+正式 Vue `/graph` 默认使用银河候选；现有 Hash Router 的地址为 `/#/graph`，旧 Canvas 回退为 `/#/graph?graphRenderer=legacy`。导航和原演示登录保持；后者仅前端演示校验。候选从唯一 `exchange/m3/graph.json` 读取已核验历史交接快照（7845/11412），不访问实时数据库、不混入未发布标准岗位。Vite只在构建输出复制该文件；源码不重复存放快照。
+
+预计算候选、版本绑定、共享技能/孤点层级、完整邻接分页、测试及截图/录屏见 [集成报告](../docs/review/M3-M5-P2-1.md)。Jaccard0.10/Leiden及固定投影视觉尚未定稿。运行需localhost或HTTPS，普通局域网HTTP不跳过摘要校验。`pnpm test` 运行前端定向与#28交互回归，`pnpm run build` 包含类型检查。
 
 ```powershell
 pnpm install --frozen-lockfile

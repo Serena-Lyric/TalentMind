@@ -1,0 +1,11 @@
+{
+  "name": "camera-controls",
+  "version": "3.1.2",
+  "license": "MIT",
+  "peerDependencies": {
+    "three": ">=0.126.1"
+  },
+  "official_source": "https://github.com/yomotsu/camera-controls",
+  "native_roll_api": false,
+  "input_adapter": "no DOM connection; own single adapter; base/display camera separation"
+}

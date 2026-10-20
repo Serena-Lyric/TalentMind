@@ -1,0 +1,18 @@
+Already up to date
+Done in 249ms using pnpm v11.5.1
+$ vite build
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 24 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     2.33 kB │ gzip:   1.34 kB
+dist/m3-graph.json              4,523.58 kB │ gzip: 483.40 kB
+dist/assets/index-KY_lSCnj.css      3.43 kB │ gzip:   1.24 kB
+dist/assets/index-CyzNq3Su.js     536.54 kB │ gzip: 137.29 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 935ms

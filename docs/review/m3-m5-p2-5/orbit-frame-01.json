@@ -1,0 +1,380 @@
+{
+  "name": "orbit-frame-01",
+  "url": "http://127.0.0.1:18151/?nebulaDebug=1&freezeVisual=1#/graph",
+  "state": {
+    "audit": {
+      "scope": 11412,
+      "interactionHidden": 11412,
+      "invalidEndpoint": 0,
+      "typeHidden": 0,
+      "lodHidden": 0,
+      "unplaced": 0,
+      "viewportHidden": 0,
+      "lengthHidden": 0,
+      "budgetHidden": 0,
+      "submitted": 0
+    },
+    "drawnSourceIndices": [],
+    "submitted": 0,
+    "intersecting": 0,
+    "visibleNodes": 4095,
+    "labels": {
+      "candidates": 0,
+      "drawn": 0
+    },
+    "drawMs": 6.799999997019768,
+    "derivedSubmitted": 0,
+    "depthVersion": "display-depth-v1",
+    "updateCount": 11,
+    "geometryBuilds": 0,
+    "labelCacheHits": 8,
+    "scale": 0.12951120899797197,
+    "stellarVersion": "knowledge-body-v1",
+    "transitionParticles": 94140,
+    "maxPointSize": 1024,
+    "density": {
+      "compressed": 4095,
+      "max": 410.49481790079784
+    },
+    "selectedStar": null,
+    "pickCandidates": [
+      {
+        "id": "job:j-19a33f6480c854ba",
+        "x": 500.8482155291151,
+        "y": 399.3123352954278,
+        "depth": 260.92914085769405,
+        "visible": true,
+        "radius": 1.3631812832751107
+      },
+      {
+        "id": "job:j-25d10006834fe4dc",
+        "x": 767.326597046333,
+        "y": 428.3710391810906,
+        "depth": 262.87776681757583,
+        "visible": true,
+        "radius": 1.3585317555403276
+      },
+      {
+        "id": "job:j-136987a4de61c931",
+        "x": 776.629107628759,
+        "y": 411.8006915159054,
+        "depth": 258.2155160513419,
+        "visible": true,
+        "radius": 1.3697664810573253
+      },
+      {
+        "id": "job:j-b3fe51eea7d4018c",
+        "x": 768.6757936866417,
+        "y": 406.6179770669799,
+        "depth": 259.041175591023,
+        "visible": true,
+        "radius": 1.36774905442546
+      },
+      {
+        "id": "job:j-9acb6b8cab3718e1",
+        "x": 502.3765552342801,
+        "y": 412.7867389124942,
+        "depth": 262.4058736288752,
+        "visible": true,
+        "radius": 1.3596517323097013
+      },
+      {
+        "id": "job:j-249d541c310389dd",
+        "x": 603.5929455329722,
+        "y": 465.88882476046234,
+        "depth": 242.46835042898624,
+        "visible": true,
+        "radius": 1.4107162005093667
+      },
+      {
+        "id": "job:j-3447bd3fa3c7adbc",
+        "x": 767.6949595056223,
+        "y": 420.80012115459886,
+        "depth": 260.79652526058936,
+        "visible": true,
+        "radius": 1.3635000960280828
+      },
+      {
+        "id": "job:j-a5c873f8f8158244",
+        "x": 768.6491212291818,
+        "y": 417.8741076540968,
+        "depth": 261.17961033647543,
+        "visible": true,
+        "radius": 1.362579979585746
+      },
+      {
+        "id": "job:j-9c3ccd0f74b73b0b",
+        "x": 496.2379166009843,
+        "y": 405.3651809748769,
+        "depth": 268.79807309039614,
+        "visible": true,
+        "radius": 1.3447967722510419
+      },
+      {
+        "id": "job:j-d4cef282421de819",
+        "x": 768.4805379910965,
+        "y": 423.34584479001455,
+        "depth": 262.6654194729271,
+        "visible": true,
+        "radius": 1.3590352637119045
+      },
+      {
+        "id": "job:j-02dad37297fad79a",
+        "x": 768.7247595380336,
+        "y": 427.12564171966903,
+        "depth": 262.4750798732446,
+        "visible": true,
+        "radius": 1.3594872422772828
+      },
+      {
+        "id": "job:j-6295b7312d1d897a",
+        "x": 774.0045612257156,
+        "y": 404.54531971017576,
+        "depth": 257.17933572912864,
+        "visible": true,
+        "radius": 1.3723155917201573
+      },
+      {
+        "id": "job:j-3f1048307ed0c85f",
+        "x": 491.1398565837663,
+        "y": 397.91249892540736,
+        "depth": 265.37845862957903,
+        "visible": true,
+        "radius": 1.3526595343389305
+      },
+      {
+        "id": "job:j-a8930aa50ac0f0e4",
+        "x": 495.65455871288646,
+        "y": 398.5500584431956,
+        "depth": 258.7510614787508,
+        "visible": true,
+        "radius": 1.368456537917608
+      },
+      {
+        "id": "job:j-02d09ffe7550f57b",
+        "x": 504.48459991888336,
+        "y": 414.68470530508057,
+        "depth": 263.1357618890466,
+        "visible": true,
+        "radius": 1.3579210427568849
+      },
+      {
+        "id": "job:j-e64a9ed4ac3bbe64",
+        "x": 763.3641646366146,
+        "y": 428.9194677661837,
+        "depth": 263.4802130638871,
+        "visible": true,
+        "radius": 1.3571074371378828
+      },
+      {
+        "id": "job:j-a2845b7c7bdfa775",
+        "x": 795.6153037109544,
+        "y": 286.18420974249517,
+        "depth": 303.05646944236025,
+        "visible": true,
+        "radius": 1.2753483578485936
+      },
+      {
+        "id": "job:j-0ddbc8681e550f59",
+        "x": 498.9313083908101,
+        "y": 402.126057779833,
+        "depth": 268.5120097977161,
+        "visible": true,
+        "radius": 1.3454472600939962
+      },
+      {
+        "id": "job:j-48cc64457a2f2089",
+        "x": 574.7211308705471,
+        "y": 473.8084378767978,
+        "depth": 242.14527141947008,
+        "visible": true,
+        "radius": 1.4116087716778054
+      },
+      {
+        "id": "job:j-433c91347a138d52",
+        "x": 503.8027213791664,
+        "y": 411.4720593731544,
+        "depth": 263.2625656969548,
+        "visible": true,
+        "radius": 1.3576212937963605
+      },
+      {
+        "id": "job:j-88326e01c75149b2",
+        "x": 505.47845474866756,
+        "y": 412.9128733811184,
+        "depth": 264.19232583441755,
+        "visible": true,
+        "radius": 1.3554317593771068
+      },
+      {
+        "id": "job:j-aeab30e67ef3e19a",
+        "x": 431.49286140840513,
+        "y": 358.16599627947835,
+        "depth": 281.32213707866333,
+        "visible": true,
+        "radius": 1.3175477249240308
+      },
+      {
+        "id": "job:j-885d1a639437ff87",
+        "x": 676.6347789516439,
+        "y": 336.3837807065586,
+        "depth": 283.4936256638805,
+        "visible": true,
+        "radius": 1.313055500664936
+      },
+      {
+        "id": "job:j-b2d85bf84b2860d7",
+        "x": 767.7293828908623,
+        "y": 411.848921734579,
+        "depth": 258.98039677481006,
+        "visible": true,
+        "radius": 1.3678971481000537
+      },
+      {
+        "id": "job:j-f30b3b8187043922",
+        "x": 505.28637948102073,
+        "y": 417.1030761663296,
+        "depth": 265.07907061522087,
+        "visible": true,
+        "radius": 1.3533570502717256
+      },
+      {
+        "id": "job:j-518238dcb171cd10",
+        "x": 768.8211002220559,
+        "y": 422.64180768709076,
+        "depth": 263.20424425631575,
+        "visible": true,
+        "radius": 1.3577591247790286
+      },
+      {
+        "id": "job:j-3385247c57db9b45",
+        "x": 493.4202635613533,
+        "y": 421.7683640055301,
+        "depth": 263.88350485024824,
+        "visible": true,
+        "radius": 1.3561573987698519
+      },
+      {
+        "id": "job:j-552764cf2b6870e1",
+        "x": 614.8093751145093,
+        "y": 472.0130890498583,
+        "depth": 248.29835011504971,
+        "visible": true,
+        "radius": 1.394985432878208
+      },
+      {
+        "id": "job:j-7f3b6e500bcc2f1c",
+        "x": 761.5836185556223,
+        "y": 419.7580591452884,
+        "depth": 260.56262208606,
+        "visible": true,
+        "radius": 1.3640631547497257
+      },
+      {
+        "id": "job:j-234da450ad8a52a5",
+        "x": 442.6707042126184,
+        "y": 480.4241496282657,
+        "depth": 243.379518241699,
+        "visible": true,
+        "radius": 1.4082109195387362
+      }
+    ],
+    "mode": "galaxy-p25",
+    "visual": "p22",
+    "snapshot": "e8e3fe6aab4ffd359a16c8c62ee8edd4684504266fafe1534d36599cd7af742f",
+    "totalEdges": 11412,
+    "relationshipAudit": {
+      "scope": 11412,
+      "interactionHidden": 11412,
+      "invalidEndpoint": 0,
+      "typeHidden": 0,
+      "lodHidden": 0,
+      "unplaced": 0,
+      "viewportHidden": 0,
+      "lengthHidden": 0,
+      "budgetHidden": 0,
+      "submitted": 0
+    },
+    "selectedId": null,
+    "selectedScreen": null,
+    "focusedEdgeIndex": null,
+    "camera": {
+      "position": [
+        -71.48868917206016,
+        180,
+        178.87807948561104
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "quaternion": [
+        -0.3603618539822653,
+        -0.17577611636007698,
+        -0.06934302388902767,
+        0.9134733910463726
+      ],
+      "distance": 263.6436989575135,
+      "roll": 0,
+      "fov": 43,
+      "zoom": 1
+    },
+    "galaxy": {
+      "frames": {
+        "samples": 455,
+        "p50": 16.699999999999818,
+        "p95": 17.200000000000045
+      },
+      "renderSubmissionMs": {
+        "samples": 455,
+        "p50": 0.4000000059604645,
+        "p95": 0.800000011920929
+      },
+      "heap": {
+        "usedJSHeapSize": 80408535,
+        "totalJSHeapSize": 137336579
+      },
+      "resources": {
+        "geometries": 11,
+        "textures": 13,
+        "calls": 23
+      },
+      "particles": 214200,
+      "pointSizeRange": [
+        1,
+        1024
+      ],
+      "visual": "p22",
+      "frozen": true,
+      "clock": 0,
+      "dpr": 1.0000000298023224,
+      "fixedProjection": "perspective",
+      "renderer": "WebGL2"
+    },
+    "hoveredId": null,
+    "savedView": false,
+    "activeKinds": [
+      "job",
+      "skill",
+      "industry"
+    ],
+    "search": {
+      "index": -1,
+      "count": 0
+    },
+    "panelsHidden": false,
+    "immersive": false,
+    "direct": null
+  },
+  "viewport": {
+    "dpr": 1.0000000298023224,
+    "height": 900,
+    "width": 1600
+  }
+}

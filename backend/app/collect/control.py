@@ -12,14 +12,12 @@ import re
 import subprocess
 import sys
 import threading
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from app.collect.boss_collect_loop import DEFAULT_CITIES, DEFAULT_KEYWORDS
-from app.collect.fetchers.job_sites import SITES
-from app.collect.fetchers.cdp import CdpClient, CdpError
+from app.collect import browser
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _STATE_DIR = _REPO_ROOT / "data" / "local" / "collection"
@@ -27,6 +25,8 @@ _STATE_PATH = _STATE_DIR / "control-state.json"
 _LOCK = threading.RLock()
 _PROCESS: subprocess.Popen[str] | None = None
 _ACTIVE_STATUSES = {"preparing", "waiting_for_browser", "running", "waiting_next_round"}
+_QUALITY_COUNTERS = ('detail_attempted', 'detail_obtained', 'complete', 'inserted',
+                     'updated', 'rejected', 'failed', 'unattempted')
 _DEFAULT_CONFIG: dict[str, Any] = {
     "platform": "boss",
     "mode": "once",
@@ -45,6 +45,7 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "check_cdp_before_start": True,
     "cdp_endpoint": "http://127.0.0.1:9333",
     "user_data_dir": str(_REPO_ROOT / "data" / "local" / "edge-boss-cdp-profile"),
+    "search_url_template": None,
 }
 
 
@@ -66,6 +67,9 @@ def _empty_task(run_id: str | None, config: dict[str, Any]) -> dict[str, Any]:
         "total_rounds": config["rounds"] if config["mode"] == "limited" else None,
         "listed": 0,
         "details": 0,
+        **dict.fromkeys(_QUALITY_COUNTERS),
+        "quality_metrics_available": False,
+        "stop_reason": None,
         "new": 0,
         "skipped": 0,
         "errors": 0,
@@ -139,9 +143,6 @@ def _parse_log_line(run_id: str, line: str) -> None:
     if "等待" in clean and "后切换" in clean:
         _update_task(run_id, status="waiting_next_round", raw_log_line=clean)
         return
-    if "CDP/登录状态异常" in clean or "需要人工登录" in clean or ("验证" in clean and "异常" in clean):
-        _update_task(run_id, status="error", last_error=clean, raw_log_line=clean)
-        return
     complete_match = re.search(r"完成: (\{.*\})", clean)
     if complete_match:
         try:
@@ -149,10 +150,19 @@ def _parse_log_line(run_id: str, line: str) -> None:
         except (ValueError, SyntaxError):
             payload = {}
         if isinstance(payload, dict):
-            _update_task(run_id, listed=int(payload.get("listed", 0) or 0), details=int(payload.get("details", 0) or 0),
-                         new=int(payload.get("new", 0) or 0), skipped=int(payload.get("skipped", 0) or 0),
-                         errors=int(payload.get("errors", 0) or 0), log_summary=payload, raw_log_line=clean)
+            changes = {key: int(payload.get(key, 0) or 0) for key in ('listed', 'details', 'new', 'skipped', 'errors')}
+            changes.update({key: int(payload[key] or 0) for key in _QUALITY_COUNTERS if key in payload})
+            changes['quality_metrics_available'] = all(key in payload for key in _QUALITY_COUNTERS)
+            if payload.get('stop_reason'):
+                reason = str(payload['stop_reason'])
+                changes.update(status='error', last_error=reason, stop_reason=reason,
+                               errors=max(changes['errors'], changes.get('failed', 0), 1),
+                               browser_page_status=next((s for s in ('verification_required', 'login_required', 'page_error') if s in reason), 'blocked'))
+            _update_task(run_id, **changes, log_summary=payload, raw_log_line=clean)
             return
+    if "CDP/登录状态异常" in clean or "需要人工登录" in clean or ("验证" in clean and "异常" in clean):
+        _update_task(run_id, status="error", last_error=clean, raw_log_line=clean)
+        return
     _update_task(run_id, raw_log_line=clean)
 
 
@@ -178,7 +188,7 @@ def _watch_process(run_id: str, process: subprocess.Popen[str]) -> None:
             if task and task.get("run_id") == run_id:
                 stopped = task.get("status") == "stopped"
                 if not stopped:
-                    task["status"] = "completed" if return_code == 0 else "error"
+                    task["status"] = "completed" if return_code == 0 and task.get('status') != 'error' else "error"
                     if return_code != 0 and not task.get("last_error"):
                         task["last_error"] = f"采集进程退出码: {return_code}"
                 task["finished_at"] = _now()
@@ -193,140 +203,31 @@ def _watch_process(run_id: str, process: subprocess.Popen[str]) -> None:
             _PROCESS = None
 
 
-def _find_edge_executable() -> str | None:
-    candidates = [
-        Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-        Path(os.environ.get("ProgramFiles", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-    ]
-    for candidate in candidates:
-        if candidate.is_file():
-            return str(candidate)
-    return None
-
-
-def _launch_edge(endpoint: str, user_data_dir: str | None, platform: str = "boss") -> int:
-    executable = _find_edge_executable()
-    if not executable:
-        raise RuntimeError("未找到 Microsoft Edge，无法自动拉起浏览器")
-    port = endpoint.rsplit(":", 1)[-1].split("/", 1)[0]
-    profile = Path(user_data_dir or (_REPO_ROOT / "data" / "local" / "edge-boss-cdp-profile")).expanduser()
-    profile.mkdir(parents=True, exist_ok=True)
-    entry_url = {"boss": "https://www.zhipin.com/", "zhaopin": "https://www.zhaopin.com/", "liepin": "https://www.liepin.com/"}.get(platform, "https://www.zhipin.com/")
-    process = subprocess.Popen(
-        [executable, f"--remote-debugging-port={port}", f"--user-data-dir={profile}",
-         "--no-first-run", "--no-default-browser-check", "--new-window", entry_url],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
-    )
-    return int(process.pid)
-
-
 def _ensure_browser(endpoint: str, user_data_dir: str | None, platform: str = "boss") -> dict[str, Any]:
-    current = get_cdp_status(endpoint, user_data_dir)
-    if current["reachable"]:
-        return current
-    _launch_edge(endpoint, user_data_dir, platform)
-    deadline = time.monotonic() + 20
-    while time.monotonic() < deadline:
-        time.sleep(0.5)
-        current = get_cdp_status(endpoint, user_data_dir)
-        if current["reachable"]:
-            return current
+    prepared = browser.prepare(platform, endpoint, user_data_dir)
+    current = get_cdp_status(prepared["endpoint"], prepared["user_data_dir"])
+    current["platform_access"][platform] = prepared
+    current["user_data_dir"] = prepared["user_data_dir"]
     return current
 
 
-def _page_login_state(endpoint: str, user_data_dir: str | None, pages: list[dict[str, Any]], host_hint: str = "zhipin.com") -> bool:
-    """Inspect visible page text only for a login gate; never reads credentials."""
-    if not pages:
-        return False
-    try:
-        client = CdpClient.connect_first_page(endpoint, target_url_contains=host_hint, user_data_dir=user_data_dir)
-        try:
-            snapshot = client.evaluate("""({url: location.href, title: document.title, text: (document.body?.innerText || '').slice(0, 3000)})""") or {}
-        finally:
-            client.close()
-        url = str(snapshot.get("url", "")).lower()
-        text_value = f"{url} {snapshot.get('title', '')} {snapshot.get('text', '')}".lower()
-        markers = ("请先登录", "登录后", "手机号登录", "扫码登录", "密码登录", "登录/注册")
-        return any(marker in text_value for marker in markers) or any(marker in url for marker in ("/login", "passport"))
-    except (CdpError, OSError, ValueError, KeyError):
-        return False
-
-
 def get_cdp_status(endpoint: str | None = None, user_data_dir: str | None = None) -> dict[str, Any]:
-    import httpx
-
-    endpoint = (endpoint or _DEFAULT_CONFIG["cdp_endpoint"]).rstrip("/")
-    user_data_dir = user_data_dir or _DEFAULT_CONFIG["user_data_dir"]
-    checked_at = _now()
-    try:
-        response = httpx.get(f"{endpoint}/json/list", timeout=3, trust_env=False)
-        response.raise_for_status()
-        targets = response.json()
-        if not isinstance(targets, list):
-            targets = []
-        pages = [target for target in targets if target.get("type") == "page"]
-        page_groups = {"boss": [target for target in pages if "zhipin.com" in str(target.get("url", "")) or "boss.com" in str(target.get("url", "")) or "BOSS" in str(target.get("title", ""))]}
-        for source, spec in SITES.items():
-            page_groups[source] = [target for target in pages if spec.host_hint in str(target.get("url", ""))]
-        boss_pages = page_groups["boss"]
-        login_required = _page_login_state(endpoint, user_data_dir, boss_pages, "zhipin.com")
-        platform_login_required = {"boss": login_required}
-        for source, spec in SITES.items():
-            platform_login_required[source] = _page_login_state(endpoint, user_data_dir, page_groups[source], spec.host_hint)
-        return {
-            "endpoint": endpoint,
-            "reachable": True,
-            "boss_page_count": len(boss_pages),
-            "platform_pages": {source: len(items) for source, items in page_groups.items()},
-            "platform_login_required": platform_login_required,
-            "login_required": login_required,
-            "last_checked_at": checked_at,
-            "page_targets": [
-                {"type": t.get("type", ""), "url": t.get("url", ""), "title": t.get("title", "")}
-                for t in pages[:20]
-            ],
-        }
-    except Exception as exc:
-        return {
-            "endpoint": endpoint,
-            "reachable": False,
-            "boss_page_count": 0,
-            "platform_pages": {"boss": 0, **{source: 0 for source in SITES}},
-            "platform_login_required": {"boss": False, **{source: False for source in SITES}},
-            "last_checked_at": checked_at,
-            "page_targets": [],
-            "login_required": False,
-            "error": str(exc),
-        }
+    result = browser.status(endpoint or _DEFAULT_CONFIG["cdp_endpoint"], user_data_dir or _DEFAULT_CONFIG["user_data_dir"])
+    result["last_checked_at"] = _now()
+    return result
 
 
 def prepare_browser(auto_start: bool = False, platform: str | None = None) -> dict[str, Any]:
-    """Open the controlled Edge profile, inspect login state, and optionally start one task."""
-    config = {**get_config(), **({"platform": platform} if platform else {})}
-    endpoint = str(config.get("cdp_endpoint") or _DEFAULT_CONFIG["cdp_endpoint"])
-    platform = str(config.get("platform") or "boss")
-    try:
-        cdp = _ensure_browser(endpoint, config.get("user_data_dir"), platform)
-    except TypeError:
-        cdp = _ensure_browser(endpoint, config.get("user_data_dir"))
-    if not cdp.get("reachable"):
-        return {"status": "cdp_unavailable", "cdp": cdp, "message": "无法连接 Edge CDP"}
-    platform = str(config.get("platform") or "boss")
-    platform_pages = cdp.get("platform_pages", {})
-    login_required = (cdp.get("platform_login_required") or {}).get(platform, cdp.get("login_required", False))
-    if login_required or not platform_pages.get(platform, cdp.get("boss_page_count", 0)):
-        label = {"boss": "BOSS", "zhaopin": "智联", "liepin": "猎聘"}.get(platform, platform)
-        return {"status": "login_required", "cdp": cdp, "message": f"请在已打开的 Edge {label} 页面完成登录并打开岗位页面"}
-    if auto_start:
-        try:
-            # 自动进入页面只触发单轮，持续采集仍需用户在控制台显式选择并启动。
-            task = start_task({"mode": "once", "rounds": 0, **({"platform": platform} if platform != "boss" else {})})
-            return {"status": "started", "cdp": cdp, "task": task, "message": "已登录，单轮采集任务已启动"}
-        except (ValueError, RuntimeError) as exc:
-            return {"status": "start_failed", "cdp": cdp, "message": str(exc)}
-    return {"status": "ready", "cdp": cdp, "message": "浏览器已连接，可以启动采集"}
+    """Prepare only. Legacy auto_start is accepted but can never start collection."""
+    config = get_config()
+    platform = platform or str(config.get("platform") or "boss")
+    cdp = _ensure_browser(str(config.get("cdp_endpoint") or _DEFAULT_CONFIG["cdp_endpoint"]),
+                          config.get("user_data_dir"), platform)
+    access = cdp["platform_access"][platform]
+    return {"status": "ready" if access["can_collect"] else access["access_state"],
+            "access_state": access["access_state"], "can_collect": access["can_collect"],
+            "cdp": cdp, "message": "仅准备浏览器；采集须显式启动", "auto_start_ignored": bool(auto_start)}
+
 
 def get_database_stats() -> dict[str, Any]:
     from sqlalchemy import text
@@ -477,6 +378,8 @@ def _summarize_log(path: Path) -> dict[str, Any]:
         lines = []
     platform = "boss" if "boss" in path.name.lower() else "zhaopin" if "zhaopin" in path.name.lower() else "liepin" if "liepin" in path.name.lower() else "unknown"
     totals = {"listed": 0, "details": 0, "new": 0, "skipped": 0, "errors": 0}
+    stop_reason = None
+    parsed_rounds = quality_rounds = 0
     rounds = 0
     for line in lines:
         if "轮开始" in line:
@@ -489,9 +392,18 @@ def _summarize_log(path: Path) -> dict[str, Any]:
         except (ValueError, SyntaxError):
             continue
         if isinstance(payload, dict):
-            for key in totals:
+            parsed_rounds += 1
+            quality_rounds += all(key in payload for key in _QUALITY_COUNTERS)
+            for key in ('listed', 'details', 'new', 'skipped', 'errors'):
                 totals[key] += int(payload.get(key, 0) or 0)
-    status = "error" if any("CDP/登录状态异常" in line or "需要人工登录" in line for line in lines) else "completed"
+            for key in _QUALITY_COUNTERS:
+                if key in payload:
+                    totals[key] = totals.get(key, 0) + int(payload[key] or 0)
+            if payload.get('stop_reason'):
+                stop_reason = str(payload['stop_reason'])
+                if not payload.get('errors'):
+                    totals['errors'] += max(int(payload.get('failed', 0) or 0), 1)
+    status = "error" if stop_reason or any("CDP/登录状态异常" in line or "需要人工登录" in line for line in lines) else "completed"
     timestamps = []
     for line in lines:
         match = re.match(r"\[([^]]+)\]", line)
@@ -502,7 +414,8 @@ def _summarize_log(path: Path) -> dict[str, Any]:
         "started_at": timestamps[0] if timestamps else datetime.fromtimestamp(path.stat().st_ctime).astimezone().isoformat(timespec="seconds"),
         "finished_at": timestamps[-1] if timestamps else datetime.fromtimestamp(path.stat().st_mtime).astimezone().isoformat(timespec="seconds"),
         "current_keyword": None, "current_city": None, "current_round": rounds, "total_rounds": None,
-        **totals, "last_error": next((line.strip() for line in reversed(lines) if "异常" in line or "登录" in line), None),
+        **totals, "last_error": stop_reason or next((line.strip() for line in reversed(lines) if "异常" in line or "登录" in line), None),
+        "stop_reason": stop_reason, "quality_metrics_available": bool(parsed_rounds) and parsed_rounds == quality_rounds,
         "next_run_at": None, "cdp_status": "unknown", "browser_page_status": None,
         "database_total": 0, "database_boss_total": 0, "database_new_count": totals["new"], "pid": None,
         "log_path": str(path), "log_summary": totals, "raw_log_tail": lines[-30:], "log_status": "parsed" if rounds or any(totals.values()) else "unrecognized",
@@ -537,6 +450,18 @@ def get_history(page: int = 1, page_size: int = 20, status: str = "", mode: str 
     return {"items": history[start:start + page_size], "total": len(history)}
 
 
+def _worker_environment() -> dict[str, str]:
+    from app.config import get_settings
+
+    # Settings may come from .env without populating os.environ; workers need the same resolved target.
+    env = os.environ.copy()
+    env.update({key.upper(): str(value) for key, value in get_settings().model_dump().items() if value is not None})
+    env['PYTHONUNBUFFERED'] = '1'
+    env['PYTHONIOENCODING'] = 'utf-8'
+    env['PYTHONUTF8'] = '1'
+    return env
+
+
 def start_task(payload: dict[str, Any]) -> dict[str, Any]:
     global _PROCESS
     with _LOCK:
@@ -552,15 +477,14 @@ def start_task(payload: dict[str, Any]) -> dict[str, Any]:
         if platform not in {"boss", "zhaopin", "liepin"}:
             raise ValueError("platform 必须为 boss、zhaopin 或 liepin")
         endpoint = str(config.get("cdp_endpoint") or _DEFAULT_CONFIG["cdp_endpoint"])
-        if bool(config.get("check_cdp_before_start", True)):
-            cdp = _ensure_browser(endpoint, config.get("user_data_dir"), platform)
-            if not cdp["reachable"]:
-                raise RuntimeError("浏览器已尝试启动但 CDP 仍不可达，请检查 Edge 是否被策略阻止")
-            pages = cdp.get("platform_pages", {})
-            login_required = (cdp.get("platform_login_required") or {}).get(platform, cdp.get("login_required", False))
-            if login_required or not pages.get(platform, cdp.get("boss_page_count", 0)):
-                label = {"boss": "BOSS", "zhaopin": "智联", "liepin": "猎聘"}[platform]
-                raise RuntimeError(f"浏览器已打开，请先登录{label}并打开岗位页面，再点击启动采集")
+        cdp = _ensure_browser(endpoint, config.get("user_data_dir"), platform)
+        access = cdp["platform_access"][platform]
+        if not access["can_collect"]:
+            raise RuntimeError(f"{platform}: {access['access_state']}，请先完成浏览器准备")
+        endpoint = cdp["endpoint"]
+        config["cdp_endpoint"] = endpoint
+        config["user_data_dir"] = cdp["user_data_dir"]
+        env = _worker_environment()
         run_id = f"{platform}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         state = _load_state()
         task = _empty_task(run_id, config)
@@ -598,14 +522,14 @@ def start_task(payload: dict[str, Any]) -> dict[str, Any]:
             args.remove(platform)
         if config.get("user_data_dir"):
             args.extend(["--user-data-dir", str(config["user_data_dir"])])
+        if platform != 'boss' and config.get('search_url_template'):
+            args.extend(['--search-url-template', str(config['search_url_template'])])
         if config["mode"] == "once":
             args.append("--once")
         elif config["mode"] == "limited":
             args.extend(["--rounds", str(int(config["rounds"]))])
         else:
             args.append("--forever")
-        env = os.environ.copy()
-        env["PYTHONUNBUFFERED"] = "1"
         _PROCESS = subprocess.Popen(
             args,
             cwd=str(_REPO_ROOT / "backend"),

@@ -6,8 +6,17 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
+| [M1历史控制链路](review/M1-historical-chain.md) | 历史入口与第三轮差异、原control/循环的离线子进程验收、配置/编码/统计修复；未恢复实采或日常运行 |
+| [M1 Gate 1真实验收](review/M1-gate1-live.md) | 猎聘单页真实搜索因安全验证阻断；零候选/详情/写入，详情门禁修复与N/H准备；Gate 1未通过、不启动M2 |
+| [M1 浏览器运行环境](review/M1-browser-runtime.md) | #40 控制台/CLI 共用独立 Edge 准备、三平台访问状态与前端字段同步、只浏览器烟测和限制；未运行写库采集 |
+| [2026-10-20 全面实装总计划](superpowers/plans/2026-10-20-post-e2e-execution.md) | A 真实 JD 语义质量与重跑，B 共享空间星尘，C 产品语义与材料同步；三条新 Codex 对话与并行/验收边界 |
+| [当前术语与能力证据](team/TALENTMIND_TERMINOLOGY_AND_CAPABILITY_2026-10-20.md) | 区分历史图、未审真实陈述、职业正式目录与竞赛可用表述；供前端与材料成员统一引用 |
 | [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) | 当前已确认产品方案；M2-01～60、相关 M1 输入与新增 M3/M5 创新方向、Career Nebula 第一批设计；确认不等于已实现 |
 | [Career Nebula 视觉设计基线](superpowers/specs/2026-10-17-career-nebula-visual-design.md) | 大型多色知识银河、《诗云》参考边界、图谱页面布局与交互/视觉规范，区分已确认与待议 |
+| [Career Nebula P2.4 恒星与交互报告](review/M3-M5-P2-4.md) | 正式Vue四类恒星、默认无线与非关联可选、同条件截图、222原边、开销和回退；PR35追加候选，待产品评价 |
+| [Career Nebula P2.5 视觉语义增量](superpowers/specs/2026-10-19-career-nebula-p25-visual-semantics.md) | 岗位／技能／旧场景三种主视觉、密度与银河融合、端点颜色渐变关系；已确认方向，不等于完成实现或最终美术验收 |
+| [Career Nebula P2.3增量设计](superpowers/specs/2026-10-19-career-nebula-p23-design.md) | 用户本轮确认的三维正式集成、领域/历史语义边界与未来项；[实现与证据](review/M3-M5-P2-3.md)仍待独立审核/产品验收 |
+| [Career Nebula P2.5 实施任务](superpowers/plans/2026-10-19-career-nebula-p25-implementation.md) | 新 Codex 对话；从 #36 文档 HEAD 叠加开发正式 /graph，主视觉三类、密度治理、连线渐变与可回退实机验收 |
 | [Career Nebula Codex 第一批任务书](superpowers/plans/2026-10-17-career-nebula-first-phase.md) | P0 仅图谱页顶栏/高度，P1 独立《诗云》风格视觉样品，验收/回退与禁止事项 |
 | [README.md](../README.md) | 项目总览、带日期的模块状态、启动/测试、目录边界 |
 | [AGENT_START_HERE.md](../AGENT_START_HERE.md) | 少量核心阅读 + M1–M5 选读，不要求逐文件复述 |
