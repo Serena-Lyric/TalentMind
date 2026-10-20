@@ -7,6 +7,7 @@
 - 工作区：`C:\Users\Serena Lyric\.codex\worktrees\m1-m2-quality-replay\TalentMind`，集成分支 `codex/product-integration-20261020`，基于最新 `origin/master@1e5f4da`；主仓10项修改未动。
 - 合并提交：`f7816b8` 纳入 #40 `9f829bd`，包含 #38 `e2e07ec`、#39 `e20e6ff`；`a184d60` 纳入 #42 `fd2325f`；`4e28faf` 纳入 #37 `72b673a`，包含 #35 `df1ca24`、#36 `b7e6f65`。
 - 保留原始提交/PR，无squash、无master推送/合并。文档并列保留带日期的证据；GraphPanorama冲突逐段整合真实加载/来源、node-field、legacy、相机/交互与失败清空。修复空间回退丢失真实数据集参数。
+- 统一产品及准备/重新检查实现提交：`d93941d`。后续文档提交仅补交付索引，不改变实测业务代码。
 - 远端最新检查未取得前端成员新增业务分支/提交，仅有接入说明#34；未覆盖她未提交或不可取得的独立工作。
 
 ## 启动与操作
