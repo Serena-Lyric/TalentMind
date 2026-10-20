@@ -1,5 +1,7 @@
 # M1 采集模块（backend/app/collect/）
 
+> **2026-10-20 最新授权与运行状态**：[#43当日更新](https://github.com/Serena-Lyric/TalentMind/issues/43#issuecomment-6282375204)允许单平台×单关键词×单城市×一页、max-jobs5/detail-limit5的真实试采直接写已确认的现有MySQL jd_pool，无需每次新建DB。须核对运行时host/port/database、私有采前原像和采后精确INSERT/UPDATE；BOSS详情可补全旧列表行，不能仅删除新增ID回退。M2正式表、Neo4j和历史图不自动更新，集成测试仍隔离。当前preflight因CDP不可用未执行采集器；不是成功采集或零结果试采。详见[当前门禁](../../../docs/superpowers/plans/2026-10-20-staged-m1-m3-real-validation.md)及[证据口径](../../../docs/review/TalentMind-semantics-and-evidence-2026-10-20.md)。下方旧命令/循环示例是入口参考，不扩展本轮有界授权。
+
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。
 > 合规红线：只读取公开数据或用户人工登录后页面可见内容；不绕过登录/验证码/反爬，不伪造 source（D17/D38）。
 
