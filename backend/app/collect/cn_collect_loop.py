@@ -93,6 +93,9 @@ def run_loop(
             print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} CDP/登录状态异常，停止循环: {exc}", flush=True)
             return 2
         except Exception as exc:
+            if rounds == 1:
+                print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} 单轮采集失败: {exc!r}", flush=True)
+                return 1
             print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} 第 {index} 轮异常，继续低频重试: {exc!r}", flush=True)
         if rounds and index >= rounds:
             break

@@ -84,6 +84,22 @@ def card(key, **kwargs):
     return {"url": f"https://www.zhipin.com/job_detail/{key}.html", "title": "合成 Python 岗位", **kwargs}
 
 
+def test_boss_transport_close_stops_before_next_detail_and_keeps_committed_good(offline,monkeypatch):
+    from app.collect.fetchers.cdp import CdpConnectionError
+    Client,rows,run=offline
+    monkeypatch.setattr(boss,'_fetch_search_page',lambda *a:[card('good'),card('closed'),card('never')])
+    attempted=[]
+    def detail(self,script):
+        attempted.append(self.url)
+        if '/good.html' in self.url:return {'description':'岗位职责：负责 Python 服务开发'}
+        raise CdpConnectionError('synthetic transport closed')
+    monkeypatch.setattr(Client,'evaluate',detail)
+    with run(pages=1,detail_limit=3) as collect:
+        with pytest.raises(CdpConnectionError):collect()
+    assert len(attempted)==2 and len(rows())==1
+    assert rows()[0]['source_detail'].endswith('/good.html')
+
+
 def test_committed_list_survives_next_page_browser_failure(offline, monkeypatch):
     _, rows, run = offline
 

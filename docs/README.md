@@ -6,6 +6,7 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
+| [M1历史控制链路](review/M1-historical-chain.md) | 历史入口与第三轮差异、原control/循环的离线子进程验收、配置/编码/统计修复；未恢复实采或日常运行 |
 | [M1 Gate 1真实验收](review/M1-gate1-live.md) | 猎聘单页真实搜索因安全验证阻断；零候选/详情/写入，详情门禁修复与N/H准备；Gate 1未通过、不启动M2 |
 | [M1 浏览器运行环境](review/M1-browser-runtime.md) | #40 控制台/CLI 共用独立 Edge 准备、三平台访问状态与前端字段同步、只浏览器烟测和限制；未运行写库采集 |
 | [2026-10-20 全面实装总计划](superpowers/plans/2026-10-20-post-e2e-execution.md) | A 真实 JD 语义质量与重跑，B 共享空间星尘，C 产品语义与材料同步；三条新 Codex 对话与并行/验收边界 |

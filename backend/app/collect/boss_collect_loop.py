@@ -133,6 +133,9 @@ def run_loop(
             _log(f"BOSS CDP/登录状态异常，停止循环: {exc}")
             return 2
         except Exception as exc:
+            if rounds == 1:
+                _log(f"BOSS 单轮采集失败: {exc!r}")
+                return 1
             _log(f"BOSS 第 {round_index} 轮异常，继续低频重试: {exc!r}")
 
         if rounds and round_index >= rounds:

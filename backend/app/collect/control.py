@@ -25,6 +25,8 @@ _STATE_PATH = _STATE_DIR / "control-state.json"
 _LOCK = threading.RLock()
 _PROCESS: subprocess.Popen[str] | None = None
 _ACTIVE_STATUSES = {"preparing", "waiting_for_browser", "running", "waiting_next_round"}
+_QUALITY_COUNTERS = ('detail_attempted', 'detail_obtained', 'complete', 'inserted',
+                     'updated', 'rejected', 'failed', 'unattempted')
 _DEFAULT_CONFIG: dict[str, Any] = {
     "platform": "boss",
     "mode": "once",
@@ -43,6 +45,7 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "check_cdp_before_start": True,
     "cdp_endpoint": "http://127.0.0.1:9333",
     "user_data_dir": str(_REPO_ROOT / "data" / "local" / "edge-boss-cdp-profile"),
+    "search_url_template": None,
 }
 
 
@@ -64,6 +67,9 @@ def _empty_task(run_id: str | None, config: dict[str, Any]) -> dict[str, Any]:
         "total_rounds": config["rounds"] if config["mode"] == "limited" else None,
         "listed": 0,
         "details": 0,
+        **dict.fromkeys(_QUALITY_COUNTERS),
+        "quality_metrics_available": False,
+        "stop_reason": None,
         "new": 0,
         "skipped": 0,
         "errors": 0,
@@ -137,9 +143,6 @@ def _parse_log_line(run_id: str, line: str) -> None:
     if "等待" in clean and "后切换" in clean:
         _update_task(run_id, status="waiting_next_round", raw_log_line=clean)
         return
-    if "CDP/登录状态异常" in clean or "需要人工登录" in clean or ("验证" in clean and "异常" in clean):
-        _update_task(run_id, status="error", last_error=clean, raw_log_line=clean)
-        return
     complete_match = re.search(r"完成: (\{.*\})", clean)
     if complete_match:
         try:
@@ -147,10 +150,19 @@ def _parse_log_line(run_id: str, line: str) -> None:
         except (ValueError, SyntaxError):
             payload = {}
         if isinstance(payload, dict):
-            _update_task(run_id, listed=int(payload.get("listed", 0) or 0), details=int(payload.get("details", 0) or 0),
-                         new=int(payload.get("new", 0) or 0), skipped=int(payload.get("skipped", 0) or 0),
-                         errors=int(payload.get("errors", 0) or 0), log_summary=payload, raw_log_line=clean)
+            changes = {key: int(payload.get(key, 0) or 0) for key in ('listed', 'details', 'new', 'skipped', 'errors')}
+            changes.update({key: int(payload[key] or 0) for key in _QUALITY_COUNTERS if key in payload})
+            changes['quality_metrics_available'] = all(key in payload for key in _QUALITY_COUNTERS)
+            if payload.get('stop_reason'):
+                reason = str(payload['stop_reason'])
+                changes.update(status='error', last_error=reason, stop_reason=reason,
+                               errors=max(changes['errors'], changes.get('failed', 0), 1),
+                               browser_page_status=next((s for s in ('verification_required', 'login_required', 'page_error') if s in reason), 'blocked'))
+            _update_task(run_id, **changes, log_summary=payload, raw_log_line=clean)
             return
+    if "CDP/登录状态异常" in clean or "需要人工登录" in clean or ("验证" in clean and "异常" in clean):
+        _update_task(run_id, status="error", last_error=clean, raw_log_line=clean)
+        return
     _update_task(run_id, raw_log_line=clean)
 
 
@@ -176,7 +188,7 @@ def _watch_process(run_id: str, process: subprocess.Popen[str]) -> None:
             if task and task.get("run_id") == run_id:
                 stopped = task.get("status") == "stopped"
                 if not stopped:
-                    task["status"] = "completed" if return_code == 0 else "error"
+                    task["status"] = "completed" if return_code == 0 and task.get('status') != 'error' else "error"
                     if return_code != 0 and not task.get("last_error"):
                         task["last_error"] = f"采集进程退出码: {return_code}"
                 task["finished_at"] = _now()
@@ -366,6 +378,8 @@ def _summarize_log(path: Path) -> dict[str, Any]:
         lines = []
     platform = "boss" if "boss" in path.name.lower() else "zhaopin" if "zhaopin" in path.name.lower() else "liepin" if "liepin" in path.name.lower() else "unknown"
     totals = {"listed": 0, "details": 0, "new": 0, "skipped": 0, "errors": 0}
+    stop_reason = None
+    parsed_rounds = quality_rounds = 0
     rounds = 0
     for line in lines:
         if "轮开始" in line:
@@ -378,9 +392,18 @@ def _summarize_log(path: Path) -> dict[str, Any]:
         except (ValueError, SyntaxError):
             continue
         if isinstance(payload, dict):
-            for key in totals:
+            parsed_rounds += 1
+            quality_rounds += all(key in payload for key in _QUALITY_COUNTERS)
+            for key in ('listed', 'details', 'new', 'skipped', 'errors'):
                 totals[key] += int(payload.get(key, 0) or 0)
-    status = "error" if any("CDP/登录状态异常" in line or "需要人工登录" in line for line in lines) else "completed"
+            for key in _QUALITY_COUNTERS:
+                if key in payload:
+                    totals[key] = totals.get(key, 0) + int(payload[key] or 0)
+            if payload.get('stop_reason'):
+                stop_reason = str(payload['stop_reason'])
+                if not payload.get('errors'):
+                    totals['errors'] += max(int(payload.get('failed', 0) or 0), 1)
+    status = "error" if stop_reason or any("CDP/登录状态异常" in line or "需要人工登录" in line for line in lines) else "completed"
     timestamps = []
     for line in lines:
         match = re.match(r"\[([^]]+)\]", line)
@@ -391,7 +414,8 @@ def _summarize_log(path: Path) -> dict[str, Any]:
         "started_at": timestamps[0] if timestamps else datetime.fromtimestamp(path.stat().st_ctime).astimezone().isoformat(timespec="seconds"),
         "finished_at": timestamps[-1] if timestamps else datetime.fromtimestamp(path.stat().st_mtime).astimezone().isoformat(timespec="seconds"),
         "current_keyword": None, "current_city": None, "current_round": rounds, "total_rounds": None,
-        **totals, "last_error": next((line.strip() for line in reversed(lines) if "异常" in line or "登录" in line), None),
+        **totals, "last_error": stop_reason or next((line.strip() for line in reversed(lines) if "异常" in line or "登录" in line), None),
+        "stop_reason": stop_reason, "quality_metrics_available": bool(parsed_rounds) and parsed_rounds == quality_rounds,
         "next_run_at": None, "cdp_status": "unknown", "browser_page_status": None,
         "database_total": 0, "database_boss_total": 0, "database_new_count": totals["new"], "pid": None,
         "log_path": str(path), "log_summary": totals, "raw_log_tail": lines[-30:], "log_status": "parsed" if rounds or any(totals.values()) else "unrecognized",
@@ -426,6 +450,18 @@ def get_history(page: int = 1, page_size: int = 20, status: str = "", mode: str 
     return {"items": history[start:start + page_size], "total": len(history)}
 
 
+def _worker_environment() -> dict[str, str]:
+    from app.config import get_settings
+
+    # Settings may come from .env without populating os.environ; workers need the same resolved target.
+    env = os.environ.copy()
+    env.update({key.upper(): str(value) for key, value in get_settings().model_dump().items() if value is not None})
+    env['PYTHONUNBUFFERED'] = '1'
+    env['PYTHONIOENCODING'] = 'utf-8'
+    env['PYTHONUTF8'] = '1'
+    return env
+
+
 def start_task(payload: dict[str, Any]) -> dict[str, Any]:
     global _PROCESS
     with _LOCK:
@@ -448,6 +484,7 @@ def start_task(payload: dict[str, Any]) -> dict[str, Any]:
         endpoint = cdp["endpoint"]
         config["cdp_endpoint"] = endpoint
         config["user_data_dir"] = cdp["user_data_dir"]
+        env = _worker_environment()
         run_id = f"{platform}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         state = _load_state()
         task = _empty_task(run_id, config)
@@ -485,14 +522,14 @@ def start_task(payload: dict[str, Any]) -> dict[str, Any]:
             args.remove(platform)
         if config.get("user_data_dir"):
             args.extend(["--user-data-dir", str(config["user_data_dir"])])
+        if platform != 'boss' and config.get('search_url_template'):
+            args.extend(['--search-url-template', str(config['search_url_template'])])
         if config["mode"] == "once":
             args.append("--once")
         elif config["mode"] == "limited":
             args.extend(["--rounds", str(int(config["rounds"]))])
         else:
             args.append("--forever")
-        env = os.environ.copy()
-        env["PYTHONUNBUFFERED"] = "1"
         _PROCESS = subprocess.Popen(
             args,
             cwd=str(_REPO_ROOT / "backend"),

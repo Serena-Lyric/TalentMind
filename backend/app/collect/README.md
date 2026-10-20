@@ -3,6 +3,14 @@
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。
 > 合规红线：只读取公开数据或用户人工登录后页面可见内容；不绕过登录/验证码/反爬，不伪造 source（D17/D38）。
 
+## 2026-10-20 历史控制器接入补修
+
+正式管理入口仍为 `control.start_task` → 原平台循环 → 原 `run_fetch` → pipeline。`mode=once` 只传 `--once`，不进入轮间等待。CN的可选配置 `search_url_template` 已可保存并原样传给CLI；空字符串可清除覆盖、回到原模块默认模板。本轮仅验证转发，不在受限会话应用历史模板重新探测。
+
+worker接收父进程实际解析的Settings并固定UTF-8输出，与watcher编码一致；父进程须先具备有效配置，不猜主仓.env或默认库。新增质量计数和stop_reason进入任务/历史，`quality_metrics_available=false` 时不能把旧details当作详情成功数，新任务未取得质量计数时为None。单轮业务异常非0，CDP传输中断在原循环停止，BOSS不再吞掉此类断线；旧普通单条页面故障的有限容错保留。
+
+已用真实子进程运行原CN `--once`、原fetch/SQL和watcher/history的离线临时SQLite回归；合成浏览器/服务边界替换，不是实采。用户确认猎聘验证未处理，本轮未调用真实采集入口、未读写真实MySQL，不能恢复日常或continuous。历史成功日志、与run_live差异、前端可选字段说明及恢复准入见[历史链路报告](../../../docs/review/M1-historical-chain.md)。
+
 ## 2026-10-20 Gate 1：CN详情与入库分账
 
 `fetch_cn_jobs.run_fetch` 的默认详情模式现在仅将已核验的有效、非截断且同一来源身份的正文交给原pipeline，不再将失败后的列表卡入库。保留详情换行和既有职责提取边界；猎聘元信息与正文限定目标区域，不能回退推荐字段。DOM-only卡片在不能证明异步面板身份时拒绝为 `unverified_dom_identity`；不因标题同名就合并。游客限制/验证/断线停止平台，并保留此前取得的good详情。显式 `--no-details` 仍是单独列表模式，完整计数为0；真实Gate1未使用此模式。

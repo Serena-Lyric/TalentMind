@@ -12,7 +12,7 @@ import urllib.parse
 from functools import partial
 
 from app.collect.fetchers.boss import BOSS_CARD_SELECTOR, BOSS_DESCRIPTION_SELECTORS, deduplicate_jobs, normalize_boss_job
-from app.collect.fetchers.cdp import CdpClient, CdpError
+from app.collect.fetchers.cdp import CdpClient, CdpError, CdpConnectionError
 from app.collect.cleaner import clean, is_valid_jd
 from app.collect.pipeline import run_pipeline
 from app.collect.repository import save_incremental_jd_rows
@@ -198,7 +198,7 @@ def run_fetch(
                         detail_client.navigate(job["url"], settle_seconds=settle)
                         browser.wait_access(detail_client, 'boss', max(5.0, settle * 2.0))
                         detail = detail_client.evaluate(DETAIL_EXTRACT_JS)
-                    except browser.AccessBlocked:
+                    except (browser.AccessBlocked, CdpConnectionError):
                         # Login/challenge/unknown page must stop this explicit run.
                         raise
                     except Exception as exc:

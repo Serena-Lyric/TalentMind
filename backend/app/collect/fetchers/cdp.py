@@ -9,10 +9,15 @@ from urllib.parse import urlsplit
 
 import httpx
 from websockets.sync.client import connect
+from websockets.exceptions import WebSocketException
 
 
 class CdpError(RuntimeError):
     pass
+
+
+class CdpConnectionError(CdpError):
+    """Transport is unavailable; callers must not continue per-item navigation."""
 
 
 def host_matches(url: str, host: str) -> bool:
@@ -140,7 +145,10 @@ def list_page_targets(
 class CdpClient:
     def __init__(self, websocket_url: str, session_id: str | None = None):
         validate_endpoint(websocket_url)
-        self._ws = connect(websocket_url, open_timeout=8, close_timeout=3, max_size=16 * 1024 * 1024)
+        try:
+            self._ws = connect(websocket_url, open_timeout=8, close_timeout=3, max_size=16 * 1024 * 1024)
+        except (WebSocketException, OSError, TimeoutError) as exc:
+            raise CdpConnectionError('CDP 连接失败') from exc
         self._session_id = session_id
         self._next_id = 0
 
@@ -217,9 +225,19 @@ class CdpClient:
         message = {"id": request_id, "method": method, "params": params or {}}
         if self._session_id:
             message["sessionId"] = self._session_id
-        self._ws.send(json.dumps(message))
+        try:
+            self._ws.send(json.dumps(message))
+        except (WebSocketException, OSError, TimeoutError) as exc:
+            raise CdpConnectionError(f'{method} CDP 连接中断') from exc
+        deadline = time.monotonic() + 15
         while True:
-            received = json.loads(self._ws.recv(timeout=15))
+            try:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('CDP response timeout')
+                received = json.loads(self._ws.recv(timeout=remaining))
+            except (WebSocketException, OSError, TimeoutError) as exc:
+                raise CdpConnectionError(f'{method} CDP 连接中断或超时') from exc
             if received.get("id") != request_id:
                 continue
             if "error" in received:
