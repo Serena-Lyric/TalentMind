@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TalentMind 手动采集</title>
+    <style>
+      body { width: 320px; margin: 0; padding: 14px; background: #090921; color: #e9edff; font: 13px/1.5 system-ui, sans-serif; }
+      h1 { margin: 0 0 8px; color: #8bc8ff; font-size: 17px; }
+      p { margin: 6px 0 12px; color: #a7afcf; }
+      label { display: block; margin: 9px 0 4px; color: #9aa5c8; font-size: 11px; }
+      input { box-sizing: border-box; width: 100%; padding: 7px 8px; border: 1px solid #454a76; border-radius: 7px; background: #13132f; color: #fff; }
+      .actions { display: grid; gap: 8px; margin-top: 14px; }
+      button { padding: 8px 10px; border: 1px solid #5269ad; border-radius: 8px; background: #1c2855; color: #eef4ff; cursor: pointer; }
+      button:disabled { opacity: .5; cursor: wait; }
+      pre { min-height: 42px; margin: 12px 0 0; padding: 8px; overflow-wrap: anywhere; white-space: pre-wrap; border-radius: 7px; background: #050514; color: #b8c7eb; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <h1>TalentMind 手动采集</h1>
+    <p>仅在点击按钮时读取当前 BOSS 页面，不读取 Cookie，不自动翻页或重试。</p>
+    <label for="token">配对令牌</label>
+    <input id="token" type="password" autocomplete="off" />
+    <label for="session">桥接任务 ID</label>
+    <input id="session" type="text" autocomplete="off" placeholder="bridge-..." />
+    <div class="actions">
+      <button id="capture-list" type="button">采集当前列表（最多 5 条）</button>
+      <button id="capture-detail" type="button">采集当前详情（一次）</button>
+    </div>
+    <pre id="status" aria-live="polite">等待操作</pre>
+    <script src="popup.js"></script>
+  </body>
+</html>
