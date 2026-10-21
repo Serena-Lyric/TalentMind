@@ -21,7 +21,7 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ### 节点引导空间候选（2026-10-20，#37 增量）
 
-`/?graphSpace=node-field-v1#/graph` 显式启用平滑节点密度与基础旋臂混合的背景空间，节点坐标与星体语义不变。省略参数或 `/?graphSpace=legacy#/graph` 回退原P2.5空间；原P2.4/P2.3/Canvas回退保留。世界坐标范围固定，窗口resize/相机操作不重采样。版本、统计、实际截图及未验收边界见[空间场报告](../docs/review/M3-node-guided-galaxy-field.md)。真实71/52节点本轮仅作私有布局算法统计，尚未在此分支正式Vue集成。
+普通 `/#/graph` 默认使用已获用户视觉认可的 `node-field-v1` 平滑节点密度与基础旋臂混合背景，节点坐标、星体语义和真实关系不变。`/?graphSpace=legacy#/graph` 显式回退原 P2.5 空间；原 P2.4/P2.3/Canvas 回退保留，固定投影仍不会启用新场。世界坐标范围固定，窗口 resize/相机操作不重采样。版本、统计、实际截图及未验收边界见[空间场报告](../docs/review/M3-node-guided-galaxy-field.md)。
 
 复现历史空间统计：在 `frontend` 执行 `node --experimental-strip-types scripts/measureGalaxyField.ts`。可追加显式只读layout路径；仅输出聚合空间指标/摘要，不输出节点身份或JD原文。
 

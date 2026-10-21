@@ -12,6 +12,18 @@ test('空间回退保留真实数据集与相机参数',t=>{
  assert.equal(app.state.legacySpaceHref,'?graphDataset=real&graphSpace=legacy&graphCamera=fixed#/graph')
 })
 
+test('normal graph defaults to node-field-v1 while explicit legacy and fixed projection preserve fallback',t=>{
+ const plain=graphComponent(undefined,'');t.after(plain.stop)
+ assert.equal(plain.state.nodeFieldMode,true)
+ assert.equal(plain.state.legacySpaceHref,'?graphSpace=legacy#/graph')
+
+ const legacy=graphComponent(undefined,'?graphSpace=legacy');t.after(legacy.stop)
+ assert.equal(legacy.state.nodeFieldMode,false)
+
+ const fixed=graphComponent(undefined,'?graphCamera=fixed');t.after(fixed.stop)
+ assert.equal(fixed.state.nodeFieldMode,false)
+})
+
 test('real Vue layout path refreshes field coordinates and failed reload releases stale knowledge',async t=>{
  const app=graphComponent(undefined,'?nebulaDebug=1&graphSpace=node-field-v1');t.after(app.stop)
  const s=app.state,scene=new Group(),dust=createDust(scene),cache=createGalaxySpatialFieldCache()
