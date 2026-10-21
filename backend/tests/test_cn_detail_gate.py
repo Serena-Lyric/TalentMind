@@ -189,3 +189,87 @@ def test_stable_panel_requires_update_then_two_identical_samples(monkeypatch):
     assert result['stable_samples'] == 2
     assert result['target_active_before'] is False
     assert result['target_active_after'] is True
+
+
+def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monkeypatch):
+    from app.db import mysql
+    path = tmp_path / 'zhaopin-pending.sqlite3'
+    engine = create_engine('sqlite:///' + str(path))
+    with engine.begin() as db:
+        db.exec_driver_sql(
+            'CREATE TABLE jd_pool (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, '
+            'source_detail TEXT, job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, '
+            'quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT)'
+        )
+    def provider():
+        with Session(engine) as db:
+            yield db
+    monkeypatch.setattr(mysql, 'get_db', provider)
+    monkeypatch.setattr(cn.browser, 'ensure_ready', lambda *a, **kw: {
+        'endpoint': 'http://127.0.0.1:9333', 'target_id': 'same'
+    })
+    monkeypatch.setattr(cn.browser, 'wait_access', lambda *a, **kw: {
+        'can_collect': True, 'content_limited': False
+    })
+    job = {
+        'url': 'dom://zhaopin/provisional', 'title': 'Python 工程师',
+        'company': '甲公司', 'salary': '20-30K', 'location': '上海',
+        'tags': ['Python'], '_card_index': 0, '_dom': True,
+        '_list_url': 'https://www.zhaopin.com/jobs/?jl=538&kw=Java&page=1',
+        '_observation_key': 'zhaopin:list-card-0',
+    }
+    detail_value = {
+        'url': 'https://www.zhaopin.com/jobs/?jl=538&kw=Java&page=1',
+        'title': 'Python 工程师', 'company': '客户公司',
+        'description': '负责 Python 平台开发\n熟悉 SQL 和 Docker',
+        'description_truncated': False,
+    }
+    before = {
+        'target_card_found': True, 'target_active': False, 'panel_visible': True,
+        'panel_title': '旧岗位', 'description': '旧正文', 'company': '旧公司',
+        'list_url': job['_list_url'],
+    }
+    changed = {
+        'target_card_found': True, 'target_active': True, 'panel_visible': True,
+        'panel_title': 'Python 工程师', 'description': detail_value['description'],
+        'company': '客户公司', 'list_url': job['_list_url'],
+    }
+    class Client:
+        def __init__(self):
+            self.probes = iter([before, changed, changed])
+        def evaluate(self, script):
+            if 'card.click();' in script:
+                return {'clicked': True}
+            if 'description_truncated:' in script:
+                return dict(detail_value)
+            return next(self.probes)
+        def close(self):
+            pass
+    monkeypatch.setattr(cn, 'fetch_search_page', lambda *a, **kw: [dict(job)])
+    monkeypatch.setattr(cn.CdpClient, 'connect_first_page', lambda *a, **kw: Client())
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+    events = []
+    try:
+        stats = cn.run_fetch(
+            'zhaopin', ['Java'], [('上海', '538')],
+            cdp_endpoint='http://127.0.0.1:9333', pages=1,
+            detail_limit=1, max_jobs=1, delay=0, settle=0,
+            on_event=events.append,
+        )
+        assert stats['detail_obtained'] == 1
+        assert stats['content_eligible'] == 1
+        assert stats['identity_pending'] == 1
+        assert stats['identity_verified'] == 0
+        assert stats['complete'] == 0
+        assert stats['rejected'] == 0
+        assert stats['inserted'] == 1
+        persisted = next(e for e in events if e['event'] == 'persisted')['items'][0]
+        assert persisted['identity_status'] == 'pending'
+        assert persisted['content_eligible'] is True
+        assert persisted['identity_evidence']['binding_policy'] == 'zhaopin-dom-panel-v1'
+        assert persisted['source_detail'].startswith('dom://zhaopin/')
+        assert len(persisted['source_detail'].split('/')[-1]) == 64
+    finally:
+        engine.dispose()
+        path.unlink(missing_ok=True)
+        assert not path.exists()

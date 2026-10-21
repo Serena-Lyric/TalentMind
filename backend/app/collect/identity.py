@@ -92,6 +92,11 @@ def identity_decision(
         }
         return 'pending', evidence, None
 
+    detail_title = _text(detail.get('title'))
+    if not detail_title:
+        return 'unknown', {}, 'missing_detail_title'
+    if detail_title.casefold() != _text(job.get('title')).casefold():
+        return 'unknown', {}, 'title_mismatch'
     job_url = normalize_url(spec, str(job.get('url') or ''))
     detail_url = normalize_url(spec, str(detail.get('url') or ''))
     if not job_url or not detail_url or job_url != detail_url:

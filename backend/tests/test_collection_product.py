@@ -422,6 +422,53 @@ def test_results_include_explicit_requirements_and_original_body():
     assert result['structure_source'] == '原文标题分段'
 
 
+def test_results_and_task_keep_pending_identity_separate_from_complete():
+    state = control._default_state()
+    state['current_task'] = control._empty_task('pending', state['config'])
+    control._save_state(state)
+    evidence = {'binding_policy': 'zhaopin-dom-panel-v1', 'stable_samples': 2}
+    events = [
+        {'event': 'listed', 'platform': 'zhaopin', 'jobs': [{
+            'url': 'dom://zhaopin/provisional', 'title': 'Python 工程师',
+            '_observation_key': 'zhaopin:card-0',
+        }]},
+        {'event': 'detail', 'platform': 'zhaopin',
+         'job': {'url': 'dom://zhaopin/provisional', 'title': 'Python 工程师',
+                 '_observation_key': 'zhaopin:card-0'},
+         'detail': {'description': '负责 Python 开发'},
+         'rejection': None, 'identity_status': 'pending', 'content_eligible': True,
+         'identity_evidence': evidence},
+        {'event': 'persisted', 'platform': 'zhaopin', 'items': [{
+            'source_detail': 'dom://zhaopin/' + 'a' * 64,
+            'observation_key': 'zhaopin:card-0', 'jd_pool_id': 9,
+            'outcome': 'inserted', 'identity_status': 'pending',
+            'content_eligible': True, 'identity_evidence': evidence,
+        }]},
+        {'event': 'finished', 'platform': 'zhaopin', 'stats': {
+            'listed': 1, 'details': 1, 'detail_attempted': 1,
+            'detail_obtained': 1, 'content_eligible': 1,
+            'identity_pending': 1, 'identity_verified': 0,
+            'complete': 0, 'inserted': 1, 'updated': 0, 'rejected': 0,
+            'failed': 0, 'unattempted': 0, 'rejection_reasons': {}, 'stop_reason': None,
+        }},
+    ]
+    for event in events:
+        control._parse_log_line('pending', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+
+    result = control.get_results('pending')[0]
+    assert result['source_detail'] == 'dom://zhaopin/' + 'a' * 64
+    assert result['identity_status'] == 'pending'
+    assert result['content_eligible'] is True
+    assert result['identity_evidence'] == evidence
+    assert result['outcome'] == 'inserted'
+    assert result['jd_pool_id'] == 9
+    task = control._load_state()['current_task']
+    assert task['content_eligible'] == 1
+    assert task['identity_pending'] == 1
+    assert task['identity_verified'] == 0
+    assert task['complete'] == 0
+
+
 def test_raw_adds_requirements_and_preserves_stored_duties(monkeypatch):
     import app.db.mysql as mysql
     body = '岗位职责：来源职责\n任职要求：Python\n福利待遇：五险'

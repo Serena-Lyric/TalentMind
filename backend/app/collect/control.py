@@ -38,6 +38,7 @@ _spawn_process = worker_process.spawn
 _ACTIVE_STATUSES = {"preparing", "waiting_for_browser", "running", "waiting_next_round", "stopping"}
 _QUALITY_COUNTERS = ('detail_attempted', 'detail_obtained', 'complete', 'inserted',
                      'updated', 'rejected', 'failed', 'unattempted')
+_IDENTITY_COUNTERS = ('content_eligible', 'identity_pending', 'identity_verified')
 _DEFAULT_CONFIG: dict[str, Any] = {
     "platform": "boss",
     "mode": "once",
@@ -143,7 +144,9 @@ def _empty_task(run_id: str | None, config: dict[str, Any]) -> dict[str, Any]:
         "listed": None,
         "details": None,
         **dict.fromkeys(_QUALITY_COUNTERS),
+        **dict.fromkeys(_IDENTITY_COUNTERS),
         "quality_metrics_available": False,
+        "identity_metrics_available": False,
         "stop_reason": None,
         "new": None,
         "skipped": None,
@@ -225,7 +228,9 @@ def _parse_log_line(run_id: str, line: str) -> None:
                     kind = event.get('event')
                     if kind == 'listed':
                         if task.get('listed') is None:
-                            task.update(dict.fromkeys(('details', 'new', 'skipped', *_QUALITY_COUNTERS), 0))
+                            task.update(dict.fromkeys((
+                                'details', 'new', 'skipped', *_QUALITY_COUNTERS, *_IDENTITY_COUNTERS
+                            ), 0))
                         task['listed'] = len(event.get('jobs', []))
                         task['unattempted'] = max(0, task['listed'] - (task.get('detail_attempted') or 0))
                     elif kind == 'detail_attempt':
@@ -235,8 +240,18 @@ def _parse_log_line(run_id: str, line: str) -> None:
                         detail = event.get('detail') or {}
                         if detail.get('description'):
                             task['detail_obtained'] = (task.get('detail_obtained') or 0) + 1
-                        counter = 'rejected' if event.get('rejection') else 'complete'
-                        task[counter] = (task.get(counter) or 0) + 1
+                        if event.get('content_eligible') is True:
+                            task['content_eligible'] = (task.get('content_eligible') or 0) + 1
+                        identity_status = event.get('identity_status')
+                        if not event.get('rejection') and identity_status == 'pending':
+                            task['identity_pending'] = (task.get('identity_pending') or 0) + 1
+                        if not event.get('rejection') and identity_status == 'verified':
+                            task['identity_verified'] = (task.get('identity_verified') or 0) + 1
+                        counter = 'rejected' if event.get('rejection') else (
+                            'complete' if identity_status in (None, 'verified') else None
+                        )
+                        if counter:
+                            task[counter] = (task.get(counter) or 0) + 1
                     elif kind == 'failure':
                         task['failed'] = (task.get('failed') or 0) + 1
                     elif kind == 'persisted':
@@ -248,8 +263,14 @@ def _parse_log_line(run_id: str, line: str) -> None:
                     _save_state(state)
             if event.get('event') == 'finished':
                 stats = event['stats']
-                changes = {key: stats.get(key) for key in ('listed', 'details', 'new', 'skipped', *_QUALITY_COUNTERS)}
-                changes.update(quality_metrics_available=True, stop_reason=stats.get('stop_reason'))
+                changes = {key: stats.get(key) for key in (
+                    'listed', 'details', 'new', 'skipped', *_QUALITY_COUNTERS, *_IDENTITY_COUNTERS
+                )}
+                changes.update(
+                    quality_metrics_available=all(key in stats for key in _QUALITY_COUNTERS),
+                    identity_metrics_available=all(key in stats for key in _IDENTITY_COUNTERS),
+                    stop_reason=stats.get('stop_reason'),
+                )
                 if stats.get('stop_reason'):
                     changes.update(status='error', last_error=stats['stop_reason'])
                 _update_task(run_id, **changes)
@@ -274,6 +295,7 @@ def _parse_log_line(run_id: str, line: str) -> None:
         if isinstance(payload, dict):
             changes = {key: int(payload.get(key, 0) or 0) for key in ('listed', 'details', 'new', 'skipped', 'errors')}
             changes.update({key: int(payload[key] or 0) for key in _QUALITY_COUNTERS if key in payload})
+            changes.update({key: int(payload[key] or 0) for key in _IDENTITY_COUNTERS if key in payload})
             changes['quality_metrics_available'] = all(key in payload for key in _QUALITY_COUNTERS)
             if payload.get('stop_reason'):
                 reason = str(payload['stop_reason'])
@@ -356,21 +378,26 @@ def get_results(run_id: str) -> list[dict[str, Any]]:
         kind = event.get('event')
         jobs = event.get('jobs', []) if kind == 'listed' else [event['job']] if event.get('job') else []
         for job in jobs:
-            key = job.get('url')
+            key = job.get('_observation_key') or job.get('url')
             if not key:
                 continue
             item = items.setdefault(key, dict(source=event.get('platform'), job_title=job.get('title'),
                 source_detail=key, crawled_at=event.get('observed_at'), raw_text=None, duties=None, requirements=None,
-                quality=None, rejection_reason=None, outcome='listed', jd_pool_id=None))
+                quality=None, rejection_reason=None, outcome='listed', jd_pool_id=None,
+                identity_status='unknown', content_eligible=None, identity_evidence=None,
+                observation_key=job.get('_observation_key')))
             if kind == 'detail':
                 detail = event.get('detail') or {}
                 item.update(raw_text=detail.get('description'), rejection_reason=event.get('rejection'),
-                            outcome='rejected' if event.get('rejection') else 'complete')
+                            outcome='rejected' if event.get('rejection') else 'complete',
+                            identity_status=event.get('identity_status') or 'unknown',
+                            content_eligible=event.get('content_eligible'),
+                            identity_evidence=event.get('identity_evidence'))
             elif kind == 'failure':
                 item.update(outcome='failed', rejection_reason=event.get('reason'))
         if kind == 'persisted':
             for saved in event.get('items', []):
-                key = saved.get('source_detail')
+                key = saved.get('observation_key') or saved.get('source_detail')
                 if key in items:
                     # A skipped old row supplies its identity only, never its old body.
                     items[key].update({k: v for k, v in saved.items() if k != 'raw_text' or saved.get('outcome') in {'inserted', 'updated'}})

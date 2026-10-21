@@ -243,6 +243,10 @@ def normalize_job(spec: SiteSpec, raw: dict, detail: dict | None = None) -> RawJ
         job_id=job_id[:128],
         raw_skills=[clean(x) for x in raw.get("tags", []) if clean(x)],
         source_detail=url[:128],
+        identity_status=raw.get("_identity_status", "unknown"),
+        content_eligible=raw.get("_content_eligible"),
+        identity_evidence=raw.get("_identity_evidence", ""),
+        observation_key=raw.get("_observation_key", ""),
     )
 
 
