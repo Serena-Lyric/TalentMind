@@ -1,5 +1,13 @@
 # M1 采集模块（backend/app/collect/）
 
+## 2026-10-22 原版 CN 真实验收适配
+
+智联原版 CDP 现场确认：目标页可访问并取得真实列表/详情；`await_stable_panel()` 不再把稳定旧详情当作完成，而是在点击前内容真正变化后才累计连续稳定样本。真实运行中正确形成一条 `pending + content_eligible`，错位/未稳定面板分别拒绝；正式库缺少身份列时，持久化阶段会明确写入 `identity_schema_migration_required`，不再只留下 generic worker exit。
+
+猎聘同页二维码登录墙（`APP扫码 / 打开猎聘APP`）现识别为 `login_required/manual_login_gate`，不会误报普通空结果或启动采集。2026-10-22 Java/Python 北京均为 0 卡片，等待用户在独立 CDP Edge 正常登录。
+
+本轮未执行正式 DDL；隔离 MySQL 已验证旧 schema 阻断、追加迁移后历史 `unknown/NULL` 保持和 pending 可写。完整真实结果见[Phase 1 M1 报告](../../../docs/review/Phase1-M1-real-collection-2026-10-22.md)。
+
 ## 2026-10-21 岗位身份待审
 
 内容资格与身份可信度分开。身份为 `verified / pending / unknown`，拒绝/失败仍是采集结果。智联 DOM 卡片只有在点击前后面板变化、目标卡片 active、连续两次稳定、标题一致，并通过正文有效性/截断/错岗检查后，才可写为 `pending`；点击前已 active 不豁免面板变化门禁，仅有 active、标题相同或固定等待仍拒绝。

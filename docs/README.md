@@ -6,6 +6,7 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
+| [Phase 1 M1 原版采集与三平台真实验收](review/Phase1-M1-real-collection-2026-10-22.md) | 图谱独立 PR #48、智联真实 pending/慢面板/迁移门禁、猎聘登录墙、BOSS 扩展待人工、隔离 MySQL 恢复与正式 DDL 未执行 |
 | [智联岗位身份待审](review/Zhaopin-identity-pending-2026-10-21.md) | verified/pending/unknown、DOM动态绑定、M1→M2→M3透传、5条私有回放；DDL未执行 |
 | [多关键词×多城市批量任务](review/Collection-batches-2026-10-21.md) | 未启动计划、串行控制、逐项日志/结果、停止与异常边界；本轮不运行真实批次 |
 | [统一产品集成验收](review/Product-integration-2026-10-21.md) | #40/#42/#37真实合并、单入口启动、控制台重构、双平台实际访问与数据库核验 |
