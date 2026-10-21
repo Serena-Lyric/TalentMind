@@ -2,6 +2,8 @@
 
 日期：2026-10-21，Asia/Singapore。分支：`codex/zhaopin-identity-pending`；主线基线：`34fb9e613746be50caf9491a552c75e2377a240d`。
 
+交付：[Draft PR #46](https://github.com/Serena-Lyric/TalentMind/pull/46)。
+
 ## 范围与结果
 
 本次按负责人确认实现“进入分析，但明确标为身份待审”。内容资格与身份可信度分开：身份为 `verified / pending / unknown`；待审记录可进入 M2 单条分析和 M3 候选观察图，不计正式独立岗位或已确认技能需求。
