@@ -1,29 +1,5 @@
 <template>
   <div class="dashboard">
-    <!-- 页面装饰：底部波浪线 + 小仙人掌 -->
-    <div class="page-deco deco-wave-bl">
-      <svg width="260" height="80" viewBox="0 0 260 80" fill="none">
-        <path d="M0 50 Q30 30 60 50 T120 50 T180 50 T240 50 T260 50" stroke="#E07B6D" stroke-width="1" fill="none" opacity="0.08"/>
-        <path d="M0 58 Q30 38 60 58 T120 58 T180 58 T240 58 T260 58" stroke="#A8C5B8" stroke-width="1" fill="none" opacity="0.06"/>
-        <rect x="40" y="30" width="4" height="20" rx="2" fill="#A8C5B8" opacity="0.2"/>
-        <path d="M40 36 L34 30 L34 34 L40 36" fill="#A8C5B8" opacity="0.15"/>
-        <path d="M44 38 L50 32 L50 36 L44 38" fill="#A8C5B8" opacity="0.15"/>
-        <rect x="36" y="50" width="12" height="4" rx="2" fill="#D5C8BC" opacity="0.2"/>
-        <path d="M180 20 L182 26 L188 26 L183 30 L185 36 L180 32 L175 36 L177 30 L172 26 L178 26 Z" fill="#E07B6D" opacity="0.06"/>
-      </svg>
-    </div>
-    <!-- 右侧小圆点 + 小气球 + 云朵 -->
-    <div class="page-deco deco-dots-mr">
-      <svg width="80" height="200" viewBox="0 0 80 200" fill="none">
-        <circle cx="50" cy="20" r="3" fill="#A8C5B8" opacity="0.1"/>
-        <circle cx="60" cy="55" r="2" fill="#E07B6D" opacity="0.08"/>
-        <circle cx="45" cy="90" r="4" fill="#B8C4D0" opacity="0.06"/>
-        <ellipse cx="30" cy="40" rx="8" ry="10" fill="#E07B6D" opacity="0.06"/>
-        <line x1="30" y1="50" x2="30" y2="65" stroke="#E07B6D" stroke-width="0.5" opacity="0.08"/>
-        <path d="M28 65 L30 68 L32 65" stroke="#E07B6D" stroke-width="0.5" fill="none" opacity="0.08"/>
-        <ellipse cx="20" cy="140" rx="12" ry="6" fill="#B8C4D0" opacity="0.05"/>
-      </svg>
-    </div>
 
     <header class="welcome-bar">
       <div class="welcome-left">
@@ -31,25 +7,6 @@
         <p class="welcome-sub">统一采集全渠道JD岗位与简历数据，可视化分析岗位技能需求、人才匹配缺口</p>
       </div>
       <div class="welcome-right">
-        <!-- 小人举图表 + 旗子 + 火箭 -->
-        <div class="welcome-deco">
-          <svg width="100" height="70" viewBox="0 0 100 70" fill="none">
-            <circle cx="50" cy="16" r="8" fill="#F5D5C8"/>
-            <path d="M44 14 Q46 8 50 7 Q54 8 56 14" fill="#8B7B6B" opacity="0.5"/>
-            <path d="M42 24 Q42 20 50 20 Q58 20 58 24 L60 40 Q60 44 50 44 Q40 44 40 40 Z" fill="#E07B6D" opacity="0.2"/>
-            <path d="M42 30 L28 18" stroke="#F5D5C8" stroke-width="2.5" stroke-linecap="round"/>
-            <rect x="14" y="6" width="18" height="14" rx="2" fill="#fff" stroke="#E0D5CA" stroke-width="0.8"/>
-            <rect x="17" y="14" width="3" height="4" rx="0.5" fill="#E07B6D" opacity="0.4"/>
-            <rect x="21" y="11" width="3" height="7" rx="0.5" fill="#A8C5B8" opacity="0.5"/>
-            <path d="M58 30 L70 20" stroke="#F5D5C8" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="70" y1="8" x2="70" y2="22" stroke="#D5C8BC" stroke-width="1"/>
-            <path d="M70 8 L82 12 L70 16 Z" fill="#E07B6D" opacity="0.25"/>
-            <g transform="translate(82, 2) rotate(35)">
-              <ellipse cx="6" cy="10" rx="4" ry="7" fill="#FDE8E4" stroke="#E07B6D" stroke-width="0.6" opacity="0.5"/>
-              <path d="M3 16 L6 20 L9 16" fill="#FFA726" opacity="0.3"/>
-            </g>
-          </svg>
-        </div>
         <div class="time-pills">
           <button v-for="opt in timeOptions" :key="opt.value" class="pill-btn" :class="{ active: timeRange === opt.value }" @click="timeRange = opt.value">{{ opt.label }}</button>
         </div>
@@ -57,16 +14,16 @@
     </header>
 
     <section class="stats-row" v-loading="dashboardLoading" element-loading-text="加载中...">
-      <div v-for="(card, i) in statCards" :key="card.title" class="stat-card warm-card">
+      <div v-for="(card, i) in statCards" :key="card.title" class="stat-card warm-card blueprint-card">
         <div class="stat-icon-circle" :style="{ background: card.iconBg }">
-          <svg v-if="i===0" width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="8" width="16" height="12" rx="2" stroke="#E07B6D" stroke-width="1.4" fill="none"/><path d="M7 8 V6 Q7 3 11 3 Q15 3 15 6 V8" stroke="#E07B6D" stroke-width="1.4" fill="none"/><circle cx="11" cy="14" r="2" stroke="#E07B6D" stroke-width="1" fill="#FDE8E4"/></svg>
-          <svg v-else-if="i===1" width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="2" width="14" height="18" rx="2" stroke="#66BB6A" stroke-width="1.4" fill="none"/><line x1="7" y1="7" x2="15" y2="7" stroke="#66BB6A" stroke-width="1" opacity="0.6"/><line x1="7" y1="10" x2="13" y2="10" stroke="#66BB6A" stroke-width="1" opacity="0.4"/><circle cx="11" cy="5" r="1.5" fill="#E8F5E9" stroke="#66BB6A" stroke-width="0.8"/></svg>
-          <svg v-else-if="i===2" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="11" r="5" stroke="#FFA726" stroke-width="1.4" fill="none"/><circle cx="14" cy="11" r="5" stroke="#FFA726" stroke-width="1.4" fill="none"/><circle cx="11" cy="11" r="1.5" fill="#FFF3E0"/></svg>
-          <svg v-else width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3 L3 19 L19 19 Z" stroke="#EF5350" stroke-width="1.4" fill="none" stroke-linejoin="round"/><line x1="11" y1="9" x2="11" y2="13" stroke="#EF5350" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="16" r="1" fill="#EF5350"/></svg>
+          <svg v-if="i===0" width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="8" width="16" height="12" rx="2" stroke="#247CA2" stroke-width="1.4" fill="none"/><path d="M7 8 V6 Q7 3 11 3 Q15 3 15 6 V8" stroke="#247CA2" stroke-width="1.4" fill="none"/><circle cx="11" cy="14" r="2" stroke="#247CA2" stroke-width="1" fill="#E6F1F5"/></svg>
+          <svg v-else-if="i===1" width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="2" width="14" height="18" rx="2" stroke="#55B88D" stroke-width="1.4" fill="none"/><line x1="7" y1="7" x2="15" y2="7" stroke="#55B88D" stroke-width="1" opacity="0.6"/><line x1="7" y1="10" x2="13" y2="10" stroke="#55B88D" stroke-width="1" opacity="0.4"/><circle cx="11" cy="5" r="1.5" fill="#E7F5EF" stroke="#55B88D" stroke-width="0.8"/></svg>
+          <svg v-else-if="i===2" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="11" r="5" stroke="#D58A3D" stroke-width="1.4" fill="none"/><circle cx="14" cy="11" r="5" stroke="#D58A3D" stroke-width="1.4" fill="none"/><circle cx="11" cy="11" r="1.5" fill="#FFF3E5"/></svg>
+          <svg v-else width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3 L3 19 L19 19 Z" stroke="#D25B5B" stroke-width="1.4" fill="none" stroke-linejoin="round"/><line x1="11" y1="9" x2="11" y2="13" stroke="#D25B5B" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="16" r="1" fill="#D25B5B"/></svg>
         </div>
         <div class="stat-info"><span class="stat-label">{{ card.title }}</span><span class="stat-value">{{ animatedNums[i] }}</span></div>
         <span class="stat-badge" :style="{ background: card.badgeBg, color: card.badgeColor }">{{ card.trend }}</span>
-        <svg class="card-corner-deco" width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="35" cy="5" r="3" :fill="card.iconColor" opacity="0.06"/><circle cx="30" cy="12" r="1.5" :fill="card.iconColor" opacity="0.04"/></svg>
+
       </div>
     </section>
 
@@ -81,16 +38,12 @@
           <div class="metric-pills"><button v-for="m in metricOptions" :key="m.value" class="pill-btn sm" :class="{ active: lineMetric === m.value }" @click="lineMetric = m.value">{{ m.label }}</button></div>
         </div>
         <div ref="lineChartRef" class="chart-box"></div>
-        <div class="chart-deco chart-deco-br"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 14 Q6 10 10 10 L20 10 Q24 10 24 14 L24 22 Q24 26 20 26 L10 26 Q6 26 6 22 Z" fill="#F5F0EA" stroke="#D5C8BC" stroke-width="0.8"/><path d="M24 16 Q28 16 28 20 Q28 24 24 24" stroke="#D5C8BC" stroke-width="0.8" fill="none"/><path d="M10 8 Q11 4 12 8" stroke="#D5C8BC" stroke-width="0.6" fill="none" opacity="0.4"/><path d="M14 7 Q15 3 16 7" stroke="#D5C8BC" stroke-width="0.6" fill="none" opacity="0.3"/></svg></div>
       </div>
       <div class="warm-card chart-card">
         <div class="card-head"><div><h3>岗位技能分布</h3><p>Top 8 核心技能覆盖率</p></div></div>
         <div ref="barChartRef" class="chart-box"></div>
-        <div class="chart-deco chart-deco-tl"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="4" width="6" height="18" rx="1" fill="#FDE8E4" stroke="#E07B6D" stroke-width="0.6" transform="rotate(-30 11 13)"/><path d="M7 22 L10 26 L13 22" fill="#E07B6D" opacity="0.3" transform="rotate(-30 10 24)"/></svg></div>
       </div>
     </section>
-
-    <div class="section-deco"><svg width="200" height="12" viewBox="0 0 200 12" fill="none"><circle cx="80" cy="6" r="2" fill="#E07B6D" opacity="0.1"/><circle cx="100" cy="6" r="3" fill="#A8C5B8" opacity="0.08"/><circle cx="120" cy="6" r="2" fill="#B8C4D0" opacity="0.1"/><line x1="30" y1="6" x2="70" y2="6" stroke="#E0D5CA" stroke-width="0.5" opacity="0.3"/><line x1="130" y1="6" x2="170" y2="6" stroke="#E0D5CA" stroke-width="0.5" opacity="0.3"/></svg></div>
 
     <section class="bottom-row">
       <div class="warm-card table-card">
@@ -116,7 +69,6 @@
               <span class="sched-tag" :class="item.level">{{ item.tag }}</span>
             </div>
           </div>
-          <div class="card-deco-tl"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#FFA726" opacity="0.08"/><line x1="12" y1="4" x2="12" y2="6" stroke="#FFA726" stroke-width="1" opacity="0.1" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="20" stroke="#FFA726" stroke-width="1" opacity="0.1" stroke-linecap="round"/><line x1="4" y1="12" x2="6" y2="12" stroke="#FFA726" stroke-width="1" opacity="0.1" stroke-linecap="round"/><line x1="18" y1="12" x2="20" y2="12" stroke="#FFA726" stroke-width="1" opacity="0.1" stroke-linecap="round"/></svg></div>
         </div>
         <div class="warm-card side-card">
           <div class="card-head"><h3>待分析任务</h3><span class="card-count">{{ pendingCount }}</span></div>
@@ -126,14 +78,12 @@
         </div>
         <div class="create-card" @click="$router.push('/jobs')">
           <div class="create-inner">
-            <div class="create-icon-wrap"><el-icon :size="24"><Plus /></el-icon><svg class="create-sparkle" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 8 L22 16 L30 18 L22 20 L20 28 L18 20 L10 18 L18 16 Z" fill="#E07B6D" opacity="0.12"/><circle cx="32" cy="10" r="2" fill="#A8C5B8" opacity="0.15"/><circle cx="8" cy="28" r="1.5" fill="#FFA726" opacity="0.12"/></svg></div>
+            <div class="create-icon-wrap"><el-icon :size="24"><Plus /></el-icon></div>
             <span>创建新岗位分析</span>
           </div>
         </div>
       </div>
     </section>
-
-    <div class="page-deco deco-footer"><svg width="300" height="50" viewBox="0 0 300 50" fill="none"><path d="M0 45 Q40 20 80 40 Q120 55 160 35 Q200 15 240 38 Q280 55 300 40" stroke="#E0D5CA" stroke-width="0.8" fill="none" opacity="0.15"/><rect x="95" y="28" width="2" height="12" rx="1" fill="#A8C5B8" opacity="0.12"/><circle cx="96" cy="25" r="5" fill="#A8C5B8" opacity="0.06"/><rect x="200" y="30" width="10" height="8" rx="1" fill="#FDE8E4" opacity="0.12"/><path d="M198 30 L205 24 L212 30" fill="#E07B6D" opacity="0.08"/></svg></div>
   </div>
 </template>
 <script setup lang="ts">
@@ -152,10 +102,10 @@ const pageSize = 8
 const timeOptions = [{ label: '日', value: 'day' as const }, { label: '周', value: 'week' as const }, { label: '月', value: 'month' as const }]
 const metricOptions = [{ label: '需求指数', value: 'demand' as const }, { label: '薪资水平', value: 'salary' as const }]
 const statCards = reactive([
-  { title: '岗位总数', value: 0, trend: '—', iconBg: '#FDE8E4', iconColor: '#E07B6D', icon: DataAnalysis, badgeBg: '#FDE8E4', badgeColor: '#D96C63' },
-  { title: '解析简历数', value: 0, trend: '—', iconBg: '#E8F5E9', iconColor: '#66BB6A', icon: Document, badgeBg: '#E8F5E9', badgeColor: '#43A047' },
-  { title: '匹配成功数', value: 0, trend: '—', iconBg: '#FFF3E0', iconColor: '#FFA726', icon: Trophy, badgeBg: '#FFF3E0', badgeColor: '#EF6C00' },
-  { title: '技能缺口数', value: 0, trend: '—', iconBg: '#FCE4EC', iconColor: '#EF5350', icon: User, badgeBg: '#FCE4EC', badgeColor: '#E53935' },
+  { title: '岗位总数', value: 0, trend: '—', iconBg: '#E6F1F5', iconColor: '#247CA2', icon: DataAnalysis, badgeBg: '#E6F1F5', badgeColor: '#D25B5B' },
+  { title: '解析简历数', value: 0, trend: '—', iconBg: '#E7F5EF', iconColor: '#55B88D', icon: Document, badgeBg: '#E7F5EF', badgeColor: '#55B88D' },
+  { title: '匹配成功数', value: 0, trend: '—', iconBg: '#FFF3E5', iconColor: '#D58A3D', icon: Trophy, badgeBg: '#FFF3E5', badgeColor: '#D58A3D' },
+  { title: '技能缺口数', value: 0, trend: '—', iconBg: '#FAECEC', iconColor: '#D25B5B', icon: User, badgeBg: '#FAECEC', badgeColor: '#D25B5B' },
 ])
 const coralBlocks = ref<{ value: number | string; label: string }[]>([])
 const animatedNums = ref([0, 0, 0, 0])
@@ -190,12 +140,12 @@ const barValues = ref<number[]>([])
 function getLineOption() {
   return {
     title: { show: !months.value.length, text: '暂无趋势数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
-    tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#F0EBE3', textStyle: { color: '#3D3D3D', fontSize: 12 }, borderRadius: 12 },
+    tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#D9E2E7', textStyle: { color: '#3D3D3D', fontSize: 12 }, borderRadius: 12 },
     legend: { bottom: 0, textStyle: { color: '#999', fontSize: 11 }, itemWidth: 14, itemHeight: 6, itemGap: 14 },
     grid: { top: 16, right: 16, bottom: 44, left: 44 },
-    xAxis: { type: 'category', data: months.value, axisLine: { lineStyle: { color: '#F0EBE3' } }, axisTick: { show: false }, axisLabel: { color: '#999', fontSize: 11 } },
-    yAxis: { type: 'value', axisLabel: { color: '#999', fontSize: 11 }, splitLine: { lineStyle: { color: '#F5F0EA', type: 'dashed' } } },
-    series: trendSeries.value.map((series, index) => ({ name: series.name, type: 'line', data: series.data, smooth: 0.4, symbol: 'circle', symbolSize: 5, lineStyle: { width: 2, color: series.color || ['#E07B6D', '#66BB6A', '#FFA726', '#42A5F5'][index % 4] }, itemStyle: { color: series.color || ['#E07B6D', '#66BB6A', '#FFA726', '#42A5F5'][index % 4] } })),
+    xAxis: { type: 'category', data: months.value, axisLine: { lineStyle: { color: '#D9E2E7' } }, axisTick: { show: false }, axisLabel: { color: '#999', fontSize: 11 } },
+    yAxis: { type: 'value', axisLabel: { color: '#999', fontSize: 11 }, splitLine: { lineStyle: { color: '#F8FAFB', type: 'dashed' } } },
+    series: trendSeries.value.map((series, index) => ({ name: series.name, type: 'line', data: series.data, smooth: 0.4, symbol: 'circle', symbolSize: 5, lineStyle: { width: 2, color: series.color || ['#247CA2', '#55B88D', '#D58A3D', '#2F6FCE'][index % 4] }, itemStyle: { color: series.color || ['#247CA2', '#55B88D', '#D58A3D', '#2F6FCE'][index % 4] } })),
   }
 }
 
@@ -204,9 +154,9 @@ function getBarOption() {
     title: { show: !barSkills.value.length, text: '暂无技能分布数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
     tooltip: { trigger: 'axis' },
     grid: { top: 10, right: 32, bottom: 18, left: 76 },
-    xAxis: { type: 'value', max: 100, axisLabel: { color: '#999', fontSize: 10 }, splitLine: { lineStyle: { color: '#F5F0EA', type: 'dashed' } } },
+    xAxis: { type: 'value', max: 100, axisLabel: { color: '#999', fontSize: 10 }, splitLine: { lineStyle: { color: '#F8FAFB', type: 'dashed' } } },
     yAxis: { type: 'category', data: [...barSkills.value].reverse(), axisLabel: { color: '#777', fontSize: 11 } },
-    series: [{ type: 'bar', data: [...barValues.value].reverse(), barWidth: 12, itemStyle: { borderRadius: [0, 8, 8, 0], color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ offset: 0, color: '#E07B6D' }, { offset: 1, color: '#A8C5B8' }]) }, label: { show: true, position: 'right', color: '#888', fontSize: 10, formatter: '{c}%' } }],
+    series: [{ type: 'bar', data: [...barValues.value].reverse(), barWidth: 12, itemStyle: { borderRadius: [0, 8, 8, 0], color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ offset: 0, color: '#247CA2' }, { offset: 1, color: '#55B88D' }]) }, label: { show: true, position: 'right', color: '#888', fontSize: 10, formatter: '{c}%' } }],
   }
 }
 
@@ -214,7 +164,7 @@ interface JobRow { id: string; name: string; dept: string; count: number; salary
 const allJobs = ref<JobRow[]>([])
 const filteredJobs = computed(() => jobSearch.value ? allJobs.value.filter(job => job.name.toLowerCase().includes(jobSearch.value.trim().toLowerCase())) : allJobs.value)
 const pagedJobs = computed(() => { const start = (currentPage.value - 1) * pageSize; return filteredJobs.value.slice(start, start + pageSize) })
-const tblHeaderStyle = { background: '#FAF7F2', color: '#8C8C8C', fontWeight: '500', fontSize: '12px', borderBottom: '1px solid #F0EBE3' }
+const tblHeaderStyle = { background: '#F8FAFB', color: '#8C8C8C', fontWeight: '500', fontSize: '12px', borderBottom: '1px solid #D9E2E7' }
 
 interface ScheduleItem { id: number; title: string; time: string; tag: string; level: 'urgent' | 'normal' | 'low' }
 const scheduleItems = ref<ScheduleItem[]>([])
@@ -272,93 +222,241 @@ onMounted(async () => { initCharts(); window.addEventListener('resize', handleRe
 onUnmounted(() => { window.removeEventListener('resize', handleResize); lineChart?.dispose(); barChart?.dispose(); if (animTimer) clearInterval(animTimer) })
 </script>
 <style scoped>
-.dashboard{--coral:#E07B6D;--coral-light:#FDE8E4;--green:#66BB6A;--green-light:#E8F5E9;--orange:#FFA726;--orange-light:#FFF3E0;--red:#EF5350;--red-light:#FCE4EC;--text:#3D3D3D;--text-sec:#8C8C8C;--text-muted:#B0B0B0;--bg:#FDFBF7;--card-bg:#FFFFFF;--border:#F0EBE3;--radius:16px;position:relative}
-.page-deco{position:fixed;z-index:0;pointer-events:none}
-.deco-wave-bl{bottom:0;left:240px}
-.deco-dots-mr{top:40%;right:0;transform:translateY(-50%)}
-
-.welcome-bar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:16px;position:relative}
-.welcome-left h1{font-size:22px;font-weight:600;color:var(--text);margin:0 0 4px}
-.welcome-sub{font-size:13px;color:var(--text-sec);margin:0 0 2px}
-.welcome-date{font-size:11px;color:var(--text-muted);margin:0}
-.welcome-right{display:flex;align-items:center;gap:12px}
-.welcome-deco{opacity:0.85;flex-shrink:0}
-.time-pills,.metric-pills{display:inline-flex;background:#fff;border:1px solid var(--border);border-radius:20px;padding:3px;gap:2px}
-.pill-btn{border:none;background:transparent;color:var(--text-sec);font-size:12px;font-weight:500;padding:6px 16px;border-radius:16px;cursor:pointer;transition:all 0.2s;font-family:inherit}
-.pill-btn.sm{padding:4px 12px;font-size:11px}
-.pill-btn.active{background:var(--coral-light);color:var(--coral)}
-.pill-btn:hover:not(.active){background:#FDF7F5}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;align-items:start}
-.stat-card{padding:20px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;position:relative}
-.stat-icon-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.stat-info{flex:1;min-width:0}
-.stat-label{display:block;font-size:12px;color:var(--text-sec);margin-bottom:4px}
-.stat-value{display:block;font-size:26px;font-weight:600;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums}
-.stat-badge{position:absolute;top:16px;right:16px;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
-.card-corner-deco{position:absolute;top:0;right:0;pointer-events:none}
-.stat-blocks-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
-.coral-block{background:var(--coral);color:#fff;border-radius:12px;padding:14px 20px;text-align:center;min-width:90px}
-.coral-num{display:block;font-size:24px;font-weight:700;line-height:1.1;margin-bottom:2px}
-.coral-label{font-size:11px;opacity:0.85}
-.charts-row{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
-.chart-card{padding:24px;position:relative;overflow:visible}
-.chart-box{width:100%;height:280px}
-.card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.card-head h3{font-size:15px;font-weight:600;color:var(--text);margin:0 0 3px}
-.card-head p{font-size:11px;color:var(--text-muted);margin:0}
-.card-count{background:var(--coral-light);color:var(--coral);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
-.chart-deco{position:absolute;pointer-events:none;opacity:0.7}
-.chart-deco-br{bottom:8px;right:8px}
-.chart-deco-tl{top:8px;left:8px}
-.section-deco{display:flex;justify-content:center;margin-bottom:16px}
-.bottom-row{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
-.table-card{padding:24px}
-:deep(.el-table){--el-table-border-color:#F5F0EA;--el-table-tr-bg-hover:#FDF7F5;--el-table-header-bg-color:transparent;background:transparent;font-size:12px}
-:deep(.el-table th.el-table__cell){background:#FAF7F2 !important;border-bottom:1px solid #F0EBE3}
-.job-name{font-weight:500;color:var(--text);font-size:13px}
-.count-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:8px}
-.count-badge.hot{background:var(--coral-light);color:var(--coral)}
-.count-badge.warm{background:var(--orange-light);color:#EF6C00}
-.count-badge.cool{background:#F5F5F5;color:#999}
-.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
-.status-dot.urgent{background:var(--coral)}
-.status-dot.open{background:var(--green)}
-.status-dot.pending{background:var(--text-muted)}
-.tbl-pagination{display:flex;justify-content:flex-end;margin-top:14px}
-.side-panels{display:flex;flex-direction:column;gap:16px}
-.side-card{padding:20px;position:relative}
-.card-deco-tl{position:absolute;top:8px;right:8px;pointer-events:none}
-.sched-list{display:flex;flex-direction:column;gap:10px}
-.sched-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:#FDFBF7;transition:background 0.2s}
-.sched-item:hover{background:#F5F0EA}
-.sched-item.urgent{border-left:3px solid var(--coral)}
-.sched-item.normal{border-left:3px solid var(--orange)}
-.sched-item.low{border-left:3px solid var(--green)}
-.sched-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.sched-dot.urgent{background:var(--coral)}
-.sched-dot.normal{background:var(--orange)}
-.sched-dot.low{background:var(--green)}
-.sched-body{flex:1;min-width:0}
-.sched-title{display:block;font-size:12px;font-weight:500;color:var(--text);margin-bottom:1px}
-.sched-time{font-size:10px;color:var(--text-muted)}
-.sched-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:8px;flex-shrink:0}
-.sched-tag.urgent{background:var(--coral-light);color:var(--coral)}
-.sched-tag.normal{background:var(--orange-light);color:#EF6C00}
-.sched-tag.low{background:var(--green-light);color:#43A047}
-.task-list{display:flex;flex-direction:column;gap:8px}
-.task-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;transition:background 0.2s}
-.task-item:hover{background:#FDF7F5}
-.task-body{flex:1;min-width:0}
-.task-body span:first-child{display:block;font-size:12px;color:var(--text);transition:color 0.2s}
-.task-body span.done{text-decoration:line-through;color:var(--text-muted)}
-.task-deadline{font-size:10px;color:var(--text-muted)}
-.create-card{border:2px dashed #D9D9D9;border-radius:var(--radius);padding:28px;cursor:pointer;transition:border-color 0.2s,background 0.2s;text-align:center}
-.create-card:hover{border-color:var(--coral);background:#FDF7F5}
-.create-inner{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-muted);font-size:13px}
-.create-inner .el-icon{color:var(--coral)}
-.create-icon-wrap{position:relative;display:flex;align-items:center;justify-content:center}
-.create-sparkle{position:absolute;top:-8px;left:-8px;pointer-events:none}
-@media(max-width:1200px){.stats-row,.stat-blocks-row{grid-template-columns:repeat(2,1fr)}.charts-row,.bottom-row{grid-template-columns:1fr}}
-@media(max-width:768px){.stats-row,.stat-blocks-row{grid-template-columns:1fr}.welcome-bar{flex-direction:column;align-items:flex-start}.welcome-deco{display:none}.page-deco{display:none}}
+.dashboard {
+  --coral: var(--primary);
+  --coral-light: var(--primary-soft);
+  --green: var(--green);
+  --green-light: var(--green-soft);
+  --orange: var(--orange);
+  --orange-light: var(--orange-soft);
+  --red: var(--danger);
+  --red-light: var(--danger-soft);
+  --text: var(--text);
+  --text-sec: var(--muted-strong);
+  --text-muted: var(--muted);
+  --bg: var(--card-soft);
+  --card-bg: var(--card);
+  --border: var(--line);
+  --radius: 8px;
+  position: relative;
+}
+.welcome-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.welcome-left h1 { margin: 0 0 5px; font-size: 22px; font-weight: 650; }
+.welcome-sub { margin: 0; color: var(--muted); font-size: 11px; }
+.welcome-right { display: flex; align-items: center; gap: 12px; }
+.time-pills, .metric-pills {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--card-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.pill-btn {
+  min-width: 46px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted-strong);
+  font-size: 10px;
+}
+.pill-btn.active {
+  color: var(--primary-deep);
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.stats-row, .stat-blocks-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  min-height: 124px;
+  padding: 19px;
+  position: relative;
+}
+.stat-icon-circle {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.stat-title { display: block; margin-top: 11px; color: var(--muted); font-size: 10px; }
+.stat-num {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 23px;
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-badge {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--card-soft);
+  color: var(--muted-strong);
+  font-size: 9px;
+  font-weight: 500;
+}
+.coral-block {
+  min-width: 90px;
+  padding: 13px 18px;
+  color: #fff;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  text-align: center;
+}
+.coral-num { display: block; margin-bottom: 2px; font-size: 23px; font-weight: 650; line-height: 1.1; }
+.coral-label { font-size: 10px; opacity: .82; }
+.charts-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 14px; }
+.chart-card { padding: 20px; }
+.chart-box { width: 100%; height: 276px; }
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.card-head h3 { margin: 0 0 3px; color: var(--text); font-size: 14px; font-weight: 650; }
+.card-head p { margin: 0; color: var(--muted); font-size: 10px; }
+.card-count {
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 600;
+}
+.bottom-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
+.table-card { padding: 20px; }
+:deep(.el-table) {
+  --el-table-border-color: var(--line);
+  --el-table-tr-bg-hover: var(--primary-soft);
+  --el-table-header-bg-color: var(--card-soft);
+  background: transparent;
+  font-size: 11px;
+}
+:deep(.el-table th.el-table__cell) {
+  background: var(--card-soft) !important;
+  border-bottom: 1px solid var(--line);
+}
+.job-name { color: var(--text); font-size: 12px; font-weight: 550; }
+.count-badge {
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 500;
+}
+.count-badge.hot { color: var(--primary); background: var(--primary-soft); }
+.count-badge.warm { color: var(--orange); background: var(--orange-soft); }
+.count-badge.cool { color: var(--muted); background: var(--card-soft); }
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.status-dot.urgent { background: var(--primary); }
+.status-dot.open { background: var(--green); }
+.status-dot.pending { background: var(--muted); }
+.tbl-pagination { display: flex; justify-content: flex-end; margin-top: 12px; }
+.side-panels { display: flex; flex-direction: column; gap: 14px; }
+.side-card { padding: 18px; }
+.sched-list { display: flex; flex-direction: column; gap: 8px; }
+.sched-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  background: var(--card-soft);
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+.sched-item:hover { background: var(--primary-soft); border-color: var(--line); }
+.sched-item.urgent { border-left: 3px solid var(--primary); }
+.sched-item.normal { border-left: 3px solid var(--orange); }
+.sched-item.low { border-left: 3px solid var(--green); }
+.sched-dot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; }
+.sched-dot.urgent { background: var(--primary); }
+.sched-dot.normal { background: var(--orange); }
+.sched-dot.low { background: var(--green); }
+.sched-body { flex: 1; min-width: 0; }
+.sched-title { display: block; margin-bottom: 1px; color: var(--text); font-size: 11px; font-weight: 550; }
+.sched-time { color: var(--muted); font-size: 9px; }
+.sched-tag {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 500;
+}
+.sched-tag.urgent { color: var(--primary); background: var(--primary-soft); }
+.sched-tag.normal { color: var(--orange); background: var(--orange-soft); }
+.sched-tag.low { color: var(--green); background: var(--green-soft); }
+.task-list { display: flex; flex-direction: column; gap: 6px; }
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 9px;
+  border-radius: 5px;
+}
+.task-item:hover { background: var(--card-soft); }
+.task-body { flex: 1; min-width: 0; }
+.task-body span:first-child { display: block; color: var(--text); font-size: 11px; }
+.task-body span.done { color: var(--muted); text-decoration: line-through; }
+.task-deadline { color: var(--muted); font-size: 9px; }
+.create-card {
+  padding: 24px;
+  cursor: pointer;
+  background: var(--card);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.create-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+.create-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-strong);
+  font-size: 11px;
+}
+.create-inner .el-icon { color: var(--primary); }
+.create-icon-wrap { display: flex; align-items: center; justify-content: center; }
+@media (max-width: 1200px) {
+  .stats-row, .stat-blocks-row { grid-template-columns: repeat(2, 1fr); }
+  .charts-row, .bottom-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .stats-row, .stat-blocks-row { grid-template-columns: 1fr; }
+  .welcome-bar { align-items: flex-start; flex-direction: column; }
+}
 </style>
-

@@ -1,10 +1,8 @@
 <template>
   <div class="login-page">
-    <div class="orb orb-a"></div>
-    <div class="orb orb-b"></div>
     <div class="login-card">
       <header class="login-brand">
-        <div class="brand-mark" aria-hidden="true"><img src="/guangzhou-school.jpg" alt="" /></div>
+        <div class="brand-mark" aria-hidden="true"><img src="/brand-nebula-girl.png" alt="" /></div>
         <div class="brand-copy">
           <strong>TalentMind</strong>
           <small>面向数字经济的人才能力大脑<br />与岗位演化预测系统</small>
@@ -86,44 +84,85 @@ async function handleLogin() {
 
 <style scoped>
 .login-page {
-  position: relative;
-  display: flex;
   min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  overflow: hidden;
-  background: linear-gradient(160deg, #fdfbf8 0%, var(--bg) 55%, #f3ece6 100%);
+  display: grid;
+  place-items: center;
+  padding: 28px 18px;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 30px 30px;
+  background-position: 0 0;
+  background-attachment: fixed;
 }
-.orb { position: absolute; border-radius: 50%; pointer-events: none; }
-.orb-a { width: 320px; height: 320px; top: -110px; left: -90px; background: radial-gradient(circle, rgba(223, 141, 112, .18) 0%, rgba(223, 141, 112, 0) 70%); }
-.orb-b { width: 380px; height: 380px; right: -130px; bottom: -140px; background: radial-gradient(circle, rgba(131, 188, 154, .20) 0%, rgba(131, 188, 154, 0) 70%); }
 .login-card {
-  position: relative;
-  z-index: 1;
   width: min(430px, 100%);
   overflow: hidden;
   background: var(--card);
-  border: 1px solid rgba(241, 235, 228, .9);
-  border-radius: 22px;
-  box-shadow: 0 18px 50px rgba(82, 63, 46, .10);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(30, 57, 73, .08);
 }
-.login-brand { display: flex; align-items: center; gap: 12px; padding: 24px 26px 20px; border-bottom: 1px solid #f5f0ea; }
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--line);
+}
 .login-brand .brand-copy { display: flex; }
-.login-brand .brand-copy small { white-space: normal; }
-.login-body { padding: 26px 26px 22px; }
-.login-body h1 { margin: 0 0 4px; font-size: 21px; font-weight: 700; }
-.login-sub { margin: 0 0 20px; color: #a39d99; font-size: 12px; }
-.login-error { display: flex; align-items: center; gap: 6px; margin: -4px 0 12px; color: #d9534f; font-size: 12px; }
+.login-brand .brand-copy strong { color: #142b62; }
+.login-brand .brand-copy small { color: var(--muted); white-space: normal; }
+.login-body { padding: 24px; }
+.login-body h1 { margin: 0 0 5px; font-size: 21px; font-weight: 650; }
+.login-sub { margin: 0 0 20px; color: var(--muted); font-size: 11px; }
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -3px 0 11px;
+  color: var(--danger);
+  font-size: 11px;
+}
 .login-error .el-icon { flex: 0 0 auto; }
-.login-btn { width: 100%; height: 42px; margin: 2px 0 0; font-size: 15px; letter-spacing: 6px; }
-.demo-accounts { margin-top: 22px; padding: 14px; background: var(--card-soft); border: 1px dashed var(--line-strong); border-radius: 14px; }
-.demo-tip { margin: 0; color: #9f9995; font-size: 11px; }
-.account-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-.chip { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--text); text-align: left; transition: border-color .16s, background .16s; }
-.chip:hover { border-color: #e4b5a4; background: #fff7f2; }
-.chip span { font-size: 13px; font-weight: 600; }
-.chip small { color: #a39d99; font-size: 11px; }
-.login-foot { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 14px; color: #b8b2ae; font-size: 11px; letter-spacing: .6px; border-top: 1px solid #f5f0ea; }
-.login-foot i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+.login-btn {
+  width: 100%;
+  height: 40px;
+  margin: 2px 0 0;
+  font-size: 14px;
+  letter-spacing: 4px;
+}
+.demo-accounts {
+  margin-top: 20px;
+  padding: 13px 14px;
+  background: var(--card-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.demo-tip { margin: 0; color: var(--muted); font-size: 10px; }
+.chip { margin-top: 10px; border: 0; background: transparent; }
+.chip span { color: var(--text); font-size: 12px; font-weight: 600; }
+.chip small { margin-left: 8px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; }
+.login-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0;
+  border-top: 1px solid var(--line);
+}
+.login-foot i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+@media (max-width: 520px) {
+  .login-card { border-radius: 0; }
+  .login-page { padding: 0; place-items: stretch; }
+}
 </style>
