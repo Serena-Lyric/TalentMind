@@ -54,7 +54,7 @@ def browser_env(monkeypatch, tmp_path):
     now = [0.0]
     monkeypatch.setattr(b, '_edge_sessions', lambda: sessions)
     monkeypatch.setattr(b, '_page_targets', lambda endpoint: list(targets))
-    def launch(user_data_dir):
+    def launch(user_data_dir, initial_url='about:blank'):
         launches.append(user_data_dir)
         user_data_dir.mkdir(parents=True, exist_ok=True)
         (user_data_dir / 'DevToolsActivePort').write_text('19444\n/devtools/browser/synthetic\n')
@@ -102,12 +102,12 @@ def test_verification_blocks_immediately_without_polling_through(browser_env):
     assert len(pages) == 1
 
 
-def test_timeout_can_recover_on_next_prepare_without_second_launch(browser_env):
+def test_loading_returns_after_one_check_and_recovers_on_explicit_reprepare(browser_env):
     b, profile, _, _, launches, pages = browser_env
     pages[:] = [snapshot(ready_state='loading')]
     result = b.prepare('liepin', user_data_dir=str(profile), timeout=1)
     assert result['access_state'] == 'loading'
-    assert result['timed_out'] is True
+    assert result['timed_out'] is False
     pages[:] = [snapshot(cards=1)]
     assert b.prepare('liepin', user_data_dir=str(profile), timeout=1)['can_collect']
     assert len(launches) == 1
@@ -202,10 +202,13 @@ def test_new_edge_launch_uses_dynamic_loopback_and_independent_profile(browser_e
     monkeypatch.setenv('ProgramFiles(x86)',str(tmp_path))
     commands=[]
     monkeypatch.setattr(b.subprocess,'Popen', lambda args, **kwargs: commands.append(args) or type('P',(),{'pid':7})())
-    assert launch(profile) == 7
+    target = 'https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1'
+    assert launch(profile, target) == 7
     assert '--remote-debugging-port=0' in commands[0]
     assert '--remote-debugging-address=127.0.0.1' in commands[0]
     assert f'--user-data-dir={profile}' in commands[0]
+    assert '--disable-extensions' in commands[0]
+    assert commands[0][-1] == target
 
 
 def test_manual_login_timeout_recovers_without_restarting(browser_env):
@@ -252,8 +255,26 @@ def test_boss_security_check_redirect_is_terminal_even_when_cards_render():
     )
     state = runtime().classify_page(page, 'boss')
     assert state['access_state'] == 'verification_required'
-    assert state['reason'] == 'manual_verification_or_access_limit'
+    assert state['reason'] == 'security_check_redirect'
     assert state['can_collect'] is False
+
+
+def test_default_prepare_inspects_target_once_without_polling(browser_env, monkeypatch):
+    b, profile, sessions, targets, _, _ = browser_env
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1'
+    sessions.append({'pid': 123, 'profile': str(profile), 'port': 19444,
+                     'listeners': [{'port': 19444, 'address': '127.0.0.1'}]})
+    targets.append({'id': 'target', 'type': 'page', 'url': url})
+    calls = []
+    class Client:
+        def evaluate(self, script):
+            calls.append(script)
+            return snapshot(url=url, cards=0)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client())
+    result = b.prepare('boss', user_data_dir=str(profile), timeout=2, url=url)
+    assert result['can_collect'] is False
+    assert len(calls) == 1
 
 
 @pytest.mark.parametrize('text', ['负责安全验证系统开发', '处理服务异常与网络异常，开发验证服务'])
@@ -362,11 +383,12 @@ def test_login_gate_after_old_error_uses_manual_login_deadline(browser_env,monke
     assert state['access_state']=='authenticated_accessible' and state['target_id']=='login'
 
 
-def test_new_ready_tab_is_found_after_initial_created_tab_stays_unknown(browser_env,monkeypatch):
+def test_new_ready_tab_is_found_on_explicit_recheck(browser_env,monkeypatch):
     b,profile,_,targets,_,_=browser_env
     original=b._page_targets
+    next_check=False
     def target_list(endpoint):
-        if b.time.monotonic()>=.5 and not any(t['id']=='new' for t in targets):
+        if next_check and not any(t['id']=='new' for t in targets):
             targets.append({'id':'new','type':'page','url':'https://www.liepin.com/zhaopin/'})
         return original(endpoint)
     class Client:
@@ -375,6 +397,9 @@ def test_new_ready_tab_is_found_after_initial_created_tab_stays_unknown(browser_
         def close(self):pass
     monkeypatch.setattr(b,'_page_targets',target_list)
     monkeypatch.setattr(b.CdpClient,'connect_first_page',lambda *a,**kw:Client(kw.get('target_id')))
+    first=b.prepare('liepin',user_data_dir=str(profile),timeout=2)
+    assert first['can_collect'] is False
+    next_check=True
     state=b.prepare('liepin',user_data_dir=str(profile),timeout=2)
     assert state['can_collect'] and state['target_id']=='new'
 

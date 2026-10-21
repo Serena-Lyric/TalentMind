@@ -88,6 +88,14 @@ def test_prepare_message_explains_current_access_and_preserves_reason(monkeypatc
     assert message in result['message']
 
 
+def test_automatic_security_redirect_is_not_reported_as_manual_verification(monkeypatch):
+    monkeypatch.setattr(control, '_ensure_browser', lambda *a: {'platform_access': {'boss': {
+        'access_state': 'verification_required', 'reason': 'security_check_redirect', 'can_collect': False}}})
+    result = control.prepare_browser()
+    assert '未发现可人工操作的验证内容' in result['message']
+    assert '停止自动重试' in result['message']
+
+
 def test_legacy_config_is_presented_with_current_bounds_without_rewriting_history():
     state = control._default_state()
     state['config'].update(max_jobs=12, detail_limit=8, keywords=['Python', 'Java'],

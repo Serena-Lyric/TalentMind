@@ -46,7 +46,7 @@
 
 一次Vite开发进程在验收中退出，页面显示Network Error；用同一幂等启动入口恢复后，批次保存/停止和后续页面成功。退出根因未确定，不把恢复当成永久修复。
 
-后续安全门禁修复：真实复现确认 BOSS 在搜索页与 `passport/zp/security.html` 之间通过递增 `_security_check` 连续跳转，约6秒后回首页。TalentMind 没有调用 `Page.reload`；修复后该参数立即归为人工验证，状态与准备均锁定当前目标标签，验证期间暂停自动CDP检查，搜索目标不再生成普通外链。详见[陷阱记录](../superpowers/traps/2026-10-21-boss-security-check-loop.md)。
+后续安全门禁修复：真实复现确认 BOSS 在搜索页与 `passport/zp/security.html` 之间通过递增 `_security_check` 连续跳转，约6秒后回首页，且浏览器中没有可人工操作的验证页面。TalentMind 没有调用 `Page.reload`；不轮询时没有快速刷新循环，同一 profile 不启用远程调试直接打开页面时等待24秒仍正常。专用浏览器发现17个第三方扩展，但禁用扩展后仍受CDP连接影响。修复后首次启动直接以目标搜索URL打开，默认只检查一次；前端自动刷新不再查询浏览器，状态与准备锁定当前目标标签并明确区分自动安全跳转和人工验证；搜索目标不再生成普通外链。单次CDP连接仍可能被BOSS识别，因此这不保证站内自动化长期可用，后续如需稳定采集应设计普通浏览器扩展方案。详见[陷阱记录](../superpowers/traps/2026-10-21-boss-security-check-loop.md)。
 
 ## 运行版本关联
 
@@ -58,7 +58,7 @@
 
 ## 最终验证与数据
 
-- 相关后端147 passed：M2 workflow/API/投影、既有real_pipeline、M1产品/批次/历史；前端147 passed，类型检查/build通过。既有大chunk及重复动态/静态导入提示保留。
+- 本轮安全门禁最终相关后端199 passed，完整前端151 passed；类型检查/build通过。既有大chunk及重复动态/静态导入提示保留。后端最终全量为1463 passed / 2 failed / 23 deselected，两项仍为此前已知的B3 canonical来源hash/quote问题。
 - 独立审查两项边界均先复现后修复，并定向复审；不替代负责人集中验收。未重复全后端大套件；此前全量中的两项B3来源hash/quote失败仍未解决，未重签或声称全套通过，见[M2报告](M2-product-2026-10-21.md)。
 - 业务测试仅临时SQLite/文件，finally/teardown清理；精确无执行批次验收文件已不存在，无正式库写入测试或宽泛DELETE。
 - 浏览器验收前后MySQL八表全字段有序SHA及计数完全相同：JD2988、signal1540、skill_dict285、定义/技能/日志717/717/275、resume/talent_raw0，无测试数据写入或误删。Neo4j只读查询7845/11412。

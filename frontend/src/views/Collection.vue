@@ -2,7 +2,7 @@
   <section class="page collection-page">
     <div class="page-title">
       <div><h1>采集工作台</h1><p>配置一次有界采集，先准备浏览器，再明确启动。登录或验证由你在浏览器中完成。</p></div>
-      <el-button :loading="refreshing" @click="refreshAll">刷新状态</el-button>
+      <el-button :loading="refreshing" @click="refreshAll(true)">刷新状态</el-button>
     </div>
     <el-alert v-if="refreshErrors.length" :title="refreshErrors.join('；')" type="error" :closable="false" show-icon />
 
@@ -37,9 +37,10 @@
       <section class="panel prepare-panel">
         <h2><span class="step">2</span>准备浏览器</h2>
         <p>打开独立采集浏览器并检查当前平台访问状态。准备操作不会开始采集或写库。</p>
-        <div class="access-row"><el-tag :type="accessReady ? 'success' : 'warning'">{{ accessText(accessState) }}</el-tag><span>{{ accessMessage }}</span></div>
+        <div class="access-row"><el-tag :type="accessReady ? 'success' : 'warning'">{{ accessLabel }}</el-tag><span>{{ accessMessage }}</span></div>
         <p v-if="preparation?.target_url" class="source-detail">采集目标：<span class="mono" :title="preparation.target_url">{{ preparation.target_url }}</span><small>此地址只读展示；准备完成后请在独立采集浏览器中操作，避免重复打开搜索页。</small></p>
-        <p v-if="['login_required', 'verification_required', 'content_limited'].includes(accessState)" class="hint">请在浏览器人工处理；完成后再次点击“准备 / 重新检查”。受限时采集会停止。</p>
+        <p v-if="access?.reason === 'security_check_redirect'" class="hint">BOSS 自动安全校验后跳回首页，当前没有可人工处理的验证页面。系统已停止自动重试，请在浏览器中正常操作后再显式重新检查。</p>
+        <p v-else-if="['login_required', 'verification_required', 'content_limited'].includes(accessState)" class="hint">请在浏览器人工处理；完成后再次点击“准备 / 重新检查”。受限时采集会停止。</p>
         <el-button :loading="preparing" :disabled="!selectedPlatform?.supported || busy || starting || batchBusy" @click="prepareBrowser">{{ preparing ? '浏览器准备中，请稍候' : '准备 / 重新检查' }}</el-button>
       </section>
       <section class="panel launch-panel">
@@ -185,6 +186,7 @@ const busy = computed(() => !currentTask.value.finished_at && ['preparing', 'wai
 const canStop = computed(() => busy.value && !!currentTask.value.run_id && !stopping.value && !batchBusy.value)
 const access = computed<CollectionAccess | null>(() => cdpStatus.value && !cdpStatus.value.reachable ? { access_state: 'cdp_unavailable', can_collect: false } : cdpStatus.value?.platform_access?.[configForm.platform || ''] || preparation.value)
 const accessState = computed(() => preparing.value ? 'preparing' : access.value?.content_limited || preparation.value?.content_limited || preparation.value?.access_state === 'content_limited' ? 'content_limited' : access.value?.access_state || 'unready')
+const accessLabel = computed(() => access.value?.reason === 'security_check_redirect' ? 'BOSS 自动安全校验' : accessText(accessState.value))
 const accessReady = computed(() => access.value?.can_collect === true && ['public_accessible', 'authenticated_accessible', 'public', 'auth', 'empty_results'].includes(accessState.value))
 const browserCheckPaused = computed(() => accessState.value === 'verification_required')
 const accessMessage = computed(() => {
@@ -216,7 +218,7 @@ function platformText(value?: string | null) { return platforms.value.find(item 
 function statusText(value: string) { return ({ idle: '空闲', preparing: '准备中', waiting_for_browser: '等待浏览器', running: '运行中', stopping: '停止中', stopped: '已停止', completed: '已完成', error: '错误', waiting_next_round: '等待下一轮' } as Record<string, string>)[value] || value }
 function accessText(value: string) { return ({ public_accessible: '公开可访问', authenticated_accessible: '已登录可访问', public: '公开可访问', auth: '已登录可访问', login_required: '需要人工登录', verification_required: '需要人工验证', content_limited: '正文访问受限', preparing: '准备中', unready: '尚未准备', cdp_unavailable: '浏览器不可用', page_missing: '未找到平台页面', page_error: '页面未就绪', loading: '页面加载中', empty_results: '无搜索结果' } as Record<string, string>)[value] || value }
 function accessReasonText(reason: string) {
-  const text = ({ no_access_evidence: '页面尚未出现可访问的职位内容', unexpected_domain: '当前页面未到达所选招聘平台', manual_verification_or_access_limit: '需要人工验证或处理访问限制', manual_login_gate: '需要在浏览器中人工登录', visible_page_error: '招聘页面显示错误', document_loading: '招聘页面仍在加载', visible_job_content: '已看到可访问的职位内容', explicit_empty_results: '搜索页已打开，当前搜索没有结果', no_owned_edge: '尚未连接独立采集浏览器', edge_or_cdp_error: '浏览器启动或调试连接失败', no_platform_page: '未找到当前平台页面' } as Record<string, string>)[reason]
+  const text = ({ no_access_evidence: '页面尚未出现可访问的职位内容', unexpected_domain: '当前页面未到达所选招聘平台', manual_verification_or_access_limit: '需要人工验证或处理访问限制', security_check_redirect: 'BOSS 自动安全校验后未返回目标搜索页', manual_login_gate: '需要在浏览器中人工登录', visible_page_error: '招聘页面显示错误', document_loading: '招聘页面仍在加载', visible_job_content: '已看到可访问的职位内容', explicit_empty_results: '搜索页已打开，当前搜索没有结果', no_owned_edge: '尚未连接独立采集浏览器', edge_or_cdp_error: '浏览器启动或调试连接失败', no_platform_page: '未找到当前平台页面' } as Record<string, string>)[reason]
   return `${text || '浏览器访问检查未通过'}（${reason}）`
 }
 function outcomeText(value?: string | null) { return ({ inserted: '新增入库', updated: '更新入库', skipped: '跳过', rejected: '拒绝', failed: '失败', complete: '完整 JD' } as Record<string, string>)[value || ''] || value || '未记录' }
@@ -266,10 +268,10 @@ async function loadBrowserStatus() {
     throw error
   }
 }
-async function refreshAll() {
+async function refreshAll(checkBrowser = false) {
   if (refreshing.value) return
   refreshing.value = true
-  const browserStatus = browserCheckPaused.value ? Promise.resolve() : loadBrowserStatus()
+  const browserStatus = checkBrowser && !browserCheckPaused.value ? loadBrowserStatus() : Promise.resolve()
   const checks = await Promise.allSettled([loadStatus(), loadStats(), loadHistory(), browserStatus])
   refreshErrors.value = checks.flatMap((result, index) => result.status === 'rejected' ? [`${['进度', '数据库', '历史', '浏览器状态'][index]}读取失败：${errorText(result.reason)}`] : [])
   refreshing.value = false
@@ -352,7 +354,7 @@ onMounted(async () => {
     configForm.detail_limit = Math.max(1, Math.min(5, saved.detail_limit || 5))
     configForm.max_jobs = Math.max(1, Math.min(5, saved.max_jobs || 5))
   }
-  await refreshAll()
+  await refreshAll(true)
   refreshErrors.value.push(...configChecks.flatMap((result, index) => result.status === 'rejected' ? [`${index === 0 ? '平台' : '配置'}读取失败：${errorText(result.reason)}`] : []))
   timer = setInterval(() => { if (!refreshing.value) void refreshAll() }, 5000)
 })

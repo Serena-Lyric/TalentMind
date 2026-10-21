@@ -132,7 +132,7 @@ test('准备响应内标记正文受限时，即使顶层可采集也不能启�
   } finally { page.stop() }
 })
 
-test('定时状态发现验证门禁时撤销旧准备结果，恢复后仍须重新准备', async () => {
+test('显式刷新状态发现验证门禁时撤销旧准备结果，恢复后仍须重新准备', async () => {
   let access_state = 'public_accessible'
   const page = collectionComponent({ getCDPStatus: () => ({ reachable: true, platform_access: { boss: { access_state, can_collect: access_state === 'public_accessible' } } }) })
   try {
@@ -140,11 +140,11 @@ test('定时状态发现验证门禁时撤销旧准备结果，恢复后仍须�
     await page.state.prepareBrowser()
     assert.equal(page.state.canStart.value, true)
     access_state = 'verification_required'
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.state.accessState.value, 'verification_required')
     assert.equal(page.state.canStart.value, false)
     access_state = 'public_accessible'
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.state.canStart.value, false)
   } finally { page.stop() }
 })
@@ -159,15 +159,47 @@ test('检测到安全验证后暂停自动浏览器检查，手动重新检查�
     await page.mounted()
     await page.state.prepareBrowser()
     const checksAfterPrepare = page.calls.filter(call => call.method === 'getCDPStatus').length
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checksAfterPrepare)
     assert.equal(page.state.canStart.value, false)
     preparation = { access_state: 'public_accessible', can_collect: true, message: '搜索页可访问', cdp: { reachable: true, platform_access: { boss: { access_state: 'public_accessible', can_collect: true } } } }
     await page.state.prepareBrowser()
     assert.equal(page.state.canStart.value, true)
     const checksAfterRecovery = page.calls.filter(call => call.method === 'getCDPStatus').length
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checksAfterRecovery + 1)
+  } finally { page.stop() }
+})
+
+test('普通自动刷新不轮询浏览器，仅显式重新检查读取一次', async () => {
+  const page = collectionComponent({
+    prepareCollection: { access_state: 'page_error', can_collect: false, message: '页面仍在加载', target_url: 'https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1', cdp: { reachable: true } },
+  })
+  try {
+    await page.mounted()
+    await page.state.prepareBrowser()
+    const checks = page.calls.filter(call => call.method === 'getCDPStatus').length
+    await page.state.refreshAll()
+    assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checks)
+    await page.state.refreshAll(true)
+    assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checks + 1)
+  } finally { page.stop() }
+})
+
+test('自动安全校验不伪装成需要人工验证', async () => {
+  const page = collectionComponent({
+    prepareCollection: {
+      access_state: 'verification_required', reason: 'security_check_redirect', can_collect: false,
+      message: 'BOSS 自动安全校验未返回目标搜索页；当前未发现可人工操作的验证内容。系统已停止自动重试。',
+      cdp: { reachable: true },
+    },
+  })
+  try {
+    await page.mounted()
+    await page.state.prepareBrowser()
+    assert.equal(page.state.accessLabel.value, 'BOSS 自动安全校验')
+    assert.match(page.state.accessMessage.value, /当前未发现可人工操作的验证内容/)
+    assert.equal(page.state.canStart.value, false)
   } finally { page.stop() }
 })
 
@@ -300,7 +332,7 @@ test('准备前发出的延迟状态响应不能覆盖新准备结果', async ()
     try {
       await page.mounted()
       delayed = true
-      const refresh = page.state.refreshAll()
+      const refresh = page.state.refreshAll(true)
       await page.state.prepareBrowser()
       if (fails) reject(new Error('stale connection error'))
       else respond({ reachable: true, platform_access: { boss: { access_state: 'page_error', can_collect: false, reason: 'no_access_evidence' } } })
@@ -320,11 +352,11 @@ test('准备过程中只读刷新不发浏览器状态请求，准备完成后�
     await page.mounted()
     const before = page.calls.filter(call => call.method === 'getCDPStatus').length
     const prepare = page.state.prepareBrowser()
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, before)
     finish({ access_state: 'public_accessible', can_collect: true, message: '搜索页可访问', cdp: { reachable: true } })
     await prepare
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, before + 1)
   } finally { page.stop() }
 })
@@ -425,7 +457,7 @@ test('准备成功后新门禁撤销凭据并暂停自动检查，保留验证�
   try {
     await page.mounted()
     await page.state.prepareBrowser()
-    await page.state.refreshAll()
+    await page.state.refreshAll(true)
     assert.equal(page.state.canStart.value, false)
     assert.match(page.state.accessMessage.value, /人工验证/)
     assert.ok(page.state.preparation.value?.target_url)

@@ -459,7 +459,9 @@ def _prepare_browser(auto_start: bool, platform: str | None,
     message = messages.get(access['access_state'],
                            '目标搜索页已就绪；仅准备浏览器，采集须显式启动' if access['can_collect']
                            else '浏览器页面尚未就绪，请查看访问状态')
-    if access.get('reason') == 'no_access_evidence':
+    if access.get('reason') == 'security_check_redirect':
+        message = 'BOSS 自动安全校验未返回目标搜索页；当前未发现可人工操作的验证内容。系统已停止自动重试。'
+    elif access.get('reason') == 'no_access_evidence':
         message = '已打开目标页，但尚未检测到职位内容；请在独立 Edge 中正常操作后重新检查'
     elif access.get('reason') == 'target_page_redirected':
         message = '目标搜索页已跳转，尚未检测到目标职位内容；请在独立 Edge 中正常操作后重新检查'

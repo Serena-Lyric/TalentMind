@@ -109,7 +109,7 @@ def _owned_endpoint(profile: Path, sessions: list[dict]) -> str | None:
     return None
 
 
-def _launch_edge(profile: Path) -> int:
+def _launch_edge(profile: Path, initial_url: str = 'about:blank') -> int:
     candidates = [Path(os.environ.get(key, '')) / 'Microsoft/Edge/Application/msedge.exe'
                   for key in ('ProgramFiles(x86)', 'ProgramFiles')]
     executable = next((path for path in candidates if path.is_file()), None)
@@ -119,7 +119,8 @@ def _launch_edge(profile: Path) -> int:
     # Dynamic port avoids fixed-port collisions and excluded Windows port ranges.
     process = subprocess.Popen([str(executable), '--remote-debugging-port=0',
         '--remote-debugging-address=127.0.0.1', f'--user-data-dir={profile}',
-        '--no-first-run', '--no-default-browser-check', '--new-window', 'about:blank'],
+        '--no-first-run', '--no-default-browser-check', '--disable-extensions',
+        '--new-window', initial_url],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0))
     return process.pid
@@ -150,18 +151,22 @@ def classify_page(page: dict, platform: str) -> dict:
     cards, details = int(page.get('cards') or 0), int(page.get('details') or 0)
     state, reason = 'page_error', 'no_access_evidence'
     challenge = ('安全验证', '访问验证', '异常访问', '访问过于频繁', '操作过于频繁', '拖动滑块', '完成验证', '人机验证')
+    security_redirect = ('_security_check' in query
+                         or any(word in path for word in ('verify', 'security')))
     standalone = [line.strip() for line in body.splitlines() if line.strip()]
     # Job prose can mention verification/error handling; only a gate or standalone prompt proves blocking.
     challenge_prompt = any(re.fullmatch(r'(?:请|请先)?(?:完成|进行)?(?:安全验证|访问验证|人机验证)[！!。\s]*', line)
                            or line in {'异常访问', '访问过于频繁', '操作过于频繁', '拖动滑块完成验证'} for line in standalone)
+    manual_challenge = (page.get('challenge_visible') is True
+                        or any(word in path for word in ('captcha', 'challenge'))
+                        or any(word in gate for word in challenge) or challenge_prompt
+                        or ('验证码' in gate and not any(word in gate for word in ('获取验证码', '发送验证码'))))
     if not host_matches(url, HOSTS[platform]):
         reason = 'unexpected_domain'
-    elif (page.get('challenge_visible') is True
-          or any(word in path for word in ('captcha', 'verify', 'security', 'challenge'))
-          or '_security_check' in query
-          or any(word in gate for word in challenge) or challenge_prompt
-          or ('验证码' in gate and not any(word in gate for word in ('获取验证码', '发送验证码')))):
+    elif manual_challenge:
         state, reason = 'verification_required', 'manual_verification_or_access_limit'
+    elif security_redirect:
+        state, reason = 'verification_required', 'security_check_redirect'
     elif (page.get('login_visible') is True
           or any(word in path for word in ('/login', '/signin')) or host.startswith(('passport.', 'login.'))
           or any(word in gate for word in ('扫码登录', '手机号登录', '密码登录', '登录/注册', '请登录', '请先登录'))
@@ -344,7 +349,7 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
         with _LOCK:
             sessions = _edge_sessions()
             if not any(Path(s['profile']).resolve() == profile for s in sessions):
-                _launch_edge(profile)
+                _launch_edge(profile, target)
             while True:
                 actual = _owned_endpoint(profile, _edge_sessions())
                 if actual:
@@ -362,12 +367,14 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
             if url:
                 previous_url, previous_id = _PREPARED_TARGETS.get((str(profile), platform), ('', ''))
                 pinned = [t for t in matches if previous_url == target and t.get('id') == previous_id]
-                existing = _inspect_targets(
-                    actual, pinned or matches, platform,
-                    target_id=previous_id if pinned else None)
-                if existing['access_state'] in _BLOCKED:
-                    return {**base, **existing}
-                matches = pinned or [t for t in matches if _same_search_target(str(t.get('url', '')), target)]
+                exact = [t for t in matches if _same_search_target(str(t.get('url', '')), target)]
+                if pinned or exact:
+                    matches = pinned or exact
+                elif matches:
+                    existing = _inspect_targets(actual, matches, platform)
+                    if existing['access_state'] in _BLOCKED:
+                        return {**base, **existing}
+                    matches = []
             if not matches:
                 created = _create_page(actual, target) or {}
                 # Default preparation follows manual login into a new same-platform tab.
@@ -392,6 +399,8 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
                 if login_deadline is None:
                     print(f'[{platform}] 请在独立 Edge 中人工登录；仅等待恢复准备状态，不启动采集', flush=True)
                     login_deadline = time.monotonic() + wait_for_login
+            elif login_deadline is None:
+                return {**base, **state}
             end = login_deadline if login_deadline is not None else deadline
             if time.monotonic() >= end:
                 return {**base, **state, 'timed_out': True}
