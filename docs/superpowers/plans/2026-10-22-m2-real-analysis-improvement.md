@@ -163,7 +163,8 @@ Commit message: `fix(m2): scope skill semantics to local evidence`
 - Modify: `backend/tests/test_job_analysis/test_role_family_versions.py`
 
 **Interfaces:**
-- Produces: `RULESET = "closed-delivery-clauses-v3"`.
+- Preserves: `RULESET = "closed-delivery-clauses-v2"` for the unchanged fixed delivery productions.
+- Produces: `DUTY_RULESET = "closed-action-object-duties-v1"` for the new action/object grammar.
 - Preserves: candidates are `{family_id, clues[]}`, each clue has `kind`, `rule`, and exact evidence.
 - Preserves: `review_status="pending_review"`, `classification_complete=False`, `formal_statistics_eligible=False`, `canonical_job.state="unknown"`.
 

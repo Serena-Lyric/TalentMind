@@ -103,6 +103,36 @@ def test_title_alone_never_supplies_a_family_and_generic_title_does_not_conflict
     assert suggest(record("核心职责：开发后端接口并交付服务", title="工程师"))["resolution"] == "proposed"
 
 
+@pytest.mark.parametrize("text,family", [
+    ("负责软件模块的架构设计、编码实现与单元测试", "software_engineering"),
+    ("负责数据仓库 ETL 流程设计与开发", "data_ai"),
+    ("负责设计测试用例并执行自动化测试", "test_quality_engineering"),
+    ("负责部署应用、维护服务器并监控系统", "infrastructure_operations"),
+])
+def test_explicit_action_object_duty_proposes_pending_family(text, family):
+    body = suggest(record(text))
+
+    assert [candidate["family_id"] for candidate in body["candidates"]] == [family]
+    assert body["review_status"] == "pending_review"
+    assert body["classification_complete"] is body["formal_statistics_eligible"] is False
+    assert body["canonical_job"] == dict(state="unknown", value=None)
+    clue = body["candidates"][0]["clues"][0]
+    assert text[clue["evidence"]["start"]:clue["evidence"]["end"]] == clue["evidence"]["quote"]
+
+
+@pytest.mark.parametrize("text", [
+    "公司介绍：负责软件模块的架构设计、编码实现与单元测试",
+    "历史项目：负责数据仓库 ETL 流程设计与开发",
+    "任职要求：熟悉软件架构和自动化测试",
+    "如果业务需要，负责部署应用并维护服务器",
+    "曾经负责设计测试用例并执行自动化测试",
+    "负责销售软件并维护客户关系",
+    "负责向客户演示软件模块的架构设计",
+])
+def test_non_current_or_nontechnical_context_does_not_propose_family(text):
+    assert suggest(record(text))["candidates"] == []
+
+
 def test_title_conflict_keeps_both_original_fields_and_no_primary():
     body = suggest(record("核心职责：设计测试用例并交付测试报告", title="软件工程师"))
     assert body["resolution"] == "unresolved" and body["primary_family_hint"] is None

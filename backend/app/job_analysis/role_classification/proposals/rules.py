@@ -25,11 +25,54 @@ TITLES = {
     "embedded_system_software": ("嵌入式工程师",),
     "technical_services_delivery": ("技术支持", "解决方案工程师", "实施工程师"),
 }
-HEADINGS = re.compile(r"^(岗位职责|工作职责|职责|公司介绍|企业介绍|历史项目|培训内容|示例|任职要求|技能要求|福利待遇)(?:[：:]|$)")
+HEADINGS = re.compile(r"^(岗位职责|工作职责|职责|工作内容|岗位内容|主要工作内容|职责描述|公司介绍|企业介绍|历史项目|培训内容|示例|任职要求|技能要求|能力要求|核心能力要求|福利待遇)(?:[：:]|$)")
+DUTY_HEADINGS = {"岗位职责", "工作职责", "职责", "工作内容", "岗位内容", "主要工作内容", "职责描述"}
 PREFIX = re.compile(r"^(核心职责[：:]|主要职责[：:]|主要负责|负责|协助|辅助|配合)")
 MULTIPLE = re.compile(r"招聘(?:两|多|[2-9])个(?:岗位|职位)|岗位[一二三1-9][：:]|职位[一二三1-9][：:]")
 COMPOUND = re.compile(r"全栈|复合岗位|混合岗位")
 RULESET = "closed-delivery-clauses-v2"
+DUTY_RULESET = "closed-action-object-duties-v1"
+UNSAFE_DUTY = re.compile(
+    r"如果|若|仅当|除非|不负责|非本岗位|曾经|过去|公司介绍|企业介绍|历史项目|培训内容|示例|"
+    r"如果需要|客户负责|客户销售|销售转化|销售软件|向客户演示|客户关系|"
+    r"商务维护|普通客服"
+)
+DUTY_PATTERNS = {
+    "software_engineering": (
+        r"(?:设计|开发|研发|实现|编码|重构|维护|优化|迭代|调优)[^，,、。；;\n]{0,20}"
+        r"(?:软件|系统|平台|模块|接口|应用|服务|后端|前端|中间件|代码)",
+        r"(?:软件|系统|平台|模块|接口|应用|服务|后端|前端|中间件|代码)"
+        r"[^，,、。；;\n]{0,20}(?:设计|开发|研发|实现|编码|重构|维护|优化|迭代|调优)",
+    ),
+    "test_quality_engineering": (
+        r"(?:设计|编写|执行|维护|评审)[^，,、。；;\n]{0,16}"
+        r"(?:测试用例|自动化测试|单元测试|接口测试|集成测试|回归测试|性能测试|测试报告)",
+        r"(?:测试用例|自动化测试|单元测试|接口测试|集成测试|回归测试|性能测试)"
+        r"[^，,、。；;\n]{0,16}(?:设计|编写|执行|维护|评审)",
+    ),
+    "data_ai": (
+        r"(?:建设|搭建|开发|设计|维护|优化|实现|开展|参与)[^，,、。；;\n]{0,20}"
+        r"(?:数据管道|数据仓库|ETL|数据清洗|数据标注|数据治理|数据处理|"
+        r"数据分析模型|机器学习模型|算法模型)",
+        r"(?:数据管道|数据仓库|ETL|数据清洗|数据标注|数据治理|数据处理|"
+        r"数据分析模型|机器学习模型|算法模型)[^，,、。；;\n]{0,20}"
+        r"(?:建设|搭建|开发|设计|维护|优化|实现|开展|参与)",
+    ),
+    "infrastructure_operations": (
+        r"(?:部署|运维|维护|监控|保障|管理)[^，,、。；;\n]{0,20}"
+        r"(?:服务器|云平台|集群|数据库|容器|生产系统|基础设施|应用)",
+        r"(?:服务器|云平台|集群|数据库|容器|生产系统|基础设施|应用)"
+        r"[^，,、。；;\n]{0,20}(?:部署|运维|维护|监控|保障|管理)",
+    ),
+    "network_information_security": (
+        r"(?:排查|检测|修复|加固|评估|审计|防护|响应)[^，,、。；;\n]{0,20}"
+        r"(?:安全漏洞|安全风险|网络攻击|安全事件|渗透测试|安全策略|安全体系)",
+    ),
+    "embedded_system_software": (
+        r"(?:开发|设计|移植|调试|维护)[^，,、。；;\n]{0,20}"
+        r"(?:嵌入式|固件|驱动|实时操作系统|RTOS|MCU|SoC)",
+    ),
+}
 HARDWARE_DELIVERIES = {
     "hardware_integrated_circuits": (
         "设计硬件电路并交付电路原理图", "开发FPGA逻辑并交付验证结果", "设计数字IC并交付RTL"),
@@ -75,15 +118,17 @@ def suggest(record, taxonomy):
         text = record.payload.get(field, "")
         if field == "raw_text" and text == record.payload.get("duties"):
             continue
-        active = True  # Without headings only a whole supported clause can match.
+        active = True
         for match in re.finditer(r"[^。；;\n\r]+", text):
             fragment = match.group()
             start = match.start() + len(fragment) - len(fragment.lstrip())
             end = match.end() - (len(fragment) - len(fragment.rstrip()))
             clause = text[start:end]
             heading = HEADINGS.match(clause)
+            duty_section = field == "duties" or heading is not None
             if heading:
-                active = heading[1] in ("岗位职责", "工作职责", "职责")
+                active = heading[1] in DUTY_HEADINGS
+                duty_section = active
                 start += heading.end()
                 # Strip only heading whitespace, retaining offsets in the original field.
                 while start < end and text[start].isspace():
@@ -96,6 +141,7 @@ def suggest(record, taxonomy):
                 continue
             prefix = PREFIX.match(clause)
             matched = False
+            matched_families = set()
             if prefix:
                 work = clause[prefix.end():].strip()
                 for family, productions in deliveries.items():
@@ -108,6 +154,34 @@ def suggest(record, taxonomy):
                     clue = dict(kind=kind, rule=rule + ":" + family, evidence=_evidence(record, field, start, end))
                     candidates.setdefault(family, []).append(clue)
                     matched = True
+                    matched_families.add(family)
+            if active and duty_section and not matched_families and not UNSAFE_DUTY.search(clause):
+                work = clause[prefix.end():].strip() if prefix else clause
+                infrastructure_match = any(
+                    re.search(pattern, work, re.IGNORECASE)
+                    for pattern in DUTY_PATTERNS["infrastructure_operations"]
+                )
+                strong_software = bool(
+                    re.search(r"设计|开发|研发|实现|编码|重构", work)
+                )
+                for family, patterns in DUTY_PATTERNS.items():
+                    if family in matched_families:
+                        continue
+                    if family == "software_engineering" and infrastructure_match and not strong_software:
+                        continue
+                    if not any(re.search(pattern, work, re.IGNORECASE) for pattern in patterns):
+                        continue
+                    kind = ("core" if prefix and prefix[1] in ("核心职责：", "核心职责:", "主要职责：", "主要职责:", "主要负责")
+                            else "auxiliary" if prefix and prefix[1] in ("协助", "辅助", "配合")
+                            else "unspecified")
+                    clue = dict(
+                        kind=kind,
+                        rule=DUTY_RULESET + ":" + family,
+                        evidence=_evidence(record, field, start, end),
+                    )
+                    candidates.setdefault(family, []).append(clue)
+                    matched = True
+                    matched_families.add(family)
             if not matched:
                 flag("unsupported_duty_context")
                 context.append(dict(reason="unsupported_duty_context", evidence=_evidence(record, field, match.start(), match.end())))
