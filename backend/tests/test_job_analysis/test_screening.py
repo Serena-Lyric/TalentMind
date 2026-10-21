@@ -423,6 +423,31 @@ def test_current_job_development_stays_in_scope(area, text):
     assert member["reason_codes"] == ["technical_activity"]
 
 
+@pytest.mark.parametrize("duties", [
+    "岗位职责：负责仿真系统架构设计与软件开发，执行集成测试并完成部署。",
+    "工作职责：负责后端接口开发、数据库建模和单元测试。",
+    "岗位职责：负责数据仓库建模、ETL流程开发与数据质量校验。",
+    "工作职责：负责测试用例设计、自动化测试执行和缺陷跟踪。",
+])
+def test_explicit_object_first_duties_are_in_scope_with_original_evidence(area, duties):
+    row = jd(job_title="工程师", raw_text="暂无描述", duties=duties)
+    member = run(area, [row])["members"][0]
+
+    assert (member["validity"], member["scope_status"]) == ("valid", "in_scope")
+    assert member["reason_codes"] == ["technical_activity"]
+    assert member["evidence"]
+    assert all(row[e["field"]][e["start"]:e["end"]] == e["quote"] for e in member["evidence"])
+
+
+@pytest.mark.parametrize("row", [
+    jd(job_title="软件工程师", raw_text="公司介绍：我们研发软件产品，欢迎了解。", duties=""),
+    jd(job_title="软件工程师", raw_text="", duties="任职要求：熟悉 Python 并了解软件工程流程。"),
+])
+def test_background_and_qualification_without_current_duty_stay_unconfirmed(area, row):
+    member = run(area, [row])["members"][0]
+    assert member["scope_status"] != "in_scope"
+
+
 def test_product_context_rule_upgrade_replaces_cached_decision_without_rewriting_history(area, monkeypatch):
     import app.job_analysis.screening.rules as rules
     import app.job_analysis.screening.runner as runner
