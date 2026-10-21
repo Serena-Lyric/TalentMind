@@ -16,6 +16,7 @@ HEADINGS = {"任职要求": "requirements", "岗位要求": "requirements", "技
     "职位要求": "requirements", "任职条件": "requirements", "任职资格": "requirements",
     "兼职要求": "requirements", "工作内容": "duties", "岗位内容": "duties",
     "主要工作内容": "duties", "职责描述": "duties", "岗位描述": "duties",
+    "职位描述": "duties", "职位内容": "duties",
     "能力要求": "requirements", "核心能力要求": "requirements",
     "技术要求": "requirements", "专业要求": "requirements"}
 DEGREES = {"基础了解": "basic", "了解": "basic", "熟悉": "familiar",
@@ -23,10 +24,18 @@ DEGREES = {"基础了解": "basic", "了解": "basic", "熟悉": "familiar",
 VERB = r"(?:基础了解|了解|熟悉|熟练掌握|熟练使用|熟练|精通|掌握|具备)"
 MODAL = r"(?:必须|需要|要求|需|须|应)"
 # These affect the containing sentence/adjacent lines, not merely the matched skill token.
-RISK = re.compile(r"如果|若|仅当|除非|针对|对于|前端岗位|后端岗位|公司|我司|本团队|例如|示例|教程|曾经|过去|并非|不是|不但|而且|非本岗位|据说|可能|待定|视情况|候选人以外")
+RISK = re.compile(r"如果|若|仅当|除非|针对|对于|前端岗位|后端岗位|公司|我司|本团队|例如|示例|教程|曾经|过去|并非|不是|不但|而且|非本岗位|据说|可能|待定|视情况|候选人以外|未知(?:扩展|工具|组件|技术|能力)?")
 SCOPE_RISK = re.compile(r"如果|若|仅当|除非|当.+时|仅适用|适用于|仅限|限于|仅对|只对|针对|对于|前端岗位|后端岗位|不必满足|无须满足|无需满足|不需要满足|条件.{0,8}见")
 GROUP_SCOPE_RISK = re.compile(r'[二三四五六七八九十\d]+选[一二三\d]+|满足.{0,8}(?:一项|其一)|(?:以上|上述|以下)(?:技能|要求|条件|能力|条款|满足)')
-RECORD_SCOPE_RISK = re.compile(r"仅适用于|仅限|仅对|只对|适用于|条件.{0,8}见")
+RECORD_SCOPE_RISK = re.compile(
+    r"仅适用于|仅限|限于|仅对|只对|适用于|当.+时|"
+    r"不必满足|无需满足|不需要满足|以下条件|上述条件|条件.{0,8}见"
+)
+TAIL_SCOPE_RISK = re.compile(
+    r"以上[^。；;!?！？\n]{0,30}(?:一项|技能|要求|条件|加分|满足)|"
+    r"上述[^。；;!?！？\n]{0,30}(?:一项|技能|要求|条件|加分|满足)|"
+    r"均为加分|满足一项即可|[二三四五六七八九十\d]+选[一二三\d]"
+)
 
 
 def evidence(record, field, start, end):
@@ -107,6 +116,7 @@ def units(text, default_section, aliases):
                 return re.sub(r'\s+', '', candidate)
             templates = [templated(part) for part in comma_parts]
             split_capabilities = (len(comma_parts) > 1 and not RISK.search(whole)
+                and not re.search(r"不要求|无需|不需要", whole)
                 and all(classify(t, section, False)[0] in ('required', 'preferred') for t in templates))
             parts = comma_parts if split_contrast or split_capabilities else [re.match(r"[\s\S]+", whole)]
             for part in parts:
@@ -117,10 +127,6 @@ def units(text, default_section, aliases):
                     y -= 1
                 if x < y:
                     yield x, y, section, context_start, context_end, whole
-            if not occurrences(whole, aliases) and default_section not in ("title", "experience"):
-                # Unexplained scope text cannot silently inherit a preceding requirement section.
-                section = "unknown_section"
-                header_start = min(header_start, a) if header_start is not None else a
 
 
 def classify(template, section, risky):
@@ -154,6 +160,12 @@ def classify(template, section, risky):
         if direct:
             state = "preferred" if section == "preferred" else "required"
             tail = template[direct.end():]
+            if re.search(r"不要求|无需|不需要|某些|部分|其中", tail):
+                return "uncertain", None, "unsupported_clause"
+            if ("\ufdd0" in tail
+                    and not re.search(r"例如|如|等|可能", template)
+                    and re.search(r"(?:至少|⾄少).{0,4}(?:一种|⼀种)", template)):
+                return state, "any_of", "section_capability_extended_any_of"
             if "\ufdd0" in tail and not re.search(r"至少|任意|一种|项|例如|如|等|可能|待定", tail):
                 if "或" in template[direct.start():]:
                     return state, "any_of", "section_capability_extended_any_of"
@@ -177,6 +189,15 @@ def extract(record, aliases):
             if RECORD_SCOPE_RISK.search(fragment) and not occurrences(fragment, aliases):
                 record_scope.append(
                     evidence(record, field, match.start(), match.end())
+                )
+            for scope_match in TAIL_SCOPE_RISK.finditer(fragment):
+                record_scope.append(
+                    evidence(
+                        record,
+                        field,
+                        match.start() + scope_match.start(),
+                        match.start() + scope_match.end(),
+                    )
                 )
     clause_owners = {}
     for field, default in (("requirements", "requirements"), ("duties", "duties"),
@@ -203,10 +224,7 @@ def extract(record, aliases):
             template = re.sub(r"\s+", "", template)
             context = text[ca:cb]
             scope_items = list(record_scope)
-            for pattern in (SCOPE_RISK, GROUP_SCOPE_RISK):
-                for match in pattern.finditer(context):
-                    scope_items.append(evidence(record, field, ca + match.start(), ca + match.end()))
-            risky = bool(scope_items) or bool(RISK.search(context)) or "\ufdd0" in clause
+            risky = bool(scope_items) or bool(RISK.search(sentence)) or "\ufdd0" in clause
             state, relation, reason = classify(template, section, risky)
             if field == "job_title":
                 state, relation, reason = "mentioned", None, "title_reference_only"

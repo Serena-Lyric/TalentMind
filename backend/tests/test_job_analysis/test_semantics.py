@@ -149,6 +149,18 @@ def test_inline_requirement_heading_changes_section_after_duty_sentence():
     assert result["statements"][0]["section"] == "requirements"
 
 
+@pytest.mark.parametrize("text", [
+    "任职要求：\n本科及以上学历。\n熟练掌握 Python，并能独立完成接口开发。",
+    "职位描述 1.负责后端接口开发。 职位要求 1.本科及以上学历。 2.熟练掌握 Python。",
+    "任职要求：\n针对有项目经验的候选人，需要了解业务流程。\n熟练掌握 Python。",
+])
+def test_unparsed_experience_lines_do_not_erase_following_requirement_section(text):
+    result = analyze(text)
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["section"] == "requirements"
+
+
 @pytest.mark.parametrize("text,skill,want", [
     ("任职要求：\n熟练掌握 Python，并能独立完成接口开发。", "python", "required"),
     ("加分项：\n熟悉 Docker，具备容器化交付经验。", "docker", "preferred"),
@@ -166,6 +178,15 @@ def test_job_title_lists_skill_as_mention_only():
     assert states(result) == ["mentioned"]
     assert result["statements"][0]["reason"] == "title_reference_only"
     assert result["statements"][0]["evidence"]["field"] == "job_title"
+
+
+def test_compatibility_variant_at_least_one_keeps_any_of_semantics():
+    result = analyze("任职要求：\n熟练掌握 Java、Python、TypeScript ⾄少⼀种")
+
+    statement = result["statements"][0]
+    assert statement["state"] == "required"
+    assert statement["relation"] == "any_of"
+    assert {skill["name"] for skill in statement["skills"]} == {"java", "python", "typescript"}
 
 
 def test_structured_clause_wins_over_identical_raw_text_copy():

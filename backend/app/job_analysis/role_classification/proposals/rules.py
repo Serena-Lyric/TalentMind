@@ -25,9 +25,9 @@ TITLES = {
     "embedded_system_software": ("嵌入式工程师",),
     "technical_services_delivery": ("技术支持", "解决方案工程师", "实施工程师"),
 }
-HEADINGS = re.compile(r"^(岗位职责|工作职责|职责|工作内容|岗位内容|主要工作内容|职责描述|公司介绍|企业介绍|历史项目|培训内容|示例|任职要求|技能要求|能力要求|核心能力要求|福利待遇)(?:[：:]|$)")
-DUTY_HEADINGS = {"岗位职责", "工作职责", "职责", "工作内容", "岗位内容", "主要工作内容", "职责描述"}
-PREFIX = re.compile(r"^(核心职责[：:]|主要职责[：:]|主要负责|负责|协助|辅助|配合)")
+HEADINGS = re.compile(r"^(岗位职责|工作职责|职责|工作内容|岗位内容|主要工作内容|职责描述|职位描述|职位内容|职位要求|岗位要求|任职条件|任职资格|公司介绍|企业介绍|历史项目|培训内容|示例|任职要求|技能要求|能力要求|核心能力要求|福利待遇)(?:[：:]|(?=[\u4e00-\u9fff])|$)")
+DUTY_HEADINGS = {"岗位职责", "工作职责", "职责", "工作内容", "岗位内容", "主要工作内容", "职责描述", "职位描述", "职位内容"}
+PREFIX = re.compile(r"^(?:[（(]?\d{1,2}[)）、.．]\s*)?(核心职责[：:]|主要职责[：:]|主要负责|负责|参与|主导|协助|辅助|配合)")
 MULTIPLE = re.compile(r"招聘(?:两|多|[2-9])个(?:岗位|职位)|岗位[一二三1-9][：:]|职位[一二三1-9][：:]")
 COMPOUND = re.compile(r"全栈|复合岗位|混合岗位")
 RULESET = "closed-delivery-clauses-v2"
@@ -35,8 +35,17 @@ DUTY_RULESET = "closed-action-object-duties-v1"
 UNSAFE_DUTY = re.compile(
     r"如果|若|仅当|除非|不负责|非本岗位|曾经|过去|公司介绍|企业介绍|历史项目|培训内容|示例|"
     r"如果需要|客户负责|客户销售|销售转化|销售软件|向客户演示|客户关系|"
-    r"商务维护|普通客服"
+    r"商务维护|普通客服|信息录入|候选人|业务部门|产品需求文档|PRD|"
+    r"系统原型设计|产品规划|产品经理"
 )
+EXPERIENCE_ONLY = re.compile(
+    r"^\s*(?:\d{1,2}[、.．]\s*)?"
+    r"(?:本科|硕士|博士|大专|研究生|学历|专业|应届|"
+    r"[0-9一二三四五六七八九十]+年(?:以上)?|"
+    r"具备.{0,16}经验|有.{0,16}经验|熟悉|掌握|精通|了解|熟练)"
+)
+CONTEXT_ONLY = re.compile(r"公司|企业|事业部|我们")
+REQUIREMENT_ONLY = re.compile(r"(?:经验|经历|学历|专业).{0,8}(?:优先|者|$)")
 DUTY_PATTERNS = {
     "software_engineering": (
         r"(?:设计|开发|研发|实现|编码|重构|维护|优化|迭代|调优)[^，,、。；;\n]{0,20}"
@@ -88,6 +97,19 @@ def _evidence(record, field, start, end):
         field=field, start=start, end=end, quote=record.payload[field][start:end])
 
 
+def _quote_in_current_duty(record, field, quote):
+    text = record.payload.get(field, "")
+    active = field == "duties"
+    for match in re.finditer(r"[^。；;\n\r]+", text):
+        clause = match.group()
+        heading = HEADINGS.match(clause)
+        if heading:
+            active = heading[1] in DUTY_HEADINGS
+        if active and quote in clause:
+            return True
+    return False
+
+
 def suggest(record, taxonomy):
     config = FamilyTaxonomy.model_validate(taxonomy)
     deliveries, title_terms = DELIVERIES, TITLES
@@ -119,16 +141,16 @@ def suggest(record, taxonomy):
         if field == "raw_text" and text == record.payload.get("duties"):
             continue
         active = True
+        section_known = False
         for match in re.finditer(r"[^。；;\n\r]+", text):
             fragment = match.group()
             start = match.start() + len(fragment) - len(fragment.lstrip())
             end = match.end() - (len(fragment) - len(fragment.rstrip()))
             clause = text[start:end]
             heading = HEADINGS.match(clause)
-            duty_section = field == "duties" or heading is not None
             if heading:
                 active = heading[1] in DUTY_HEADINGS
-                duty_section = active
+                section_known = True
                 start += heading.end()
                 # Strip only heading whitespace, retaining offsets in the original field.
                 while start < end and text[start].isspace():
@@ -136,6 +158,7 @@ def suggest(record, taxonomy):
                 clause = text[start:end]
                 if not clause:
                     continue
+            duty_section = field == "duties" or (section_known and active)
             if not active:
                 context.append(dict(reason="non_duty_section", evidence=_evidence(record, field, match.start(), match.end())))
                 continue
@@ -155,7 +178,11 @@ def suggest(record, taxonomy):
                     candidates.setdefault(family, []).append(clue)
                     matched = True
                     matched_families.add(family)
-            if active and duty_section and not matched_families and not UNSAFE_DUTY.search(clause):
+            if (active and duty_section and not matched_families
+                    and (prefix is not None or section_known)
+                    and not (prefix is None and (CONTEXT_ONLY.search(clause) or REQUIREMENT_ONLY.search(clause)))
+                    and not UNSAFE_DUTY.search(clause)
+                    and not EXPERIENCE_ONLY.search(clause)):
                 work = clause[prefix.end():].strip() if prefix else clause
                 infrastructure_match = any(
                     re.search(pattern, work, re.IGNORECASE)
@@ -164,10 +191,15 @@ def suggest(record, taxonomy):
                 strong_software = bool(
                     re.search(r"设计|开发|研发|实现|编码|重构", work)
                 )
+                infrastructure_specific = bool(
+                    re.search(r"服务器|云平台|集群|数据库|容器|生产系统|基础设施", work)
+                )
                 for family, patterns in DUTY_PATTERNS.items():
                     if family in matched_families:
                         continue
                     if family == "software_engineering" and infrastructure_match and not strong_software:
+                        continue
+                    if family == "infrastructure_operations" and strong_software and not infrastructure_specific:
                         continue
                     if not any(re.search(pattern, work, re.IGNORECASE) for pattern in patterns):
                         continue
@@ -193,14 +225,25 @@ def suggest(record, taxonomy):
             ref = clue["evidence"]
             conflicts = [c for c in context if c["evidence"]["field"] != ref["field"]
                          and ref["quote"] in c["evidence"]["quote"]]
+            current_elsewhere = any(
+                _quote_in_current_duty(record, c["evidence"]["field"], ref["quote"])
+                for c in conflicts
+            )
             if conflicts:
                 flag("cross_field_context_conflict")
-            else:
+            if not conflicts or current_elsewhere:
                 kept.append(clue)
         if kept:
             candidates[family] = kept
         else:
             del candidates[family]
+    # Prefer the first structured-field clue when the same duty is copied into raw_text.
+    for family, clues in list(candidates.items()):
+        unique = {}
+        for clue in clues:
+            key = (clue["kind"], clue["evidence"]["quote"])
+            unique.setdefault(key, clue)
+        candidates[family] = list(unique.values())
     core = {family for family, clues in candidates.items() if any(c["kind"] == "core" for c in clues)}
     titles = {c["family_id"] for c in title_clues}
     if candidates and titles and not titles <= (core if len(core) == 1 else set(candidates)):

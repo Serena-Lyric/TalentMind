@@ -128,9 +128,40 @@ def test_explicit_action_object_duty_proposes_pending_family(text, family):
     "曾经负责设计测试用例并执行自动化测试",
     "负责销售软件并维护客户关系",
     "负责向客户演示软件模块的架构设计",
+    "岗位职责：1.本科及以上学历，5年以上后端开发经验",
+    "协助业务部门进行系统候选人的信息录入与维护",
+    "公司主要从事系统应用研发",
+    "2.民用飞机系统设备研发经验",
+    "参与产品需求文档、系统原型设计和产品规划",
 ])
 def test_non_current_or_nontechnical_context_does_not_propose_family(text):
     assert suggest(record(text))["candidates"] == []
+
+
+def test_software_development_does_not_also_become_infrastructure():
+    body = suggest(record("参与Python应用程序的开发和维护"))
+
+    assert [candidate["family_id"] for candidate in body["candidates"]] == ["software_engineering"]
+
+
+def test_duplicate_structured_and_raw_duty_keeps_one_pending_clue():
+    text = "负责软件模块的架构设计、编码实现与单元测试"
+    body = suggest(record(text, raw_text="岗位职责：\n" + text))
+
+    assert [candidate["family_id"] for candidate in body["candidates"]] == ["software_engineering"]
+    assert len(body["candidates"][0]["clues"]) == 1
+    assert body["candidates"][0]["clues"][0]["evidence"]["field"] == "duties"
+
+
+def test_generic_duty_survives_company_background_when_current_duty_is_also_present():
+    clause = "负责中间件核心模块开发"
+    body = suggest(record(
+        "职位描述：" + clause,
+        raw_text="公司介绍：" + clause + "\n职位描述：" + clause,
+    ))
+
+    assert [candidate["family_id"] for candidate in body["candidates"]] == ["software_engineering"]
+    assert body["resolution"] == "unresolved"
 
 
 def test_title_conflict_keeps_both_original_fields_and_no_primary():
@@ -511,7 +542,7 @@ def test_supported_current_work_with_same_company_background_keeps_candidates_bu
     assert [c["family_id"] for c in body["candidates"]] == ["software_engineering"]
     assert body["resolution"] == "unresolved"
     assert body["primary_family_hint"] is None
-    assert all(c["evidence"]["field"] == "raw_text" for c in body["candidates"][0]["clues"])
+    assert all(c["evidence"]["field"] in {"duties", "raw_text"} for c in body["candidates"][0]["clues"])
 
 
 def test_late_foreign_evidence_failure_rolls_back_whole_new_run(area, monkeypatch):
