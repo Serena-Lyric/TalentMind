@@ -1,11 +1,22 @@
 <template>
   <section class="learning-roadmap panel" v-loading="loading">
+    <span class="learning-planet-companion" aria-hidden="true"></span>
     <div class="roadmap-header">
       <div><h2>技能学习路径</h2><p>学习目标来自简历自动匹配结果，点击推荐岗位后自动生成对应路径。</p></div>
       <el-button class="btn-coral" :disabled="!hasResume || !selectedJobId" :loading="generating" @click="generatePath"><el-icon><MagicStick /></el-icon>重新生成</el-button>
     </div>
 
-    <div v-if="!hasResume" class="roadmap-empty compact"><div class="empty-symbol"><el-icon><Document /></el-icon></div><h3>请先完成简历解析</h3><p>解析简历后系统会自动给出至少 3 个岗位推荐；从推荐卡片进入即可绑定学习目标。</p><el-button class="btn-soft" @click="router.push('/resume')">前往简历解析</el-button></div>
+    <aside v-if="!hasResume || !selectedJobId" class="skill-recommendation-bubble" aria-label="技能推荐概述">
+      <div class="bubble-title"><el-icon><MagicStick /></el-icon><b>技能推荐概述</b></div>
+      <p>系统会对照简历技能、目标岗位要求与 JD 证据，标出已掌握能力、必备与加分技能缺口，并按优先级整理成可执行的学习建议。</p>
+    </aside>
+
+    <div v-if="!hasResume" class="roadmap-empty compact">
+      <div class="empty-symbol"><el-icon><Document /></el-icon></div>
+      <h3>请先完成简历解析</h3>
+      <p>解析简历后系统会自动给出至少 3 个岗位推荐；从推荐卡片进入即可绑定学习目标。</p>
+      <el-button class="btn-soft" @click="router.push('/resume')">前往简历解析</el-button>
+    </div>
 
     <template v-else>
       <div class="roadmap-config">
@@ -13,7 +24,12 @@
         <div class="selected-target"><small>自动匹配目标岗位</small><strong>{{ path?.job_title || '等待选择推荐岗位' }}</strong><em>{{ path?.job_name_en || '' }}<span v-if="path?.category"> · {{ path.category }}</span></em></div>
       </div>
 
-      <div v-if="!selectedJobId" class="roadmap-empty compact"><div class="empty-symbol"><el-icon><MagicStick /></el-icon></div><h3>请选择一个自动推荐岗位</h3><p>学习路径必须绑定到简历页中你点击的推荐岗位，避免生成与匹配结果不一致的路径。</p><el-button class="btn-soft" @click="router.push('/resume')">返回查看岗位推荐</el-button></div>
+      <div v-if="!selectedJobId" class="roadmap-empty compact">
+        <div class="empty-symbol"><el-icon><MagicStick /></el-icon></div>
+        <h3>请选择一个自动推荐岗位</h3>
+        <p>学习路径必须绑定到简历页中你点击的推荐岗位，避免生成与匹配结果不一致的路径。</p>
+        <el-button class="btn-soft" @click="router.push('/resume')">返回查看岗位推荐</el-button>
+      </div>
 
       <template v-else>
         <div v-if="path">
@@ -105,12 +121,263 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.learning-roadmap { min-height: 620px; }.roadmap-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }.roadmap-header h2 { margin: 0 0 5px; font-size: 18px; }.roadmap-header p { margin: 0; color: #a29d99; font-size: 12px; }.roadmap-config { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 18px 0 14px; padding: 15px; border-radius: 13px; background: var(--card-soft); }.config-status { display: flex; align-items: center; gap: 10px; }.status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px var(--green-soft); }.config-status small, .config-status strong, .config-status p { display: block; }.config-status small { color: #a5a09b; font-size: 10px; }.config-status strong { margin: 4px 0; font-size: 13px; }.config-status p { margin: 0; color: #78a486; font-size: 10px; }.selected-target { min-width: 260px; text-align: right; }.selected-target small, .selected-target strong, .selected-target em { display: block; }.selected-target small { color: #a5a09b; font-size: 10px; }.selected-target strong { margin: 4px 0; font-size: 14px; }.selected-target em { color: #8f8985; font-size: 11px; font-style: normal; }.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.summary-grid > div { padding: 14px; border-radius: 12px; background: #fffaf6; }.summary-grid span, .summary-grid strong { display: block; }.summary-grid span { color: #a5a09b; font-size: 11px; }.summary-grid strong { margin-top: 5px; color: var(--text); font-size: 16px; }.green-text { color: #67a37b !important; }.orange-text { color: #c58a4c !important; }
-.at-standard { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: #eef7f0; color: #3f7a58; }.at-standard .el-icon { font-size: 22px; }.at-standard strong { font-size: 14px; }.at-standard p { margin: 4px 0 0; font-size: 12px; line-height: 1.7; color: #4e7a60; }
-.skill-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }.skill-panel { min-height: 112px; padding: 15px; border-radius: 12px; background: var(--card-soft); }.panel-title { display: flex; align-items: center; gap: 7px; margin-bottom: 13px; font-size: 13px; }.panel-title .el-icon { color: var(--green); }.skill-panel:nth-child(2) .panel-title .el-icon { color: var(--orange); }.panel-title .el-tag { margin-left: auto; }.skill-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }.muted { color: #aaa39e; font-size: 11px; }
-.suggestions { margin-top: 18px; }.suggestion-card { padding: 13px 15px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }.suggestion-head { display: flex; align-items: center; gap: 8px; }.suggestion-head strong { font-size: 14px; }.suggestion-head .el-tag { margin-right: 0; }.suggestion-text { margin: 8px 0 6px; color: #5f5a55; font-size: 12.5px; line-height: 1.8; }.bridge-line, .evidence-line { color: #98918d; font-size: 11px; line-height: 1.7; }.evidence-line { color: #a1886a; }
-.stages { margin-top: 18px; }.stage-list { display: grid; gap: 10px; }.stage-card { display: flex; gap: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }.stage-body strong { font-size: 13px; }.stage-body p { margin: 6px 0 9px; color: #98918d; font-size: 11px; }.roadmap-empty { display: flex; min-height: 350px; flex-direction: column; align-items: center; justify-content: center; padding: 30px; border: 1px dashed var(--line-strong); border-radius: 14px; background: linear-gradient(180deg, #fffdfa, #fcfaf7); text-align: center; }.roadmap-empty.compact { min-height: 300px; margin-top: 18px; }.empty-symbol { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 50%; background: var(--coral-soft); color: var(--coral); font-size: 27px; }.roadmap-empty h3 { margin: 14px 0 7px; font-size: 18px; }.roadmap-empty p { max-width: 560px; margin: 0 0 18px; color: #a29d99; font-size: 12px; line-height: 1.8; }
-.stage-steps { counter-reset: step; margin: 6px 0 0; padding: 0; list-style: none; }.stage-steps li { position: relative; padding: 8px 10px 8px 30px; margin-bottom: 6px; border-radius: 10px; background: #faf7f2; }.stage-steps li::before { counter-increment: step; content: counter(step); position: absolute; left: 8px; top: 9px; width: 16px; height: 16px; border-radius: 50%; background: var(--coral-soft); color: var(--coral-deep); font-size: 10px; font-weight: 700; text-align: center; line-height: 16px; }.step-head { display: flex; align-items: center; gap: 8px; }.step-head b { font-size: 12.5px; }.step-tip { margin: 4px 0 0; color: #98918d; font-size: 11px; line-height: 1.7; }
+.learning-roadmap { min-height: 620px; }.roadmap-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }.roadmap-header h2 { margin: 0 0 5px; font-size: 18px; }.roadmap-header p { margin: 0; color: #69808E; font-size: 12px; }.roadmap-config { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 18px 0 14px; padding: 15px; border-radius: 13px; background: var(--card-soft); }.config-status { display: flex; align-items: center; gap: 10px; }.status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px var(--green-soft); }.config-status small, .config-status strong, .config-status p { display: block; }.config-status small { color: #69808E; font-size: 10px; }.config-status strong { margin: 4px 0; font-size: 13px; }.config-status p { margin: 0; color: #55B88D; font-size: 10px; }.selected-target { min-width: 260px; text-align: right; }.selected-target small, .selected-target strong, .selected-target em { display: block; }.selected-target small { color: #69808E; font-size: 10px; }.selected-target strong { margin: 4px 0; font-size: 14px; }.selected-target em { color: #69808E; font-size: 11px; font-style: normal; }.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.summary-grid > div { padding: 14px; border-radius: 12px; background: #F8FAFB; }.summary-grid span, .summary-grid strong { display: block; }.summary-grid span { color: #69808E; font-size: 11px; }.summary-grid strong { margin-top: 5px; color: var(--text); font-size: 16px; }.green-text { color: #55B88D !important; }.orange-text { color: #D58A3D !important; }
+.at-standard { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: #E7F5EF; color: #2D8967; }.at-standard .el-icon { font-size: 22px; }.at-standard strong { font-size: 14px; }.at-standard p { margin: 4px 0 0; font-size: 12px; line-height: 1.7; color: #2D8967; }
+.skill-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }.skill-panel { min-height: 112px; padding: 15px; border-radius: 12px; background: var(--card-soft); }.panel-title { display: flex; align-items: center; gap: 7px; margin-bottom: 13px; font-size: 13px; }.panel-title .el-icon { color: var(--green); }.skill-panel:nth-child(2) .panel-title .el-icon { color: var(--orange); }.panel-title .el-tag { margin-left: auto; }.skill-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }.muted { color: #69808E; font-size: 11px; }
+.suggestions { margin-top: 18px; }.suggestion-card { padding: 13px 15px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }.suggestion-head { display: flex; align-items: center; gap: 8px; }.suggestion-head strong { font-size: 14px; }.suggestion-head .el-tag { margin-right: 0; }.suggestion-text { margin: 8px 0 6px; color: #69808E; font-size: 12.5px; line-height: 1.8; }.bridge-line, .evidence-line { color: #69808E; font-size: 11px; line-height: 1.7; }.evidence-line { color: #a1886a; }
+.stages { margin-top: 18px; }.stage-list { display: grid; gap: 10px; }.stage-card { display: flex; gap: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }.stage-body strong { font-size: 13px; }.stage-body p { margin: 6px 0 9px; color: #69808E; font-size: 11px; }.roadmap-empty { display: flex; min-height: 350px; flex-direction: column; align-items: center; justify-content: center; padding: 30px; border: 1px dashed var(--line-strong); border-radius: 14px; background: linear-gradient(180deg, #FFFFFF, #fcfaf7); text-align: center; }.roadmap-empty.compact { min-height: 300px; margin-top: 18px; }.empty-symbol { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 50%; background: var(--coral-soft); color: var(--coral); font-size: 27px; }.roadmap-empty h3 { margin: 14px 0 7px; font-size: 18px; }.roadmap-empty p { max-width: 560px; margin: 0 0 18px; color: #69808E; font-size: 12px; line-height: 1.8; }
+.stage-steps { counter-reset: step; margin: 6px 0 0; padding: 0; list-style: none; }.stage-steps li { position: relative; padding: 8px 10px 8px 30px; margin-bottom: 6px; border-radius: 10px; background: #F8FAFB; }.stage-steps li::before { counter-increment: step; content: counter(step); position: absolute; left: 8px; top: 9px; width: 16px; height: 16px; border-radius: 50%; background: var(--coral-soft); color: var(--coral-deep); font-size: 10px; font-weight: 700; text-align: center; line-height: 16px; }.step-head { display: flex; align-items: center; gap: 8px; }.step-head b { font-size: 12.5px; }.step-tip { margin: 4px 0 0; color: #69808E; font-size: 11px; line-height: 1.7; }
 @media (max-width: 800px) { .roadmap-header, .roadmap-config { align-items: flex-start; flex-direction: column; }.selected-target { width: 100%; text-align: right; }.summary-grid { grid-template-columns: repeat(2, 1fr); }.skill-overview { grid-template-columns: 1fr; } }
 @media (max-width: 500px) { .summary-grid { grid-template-columns: 1fr; } }
+
+/* 技能学习路径初始状态：放大空白画布与卡通视觉，仅装饰 */
+.learning-roadmap {
+  display: flex;
+  min-height: calc(66.666vh - 78px);
+  flex-direction: column;
+  overflow: visible;
+}
+.learning-planet-companion {
+  position: absolute;
+  top: -8px;
+  right: 4px;
+  z-index: 7;
+  width: 210px;
+  height: 200px;
+  padding: 0;
+  pointer-events: auto;
+  border: 0;
+  border-radius: 0;
+  background: url("/learning-nebula-girl.png") center / contain no-repeat;
+  filter: drop-shadow(0 10px 13px rgba(90, 86, 185, .13));
+  opacity: .98;
+  transition: translate .24s ease, rotate .24s ease, scale .24s ease, filter .24s ease;
+  animation: learning-planet-float 3.8s ease-in-out infinite;
+}
+.learning-planet-companion::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 236px;
+  height: 236px;
+  pointer-events: none;
+  border: 2px solid rgba(54, 70, 182, .24);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotateX(70deg) rotateZ(-16deg);
+  background:
+    radial-gradient(circle at 100% 50%, var(--cyan) 0 3px, transparent 3.8px),
+    radial-gradient(circle at 0 50%, var(--purple) 0 2.8px, transparent 3.6px);
+  box-shadow: 0 3px 10px rgba(54, 70, 182, .08);
+  animation: learning-orbit-sway 7s linear infinite;
+}
+.learning-planet-companion:hover {
+  opacity: 1;
+  translate: 0 -3px;
+  rotate: 5deg;
+  scale: 1.08;
+  filter: saturate(1.12) brightness(1.04) drop-shadow(0 13px 16px rgba(90, 86, 185, .18));
+}
+.learning-planet-companion::after {
+  content: "✦";
+  position: absolute;
+  top: -2px;
+  right: -1px;
+  z-index: 6;
+  color: var(--purple);
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0;
+  transform: scale(.5) rotate(0);
+  transition: opacity .2s ease, transform .28s ease;
+}
+.learning-planet-companion:hover::after {
+  opacity: 1;
+  transform: scale(1.18) rotate(28deg);
+  animation: learning-star-pop .55s ease;
+}
+.learning-planet-companion:hover::before {
+  border-color: rgba(54, 70, 182, .38);
+  animation: learning-orbit-sway 2.4s linear infinite;
+}
+.roadmap-empty.compact {
+  position: static;
+  flex: 1;
+  min-height: clamp(360px, calc(66.666vh - 205px), 540px);
+  margin-top: 20px;
+  overflow: visible;
+  padding: 48px 34px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(237, 240, 255, .82), transparent 34%),
+    linear-gradient(180deg, #fff, #fbfcff);
+}
+.roadmap-empty.compact .empty-symbol {
+  position: relative;
+  width: clamp(92px, 10vw, 116px);
+  height: clamp(92px, 10vw, 116px);
+  margin-bottom: 12px;
+  border: 1px solid rgba(54, 70, 182, .13);
+  background:
+    radial-gradient(circle at 35% 30%, #fff 0 7%, transparent 8%),
+    linear-gradient(145deg, #eef1ff, #e6f7f5);
+  box-shadow:
+    0 22px 48px rgba(54, 70, 182, .15),
+    inset 0 0 0 9px rgba(255, 255, 255, .48);
+  color: var(--primary);
+  animation: learning-sprite-float 3.4s ease-in-out infinite;
+}
+.roadmap-empty.compact .empty-symbol .el-icon {
+  font-size: clamp(38px, 4vw, 50px);
+  filter: drop-shadow(0 8px 11px rgba(54, 70, 182, .18));
+}
+.roadmap-empty.compact .empty-symbol::before,
+.roadmap-empty.compact .empty-symbol::after {
+  content: "✦";
+  position: absolute;
+  color: var(--purple);
+  font-weight: 700;
+  line-height: 1;
+}
+.roadmap-empty.compact .empty-symbol::before {
+  top: 12%;
+  right: -12%;
+  font-size: 18px;
+  animation: learning-star-twinkle 2.1s ease-in-out infinite;
+}
+.roadmap-empty.compact .empty-symbol::after {
+  bottom: 15%;
+  left: -13%;
+  color: var(--cyan);
+  font-size: 15px;
+  animation: learning-star-twinkle 2.1s .65s ease-in-out infinite;
+}
+.roadmap-empty.compact h3 {
+  margin: 12px 0 10px;
+  font-size: clamp(20px, 1.6vw, 25px);
+}
+.roadmap-empty.compact p {
+  max-width: 680px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.skill-recommendation-bubble {
+  position: absolute;
+  top: 18px;
+  right: 220px;
+  z-index: 6;
+  width: min(430px, calc(100% - 232px));
+  padding: 16px 18px;
+  border: 1px solid rgba(88, 87, 181, .18);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(246, 247, 255, .98), rgba(232, 249, 247, .96));
+  box-shadow: 0 14px 30px rgba(73, 80, 166, .16);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  text-align: left;
+  transform: translateY(-8px) scale(.96);
+  transform-origin: top right;
+  transition:
+    opacity .2s ease,
+    visibility .2s ease,
+    transform .24s ease,
+    box-shadow .24s ease;
+}
+.skill-recommendation-bubble::before {
+  content: "";
+  position: absolute;
+  top: 34px;
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid rgba(88, 87, 181, .18);
+  border-right: 1px solid rgba(88, 87, 181, .18);
+  background: #f6f7ff;
+  transform: rotate(45deg);
+}
+.skill-recommendation-bubble::after {
+  content: "✦";
+  position: absolute;
+  top: -11px;
+  right: -3px;
+  color: var(--purple);
+  font-size: 15px;
+  font-weight: 700;
+}
+.learning-planet-companion:hover ~ .skill-recommendation-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  animation: learning-bubble-speak .34s ease;
+}
+.bubble-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--primary);
+  font-size: 16px;
+}
+.bubble-title .el-icon {
+  color: var(--purple);
+}
+.skill-recommendation-bubble p {
+  max-width: none;
+  margin: 6px 0 0;
+  color: #607084;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.roadmap-empty.compact .el-button {
+  min-height: 38px;
+  padding-inline: 20px;
+  font-size: 14px;
+}
+@keyframes learning-planet-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+@keyframes learning-bubble-speak {
+  0% { opacity: 0; transform: translateY(-8px) scale(.96); }
+  65% { opacity: 1; transform: translateY(2px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes learning-star-pop {
+  0% { opacity: 0; transform: scale(.5) rotate(0); }
+  65% { opacity: 1; transform: scale(1.28) rotate(30deg); }
+  100% { opacity: .85; transform: scale(1.18) rotate(28deg); }
+}
+@keyframes learning-orbit-sway {
+  from { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(-16deg); }
+  to { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(344deg); }
+}
+@keyframes learning-sprite-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-11px) rotate(2deg); }
+}
+@keyframes learning-star-twinkle {
+  0%, 100% { opacity: .45; transform: scale(.82) rotate(0); }
+  50% { opacity: 1; transform: scale(1.22) rotate(25deg); }
+}
+@media (max-width: 720px) {
+  .learning-page, .learning-roadmap { width: 100%; }
+  .learning-roadmap { min-height: 500px; }
+  .learning-planet-companion { right: 8px; width: 144px; height: 138px; }
+  .learning-planet-companion::before { width: 160px; height: 160px; }
+  .roadmap-empty.compact { min-height: 380px; padding-inline: 20px; }
+  .skill-recommendation-bubble { top: 8px; right: 152px; width: min(330px, calc(100% - 154px)); padding: 13px 14px; }
+  .skill-recommendation-bubble::before { top: 27px; right: -7px; }
+  .skill-recommendation-bubble p { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .learning-planet-companion,
+  .learning-planet-companion::before,
+  .skill-recommendation-bubble,
+  .roadmap-empty.compact .empty-symbol,
+  .roadmap-empty.compact .empty-symbol::before,
+  .roadmap-empty.compact .empty-symbol::after { animation: none; }
+}
+/* 交互小行星使用独立装饰层 */
+.learning-roadmap::after, .learning-roadmap::before { display: none; }
 </style>
