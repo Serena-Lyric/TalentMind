@@ -16,6 +16,9 @@ export interface CollectionTask {
   listed?: number | null
   detail_attempted?: number | null
   detail_obtained?: number | null
+  content_eligible?: number | null
+  identity_pending?: number | null
+  identity_verified?: number | null
   complete?: number | null
   inserted?: number | null
   updated?: number | null
@@ -102,6 +105,9 @@ export interface CollectionResult {
   rejection_reason?: string | null
   outcome?: string | null
   jd_pool_id?: number | null
+  identity_status?: 'verified' | 'pending' | 'unknown'
+  content_eligible?: boolean | null
+  identity_evidence?: Record<string, any> | null
 }
 export interface CollectionRaw extends CollectionResult { id?: number; content?: string }
 
@@ -119,6 +125,9 @@ export interface CollectionBatchItem {
   listed: number | null
   detail_attempted: number | null
   detail_obtained: number | null
+  content_eligible: number | null
+  identity_pending: number | null
+  identity_verified: number | null
   complete: number | null
   inserted: number | null
   updated: number | null

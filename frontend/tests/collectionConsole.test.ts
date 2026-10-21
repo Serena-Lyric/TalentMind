@@ -231,6 +231,34 @@ test('历史details不冒充取得详情或完整JD，未知计数显示破折�
   } finally { page.stop() }
 })
 
+test('身份待审统计与内容资格独立于完整JD和拒绝', async () => {
+  const page = collectionComponent({
+    getCollectionStatus: {
+      run_id: 'pending-run', status: 'completed', listed: 1,
+      detail_attempted: 1, detail_obtained: 1, content_eligible: 1,
+      identity_pending: 1, identity_verified: 0, complete: 0,
+      inserted: 1, updated: 0, skipped: 0, rejected: 0, failed: 0,
+    },
+    getCollectionResults: [{
+      job_title: 'Python 工程师', raw_text: '负责平台开发',
+      identity_status: 'pending', content_eligible: true,
+      identity_evidence: { binding_policy: 'zhaopin-dom-panel-v1' },
+      outcome: 'inserted', jd_pool_id: 9,
+    }],
+  })
+  try {
+    await page.mounted()
+    const items = page.state.progressItems.value
+    assert.equal(items.find((item: any) => item.key === 'content_eligible').value, '1')
+    assert.equal(items.find((item: any) => item.key === 'identity_pending').value, '1')
+    assert.equal(items.find((item: any) => item.key === 'identity_verified').value, '0')
+    assert.equal(items.find((item: any) => item.key === 'complete').value, '0')
+    assert.equal(page.state.identityText('pending'), '身份待审')
+    assert.equal(page.state.results.value[0].identity_status, 'pending')
+    assert.equal(page.state.results.value[0].outcome, 'inserted')
+  } finally { page.stop() }
+})
+
 test('数据库不可用时展示真实错误，平台统计不制造历史回退值', async () => {
   const page = collectionComponent({ getDatabaseStats: { available: false, error: 'connection refused', database_total: null, platform_counts: [] } })
   try {

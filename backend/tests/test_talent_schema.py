@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from app.collect.schema import RawJD, RawTalent
 
 
@@ -29,3 +31,16 @@ def test_rawjd_unaffected_by_rawtalent_addition():
     assert jd.source == "linkedin"
     assert jd.job_id == ""
     assert jd.raw_skills is None
+
+
+def test_jd_pool_identity_contract_and_additive_migration_are_declared():
+    root = Path(__file__).resolve().parents[2]
+    ddl = (root / 'backend/app/contracts/ddl.sql').read_text(encoding='utf-8')
+    migration_path = root / 'backend/app/contracts/migrations/2026-10-21-jd-pool-identity-status.sql'
+    assert "identity_status VARCHAR(16) NOT NULL DEFAULT 'unknown'" in ddl
+    assert 'content_eligible TINYINT(1) NULL DEFAULT NULL' in ddl
+    assert 'identity_evidence TEXT NULL' in ddl
+    assert migration_path.exists()
+    migration = migration_path.read_text(encoding='utf-8')
+    assert 'ALTER TABLE jd_pool' in migration
+    assert 'DROP COLUMN' not in migration.upper()

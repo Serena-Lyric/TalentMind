@@ -422,6 +422,72 @@ def test_results_include_explicit_requirements_and_original_body():
     assert result['structure_source'] == '原文标题分段'
 
 
+def test_results_and_task_keep_pending_identity_separate_from_complete():
+    state = control._default_state()
+    state['current_task'] = control._empty_task('pending', state['config'])
+    control._save_state(state)
+    evidence = {'binding_policy': 'zhaopin-dom-panel-v1', 'stable_samples': 2}
+    events = [
+        {'event': 'listed', 'platform': 'zhaopin', 'jobs': [{
+            'url': 'dom://zhaopin/provisional', 'title': 'Python 工程师',
+            '_observation_key': 'zhaopin:card-0',
+        }]},
+        {'event': 'detail', 'platform': 'zhaopin',
+         'job': {'url': 'dom://zhaopin/provisional', 'title': 'Python 工程师',
+                 '_observation_key': 'zhaopin:card-0'},
+         'detail': {'description': '负责 Python 开发'},
+         'rejection': None, 'identity_status': 'pending', 'content_eligible': True,
+         'identity_evidence': evidence},
+        {'event': 'persisted', 'platform': 'zhaopin', 'items': [{
+            'source_detail': 'dom://zhaopin/' + 'a' * 64,
+            'observation_key': 'zhaopin:card-0', 'jd_pool_id': 9,
+            'outcome': 'inserted', 'identity_status': 'pending',
+            'content_eligible': True, 'identity_evidence': evidence,
+        }]},
+        {'event': 'finished', 'platform': 'zhaopin', 'stats': {
+            'listed': 1, 'details': 1, 'detail_attempted': 1,
+            'detail_obtained': 1, 'content_eligible': 1,
+            'identity_pending': 1, 'identity_verified': 0,
+            'complete': 0, 'inserted': 1, 'updated': 0, 'rejected': 0,
+            'failed': 0, 'unattempted': 0, 'rejection_reasons': {}, 'stop_reason': None,
+        }},
+    ]
+    for event in events:
+        control._parse_log_line('pending', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+
+    result = control.get_results('pending')[0]
+    assert result['source_detail'] == 'dom://zhaopin/' + 'a' * 64
+    assert result['identity_status'] == 'pending'
+    assert result['content_eligible'] is True
+    assert result['identity_evidence'] == evidence
+    assert result['outcome'] == 'inserted'
+    assert result['jd_pool_id'] == 9
+    task = control._load_state()['current_task']
+    assert task['content_eligible'] == 1
+    assert task['identity_pending'] == 1
+    assert task['identity_verified'] == 0
+    assert task['complete'] == 0
+
+
+def test_rejected_dom_event_keeps_temporary_source_identity():
+    event = {
+        'event': 'detail', 'platform': 'zhaopin',
+        'job': {
+            'url': 'dom://zhaopin/provisional',
+            '_observation_key': 'zhaopin:card-0',
+            'title': 'Python 工程师',
+        },
+        'detail': {'description': '负责 Python 开发'},
+        'rejection': 'panel_not_updated',
+        'identity_status': 'unknown',
+        'content_eligible': True,
+    }
+    control._parse_log_line('rejected', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+    result = control.get_results('rejected')[0]
+    assert result['source_detail'] == 'dom://zhaopin/provisional'
+    assert result['observation_key'] == 'zhaopin:card-0'
+
+
 def test_raw_adds_requirements_and_preserves_stored_duties(monkeypatch):
     import app.db.mysql as mysql
     body = '岗位职责：来源职责\n任职要求：Python\n福利待遇：五险'
@@ -438,6 +504,35 @@ def test_raw_adds_requirements_and_preserves_stored_duties(monkeypatch):
     assert result['raw_text'] == body
     assert result['duties'] == '既有职责字段'
     assert result['requirements'] == 'Python'
+
+
+def test_raw_reads_identity_metadata_from_migrated_schema(tmp_path, monkeypatch):
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import sessionmaker
+    import app.db.mysql as mysql
+    path = tmp_path / 'raw-identity.sqlite3'
+    engine = create_engine('sqlite:///' + str(path))
+    try:
+        with engine.begin() as db:
+            db.execute(text(
+                'CREATE TABLE jd_pool (id INTEGER PRIMARY KEY, source TEXT, source_detail TEXT, '
+                'job_title TEXT, crawled_at TEXT, raw_text TEXT, duties TEXT, quality FLOAT, '
+                'identity_status TEXT, content_eligible BOOLEAN, identity_evidence TEXT)'
+            ))
+            db.execute(text(
+                'INSERT INTO jd_pool VALUES (1, :source, :detail, :title, NULL, :raw, NULL, 0, '
+                ':identity, 1, :evidence)'
+            ), dict(source='zhaopin', detail='dom://zhaopin/' + 'a' * 64,
+                    title='Python', raw='负责平台开发', identity='pending',
+                    evidence='{"binding_policy":"zhaopin-dom-panel-v1"}'))
+        monkeypatch.setattr(mysql, 'SessionLocal', sessionmaker(bind=engine))
+        result = control.get_raw(1)
+        assert result['identity_status'] == 'pending'
+        assert result['content_eligible'] is True
+        assert result['identity_evidence'] == {'binding_policy': 'zhaopin-dom-panel-v1'}
+    finally:
+        engine.dispose()
+        path.unlink(missing_ok=True)
 
 
 def test_status_poll_lets_owned_exited_worker_finish_watcher_archive(monkeypatch):

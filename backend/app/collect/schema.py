@@ -11,6 +11,10 @@ class RawJD:
     job_id: str = ""           # 新增：用于 join job_skills，不写入 jd_pool
     raw_skills: list[str] | None = None  # 新增：技能名列表
     source_detail: str = ""    # 来源细节（posting_domain / 数据集标识，D39 来源标签）
+    identity_status: str = "unknown"
+    content_eligible: bool | None = None
+    identity_evidence: str = ""
+    observation_key: str = ""
 
 
 @dataclass

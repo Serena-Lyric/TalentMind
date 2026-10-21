@@ -13,7 +13,7 @@
         <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 身份；非标准职业。五态来自有限规则，未作人工审核。</p>
         <p v-if="realManifest.m2_product">M2 run：{{ realManifest.m2_product.run_id }}<br />分析版本 {{ realManifest.m2_product.versions.revision }} · {{ realManifest.m2_product.versions.implementation.slice(0,12) }}<br />范围待复核 {{ realManifest.counts?.scope_pending }}；仅作候选证据。</p>
         <a href="?#/graph">返回历史 P2.5 图谱</a>
-        <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
+        <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ identityText(record.identity_status) }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
       </div>
       <label class="nebula-label">搜索</label>
       <div class="nebula-search">
@@ -98,6 +98,7 @@
       <div v-if="selectedNode.kind === 'job' && selectedNode.bonus_skills?.length" class="detail-section"><label>历史加分（非新版五态）</label><p>{{ selectedNode.bonus_skills.join('、') }}</p></div>
       <div v-if="selectedNode.kind === 'job' && selectedNode.scenarios?.length" class="detail-section"><label>历史 scenarios 原文（旧口径）</label><p>{{ selectedNode.scenarios.join('、') }}</p></div>
       <div v-if="selectedNode.status" class="detail-section"><label>状态</label><p>{{ selectedNode.status === 'stable' ? '稳定' : selectedNode.status === 'emerging' ? '新一代' : selectedNode.status }}</p></div>
+      <div v-if="selectedNode.identity_status" class="detail-section"><label>身份</label><p>{{ identityText(selectedNode.identity_status) }} · 不构成已确认独立岗位</p></div>
       <div v-if="selectedNode.kind !== 'job'" class="detail-section"><label>节点名称</label><p>{{ selectedNode.label }}</p></div>
       <div class="detail-section"><label>直接关联 · 每页 30 条</label>
         <p>共 {{ directEdges.length }} 条；类型过滤隐藏 {{ directEdges.length - typeVisibleDirect }} 条</p>
@@ -164,6 +165,7 @@ const realMode=query.get('graphDataset')==='real'
 const realSources=shallowRef<RealSources|null>(null),realManifest=shallowRef<RealManifest|null>(null)
 const sourceRecord=shallowRef<SourceRecord|null>(null),sourceQuote=ref('')
 function traceSource(index:number,quote=''){sourceRecord.value=realSources.value?.records[index]||null;sourceQuote.value=quote}
+function identityText(value?:string|null){return ({verified:'身份已验证',pending:'身份待审',unknown:'身份未知'} as Record<string,string>)[value||'']||'身份未知'}
 const stellarMode=query.get('graphStars')!=='p23'
 const semanticMode=stellarMode&&query.get('graphStars')!=='p24'
 const stellarPreset=ref<StellarType|''>('')

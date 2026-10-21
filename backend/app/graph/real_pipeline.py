@@ -37,9 +37,17 @@ def project(sources):
         if not record["eligible"] or overlay is None:
             continue
         job = "jd:" + quote(record["namespace"], safe="") + ":" + quote(record["jd_id"], safe="")
+        identity = {}
+        if "identity_status" in record:
+            identity["identity_status"] = record["identity_status"]
+        if "content_eligible" in record:
+            identity["content_eligible"] = record["content_eligible"]
+        if "identity_evidence" in record:
+            identity["identity_evidence"] = record["identity_evidence"]
         nodes[job] = dict(id=job, type="job", name=record["payload"]["job_title"], source=[record["payload"]["source"]],
             entity_semantics="original_jd_record_not_standard_occupation_or_vacancy", source_records=[index],
             canonical_job=None, family=None, core_duties=record["payload"].get("duties", ""),
+            **identity,
             analysis_complete=False, formal_statistics_eligible=False)
         sets[job] = set()
         original = overlay["original_semantics"]

@@ -50,7 +50,11 @@ def test_full_denominator_native_stages_and_original_nulls(product):
     assert result['summary']['b2']['failed'] == 0
     assert result['summary']['b22']['catalog_conflict_assessment'] == 'not_evaluated'
     assert len(result['items']) == 4
+    assert all(item['identity_status'] == 'unknown' for item in result['items'])
+    assert all(item['content_eligible'] is None for item in result['items'])
     detail = engine.item(draft['run_id'], 1)
+    assert detail['identity_status'] == 'unknown'
+    assert detail['content_eligible'] is None
     assert detail['input']['duties'] is None
     assert set(detail['stages']) == {'b1', 'b2', 'b22', 'b3'}
     assert all(detail['stages'][s]['status'] == 'saved' for s in ('b1', 'b2', 'b22', 'b3'))
@@ -175,6 +179,56 @@ def test_changed_valid_jd_becomes_invalid_without_cached_member_leak(product, mo
     assert engine.item(second['run_id'], 1)['stages']['b1']['result']['execution_status'] == 'input_failed'
 
 
+def test_pending_identity_runs_but_content_ineligible_never_enters_stages(product, monkeypatch):
+    engine, source, _ = product
+    evidence = {'binding_policy': 'zhaopin-dom-panel-v1', 'stable_samples': 2}
+    rows = [
+        dict(id=101, source='zhaopin', job_title='Python 工程师',
+             raw_text='岗位职责：负责平台开发。\n任职要求：熟悉 Python。',
+             duties=None, experience=None, identity_status='pending',
+             content_eligible=1,
+             identity_evidence=json.dumps(evidence, ensure_ascii=False)),
+        dict(id=102, source='zhaopin', job_title='无正文',
+             raw_text='', duties=None, experience=None,
+             identity_status='unknown', content_eligible=0, identity_evidence=None),
+    ]
+    monkeypatch.setattr(source, 'read_mysql', lambda _: (rows, {'kind': 'synthetic'}))
+    draft = engine.create(source.Selection(limit=2))
+    result = finish(engine, draft['run_id'])
+
+    pending = engine.item(draft['run_id'], 1)
+    assert pending['identity_status'] == 'pending'
+    assert pending['content_eligible'] is True
+    assert pending['identity_evidence'] == evidence
+    assert pending['formal_statistics_eligible'] is False
+    assert pending['confirmed_demand_eligible'] is False
+    assert pending['stages']['b1']['status'] == 'saved'
+
+    invalid = engine.item(draft['run_id'], 2)
+    assert invalid['final_status'] == 'input_invalid'
+    assert invalid['reason'] == 'content_ineligible'
+    assert all(stage['status'] == 'blocked' for stage in invalid['stages'].values())
+    assert result['summary']['identity'] == {'verified': 0, 'pending': 1, 'unknown': 1}
+    assert result['summary']['content'] == {'eligible': 1, 'ineligible': 1, 'unknown': 0}
+    assert result['formal_statistics_eligible'] is False
+
+
+def test_legacy_product_items_default_identity_to_unknown(product):
+    engine, source, _ = product
+    draft = engine.create(source.Selection(limit=1))
+    item = engine._items(draft['run_id'])[0]
+    for key in ('identity_status', 'content_eligible', 'identity_evidence'):
+        item.pop(key, None)
+    engine._save_item(draft['run_id'], item)
+
+    result = engine.get(draft['run_id'])
+    assert result['items'][0]['identity_status'] == 'unknown'
+    assert result['items'][0]['content_eligible'] is None
+    detail = engine.item(draft['run_id'], 1)
+    assert detail['identity_status'] == 'unknown'
+    assert detail['content_eligible'] is None
+
+
 def test_version_tracks_shared_dictionary_and_cleaner(tmp_path, monkeypatch):
     from app.job_analysis.product import workflow
     monkeypatch.setattr(workflow, 'APP', tmp_path)
@@ -231,7 +285,10 @@ def test_mysql_readonly_parameter_binding_and_finally_rollback(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def execute(self, sql, args=None): commands.append((sql, args))
-        def fetchall(self): return [dict(id=9, source='odd source', job_title='role', raw_text='Python')]
+        def fetchall(self):
+            return [dict(id=9, source='odd source', job_title='role', raw_text='Python',
+                         identity_status='pending', content_eligible=1,
+                         identity_evidence=json.dumps({'binding_policy': 'zhaopin-dom-panel-v1'}))]
     class Connection:
         def cursor(self): return Cursor()
         def rollback(self): commands.append(('ROLLBACK', None))
@@ -239,6 +296,9 @@ def test_mysql_readonly_parameter_binding_and_finally_rollback(monkeypatch):
     monkeypatch.setattr(source, 'connect', lambda: Connection())
     rows, provenance = source.read_mysql(source.Selection(sources=["x' OR 1=1 --"], id_min=2, id_max=20, limit=3))
     assert rows[0]['id'] == 9
+    assert rows[0]['identity_status'] == 'pending'
+    assert rows[0]['content_eligible'] is True
+    assert rows[0]['identity_evidence'] == {'binding_policy': 'zhaopin-dom-panel-v1'}
     assert commands[0][0] == 'START TRANSACTION READ ONLY'
     select, args = commands[1]
     assert "x' OR" not in select and "x' OR 1=1 --" in args

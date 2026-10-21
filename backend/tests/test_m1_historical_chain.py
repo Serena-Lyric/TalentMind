@@ -164,7 +164,13 @@ engine=create_engine('sqlite:///'+os.environ['M1_SYNTHETIC_DB'])
 def parameters(conn,cursor,sql,params,ctx,many):
     return sql,tuple(x.isoformat() if isinstance(x,datetime) else x for x in params)
 with engine.begin() as db:
-    db.exec_driver_sql('CREATE TABLE jd_pool (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, source_detail TEXT, job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT)')
+    db.exec_driver_sql(
+        'CREATE TABLE jd_pool (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, '
+        'source_detail TEXT, job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, '
+        'quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT, '
+        'identity_status TEXT NOT NULL DEFAULT \'unknown\', content_eligible BOOLEAN NULL, '
+        'identity_evidence TEXT NULL)'
+    )
 def provider():
     with Session(engine) as db:yield db
 mysql.get_db=provider

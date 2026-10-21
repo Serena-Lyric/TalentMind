@@ -141,6 +141,17 @@ def test_sequential_runs_archive_counts_and_preserve_single_config(batch, monkey
     with pytest.raises(RuntimeError): batch.start_batch(draft['batch_id'])
 
 
+def test_batch_archives_content_and_identity_counters(batch, monkeypatch):
+    extra = [{'content_eligible': 2, 'identity_pending': 1, 'identity_verified': 1}] * 4
+    synthetic_workers(monkeypatch, extra)
+    draft = batch.create_batch(plan())
+    batch.start_batch(draft['batch_id'])
+    result = wait_for(batch, draft['batch_id'], {'completed'})
+    assert all(item['content_eligible'] == 2 for item in result['items'])
+    assert all(item['identity_pending'] == 1 for item in result['items'])
+    assert all(item['identity_verified'] == 1 for item in result['items'])
+
+
 @pytest.mark.parametrize('gate', ['login_required', 'verification_required', 'content_limited'])
 def test_browser_gate_stops_entire_batch_with_unknown_counts(batch, monkeypatch, gate):
     monkeypatch.setattr(control, '_ensure_browser', lambda endpoint, profile, platform, target: {

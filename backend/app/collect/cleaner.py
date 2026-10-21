@@ -209,4 +209,8 @@ def clean(raw: RawJD) -> dict:
         "experience": _extract_experience(text, raw.experience),
         "crawled_at": datetime.now(timezone.utc),
         "status": "cleaned",
+        "identity_status": raw.identity_status or "unknown",
+        "content_eligible": raw.content_eligible,
+        "identity_evidence": raw.identity_evidence or "",
+        "observation_key": raw.observation_key or "",
     }

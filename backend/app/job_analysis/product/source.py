@@ -13,6 +13,23 @@ COHORTS = {
     'holdout60': ('quality-holdout-input/input.json', 60),
 }
 
+IDENTITY_STATUSES = ('verified', 'pending', 'unknown')
+
+
+def normalize_identity(row):
+    result = dict(row)
+    status = result.get('identity_status') or 'unknown'
+    if status not in IDENTITY_STATUSES:
+        raise ValueError('invalid identity_status in jd_pool')
+    result['identity_status'] = status
+    eligible = result.get('content_eligible')
+    result['content_eligible'] = None if eligible is None else bool(int(eligible))
+    evidence = result.get('identity_evidence')
+    if isinstance(evidence, str) and evidence.strip():
+        evidence = json.loads(evidence)
+    result['identity_evidence'] = evidence if isinstance(evidence, dict) else None
+    return result
+
 
 class Selection(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
@@ -79,9 +96,18 @@ def read_mysql(selection):
     finally:
         connection.rollback()
         connection.close()
-    rows = [{k: str(v) if isinstance(v, (datetime, date)) else v for k, v in row.items()} for row in rows]
+    rows = [normalize_identity({
+        k: str(v) if isinstance(v, (datetime, date)) else v for k, v in row.items()
+    }) for row in rows]
     provenance = dict(kind='mysql_jd_pool', transaction='READ ONLY; ROLLBACK', selection=selection.model_dump(),
-        selected=len(rows), counting_unit='jd_pool rows, not independent positions')
+        selected=len(rows), counting_unit='jd_pool rows, not independent positions',
+        identity_counts={status: sum(row['identity_status'] == status for row in rows)
+                         for status in IDENTITY_STATUSES},
+        content_eligible_counts={
+            'eligible': sum(row['content_eligible'] is True for row in rows),
+            'ineligible': sum(row['content_eligible'] is False for row in rows),
+            'unknown': sum(row['content_eligible'] is None for row in rows),
+        })
     if reference is not None:
         current = {str(row['id']): row for row in rows}
         # A disappeared member remains an explicit invalid input, never shrinks the denominator.

@@ -24,7 +24,8 @@ _ACTIVE_ID: str | None = None
 _THREAD: threading.Thread | None = None
 _STOP = threading.Event()
 _ACTIVE = {'running', 'waiting_next_round', 'stopping'}
-_COUNTERS = ('listed', 'detail_attempted', 'detail_obtained', 'complete', 'inserted',
+_COUNTERS = ('listed', 'detail_attempted', 'detail_obtained', 'content_eligible',
+             'identity_pending', 'identity_verified', 'complete', 'inserted',
              'updated', 'skipped', 'rejected', 'failed')
 _GATES = ('login_required', 'verification_required', 'content_limited')
 

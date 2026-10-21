@@ -86,6 +86,7 @@
         <el-table-column prop="job_title" label="岗位" min-width="180" show-overflow-tooltip />
         <el-table-column label="来源" width="100"><template #default="{ row }">{{ platformText(row.source) }}</template></el-table-column>
         <el-table-column label="处理结果" width="110"><template #default="{ row }">{{ outcomeText(row.outcome) }}</template></el-table-column>
+        <el-table-column label="身份" width="105"><template #default="{ row }"><el-tag effect="plain">{{ identityText(row.identity_status) }}</el-tag></template></el-table-column>
         <el-table-column label="jd_pool ID" width="110"><template #default="{ row }">{{ row.jd_pool_id ?? '—' }}</template></el-table-column>
         <el-table-column prop="rejection_reason" label="拒绝 / 失败原因" min-width="180" show-overflow-tooltip />
         <el-table-column label="采集时间" width="180"><template #default="{ row }">{{ formatTime(row.crawled_at) }}</template></el-table-column>
@@ -227,7 +228,10 @@ const qualityItems = computed(() => [
   { label: '占位 / 空 URL', value: stats.value.data_quality?.placeholder_empty_url },
 ].map(item => ({ label: item.label, value: formatNumber(stats.value.available === false ? null : item.value) })))
 const countFields = [
-  ['listed', '列表识别'], ['detail_attempted', '详情尝试'], ['detail_obtained', '详情取得'], ['complete', '完整 JD'], ['inserted', '新增入库'], ['updated', '更新入库'], ['skipped', '跳过'], ['rejected', '拒绝'], ['failed', '失败'],
+  ['listed', '列表识别'], ['detail_attempted', '详情尝试'], ['detail_obtained', '详情取得'],
+  ['content_eligible', '内容合格'], ['identity_pending', '身份待审'], ['identity_verified', '身份已验证'],
+  ['complete', '完整 JD'], ['inserted', '新增入库'], ['updated', '更新入库'], ['skipped', '跳过'],
+  ['rejected', '拒绝'], ['failed', '失败'],
 ] as const
 function countsFor(task: CollectionTask) { return countFields.map(([key, label]) => ({ key, label, value: formatNumber(task[key]) })) }
 const progressItems = computed(() => countsFor(currentTask.value))
@@ -242,6 +246,7 @@ function accessReasonText(reason: string) {
   return `${text || '浏览器访问检查未通过'}（${reason}）`
 }
 function outcomeText(value?: string | null) { return ({ inserted: '新增入库', updated: '更新入库', skipped: '跳过', rejected: '拒绝', failed: '失败', complete: '完整 JD' } as Record<string, string>)[value || ''] || value || '未记录' }
+function identityText(value?: string | null) { return ({ verified: '身份已验证', pending: '身份待审', unknown: '身份未知' } as Record<string, string>)[value || ''] || '身份未知' }
 function sourceUrl(value?: string | null) { try { const url = new URL(value || ''); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : undefined } catch { return undefined } }
 function errorText(error: unknown) {
   const response = (error as { response?: { data?: { detail?: unknown; message?: unknown } } } | null)?.response?.data

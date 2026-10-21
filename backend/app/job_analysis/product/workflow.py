@@ -179,11 +179,29 @@ class Workflow:
             conn.execute('INSERT INTO product_runs VALUES (?,?,?,?,?,?,?,\'queued\',?,NULL,NULL,0)',
                 (run_id, text, sha, canonical(selection), canonical(provenance), canonical(manifest), parent_id, now()))
             for ordinal, row in enumerate(rows, 1):
+                identity_status = row.get('identity_status') or 'unknown'
+                content_eligible = row.get('content_eligible')
+                identity_evidence = row.get('identity_evidence')
+                if content_eligible is not None:
+                    content_eligible = bool(int(content_eligible))
+                if isinstance(identity_evidence, str) and identity_evidence.strip():
+                    identity_evidence = json.loads(identity_evidence)
+                if not isinstance(identity_evidence, dict):
+                    identity_evidence = None
+                content_invalid = content_eligible is False
                 body = dict(ordinal=ordinal, jd_id=row.get('id'), source=row.get('source'),
                     title=row.get('job_title'), input_sha256=digest(row), warnings=warnings(row),
-                    final_status='pending', reason=None, formal_statistics_eligible=False,
+                    final_status='input_invalid' if content_invalid else 'pending',
+                    reason='content_ineligible' if content_invalid else None,
+                    identity_status=identity_status, content_eligible=content_eligible,
+                    identity_evidence=identity_evidence,
+                    formal_statistics_eligible=False,
                     confirmed_demand_eligible=False, evidence=dict(matched=0, invalid=0),
-                    stages={stage: dict(status='pending', run_id=None, result=None, reason=None) for stage in STAGES})
+                    stages={stage: dict(
+                        status='blocked' if content_invalid else 'pending',
+                        run_id=None, result=None,
+                        reason='content_ineligible' if content_invalid else None,
+                    ) for stage in STAGES})
                 conn.execute('INSERT INTO product_items VALUES (?,?,?)', (run_id, ordinal, canonical(body)))
         return self.get(run_id)
 
@@ -213,6 +231,9 @@ class Workflow:
         compact = []
         for item in items:
             copy = {k: v for k, v in item.items() if k != 'stages'}
+            copy.setdefault('identity_status', 'unknown')
+            copy.setdefault('content_eligible', None)
+            copy.setdefault('identity_evidence', None)
             copy['stages'] = {s: {k: v for k, v in stage.items() if k != 'result'} for s, stage in item['stages'].items()}
             compact.append(copy)
         return dict(run_id=run_id, status=row['status'], reason=row['reason'], created_at=row['created_at'],
@@ -226,6 +247,9 @@ class Workflow:
         rows = self._inputs(run_id)
         if type(ordinal) is not int or not 1 <= ordinal <= len(rows): raise ValueError('M2 item not found')
         body = self._items(run_id)[ordinal - 1]
+        body.setdefault('identity_status', 'unknown')
+        body.setdefault('content_eligible', None)
+        body.setdefault('identity_evidence', None)
         return dict(body, input=rows[ordinal - 1], input_provenance=self.get(run_id)['provenance'])
 
     def list_runs(self):
@@ -401,9 +425,16 @@ def summarize(items):
         b2=Counter(dict.fromkeys(('completed','partial','failed','blocked','pending','running','no_recognized_skills','unresolved_jds','statements_required','statements_preferred','statements_mentioned','statements_not_required','statements_uncertain'), 0)),
         b22=Counter(dict.fromkeys(('processed','failed','blocked','pending','running','candidate_jds','candidates','semantic_conflict_jds','unresolved_jds','unresolved_fragments'), 0)),
         b3=Counter(dict.fromkeys(('candidate_jds','pending_review','unable_to_classify','failed','blocked','pending','running'), 0)),
+        identity=Counter(dict.fromkeys(('verified','pending','unknown'), 0)),
+        content=Counter(dict.fromkeys(('eligible','ineligible','unknown'), 0)),
         evidence=dict(outputs_with_evidence=0, outputs_without_evidence=0, matched_spans=0, invalid_spans=0, unparseable_jds=finals['input_invalid']),
         interpretation='工程处理覆盖，不是语义准确率；各阶段互相重叠的指标不可相加', formal_statistics_eligible=False)
     for item in items:
+        summary['identity'][item.get('identity_status') or 'unknown'] += 1
+        eligible = item.get('content_eligible')
+        summary['content'][
+            'eligible' if eligible is True else 'ineligible' if eligible is False else 'unknown'
+        ] += 1
         b1, b2, gov, b3 = (item['stages'][s]['result'] for s in STAGES)
         if b1:
             summary['b1'][b1['validity']] += 1

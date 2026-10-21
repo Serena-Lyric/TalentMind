@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from datetime import datetime, timezone
 from typing import Iterable
 
 from websockets.exceptions import WebSocketException
@@ -18,15 +19,16 @@ from app.collect.fetchers.job_sites import (
     SiteSpec,
     build_activate_card_js,
     build_detail_extract_js,
+    build_panel_probe_js,
     build_search_extract_js,
+    clean as clean_text,
     deduplicate_jobs,
     normalize_job,
-    normalize_url,
 )
 from app.collect.pipeline import run_pipeline
-from app.collect.cleaner import clean, is_valid_jd
 from app.collect import browser
 from app.collect.events import emit_event
+from app.collect.identity import content_rejection, dom_fingerprint, identity_decision
 from app.collect.repository import save_incremental_jd_rows
 
 
@@ -61,26 +63,65 @@ def fetch_search_page(client: CdpClient, spec: SiteSpec, url: str, settle: float
     return extract_current_page(client, spec)
 
 
+def _panel_content_signature(probe: dict) -> tuple[str, str, str, bool]:
+    return (
+        clean_text(probe.get('panel_title')),
+        clean_text(probe.get('description')),
+        clean_text(probe.get('company')),
+        bool(probe.get('panel_visible')),
+    )
+
+
+def _panel_stability_signature(probe: dict) -> tuple:
+    return (*_panel_content_signature(probe), bool(probe.get('target_active')))
+
+
+def await_stable_panel(
+    client: CdpClient,
+    spec: SiteSpec,
+    card_index: int,
+    before: dict,
+    timeout: float = 5.0,
+    interval: float = 0.2,
+) -> dict:
+    """Poll the detail panel until one update becomes stable twice in a row."""
+    deadline = time.monotonic() + timeout
+    previous = None
+    stable_samples = 0
+    last = {}
+    while time.monotonic() < deadline:
+        probe = client.evaluate(build_panel_probe_js(spec, card_index))
+        if isinstance(probe, dict):
+            signature = _panel_stability_signature(probe)
+            stable_samples = stable_samples + 1 if signature == previous else 1
+            previous = signature
+            last = probe
+            if stable_samples >= 2:
+                break
+        time.sleep(interval)
+    return {
+        'target_card_found': bool(last.get('target_card_found')),
+        'target_active_before': bool(before.get('target_active')),
+        'target_active_after': bool(last.get('target_active')),
+        'panel_visible': bool(last.get('panel_visible')),
+        'panel_changed': _panel_content_signature(before) != _panel_content_signature(last),
+        'stable_samples': stable_samples,
+        'panel_title': clean_text(last.get('panel_title')),
+        'before_panel_title': clean_text(before.get('panel_title')),
+        'description': str(last.get('description') or ''),
+        'company': clean_text(last.get('company')),
+        'list_url': str(last.get('list_url') or before.get('list_url') or ''),
+        'binding_policy': 'zhaopin-dom-panel-v1',
+    }
+
+
 def detail_rejection(spec: SiteSpec, job: dict, detail) -> str | None:
-    """A list card cannot prove its detail body or identity is complete."""
-    if not isinstance(detail, dict) or not str(detail.get('description') or '').strip():
-        return 'empty_detail'
-    if detail.get('description_truncated'):
-        return 'truncated_description'
-    if job.get('_dom'):
-        # A title or card index alone cannot bind an asynchronous detail panel.
-        return 'unverified_dom_identity'
-    title = ' '.join(str(detail.get('title') or '').split())
-    if not title:
-        return 'missing_detail_title'
-    if title.casefold() != ' '.join(str(job.get('title') or '').split()).casefold():
-        return 'title_mismatch'
-    if not job.get('_dom') and normalize_url(spec, str(detail.get('url') or '')) != normalize_url(spec, job['url']):
-        return 'identity_mismatch'
-    raw = normalize_job(spec, {'url': job['url'], 'title': title}, {'description': detail['description']})
-    if not raw or not is_valid_jd(clean(raw)):
-        return 'invalid_detail_body'
-    return None
+    """Compatibility helper for callers that have no binding evidence."""
+    reason = content_rejection(spec, job, detail)
+    if reason:
+        return reason
+    _, _, reason = identity_decision(spec, job, detail, None, '')
+    return reason
 
 
 def run_fetch(
@@ -149,10 +190,13 @@ def run_fetch(
     jobs = collected
     emit('listed', jobs=jobs)
     stats = dict(platform=platform, listed=len(jobs), details=0, detail_attempted=0,
-                 detail_obtained=0, complete=0, inserted=0, updated=0, new=0,
+                 detail_obtained=0, content_eligible=0, identity_pending=0,
+                 identity_verified=0, complete=0, inserted=0, updated=0, new=0,
                  skipped=0, rejected=0, failed=0, unattempted=len(jobs),
                  rejection_reasons={}, stop_reason=None)
     accepted = list(jobs) if no_details else []
+    if no_details:
+        stats['content_eligible'] = None
     if not no_details and detail_limit and jobs:
         detail_client = CdpClient.connect_first_page(
             cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
@@ -164,11 +208,18 @@ def run_fetch(
                 stats['unattempted'] -= 1
                 emit('detail_attempt', index=index, job=job)
                 try:
+                    binding = None
                     if job.get('_dom'):
+                        before = detail_client.evaluate(build_panel_probe_js(spec, int(job.get('_card_index', -1))))
+                        if not isinstance(before, dict):
+                            raise CdpError('panel_probe_failed')
                         result = detail_client.evaluate(build_activate_card_js(spec, int(job.get('_card_index', -1))))
                         if not isinstance(result, dict) or not result.get('clicked'):
                             raise CdpError('card_activation_failed')
-                        time.sleep(settle)
+                        binding = await_stable_panel(
+                            detail_client, spec, int(job.get('_card_index', -1)), before,
+                            timeout=max(2.0, settle * 2.0),
+                        )
                     else:
                         detail_client.navigate(job['url'], settle_seconds=settle)
                     access = browser.wait_access(detail_client, platform, max(5.0, settle * 2.0))
@@ -177,14 +228,40 @@ def run_fetch(
                     detail = detail_client.evaluate(build_detail_extract_js(spec))
                     if isinstance(detail, dict) and str(detail.get('description') or '').strip():
                         stats['detail_obtained'] += 1
-                    reason = detail_rejection(spec, job, detail)
-                    emit('detail', index=index, job=job, detail=detail, access=access, rejection=reason)
+                    content_reason = content_rejection(spec, job, detail)
+                    content_ok = content_reason is None
+                    if content_ok:
+                        stats['content_eligible'] += 1
+                    observed_at = None
+                    if content_ok:
+                        observed_at = datetime.now(timezone.utc).isoformat()
+                        status, evidence, reason = identity_decision(spec, job, detail, binding, observed_at)
+                    else:
+                        status, evidence, reason = 'unknown', {}, content_reason
                     if reason:
                         stats['rejected'] += 1
                         stats['rejection_reasons'][reason] = stats['rejection_reasons'].get(reason, 0) + 1
                     else:
-                        accepted.append({**job, **{key: value for key, value in detail.items() if value and key != 'url'}})
-                        stats['complete'] += 1
+                        if status == 'pending':
+                            stats['identity_pending'] += 1
+                            fingerprint = dom_fingerprint(evidence)
+                            job = {**job, 'url': f'dom://{platform}/{fingerprint}'}
+                        elif status == 'verified':
+                            stats['identity_verified'] += 1
+                            stats['complete'] += 1
+                        evidence = {**evidence, '_observation_key': job.get('_observation_key', '')}
+                        enriched_job = {
+                            **job,
+                            '_identity_status': status,
+                            '_content_eligible': True,
+                            '_identity_evidence': json.dumps(evidence, ensure_ascii=False, sort_keys=True),
+                        }
+                        accepted.append({**enriched_job, **{
+                            key: value for key, value in detail.items() if value and key != 'url'
+                        }})
+                    emit('detail', index=index, job=job, detail=detail, access=access,
+                         rejection=reason, identity_status=status, content_eligible=content_ok,
+                         identity_evidence=evidence, observed_at=observed_at)
                 except (CdpError, WebSocketException, OSError, TimeoutError) as exc:
                     stats['failed'] += 1
                     stats['stop_reason'] = str(exc)
@@ -201,10 +278,32 @@ def run_fetch(
         provider = get_db()
         db = next(provider)
         try:
+            row_by_detail = {
+                row.source_detail: {
+                    'identity_status': row.identity_status,
+                    'content_eligible': row.content_eligible,
+                    'identity_evidence': row.identity_evidence,
+                    'observation_key': row.observation_key,
+                }
+                for row in raws
+            }
             def saved_event(item):
                 if item['outcome'] == 'skipped':
                     stats['skipped'] += 1
-                emit('persisted', items=[item])
+                identity = row_by_detail.get(item.get('source_detail'), {})
+                evidence = identity.get('identity_evidence')
+                if evidence:
+                    try:
+                        evidence = json.loads(evidence)
+                    except (TypeError, ValueError):
+                        evidence = None
+                emit('persisted', items=[{
+                    **item,
+                    'identity_status': identity.get('identity_status', 'unknown'),
+                    'content_eligible': identity.get('content_eligible'),
+                    'identity_evidence': evidence,
+                    'observation_key': identity.get('observation_key') or item.get('observation_key'),
+                }])
             def saver(session, rows):
                 return save_incremental_jd_rows(session, rows, created_ids=set(), on_saved=saved_event)
             saved = run_pipeline(db, raws, jd_saver=saver)['jd_saved']

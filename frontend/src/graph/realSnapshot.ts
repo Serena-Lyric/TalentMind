@@ -2,6 +2,7 @@ import { adaptSnapshot, sha256LF, validateBinding, type LayoutArtifact } from '.
 
 export interface SourceRecord {
   namespace:string; jd_id:string; fingerprint:string; payload:Record<string,any>; observation?:string|null
+  identity_status?:'verified'|'pending'|'unknown'; content_eligible?:boolean|null; identity_evidence?:Record<string,any>|null
   eligible:boolean; screening:Record<string,any>; governance:Record<string,any>|null
 }
 export interface RealSources { records:SourceRecord[] }
@@ -21,6 +22,11 @@ export async function validateRealBundle(manifest:RealManifest,texts:Record<stri
   for(const node of raw.nodes){
     if(!Array.isArray(node.source_records)||!node.source_records.length||node.source_records.some((i:number)=>!validIndex(i)||!sources.records[i].eligible))throw new Error('Invalid node source reference')
     if(node.type==='job'&&(node.source_records.length!==1||node.id!==jdIdentity(sources.records[node.source_records[0]])))throw new Error('Invalid job source identity')
+    if(node.type==='job'){
+      const record=sources.records[node.source_records[0]]
+      if((node.identity_status??'unknown')!==(record.identity_status??'unknown'))throw new Error('Invalid job identity status')
+      if((node.content_eligible??null)!==(record.content_eligible??null))throw new Error('Invalid job content eligibility')
+    }
   }
   for(const edge of raw.edges){
     if(!validIndex(edge.source_record))throw new Error('Invalid edge source reference')
