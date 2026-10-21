@@ -86,18 +86,23 @@ def await_stable_panel(
 ) -> dict:
     """Poll the detail panel until one update becomes stable twice in a row."""
     deadline = time.monotonic() + timeout
-    previous = None
+    before_signature = _panel_content_signature(before)
+    previous_changed = None
     stable_samples = 0
     last = {}
     while time.monotonic() < deadline:
         probe = client.evaluate(build_panel_probe_js(spec, card_index))
         if isinstance(probe, dict):
-            signature = _panel_stability_signature(probe)
-            stable_samples = stable_samples + 1 if signature == previous else 1
-            previous = signature
             last = probe
-            if stable_samples >= 2:
-                break
+            if _panel_content_signature(probe) != before_signature:
+                signature = _panel_stability_signature(probe)
+                stable_samples = stable_samples + 1 if signature == previous_changed else 1
+                previous_changed = signature
+                if stable_samples >= 2:
+                    break
+            else:
+                previous_changed = None
+                stable_samples = 0
         time.sleep(interval)
     return {
         'target_card_found': bool(last.get('target_card_found')),
@@ -308,8 +313,12 @@ def run_fetch(
                 return save_incremental_jd_rows(session, rows, created_ids=set(), on_saved=saved_event)
             saved = run_pipeline(db, raws, jd_saver=saver)['jd_saved']
             stats['new'] = stats['inserted'] = int(saved)
-        except Exception:
+        except Exception as exc:
             db.rollback()
+            stats['failed'] += 1
+            stats['stop_reason'] = str(exc)
+            emit('failure', reason=str(exc), phase='persistence')
+            emit('finished', stats=stats)
             raise
         finally:
             provider.close()
