@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.response import ok, BizError
 from app.middleware import register_exception_handlers
+from app.collect.bridge_access import EXTENSION_ORIGIN
 
 app = FastAPI(title="TalentMind")
 register_exception_handlers(app)
@@ -13,6 +14,7 @@ app.add_middleware(
         "http://localhost:5173", "http://127.0.0.1:5173",
         "http://localhost:4173", "http://127.0.0.1:4173",
         "http://localhost:18080", "http://127.0.0.1:18080",
+        EXTENSION_ORIGIN,
     ],
     allow_methods=["*"],
     allow_headers=["*"],
