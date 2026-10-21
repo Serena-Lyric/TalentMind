@@ -187,7 +187,7 @@ docker compose up -d
 docker compose ps
 ```
 
-默认端口：MySQL `3306`、Neo4j 浏览器 `7474`、Neo4j Bolt `7687`、Redis `6379`。
+默认宿主机端口：MySQL `23306`（容器内部仍为 `3306`）、Neo4j 浏览器 `7474`、Neo4j Bolt `7687`、Redis `6379`。本机 Windows 排除端口段包含 3306，MySQL 客户端及 `backend/.env` 的 `MYSQL_URL` 应连接 `localhost:23306`。
 
 ### 3. 启动后端
 

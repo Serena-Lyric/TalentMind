@@ -22,3 +22,5 @@
 - P2.5维护：主体类型由知识身份决定；密度只影响视觉占用，不改布局、可见性或拾取；关系颜色与事实类型分离。见[视觉陷阱](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)，验收证据见[P2.5报告](docs/review/M3-M5-P2-5.md)。
 
 - P2.3相机维护补充：控制器`stop()`不等于原位中断，须同步当前/结束状态并处理最后吸附帧；见[相机陷阱](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)。产品原则仍按主文档§8，实现与验收证据集中在[P2.3报告](docs/review/M3-M5-P2-3.md)，不在此复制状态清单。
+
+> **2026-10-17 MySQL 启动修复**：Windows 排除端口段包含 3306，现使用宿主机 `23306` → 容器 `3306`；本地 `MYSQL_URL`、配置示例及启动/监控脚本已同步。复用原 `talentmind_mysql_data`，未导入或迁移数据。详见 `docs/superpowers/traps/2026-10-17-mysql-excluded-port.md`。

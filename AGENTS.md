@@ -61,3 +61,5 @@
 - `.ps1` 用 UTF-8 BOM；注释用 `#`/`<# #>`，函数文档写在函数上方；三引号字符串不是注释，会污染输出流。BOM 用 `[System.IO.File]::ReadAllBytes` 核查。
 - `.bat`/`.cmd` 仅 ASCII，顶部 `chcp 65001 >nul`，只做最少引导并调起 PowerShell；业务逻辑放 `.ps1`。
 - 编辑前读当前内容，替换定位须唯一、逐字匹配；递归移动/删除前核对绝对路径及 junction 目标，涉及真实数据先遵守额外许可规则。
+
+- MySQL 宿主端口为 23306；陷阱：[2026-10-17 MySQL 排除端口](docs/superpowers/traps/2026-10-17-mysql-excluded-port.md)。
