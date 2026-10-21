@@ -25,6 +25,10 @@ VERB = r"(?:基础了解|了解|熟悉|熟练掌握|熟练使用|熟练|精通|�
 MODAL = r"(?:必须|需要|要求|需|须|应)"
 # These affect the containing sentence/adjacent lines, not merely the matched skill token.
 RISK = re.compile(r"如果|若|仅当|除非|针对|对于|前端岗位|后端岗位|公司|我司|本团队|例如|示例|教程|曾经|过去|并非|不是|不但|而且|非本岗位|据说|可能|待定|视情况|候选人以外|未知(?:扩展|工具|组件|技术|能力)?")
+EXTENDED_LIMIT_RISK = re.compile(
+    r"或其他(?:技术|能力|技能|工具|语言|框架)|"
+    r"非必备|非必需|非必要|非强制|非硬性|可选(?:要求|条件|技能)?"
+)
 SCOPE_RISK = re.compile(r"如果|若|仅当|除非|当.+时|仅适用|适用于|仅限|限于|仅对|只对|针对|对于|前端岗位|后端岗位|不必满足|无须满足|无需满足|不需要满足|条件.{0,8}见")
 GROUP_SCOPE_RISK = re.compile(r'[二三四五六七八九十\d]+选[一二三\d]+|满足.{0,8}(?:一项|其一)|(?:以上|上述|以下)(?:技能|要求|条件|能力|条款|满足)')
 RECORD_SCOPE_RISK = re.compile(
@@ -160,7 +164,7 @@ def classify(template, section, risky):
         if direct:
             state = "preferred" if section == "preferred" else "required"
             tail = template[direct.end():]
-            if re.search(r"不要求|无需|不需要|某些|部分|其中", tail):
+            if EXTENDED_LIMIT_RISK.search(tail) or re.search(r"不要求|无需|不需要|某些|部分|其中", tail):
                 return "uncertain", None, "unsupported_clause"
             if ("\ufdd0" in tail
                     and not re.search(r"例如|如|等|可能", template)

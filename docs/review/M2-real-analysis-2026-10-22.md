@@ -4,6 +4,8 @@
 
 交付 PR：[#50](https://github.com/Serena-Lyric/TalentMind/pull/50)，base=`master`，READY/OPEN，未启用自动合并；#48/#49 状态未改。
 
+> **复审定向修复（2026-10-22）：** B2 扩展能力判断新增开放选择/非必备/可选/非硬性尾注回归；MySQL 授权目标同时绑定 SQLAlchemy `connection_port` 与服务端 `server_port`。同一主集/留出集以 `v10` 重放，汇总与逐条 B1/B2/B3/证据均和 `v9` 相同，逐条变化 0，因此下文 `v9` 指标保持不变。
+
 ## 1. P0 隔离对象清理
 
 仅处理用户明确列出的三个已退出容器和三个专用卷。删除前实际核对：
@@ -30,6 +32,8 @@
 - `backend/tests/conftest.py` 默认跳过全部 `@pytest.mark.integration`。
 - `TALENTMIND_ALLOW_INTEGRATION=1` 只允许进入收集，不授权写库。
 - `destructive_guard.py` 在六个 MySQL/Neo4j 破坏性导入入口写入前核对实际目标身份、操作、完整目标指纹和独立授权文件有效期。
+- MySQL 指纹现同时包含 SQLAlchemy 配置的 `host/connection_port` 与服务端 `@@hostname/@@server_uuid/@@port(server_port)/DATABASE()/VERSION()`。同主机不同宿主映射端口即使指向 UUID 相同的克隆库也会得到不同指纹，不能复用授权。
+- 对正式实例做只读身份实测：`localhost`、`connection_port=23306`、`server_port=3306`、数据库 `talentmind`，指纹为 `sha256:ad169ce449a614d1f2f6b6c444d2522a1821dc6ea0d263ba7809b715cc8567c9`；未调用写入口。
 
 专项结果：安全门禁 `15 passed`，集成默认 `24 skipped / 1511 deselected`；PR #49 仍为 Draft，未合并。
 
@@ -45,11 +49,11 @@
 ## 4. 本轮规则改进
 
 - B1 使用 `conservative-activity-v4`：增加技术对象/动作关系，同时排除“开发进度、采购、工具、流程、管理、任务、需求”等非交付用法；公司背景、资格、标题和否定仍不能独立确认。
-- B2 使用 `bounded-skill-clauses-v4`：风险条件回到当前陈述及明确跨行作用域；支持内联章节、章节连续性和结构化字段优先去重；岗位标题只记为提及；明确能力动词可给出 `required/preferred`，但组合、否定、未知同级项、条件和共享尾注仍保持未决。
+- B2 使用 `bounded-skill-clauses-v4`：风险条件回到当前陈述及明确跨行作用域；支持内联章节、章节连续性和结构化字段优先去重；岗位标题只记为提及；明确能力动词可给出 `required/preferred`，但组合、否定、未知同级项、条件和共享尾注仍保持未决。第一轮独立审查补充“熟悉某技能或其他技术/非必备/可选/非硬性条件”回归，这些开放或限制表达不升级为单项必备。
 - B3 对编号责任句或明确当前职责章节增加有限“动作 + 技术对象”候选。公司/企业背景、纯经验学历、产品管理、销售、培训、历史、否定、标题单独出现均不得生成候选。候选始终 `pending_review`，正式目录仍为空。
 - 人工复核新增追加式 `product_reviews`：绑定冻结 run、条目、机器结果 SHA-256、审核决定、人工署名、备注和时间；原始机器阶段与已发布报告不改写。页面可查看原文、证据、不确定原因、审核历史和导出 JSON。
 
-新版规则全部先构造失败测试，再修复；最终 B1/B2/B3、真实质量边界与产品回归共 `366 passed`。
+新版规则全部先构造失败测试，再修复。复审新增 B2 限制词 4 个失败样本和安全目标端口测试；完整非集成验证见第 8 节。
 
 ## 5. 冻结输入版本对照
 
@@ -76,6 +80,16 @@
 证据位置下降来自跨字段同一职责去重和未知章节收敛，不代表删除原文；所有保留证据重新通过字段、`[start,end)` 和 quote 校验。最终 B3 大类分布为主集软件研发 25、数据 AI 3、测试质量 2、基础设施运维 1；留出集软件研发 12、数据 AI 6、基础设施运维 1。一个 JD 可有多个竞争候选，因此类项数不是独立职位数。
 
 私有逐条对照：`data/local/m2-real-analysis-20261022/comparison.json`。该文件包含真实原文证据，仅本地保存，不提交 Git。
+
+复审 `v10` run：
+
+| 集合 | run | 与 v9 对照 |
+|---|---|---|
+| 小样本 5 | `41a70fa76e7945b4bc1d780c03a8bdea` | summary 相同；逐条变化 0 |
+| 主集 120 | `a9a5e510f9f94ae792db1710224d038d` | summary 相同；逐条变化 0 |
+| 留出 60 | `65a9fba55a794283b0c94b37464244a8` | summary 相同；逐条变化 0 |
+
+私有对照：`data/local/m2-real-analysis-20261022/review-fix-v10-comparison.json`。
 
 ## 6. 改善、反例与待审边界
 
@@ -110,13 +124,13 @@ API：
 
 ## 8. 验证与正式数据保全
 
-- M2 规则、真实质量边界、产品/API：`366 passed`。
-- 完整非集成回归，从项目 `backend/.venv` 运行：`1547 passed / 2 skipped / 24 deselected / 2 failed`。两项失败是 P0 已记录的 `PRODUCT_DECISIONS` 来源固定哈希/引文失配；本轮未修改该产品文档，也未通过重签来源修绿。
-- integration 默认关闭测试：`24 skipped / 1511 deselected`；没有进入正式写入口。
+- B2 语义与真实质量边界：`140 passed`；安全门禁：`17 passed`。
+- 完整非集成回归，从项目 `backend/.venv` 运行：`1553 passed / 2 skipped / 24 deselected / 2 failed`。两项失败是 P0 已记录的 `PRODUCT_DECISIONS` 来源固定哈希/引文失配；本轮未修改该产品文档，也未通过重签来源修绿。
+- integration 默认关闭测试：`24 skipped / 1557 deselected`；没有进入正式写入口。
 - 前端：`157 passed`；`vue-tsc --noEmit` 与 Vite 生产构建通过，仅保留既有大 chunk 和动态/静态导入提示。
 - 实际页面从 `v9` 主集显式生成 run-bound 候选图：本地候选图 190 节点 / 698 关系，继续标为规则分析待审；没有写 Neo4j。
 
-正式 MySQL 与 P0 基线逐表全字段 SHA-256 相同：`jd_pool=2988`、`signal=1540`、`skill_dict=285`、`job_definition/job_skill/job_change_log=717/717/275`、`resume/talent_raw=0`。Neo4j 仍为 7,845 节点 / 11,412 关系，物理 SHA `4cad52d3…d7e8a`、语义 SHA `0d6a80fe…557d`，均与 P0 相同。私有复核：`data/local/m2-real-analysis-20261022/formal-post-v9-audit.json`。
+正式 MySQL 与 P0 基线逐表全字段 SHA-256 相同：`jd_pool=2988`、`signal=1540`、`skill_dict=285`、`job_definition/job_skill/job_change_log=717/717/275`、`resume/talent_raw=0`。Neo4j 仍为 7,845 节点 / 11,412 关系，物理 SHA `4cad52d3…d7e8a`、语义 SHA `0d6a80fe…557d`，均与 P0 相同。私有复核：`data/local/m2-real-analysis-20261022/formal-review-final-audit.json`。
 
 没有执行正式 DDL、M2 正式表重导、Neo4j 重建、真实采集或全量 2,988 条分析。
 

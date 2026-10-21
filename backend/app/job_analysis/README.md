@@ -11,6 +11,8 @@
 
 最终主集 run `b190f85b7ec94830b8bcfe908c0ffa32`：120 输入、113 四阶段完成、7 输入异常、0 执行失败；B1 范围内 23、B2 required 15、uncertain 703、B3 大类候选 29 个 JD。留出 run `e2dfc4e6069145a1a0722f8a8e895f69`：60 输入、52 完成、8 异常、0 失败；B1 范围内 8、required 1、uncertain 535、B3 候选 14 个 JD。两集证据位置异常均为 0。
 
+第一轮独立审查后，对“熟悉某技能或其他技术/非必备/可选/非硬性条件”补充保守未决规则，并在同一冻结输入创建 `v10`（主集 `a9a5e510f9f94ae792db1710224d038d`、留出 `65a9fba55a794283b0c94b37464244a8`）。三组固定样本的 summary 与逐条技能五态/B1/B3/证据数量均与 `v9` 相同；没有为修测试改变真实指标。
+
 人工审核 API：
 
 - `POST /api/m2/runs/{run_id}/items/{ordinal}/review`，请求包含 `decision`（`accepted` / `rejected` / `needs_followup`）、`reviewer`、`note`、当前 `machine_sha256`。

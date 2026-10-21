@@ -172,6 +172,20 @@ def test_explicit_capability_with_trailing_context_keeps_requirement_state(text,
     assert result["statements"][0]["evidence"]["quote"] in text
 
 
+@pytest.mark.parametrize("text", [
+    "任职要求：\n熟悉 Python 或其他技术。",
+    "任职要求：\n熟悉 Python（非必备）。",
+    "任职要求：\n熟悉 Python，属于可选要求。",
+    "任职要求：\n熟悉 Python，非硬性条件。",
+])
+def test_open_choice_or_limiting_tail_does_not_promote_single_skill(text):
+    result = analyze(text)
+
+    assert states(result) == ["uncertain"]
+    assert result["statements"][0]["reason"] != "section_capability_extended"
+    assert result["coverage"] == "incomplete"
+
+
 def test_job_title_lists_skill_as_mention_only():
     result = analyze("暂无描述", job_title="Python 工程师")
 
