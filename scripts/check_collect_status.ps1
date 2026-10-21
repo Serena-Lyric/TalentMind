@@ -35,9 +35,9 @@ if (Test-Path $LogDir) {
 }
 
 Write-Host "`n===== 3. 数据库采集量 =====" -ForegroundColor Cyan
-$listener = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
+$listener = Get-NetTCPConnection -LocalPort 23306 -State Listen -ErrorAction SilentlyContinue
 if (-not $listener) {
-    Write-Host "（MySQL 未监听 3306，请先 docker compose up -d）"
+    Write-Host "（MySQL 未监听 23306，请先 docker compose up -d）"
     exit 0
 }
 $oldPref = $ErrorActionPreference

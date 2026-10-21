@@ -1,0 +1,13 @@
+{
+  "nodes": 7845,
+  "edges": 11412,
+  "original_p21_evidence_unchanged": 26,
+  "controlled_comparisons": 9,
+  "transform_and_geometry_equal": true,
+  "source_indices_verified": {
+    "skill": 222,
+    "job": 13,
+    "industry": 1
+  },
+  "snapshot_and_layout_git_blobs_unchanged": true
+}

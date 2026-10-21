@@ -1,0 +1,27 @@
+{
+  "base": "33b21423a60d135a55a25db115c8ffb9040d443c",
+  "implementation_commit": "f8983788b5e33c27549a5f1e62d8158fa08d2cc6",
+  "build_assets": [
+    {
+      "path": "background-bd04169e.js",
+      "sha256": "8d2095d0bcb8622c25c6cf615491fc02cf78d5673ed72e5aab5b048467117f0f",
+      "bytes": 32028
+    },
+    {
+      "path": "Graph-5c888dce.js",
+      "sha256": "012f77f73dd9b4194319afe054238c734345d0f35e99b1ab32d0c9e5e62b51ed",
+      "bytes": 821055
+    },
+    {
+      "path": "index-f5d2b8a4.js",
+      "sha256": "da2abcca461a5e6a9c7265fcbece54c21c0b8bf7ce3a1eb9e5c57b5ac5d87a59",
+      "bytes": 1057292
+    },
+    {
+      "path": "knowledge-369db836.js",
+      "sha256": "916f5f96f5a53e349f4791276fbb477dbec2788bc7fb7d76b542c7a0205a6732",
+      "bytes": 14754
+    }
+  ],
+  "note": "Final copy-only legend calibration followed the 222 GUI enumeration. Final runtime default 4095 nodes / 0 edges; final shader index set and edge0 rechecked after material calibration. See report for stage boundaries."
+}

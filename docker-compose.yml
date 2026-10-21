@@ -4,7 +4,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: talentmind
       MYSQL_DATABASE: talentmind
-    ports: ["3306:3306"]
+    ports: ["23306:3306"]
     volumes: ["mysql_data:/var/lib/mysql"]
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ptalentmind"]

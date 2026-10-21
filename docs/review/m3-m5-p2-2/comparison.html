@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TalentMind P2.2 · 真实图谱对照</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f4f0;color:#25304b;font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1800px;margin:auto;padding:28px}h1{font-size:26px;margin:0 0 8px}p{margin:8px 0;color:#526079}.tag{font-size:12px;color:#576f93}.controls{display:flex;gap:8px;margin:22px 0}button{background:white;border:1px solid #c7d1e4;border-radius:8px;padding:8px 24px;cursor:pointer;color:#344a73}button[aria-pressed=true]{background:#233b64;color:white}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #dce0e8;border-radius:12px;overflow:hidden}article header{padding:14px 18px}h2{font-size:17px;margin:0}small{display:block;color:#67758a}img{display:block;width:100%;height:auto}.metrics{padding:12px 18px;font:12px/1.6 ui-monospace,monospace;overflow-wrap:anywhere}footer{padding-top:20px;color:#647189;font-size:12px}a{color:#315c9b}code{font-size:12px}#verification{background:#e8eee9;padding:10px 16px;border-radius:8px}@media(max-width:850px){.grid{grid-template-columns:1fr}main{padding:16px}}
+</style>
+<main>
+<div class="tag">PR #33 / M3–M5 P2.2 / 待产品验收</div><h1>同一真实输入、同一位置、同一缩放</h1>
+<p>7,845 知识节点 · 11,412 历史关系。色彩、旋臂与空间位置沿用历史基线；图片均为实际浏览器截屏。</p>
+<p><b>来源边界：</b>P1-A.2 为原知识点 shader 的固定投影回放，不冒充原独立站相机。P2.1 从 <code>452c98f</code> 隔离检出，只加相机/冻结桥接，绘制代码不改。P2.2 为本轮正式 Vue 修订候选。</p>
+<p>P1-A.2列只回放原知识点着色，关系和标签采用统一比较基准。最终近景：原版75条→修订900条提交；全部数据仍为11,412条，未用新增或合成关系填充。</p>
+<div class="controls" role="group" aria-label="对照层级"><button data-view="overview">全景</button><button data-view="middle">中景</button><button data-view="near">近景</button></div>
+<p id="verification">正在读取真实对照参数…</p>
+<div class="grid">
+<article data-variant="p1a2"><header><h2>P1-A.2 原 shader 回放</h2><small>e7771d0 · 同输入/布局/固定投影</small></header><a target="_blank"><img alt="P1-A.2真实图谱受控回放"></a><div class="metrics"></div></article>
+<article data-variant="p21"><header><h2>P2.1 原视觉</h2><small>452c98f · 仅加相机/冻结桥接</small></header><a target="_blank"><img alt="P2.1原视觉真实截屏"></a><div class="metrics"></div></article>
+<article data-variant="p22"><header><h2>P2.2 修订候选</h2><small>锐利星核 / 类型权重 / 关系对账 / 标签避让</small></header><a target="_blank"><img alt="P2.2修订真实图谱截屏"></a><div class="metrics"></div></article>
+</div>
+<footer>点击图片查看原分辨率。对照图冻结装饰时钟为0，不用截图流估计FPS。类型的视觉权重不代表市场需求或职业重要性；旧Industry仅为历史场景投影，候选布局不是审核后的职业分类。<br><a href="comparison-observations.json">实际参数与计数</a> · <a href="provenance.json">输入/源码/原证据摘要</a> · <a href="p21-camera-only-bridge.patch">P2.1相机桥接差异</a></footer>
+</main>
+<script type="module">
+const data=await fetch('comparison-observations.json').then(r=>r.json());
+const allowed=['overview','middle','near'];let view=new URLSearchParams(location.search).get('view');if(!allowed.includes(view))view='near';
+function show(next){view=next;for(const button of document.querySelectorAll('[data-view]'))button.setAttribute('aria-pressed',String(button.dataset.view===view));
+ const shots=data.filter(item=>item.view===view),first=shots[0];const same=shots.length===3&&shots.every(item=>['x','y','scale'].every(k=>item.state.transform[k]===first.state.transform[k])&&['x','y','width','height'].every(k=>item.geometry[k]===first.geometry[k])&&item.state.snapshot===first.state.snapshot);
+ document.querySelector('#verification').textContent=`${same?'参数核对一致':'参数存在差异'} · scale=${first.state.transform.scale} · x=${first.state.transform.x} · y=${first.state.transform.y} · 输入 LF SHA-256 ${first.state.snapshot}`;
+ for(const item of shots){const card=document.querySelector(`[data-variant="${item.variant}"]`);card.querySelector('a').href=item.filename;card.querySelector('img').src=item.filename;card.querySelector('.metrics').textContent=`当前知识层 ${item.state.visibleNodes} / 7845 · 提交 ${item.state.submitted} / 11412 原始关系 · 画布 ${item.geometry.width.toFixed(2)}×${item.geometry.height.toFixed(2)} CSS px`;}}
+for(const button of document.querySelectorAll('[data-view]'))button.onclick=()=>show(button.dataset.view);show(view);
+</script></html>

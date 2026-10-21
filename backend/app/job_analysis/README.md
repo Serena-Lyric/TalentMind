@@ -1,5 +1,17 @@
 # job_analysis
 
+## 本地产品工作台（2026-10-21）
+
+从仓库根 `pwsh -File scripts/start-local.ps1` 启动，访问 `http://127.0.0.1:18080/#/m2`。演示账号只控制前端导航；后端全部 `/api/m2/*` 受 `TALENTMIND_LOCAL_RAW=1`、回环客户端/Host/Origin、非跨站请求门禁控制。统一入口设置本地开关并绑定回环，不是生产身份授权。
+
+选择来源/ID范围/数量（1～5000）或既有 120/60 固定成员，点击“创建冻结任务”，确认数量后“开始分析”。创建使用参数化 SELECT 和只读事务，原始 SQL NULL 保留；仅阶段适配副本省略可选 NULL。B1→B2→B22→B3 families.v3 复用现有实现，不加载旧 LLM 管道，也不发布 19 个标准岗位草案。B1 待复核原文继续保留候选证据；所有正式统计资格关闭。
+
+`product/source.py` 管只读选取/来源，`product/workflow.py` 管持久化编排。控制库 `data/local/m2-product/workflow.sqlite3`，四阶段共用 `analysis.sqlite3`；原始输入、原生逐阶段报告、最终报告分别在 `runs/`、`native-reports/`、`reports/`，均不提交。进度/停止/恢复/版本重放和逐条详情由独立 `frontend/src/views/M2.vue` 展示。版本变化拒绝原地恢复，需基于旧冻结输入创建新任务；同版本可精确复用原生事实。历史成员模式读取当前 MySQL 同 ID 行并记录与旧快照的差异，只有任务重放才复用已冻结字节。
+
+API：`GET sources/runs`、`POST runs`、`GET runs/{id}`、`GET runs/{id}/items/{ordinal}`、`POST runs/{id}/start|stop|replay`（重放体 `{"revision":"v2"}`）、`GET runs/{id}/report`，统一 `/api/m2/` 前缀及 code=0 响应。列表/进度无正文，详情/完整报告带私有原文，全部禁缓存；不自动开始或采集网站。
+
+工程四阶段走完与语义完整/人工确认分开。B22 语义冲突只统计原有 effective.conflict，目录治理冲突未评估；片段数不是 JD 分母。真实运行、逐类数量、测试、截图和已知限制见[交付报告](../../../docs/review/M2-product-2026-10-21.md)。
+
 ## 阶段 B3-5：八类候选目录与逐项人工准入
 
 依据 [Issue #18](https://github.com/Serena-Lyric/TalentMind/issues/18)、产品 M2-52～60，新包 `canonical_catalog/` 独立于 B3-2/B3-4 的 JD 候选治理。`candidates.v1.json` 是八类 **19 个 AI 草案**，所有规范名、精确定义及别名均 `unconfirmed`。定义依据是产品规则的精确引文与原字节摘要，表示起草依据，不证明用户已经认可具体定义；嵌入式、系统软件、交付、硬件等细节尤须逐项讨论。草案非等量，可扩展，无市场数量/级别/熟练度推断。`release.empty.v1.json` 正式目录始终为空。

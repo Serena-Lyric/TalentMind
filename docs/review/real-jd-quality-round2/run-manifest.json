@@ -1,0 +1,158 @@
+{
+  "analysis_complete": false,
+  "artifacts": {
+    "derived.json": "4ef906f298340221d1ecea3f8e3017c9dbbb129bf34630fdaa5970c054f71696",
+    "eligible.json": "0dbbbc2963fadbca72227cc8218e9f8ff04ea770e5a1aed5c5bcdfd85a0b45ea",
+    "facts.json": "9268a78649e2cdec71c55f6047f197079f6bc4011134c1255b0b5341bce08fa2",
+    "input.json": "b6c37b28932ea43820eafaf7c43903b5747514f64ba86a8e5790aa71d5536dff",
+    "layout.json": "7839dcb39a45fd9c0681006d37122f40a3ba7500fc6ac668c51b5cdfbc4ba2d3",
+    "m2/8a0dfb073d314c549ae6cc9701edf496.json": "c60b613e8d717939491dc4cdf9b0b80aaaf982eedb71fcae1b7001be43d66202",
+    "m2/b5d60a694fe647e487a7644a6af8aeb5.json": "38bb53728e8175388ce522d4f9d43dd5f4478127735b4d3f12007cd3991c0a04",
+    "m2/b7ebd2a15e9442b982697332c661a56c.json": "2d7391f8048cd5b346ff40080d469d902cb478e4f6b2af9cc64749992d34e83d",
+    "source-provenance.json": "353be12164e02d9474caab5cf68c691cd892a0407fbba7a495e7ea5de526ada0",
+    "sources.json": "887c8a52f5d3e9e4b983ea137ee192a41f09498b116f0a07b220825a8c4c8ee4"
+  },
+  "counts": {
+    "communities": 14,
+    "conflicts": 0,
+    "eligible_jd": 14,
+    "excluded_or_pending": 106,
+    "fact_edges": 263,
+    "fact_nodes": 52,
+    "input": 120,
+    "nontrivial_communities": 0,
+    "similarity_edges": 0,
+    "states": {
+      "mentioned": 1,
+      "uncertain": 262
+    }
+  },
+  "data_version": "31c3947f1a02e305fa35e7a87e4e44d0b602fba223efc9cd500fa6b4a20b587f",
+  "dataset": "m1-preserved-20261014-first40",
+  "fallback": "remove graphDataset=real; historical graph and P2.5 remain unchanged",
+  "formal_statistics_eligible": false,
+  "implementation": {
+    "backend/app/collect/cleaner.py": "0c0eca0b9c94d018fc0320c574fb2fceb7394ad0c328572b7fecc554bfba7c2d",
+    "backend/app/graph/candidate_layout.py": "273fad0ebaaa354593fc2f5541fd9b43c9ba6b72b7b9784b549cdedeecc71e3f",
+    "backend/app/graph/real_pipeline.py": "7e765b50428c64d81ca379695ab830e8777b153adbea988971d38514a051948b",
+    "backend/app/graph/research/algorithms.py": "6355e31cded4ac840b20901e3484d30ba305c83fd853cce76c984e18eae19b73",
+    "backend/app/job_analysis/foundation/__init__.py": "2e3b013e49bb8dc937b913fe1bfc0a0b7b7278d5bc7fcd0902f38688da40e52d",
+    "backend/app/job_analysis/foundation/__main__.py": "11444ab7e903f0a1eae394a1d9b5fa77a6e15fa69f64f8f118aeff9680d13439",
+    "backend/app/job_analysis/foundation/aggregate.py": "040c9f09e76e8c0b81a650150445027a00ac3e1b4bc723a6c327bc6f58d4d854",
+    "backend/app/job_analysis/foundation/inputs.py": "5c847c8d3fa04cd6886451921f99b54c1a6e9a9e58301818849fdfd1952f45bf",
+    "backend/app/job_analysis/foundation/models.py": "6146f0ae71d5e3736323cfa1aa15e11f0da1b6d87fa793e2ca4398ee5144f367",
+    "backend/app/job_analysis/foundation/runner.py": "2ea98f68659d377adfbce5eddd9360245126922b0a106d6c90164793b3670077",
+    "backend/app/job_analysis/foundation/store.py": "d778aeaf388da9fffa4d2e0eff0660097f2c05d31b85eae7e8c6841424e63987",
+    "backend/app/job_analysis/foundation/validation.py": "5504f9adc8aa302bf5c1176aec2163a509df612cc234b996999c87d2527d277e",
+    "backend/app/job_analysis/governance/__init__.py": "798b1a73f1151dabe5f9d4ed4ed815ba6fa58393b128431c74ccff59ee7c3d92",
+    "backend/app/job_analysis/governance/__main__.py": "6e663638809240306331e1fb93907076a30ccf7c2dcc22e2c5d539ae39138588",
+    "backend/app/job_analysis/governance/candidates.py": "77c85347e99bb3323b90a45a263c48574f83c55672899a8cf8795df106b22953",
+    "backend/app/job_analysis/governance/catalog.py": "dfb8f7c52680e2dfbebb12c40910ab0426bae5a082fc718b486d2a65852f2d46",
+    "backend/app/job_analysis/governance/evaluation.py": "0f7ce0010fe4ef92625d18bf9b025160cdd9c837ef6c73bc3d3c8de82bce1abe",
+    "backend/app/job_analysis/governance/extract.py": "abecdb8c5f5867b1f615b64a3d72708c046e09a7741f2ca94218df0f432c4873",
+    "backend/app/job_analysis/governance/policy.v1.json": "7b3da3274bacb6f52addfea13b6016b46b96b35e2c65105aa1533402ad1e08ff",
+    "backend/app/job_analysis/governance/runner.py": "558ced76ffdfa281edae92ff85be5b214b56f722e649eb745bdc70af5cf26037",
+    "backend/app/job_analysis/governance/store.py": "98711ba738d56b3104a2eb43782f8738b3fccd792f2b7a7ce89257253c2051e6",
+    "backend/app/job_analysis/screening/__init__.py": "369d0573bea10027ea795d7a852e8867fa0d54769c7fb6b1dc1476875de69a04",
+    "backend/app/job_analysis/screening/__main__.py": "d05b58d8854b6a01762ff64b1e59aabdd4b6ec509201cfd9de25a616ce94a57c",
+    "backend/app/job_analysis/screening/inputs.py": "418d795c94f607fc3ee26fab64894459721990429017276edca8ace6fc6f077d",
+    "backend/app/job_analysis/screening/rules.py": "3b1422a1ac57b0c9a64650a44de34a13e36c2c6f572efe9e284feedd4fb1d036",
+    "backend/app/job_analysis/screening/runner.py": "51b049fc71bd4eb744491b37cc4f25070a025b7be454c160529a98d4bf33bd2b",
+    "backend/app/job_analysis/screening/store.py": "97c351865d0e1ccb4475bf164dc92c9398a106509c0509a8f9b63020e74b4057",
+    "backend/app/job_analysis/semantics/__init__.py": "c417f4e07d7e755b59f3ae9046f120cad5f138d37ce22592e5a01bfa9e2a9a42",
+    "backend/app/job_analysis/semantics/__main__.py": "346854a8b2c8c9c3a6b71706e4e40ab8686e1193a08456db8be4c74616313fee",
+    "backend/app/job_analysis/semantics/models.py": "98b662c5562e49be229d265104bd173452378d817add7e89e9176bfb37baa680",
+    "backend/app/job_analysis/semantics/rules.py": "002881320e69c48a88f9e58bc71662cf45ac533cb1f1b6b75ace96106e7070f7",
+    "backend/app/job_analysis/semantics/runner.py": "886480be14d67aa5610138026c33c1139b40a5a401939b814e62b23b345beb52",
+    "backend/app/job_analysis/semantics/store.py": "1e7cda28bc7a54093e14f1c6b814c1d9e9923eec7815ceaabc53968e46942a53",
+    "backend/app/job_analysis/semantics/validation.py": "8a7455ca62f4518a1741e7bec8f68354409908fe3843d4bbabd61c544fd2e23d",
+    "backend/app/skills/normalizer.py": "b67bd4efa34ae034fb923a7e5573af439b56355c29b73995bdbf005f4e7e5ed4",
+    "backend/app/skills/skill_dict_seed.json": "5303cf8bfd7abb376df082ac93038e052a53431f46d249b89da52669b6184d35"
+  },
+  "input_sha256": "b6c37b28932ea43820eafaf7c43903b5747514f64ba86a8e5790aa71d5536dff",
+  "limitations": [
+    "bounded rules, not open-domain analysis",
+    "no formal B3 catalog",
+    "JD identities are not vacancies",
+    "unresolved fragments retained in sources"
+  ],
+  "m2_audits": {
+    "governance": {
+      "candidates": 8,
+      "jd_records": 14,
+      "overlays": 14,
+      "upstream_failed": 0
+    },
+    "screening": {
+      "counting_unit": "JD identities in frozen B1 dataset plus current input errors; not independent positions",
+      "current_input": {
+        "input_failed": 7,
+        "member_total": 120,
+        "reason_counts": {
+          "ambiguous_activity": 11,
+          "input_record_invalid": 7,
+          "insufficient_evidence": 88,
+          "technical_activity": 14
+        },
+        "scope_counts": {
+          "in_scope": 14,
+          "needs_review": 99,
+          "not_applicable": 7,
+          "out_of_scope": 0
+        },
+        "screening_failed": 0,
+        "validity_counts": {
+          "invalid": 0,
+          "not_evaluated": 7,
+          "undetermined": 71,
+          "valid": 42
+        }
+      },
+      "input_failed": 7,
+      "input_total": 120,
+      "input_unit_kind": "array elements or nonblank JSONL lines; unreadable container is one failed unit at position 0",
+      "member_total": 120,
+      "reason_counts": {
+        "ambiguous_activity": 11,
+        "input_record_invalid": 7,
+        "insufficient_evidence": 88,
+        "technical_activity": 14
+      },
+      "reused": 0,
+      "scope_counts": {
+        "in_scope": 14,
+        "needs_review": 99,
+        "not_applicable": 7,
+        "out_of_scope": 0
+      },
+      "screening_failed": 0,
+      "validity_counts": {
+        "invalid": 0,
+        "not_evaluated": 7,
+        "undetermined": 71,
+        "valid": 42
+      }
+    },
+    "semantics": {
+      "completed": 0,
+      "failed": 0,
+      "jd_records": 14,
+      "no_recognized_skills": 0,
+      "partial": 14
+    }
+  },
+  "m2_runs": {
+    "governance": "b7ebd2a15e9442b982697332c661a56c",
+    "screening": "8a0dfb073d314c549ae6cc9701edf496",
+    "semantics": "b5d60a694fe647e487a7644a6af8aeb5"
+  },
+  "pipeline_version": "real-jd-quality-replay-v2",
+  "schema_version": "m3-real-bundle-1",
+  "semantic_review": "not_performed",
+  "software": {
+    "igraph": "1.0.0",
+    "leidenalg": "0.11.0",
+    "networkx": "3.6.1",
+    "pydantic": "2.12.0"
+  }
+}

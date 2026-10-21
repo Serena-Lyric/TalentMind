@@ -16,3 +16,5 @@ python-multipart==0.0.20
 pdfplumber>=0.10.0
 python-docx>=0.8.11
 mammoth>=1.6.0
+# M2 run-specific candidate graph projection (shared offline implementation)
+-r app/graph/requirements-offline.txt

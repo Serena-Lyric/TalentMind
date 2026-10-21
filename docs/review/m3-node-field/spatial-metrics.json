@@ -1,0 +1,182 @@
+{
+  "method": "40x40 XZ bins across [-120,120]; Pearson against node Gaussian KDE sigma=11; empty cell center farther than22 world units from every node; field sphere excluded; no semantic metric",
+  "datasets": [
+    {
+      "nodeCount": 7845,
+      "layoutSha256": "dd33f0b17b4960b7d414cd47ce5097f3bd637ed9661c616bfae84e65fdc2481e",
+      "snapshotHash": "e8e3fe6aab4ffd359a16c8c62ee8edd4684504266fafe1534d36599cd7af742f",
+      "buildMs": 39.948899999999995,
+      "bounds": {
+        "minX": -120.29390133333332,
+        "maxX": 130.35790466666668,
+        "minZ": -100.647527,
+        "maxZ": 100
+      },
+      "cache": {
+        "version": "node-field-v1",
+        "entries": 1,
+        "builds": 1,
+        "hits": 0,
+        "nodeCount": 7845,
+        "grid": 128,
+        "sigma": 11,
+        "baseWeight": 0.45,
+        "nodeWeight": 0.55,
+        "coreNodeWeight": 0.25
+      },
+      "replayIdentical": true,
+      "versions": [
+        {
+          "version": "legacy",
+          "particles": 212000,
+          "generateMs": 470.0761,
+          "positionSha256": "b6f60f0cb1d672be1a89de597cf9b21dfbdf642b05b18e54eaf629d6965faa9d",
+          "dust": {
+            "correlation": 0.6203141666092223,
+            "emptyFraction": 0.04607272727272727,
+            "outsideFraction": 0
+          },
+          "all": {
+            "correlation": 0.39574397830538416,
+            "emptyFraction": 0.034547169811320756,
+            "outsideFraction": 0
+          }
+        },
+        {
+          "version": "node-field-v1",
+          "particles": 212000,
+          "generateMs": 490.9983000000001,
+          "positionSha256": "946f4b71d12e124d993ea519b6e481867a2ae0182fb171ebe8f484626b5de887",
+          "dust": {
+            "correlation": 0.9055386563844406,
+            "emptyFraction": 0.022972727272727273,
+            "outsideFraction": 0
+          },
+          "all": {
+            "correlation": 0.6228724188587516,
+            "emptyFraction": 0.017179245283018868,
+            "outsideFraction": 0
+          }
+        }
+      ]
+    },
+    {
+      "nodeCount": 71,
+      "layoutSha256": "00e997eb7c24e4ebc852ca72dfe3984a617d181719dfea0948e610cdf97b1a08",
+      "snapshotHash": "b0c06eeabcaa0a0de3c93e233cbaa3d8a26d64ab84170f477e794015bc0fff0c",
+      "buildMs": 11.065800000000081,
+      "bounds": {
+        "minX": -109.03192666666666,
+        "maxX": 126.85182166666667,
+        "minZ": -100,
+        "maxZ": 100
+      },
+      "cache": {
+        "version": "node-field-v1",
+        "entries": 1,
+        "builds": 1,
+        "hits": 0,
+        "nodeCount": 71,
+        "grid": 128,
+        "sigma": 11,
+        "baseWeight": 0.45,
+        "nodeWeight": 0.55,
+        "coreNodeWeight": 0.25
+      },
+      "replayIdentical": true,
+      "versions": [
+        {
+          "version": "legacy",
+          "particles": 212000,
+          "generateMs": 455.8145000000002,
+          "positionSha256": "b6f60f0cb1d672be1a89de597cf9b21dfbdf642b05b18e54eaf629d6965faa9d",
+          "dust": {
+            "correlation": 0.6006396362216048,
+            "emptyFraction": 0.07129090909090909,
+            "outsideFraction": 0
+          },
+          "all": {
+            "correlation": 0.5720928570082756,
+            "emptyFraction": 0.056962264150943395,
+            "outsideFraction": 0
+          }
+        },
+        {
+          "version": "node-field-v1",
+          "particles": 212000,
+          "generateMs": 473.4947000000002,
+          "positionSha256": "aae08602a65ff7de2969148964152ffa72b8974203d3dda105be572cd904e028",
+          "dust": {
+            "correlation": 0.8738071472062183,
+            "emptyFraction": 0.040563636363636364,
+            "outsideFraction": 0
+          },
+          "all": {
+            "correlation": 0.7173106301297949,
+            "emptyFraction": 0.03307547169811321,
+            "outsideFraction": 0
+          }
+        }
+      ]
+    },
+    {
+      "nodeCount": 52,
+      "layoutSha256": "7839dcb39a45fd9c0681006d37122f40a3ba7500fc6ac668c51b5cdfbc4ba2d3",
+      "snapshotHash": "9268a78649e2cdec71c55f6047f197079f6bc4011134c1255b0b5341bce08fa2",
+      "buildMs": 18.658600000000206,
+      "bounds": {
+        "minX": -104.51074866666667,
+        "maxX": 126.15801400000001,
+        "minZ": -100,
+        "maxZ": 100
+      },
+      "cache": {
+        "version": "node-field-v1",
+        "entries": 1,
+        "builds": 1,
+        "hits": 0,
+        "nodeCount": 52,
+        "grid": 128,
+        "sigma": 11,
+        "baseWeight": 0.45,
+        "nodeWeight": 0.55,
+        "coreNodeWeight": 0.25
+      },
+      "replayIdentical": true,
+      "versions": [
+        {
+          "version": "legacy",
+          "particles": 212000,
+          "generateMs": 781.8728000000006,
+          "positionSha256": "b6f60f0cb1d672be1a89de597cf9b21dfbdf642b05b18e54eaf629d6965faa9d",
+          "dust": {
+            "correlation": 0.6517620609272999,
+            "emptyFraction": 0.08957272727272728,
+            "outsideFraction": 0
+          },
+          "all": {
+            "correlation": 0.6330595086882663,
+            "emptyFraction": 0.07369339622641509,
+            "outsideFraction": 0
+          }
+        },
+        {
+          "version": "node-field-v1",
+          "particles": 212000,
+          "generateMs": 772.8453,
+          "positionSha256": "75f7cbf3d1026e1b5532ed4f374d39ec49c6f0204ee0a159de106c7b20983178",
+          "dust": {
+            "correlation": 0.9000596027468785,
+            "emptyFraction": 0.05287272727272727,
+            "outsideFraction": 0
+          },
+          "all": {
+            "correlation": 0.7704274308426546,
+            "emptyFraction": 0.044117924528301884,
+            "outsideFraction": 0.000004716981132075472
+          }
+        }
+      ]
+    }
+  ]
+}

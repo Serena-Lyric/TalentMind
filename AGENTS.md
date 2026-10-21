@@ -38,6 +38,23 @@
 - 业务改动核对需求到实际执行路径，运行相关测试与必要集成/构建；字段、提示词或测试名称存在不能单独证明功能完成。历史通过数、演示分数和合成历史数据都要保留来源与日期。
 - 新增/移动/删除资产、修改契约/目录/交接文档后及时更新 [资产与状态](docs/superpowers/资产与状态.md)；产品决策写主文档并更新决策索引；按需同步 README/导航，CLAUDE 仅维护补充约束。
 - AI 修复业务/脚本 bug 后，在 `docs/superpowers/traps/YYYY-MM-DD-简述.md` 记录“症状 → 根因 → 修复 → 教训”；按模块阅读既有陷阱，不在根指引复制完整索引。
+  M2候选图：[运行版本、历史读取与迟到导航](docs/superpowers/traps/2026-10-21-m2-graph-run-binding.md)（2026-10-21）。
+  M2 产品编排：[缓存成员、跨模块依赖、报告发布与迟到响应](docs/superpowers/traps/2026-10-21-m2-product-recovery.md)（2026-10-21）。
+  M1 浏览器记录：[准备/采集分离、端点归属与访问状态](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)（2026-10-20）。
+  BOSS 安全循环：[目标页锁定、验证暂停与首页回退](docs/superpowers/traps/2026-10-21-boss-security-check-loop.md)（2026-10-21）。
+  M1 详情记录：[列表回落、换行及推荐字段污染](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)（2026-10-20）。
+  M1 控制记录：[历史循环接口、子进程配置/编码与停止状态](docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)（2026-10-20）。
+  产品集成记录：[启动归属、任务停止与原文边界](docs/superpowers/traps/2026-10-21-product-integration.md)（2026-10-21）。
+  准备目标记录：[重新检查未就绪与异步旧状态覆盖](docs/superpowers/traps/2026-10-21-collection-prepare-target.md)（2026-10-21）。
+  批次生命周期：[停止、异常释放与长期单项日志](docs/superpowers/traps/2026-10-21-collection-batch-lifecycle.md)（2026-10-21）。
+  图谱集成新增记录：[画布矩形错位、密集命中与错误回退](docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)（2026-10-19）。
+  可读性修订记录：[关系显示分账、隐藏类型跳转与曲线相交](docs/superpowers/traps/2026-10-19-graph-visibility-and-hidden-neighbor.md)（2026-10-19）。
+  三维改造记录：[相机过渡、最终姿态同步与派生端点](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)（2026-10-19）。
+  恒星与交互记录：[选择与可见集合耦合](docs/superpowers/traps/2026-10-19-stellar-selection-and-visibility.md)（2026-10-19）。
+  P2.5视觉记录：[主体类型、密度和端点渐变](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)（2026-10-19）。
+  真实链路记录：[来源绑定、组合冲突和 Unicode 偏移](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)（2026-10-20）。
+  真实质量记录：[结构分割、共享范围与标注上下文](docs/superpowers/traps/2026-10-20-real-jd-structure-and-scope.md)（2026-10-20）。
+  空间场记录：[银河空间分离与空图残留](docs/superpowers/traps/2026-10-20-galaxy-spatial-field-and-empty-layer.md)（2026-10-20）。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
 ## 5. Windows 与编码
@@ -46,3 +63,5 @@
 - `.ps1` 用 UTF-8 BOM；注释用 `#`/`<# #>`，函数文档写在函数上方；三引号字符串不是注释，会污染输出流。BOM 用 `[System.IO.File]::ReadAllBytes` 核查。
 - `.bat`/`.cmd` 仅 ASCII，顶部 `chcp 65001 >nul`，只做最少引导并调起 PowerShell；业务逻辑放 `.ps1`。
 - 编辑前读当前内容，替换定位须唯一、逐字匹配；递归移动/删除前核对绝对路径及 junction 目标，涉及真实数据先遵守额外许可规则。
+
+- MySQL 宿主端口为 23306；陷阱：[2026-10-17 MySQL 排除端口](docs/superpowers/traps/2026-10-17-mysql-excluded-port.md)。

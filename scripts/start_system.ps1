@@ -59,8 +59,8 @@ if ($dockerOk) {
     } else {
         Write-Host '  容器已在运行' -ForegroundColor Green
     }
-    if (-not (Wait-Port 3306 120)) {
-        Write-Host '  [WARN] MySQL 端口 3306 未就绪（容器可能仍在启动）' -ForegroundColor Yellow
+    if (-not (Wait-Port 23306 120)) {
+        Write-Host '  [WARN] MySQL 端口 23306 未就绪（容器可能仍在启动）' -ForegroundColor Yellow
     } else {
         Write-Host '  MySQL/Neo4j/Redis 就绪' -ForegroundColor Green
     }

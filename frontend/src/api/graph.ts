@@ -31,11 +31,15 @@ export interface GraphNode {
   is_emerging?: boolean
   canonical_name?: string
   evolution?: Record<string, unknown>
+  raw?: Record<string, any>
+  sourceIndex?: number
 }
 
 export interface GraphEdge {
   source: string
   target: string
+  raw?: Record<string, any>
+  sourceIndex?: number
   kind: string
 }
 

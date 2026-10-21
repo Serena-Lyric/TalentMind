@@ -10,7 +10,7 @@ from ...collect.cleaner import is_valid_jd
 from ..foundation.inputs import canonical, parse_json
 from ..foundation.models import VersionName
 
-RULESET = "conservative-activity-v2"
+RULESET = "conservative-activity-v3"
 
 
 class ScopeDefinition(BaseModel):
@@ -61,7 +61,7 @@ class Decision(BaseModel):
 
 # Activity relations, rather than tool names or a job-title allowlist.
 ACTIVITIES = {
-    "software_development": r"(?:开发|设计|编写|实现|维护|优化|构建)[^。；;!?！？\n]{0,24}(?:软件|程序|代码|接口|后端|前端|应用|微服务)|\b(?:build|develop|implement|maintain|write)\w*\s+(?:(?:software|backend|frontend|web)\s+)?(?:software|applications?|services?|apis?|code)\b",
+    "software_development": r"(?:开发|设计|编写|实现|维护|优化|构建)(?!经验|流程|框架|效率|进度|工程师|工具|任务)[^，,、。；;!?！？\n]{0,24}(?:软件|程序|代码|接口|后端|前端|应用|微服务)|\b(?:build|develop|implement|maintain|write)\w*\s+(?:(?:software|backend|frontend|web)\s+)?(?:software|applications?|services?|apis?|code)\b",
     "software_testing": r"(?:执行|编写|设计|开展|负责|实施)[^。；;!?！？\n]{0,20}(?:软件测试|接口测试|自动化测试|测试用例)|\b(?:test(?:ing)?\s+software|(?:design|write|execute)\w*\s+(?:automated\s+)?tests?)\b",
     "data": r"(?:构建|开发|设计|分析|训练|维护)[^。；;!?！？\n]{0,20}(?:数据管道|数据模型|数据仓库|业务数据|机器学习模型|算法模型)|\b(?:build|develop|analyze|train)\w*\s+(?:data\s+(?:pipelines?|models?|warehouses?)|datasets?|machine\s+learning\s+models?)\b",
     "it_operations": r"(?:部署|维护|运维|管理|监控|保障)[^。；;!?！？\n]{0,20}(?:服务器|云平台|集群|网络系统|数据库|应用)|\b(?:deploy|maintain|monitor|administer)\w*\s+(?:servers?|infrastructure|databases?|applications?|clusters?)\b",
@@ -73,6 +73,13 @@ QUALIFICATION = r"(?:熟悉|熟练|掌握|具备)[^。；;!?！？\n]*[\w\u4e00-
 NON_RECRUITMENT = r"非招聘信息|无招聘意图|暂无招聘计划|仅供产品宣传|欢迎购买|培训招生|\b(?:not\s+(?:a\s+)?job\s+(?:posting|advertisement)|product\s+promotion)\b"
 AMBIGUOUS = r"不(?:负责|参与|开发|编写|设计|实现|维护|优化|构建|执行|分析|训练|部署|管理|监控)|无需|不需要|不涉及|并非|不是|不会|不要|不用|未参与|不承担|不要求|例如|举例|曾经|过去|\b(?:not|never|no|without|previously|example)\b"
 NON_JOB_CONTEXT = r"公司简介|公司介绍|关于我们|教程|本文介绍|(?:公司|我们|本公司|我司|本团队)[^。；;!?！？\n]{0,16}(?:开发|设计|构建)的|(?:向|给|为)客户(?:演示|介绍|展示)[^。；;!?！？\n]{0,24}(?:产品|软件|平台)|\b(?:about\s+us|our\s+company|tutorial)\b"
+
+
+ACTIVITIES['software_development'] += (
+    r'|(?:负责|参与|协助)[^，,、。；;!?！？\n]{0,12}'
+    r'(?:应用程序|软件模块|后端业务系统|后端服务|前端应用)的'
+    r'(?:设计|开发|维护|优化)(?:(?:与|和|及)(?:设计|开发|维护|优化))*(?=\s*(?:[，,、。；;!?！？\n]|$))'
+)
 
 
 def _matches(field, text, pattern, signal):
@@ -88,11 +95,15 @@ def screen(record, scope):
     # Sentence-local checks keep explicit negation/examples from becoming positive evidence.
     for field in ("duties", "raw_text", "requirements"):
         text = payload.get(field, "")
+        metadata = list(re.finditer(
+            r"(?m)^[ \t]*(?:技能标签|公司|薪资|地点|学历|经验)[:：][^\n]*?"
+            r"(?=(?:岗位职责|工作职责|工作内容|任职要求|岗位要求|职位要求|职位描述)[:：]|\n|$)", text))
         for clause in re.finditer(r"[^。；;!?！？\n]+", text):
             part = clause.group()
             found = []
             for activity in scope["activities"]:
                 found += _matches(field, part, ACTIVITIES[activity], "technical_activity")
+            found = [e for e in found if not any(m.start() <= clause.start() + e['start'] < m.end() for m in metadata)]
             negatives = _matches(field, part, NONTECH, "nontechnical_activity")
             qualifiers = _matches(field, part, QUALIFICATION, "qualification")
             adverts = _matches(field, part, NON_RECRUITMENT, "non_recruitment")

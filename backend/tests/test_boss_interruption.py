@@ -35,6 +35,9 @@ def offline(monkeypatch, tmp_path):
 
     monkeypatch.setattr(mysql, "get_db", get_db)
     monkeypatch.setattr(boss.time, "sleep", lambda _: None)
+    monkeypatch.setattr(boss.browser, 'ensure_ready', lambda *a, **kw: {
+        'endpoint': 'http://127.0.0.1:9333', 'user_data_dir': str(tmp_path / 'profile'), 'can_collect': True})
+    monkeypatch.setattr(boss.browser, 'wait_access', lambda *a, **kw: {'can_collect': True})
     clients = []
 
     class Client:
@@ -47,7 +50,7 @@ def offline(monkeypatch, tmp_path):
             self.url = url
 
         def evaluate(self, script):
-            return {"description": "岗位职责：负责 Python 服务开发及维护", "company": "合成公司"}
+            return {"url": self.url, "title": "合成 Python 岗位", "description": "岗位职责：负责 Python 服务开发及维护", "company": "合成公司"}
 
     def connect(*args, **kwargs):
         client = Client()
@@ -81,6 +84,35 @@ def card(key, **kwargs):
     return {"url": f"https://www.zhipin.com/job_detail/{key}.html", "title": "合成 Python 岗位", **kwargs}
 
 
+def test_default_rejects_list_fallback_and_emits_current_evidence(offline, monkeypatch):
+    Client, rows, run = offline
+    monkeypatch.setattr(boss, '_fetch_search_page', lambda *a: [card('new', tags=['Python'])])
+    monkeypatch.setattr(Client, 'evaluate', lambda *a: {'description': ''})
+    events = []
+    with run(pages=1, on_event=events.append) as collect:
+        stats = collect()
+    assert rows() == []
+    assert stats['complete'] == stats['inserted'] == 0
+    assert stats['rejected'] == 1
+    assert any(e['event'] == 'detail' and e['rejection'] == 'empty_detail' for e in events)
+
+
+def test_boss_transport_close_stops_before_next_detail_and_keeps_committed_good(offline,monkeypatch):
+    from app.collect.fetchers.cdp import CdpConnectionError
+    Client,rows,run=offline
+    monkeypatch.setattr(boss,'_fetch_search_page',lambda *a:[card('good'),card('closed'),card('never')])
+    attempted=[]
+    def detail(self,script):
+        attempted.append(self.url)
+        if '/good.html' in self.url:return {'url':self.url,'title':'合成 Python 岗位','description':'岗位职责：负责 Python 服务开发'}
+        raise CdpConnectionError('synthetic transport closed')
+    monkeypatch.setattr(Client,'evaluate',detail)
+    with run(pages=1,detail_limit=3) as collect:
+        with pytest.raises(CdpConnectionError):collect()
+    assert len(attempted)==2 and len(rows())==1
+    assert rows()[0]['source_detail'].endswith('/good.html')
+
+
 def test_committed_list_survives_next_page_browser_failure(offline, monkeypatch):
     _, rows, run = offline
 
@@ -91,7 +123,7 @@ def test_committed_list_survives_next_page_browser_failure(offline, monkeypatch)
         return [card("good", tags=["Python"]), card("empty", tags=["本科"])]
 
     monkeypatch.setattr(boss, "_fetch_search_page", fetch)
-    with run(pages=2) as collect:
+    with run(pages=2, no_details=True) as collect:
         with pytest.raises(CdpError, match="synthetic browser closed"):
             collect()
     assert len(rows()) == 1
@@ -105,7 +137,7 @@ def test_detail_commit_survives_later_failure_and_empty_card_is_discarded(offlin
 
     def detail(self, script):
         if "/first.html" in self.url:
-            return {"description": "负责 Python 服务开发"}
+            return {"url":self.url,"title":"合成 Python 岗位","description": "负责 Python 服务开发"}
         observed.append(len(rows()))
         raise CdpError("synthetic detail closed")
 
@@ -123,8 +155,8 @@ def test_saved_list_is_enriched_without_duplicate_or_downgrade(offline, monkeypa
     monkeypatch.setattr(boss, "_fetch_search_page", lambda *args: [card("same", tags=["Python"])])
 
     def detail(self, script):
-        assert len(rows()) == 1  # 详情开始前列表已保存
-        return {"description": "岗位职责：负责 Python 服务开发及维护"}
+        assert len(rows()) == 0  # 默认模式不持久化列表卡
+        return {"url":self.url,"title":"合成 Python 岗位","description": "岗位职责：负责 Python 服务开发及维护"}
 
     monkeypatch.setattr(Client, "evaluate", detail)
     with run(pages=1) as collect:
@@ -148,7 +180,7 @@ def test_previous_round_list_can_be_completed_after_detail_connect_failure(offli
         nonlocal calls
         calls += 1
         if calls == 2:
-            assert len(rows()) == 1
+            assert len(rows()) == 0
             raise CdpError("synthetic connect failure")
         return connect(*args, **kwargs)
 
@@ -156,10 +188,10 @@ def test_previous_round_list_can_be_completed_after_detail_connect_failure(offli
     with run(pages=1) as collect:
         with pytest.raises(CdpError, match="synthetic connect failure"):
             collect()
-    assert len(rows()) == 1
+    assert len(rows()) == 0
     monkeypatch.setattr(boss.CdpClient, "connect_first_page", connect)
     with run(pages=1) as collect:
-        assert collect()["new"] == 0
+        assert collect()["new"] == 1
     assert len(rows()) == 1
     assert "负责 Python 服务开发" in rows()[0]["raw_text"]
 
@@ -214,40 +246,36 @@ def test_failed_insert_rolls_back_current_record_and_keeps_previous_commit(offli
     assert rows()[0]["source_detail"] == card("first")["url"]
 
 
-def test_detail_redirect_keeps_list_identity(offline, monkeypatch):
+def test_detail_redirect_rejects_unproven_identity(offline, monkeypatch):
     Client, rows, run = offline
     monkeypatch.setattr(boss, "_fetch_search_page", lambda *args: [card("valid", tags=["本科"])])
     monkeypatch.setattr(Client, "evaluate", lambda *args: {
-        "url": "https://www.zhipin.com/job_detail/redirect.html", "description": "负责 Python 开发",
+        "url": "https://www.zhipin.com/job_detail/redirect.html", "title":"合成 Python 岗位", "description": "负责 Python 开发",
     })
     with run(pages=1) as collect:
-        assert collect()["new"] == 1
-    assert len(rows()) == 1
-    assert rows()[0]["source_detail"] == card("valid")["url"]
+        assert collect()["rejected"] == 1
+    assert rows() == []
 
 
 def test_invalid_detail_cannot_pollute_saved_list(offline, monkeypatch):
     Client, rows, run = offline
     monkeypatch.setattr(boss, "_fetch_search_page", lambda *args: [card("valid", tags=["Python"])])
-    monkeypatch.setattr(Client, "evaluate", lambda *args: {"description": "扫码领券，欢迎购买"})
+    monkeypatch.setattr(Client, "evaluate", lambda self,*args: {"url":self.url,"title":"合成 Python 岗位","description": "扫码领券，欢迎购买"})
     with run(pages=1) as collect:
-        assert collect()["new"] == 1
-    assert len(rows()) == 1
-    assert "Python" in rows()[0]["raw_text"]
-    assert "扫码" not in rows()[0]["raw_text"]
+        assert collect()["rejected"] == 1
+    assert rows() == []
 
 
 @pytest.mark.parametrize("description", ["暂无描述，详情面议", "", "薪资：20-30K"])
 def test_placeholder_detail_does_not_block_next_round_completion(offline, monkeypatch, description):
     Client, rows, run = offline
     monkeypatch.setattr(boss, "_fetch_search_page", lambda *args: [card("retry", tags=["Python"])])
-    monkeypatch.setattr(Client, "evaluate", lambda *args: {"description": description})
-    with run(pages=1) as collect:
-        assert collect()["new"] == 1
-    assert len(rows()) == 1
-    assert "职位描述" not in rows()[0]["raw_text"]
-    monkeypatch.setattr(Client, "evaluate", lambda *args: {"description": "负责 Python 后端服务开发"})
+    monkeypatch.setattr(Client, "evaluate", lambda self,*args: {"url":self.url,"title":"合成 Python 岗位","description": description})
     with run(pages=1) as collect:
         assert collect()["new"] == 0
+    assert rows() == []
+    monkeypatch.setattr(Client, "evaluate", lambda self,*args: {"url":self.url,"title":"合成 Python 岗位","description": "负责 Python 后端服务开发"})
+    with run(pages=1) as collect:
+        assert collect()["new"] == 1
     assert len(rows()) == 1
     assert "负责 Python 后端服务开发" in rows()[0]["raw_text"]
