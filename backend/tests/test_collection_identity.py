@@ -99,6 +99,27 @@ def test_same_title_does_not_replace_missing_panel_transition():
     assert rejection == 'panel_not_updated'
 
 
+def test_active_card_with_unchanged_same_title_panel_is_rejected():
+    from app.collect.identity import identity_decision
+
+    status, _, rejection = identity_decision(
+        SITES['zhaopin'],
+        job(title='后端工程师'),
+        detail(title='后端工程师'),
+        binding(
+            target_active_before=True,
+            panel_changed=False,
+            list_title='后端工程师',
+            panel_title='后端工程师',
+            before_panel_title='后端工程师',
+        ),
+        '2026-10-21T22:00:00+08:00',
+    )
+
+    assert status == 'unknown'
+    assert rejection == 'panel_not_updated'
+
+
 def test_target_must_be_active_and_panel_must_be_stable():
     from app.collect.identity import identity_decision
 

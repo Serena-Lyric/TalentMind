@@ -62,7 +62,7 @@ Expected: import/function-not-defined failures.
 
 - [ ] **Step 3: Implement pure decisions**
 
-Move content validation out of `fetch_cn_jobs.detail_rejection`; require exact normalized title match for DOM pending, active target, visible stable panel, and changed panel state unless the target was already active before click. Fingerprint canonical JSON with `platform`, `list_page_url`, `card_index`, title, company, location, salary, description SHA-256, `observed_at`, and `binding_policy='zhaopin-dom-panel-v1'`.
+Move content validation out of `fetch_cn_jobs.detail_rejection`; require exact normalized title match for DOM pending, active target, visible stable panel, and changed panel state regardless of whether the target was already active before click. Fingerprint canonical JSON with `platform`, `list_page_url`, `card_index`, title, company, location, salary, description SHA-256, `observed_at`, and `binding_policy='zhaopin-dom-panel-v1'`.
 
 - [ ] **Step 4: Run tests**
 
@@ -104,7 +104,7 @@ Expected: new binding tests fail because probe/polling does not exist.
 
 - [ ] **Step 3: Implement probe and dynamic polling**
 
-Capture the panel before click. Poll until two identical consecutive `(panel_title, description, company, visible, target_active)` observations after a transition; reject when no transition is observed for a previously inactive card. Do not use one fixed sleep as proof. Compute `_observation_key` from platform, list URL, card index and list-card digest; compute the final source fingerprint only after content and binding pass.
+Capture the panel before click. Poll until two identical consecutive `(panel_title, description, company, visible, target_active)` observations after a transition; reject whenever no transition is observed, including when the target was already active before click. Do not use one fixed sleep as proof. Compute the provisional DOM URL and `_observation_key` from list URL, card index and list-card digest so identical display fields do not collapse before detail sampling; compute the final source fingerprint only after content and binding pass.
 
 - [ ] **Step 4: Run tests**
 

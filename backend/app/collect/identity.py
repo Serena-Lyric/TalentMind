@@ -62,7 +62,7 @@ def identity_decision(
             return 'unknown', {}, 'panel_not_visible'
         if int(binding.get('stable_samples') or 0) < 2:
             return 'unknown', {}, 'panel_unstable'
-        if not binding.get('target_active_before') and not binding.get('panel_changed'):
+        if not binding.get('panel_changed'):
             return 'unknown', {}, 'panel_not_updated'
         expected_title = _text(job.get('title')).casefold()
         if (_text(binding.get('panel_title')).casefold() != expected_title

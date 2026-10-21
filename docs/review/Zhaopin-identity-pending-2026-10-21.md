@@ -1,6 +1,6 @@
 # 智联岗位身份待审交付报告
 
-日期：2026-10-21，Asia/Singapore。分支：`codex/zhaopin-identity-pending`；主线基线：`34fb9e613746be50caf9491a552c75e2377a240d`。
+日期：2026-10-21，Asia/Singapore。分支：`codex/zhaopin-identity-pending`；原开发基线：`34fb9e613746be50caf9491a552c75e2377a240d`；审查收口已合入主线 `920e1747ef4c806f5e4df06e6a6e192ae25cc6ba`，并保留星云视觉与 M1/M2/M3 功能。
 
 交付：[Draft PR #46](https://github.com/Serena-Lyric/TalentMind/pull/46)。
 
@@ -12,7 +12,8 @@
 
 ## 实现
 
-- 智联 DOM 详情：点击前记录面板，点击后轮询面板变化；要求目标卡 active、面板可见、连续两次稳定、面板/详情标题一致。
+- 智联 DOM 详情：点击前记录面板，点击后轮询面板变化；要求目标卡 active、面板可见、连续两次稳定、面板/详情标题一致。面板变化是无条件门禁，目标卡点击前已 active 也不豁免。
+- 列表阶段的临时 DOM URL 使用列表页、卡片位置和展示摘要哈希；标题/公司/薪资/地点/标签完全相同的两张卡片仍分别进入详情采样，最终身份 fingerprint 不变。
 - 正文独立经过现有有效性、截断和错岗检查。只有正文合格才计 `content_eligible`；只有内容合格且 URL 身份匹配才增加 `complete`。
 - pending fingerprint 使用 SHA-256，覆盖列表页、卡片位置、标题、公司、薪资地点、正文摘要、观察时间和策略版本。事件 `_observation_key` 只负责关联，不落为职位身份。
 - M1 新增 `content_eligible / identity_pending / identity_verified`；M1 结果和数据库原文读取携带身份状态与证据。
@@ -39,11 +40,12 @@
 
 ## 验证
 
-- 相关后端：220 passed / 0 failed。
-- 全量非集成：1492 passed / 2 failed / 24 deselected。两项失败均为既有 B3 `PRODUCT_DECISIONS` 固定来源摘要/引文失配，本次未改候选来源或修绿。
+- 审查新增失败回归先分别复现 `pending` 错放和双卡只保留 1 张，修复后两项均通过。
+- 相关后端离线回归：205 passed / 7 deselected / 0 failed。
+- 全量非集成：1494 passed / 2 failed / 24 deselected。两项失败仍为既有 B3 `PRODUCT_DECISIONS` 固定来源摘要/引文失配，本次未改候选来源或修绿。
 - 前端完整测试：154 passed / 0 failed。
 - `vue-tsc --noEmit && vite build`：通过；保留既有大 chunk、动态/静态 import 提示。
-- 当前 MySQL 只读核查：`jd_pool=2988`，`identity_status/content_eligible/identity_evidence` 三列均不存在。
+- 当前 MySQL 只读核查：目标为 `localhost:23306/talentmind`；`jd_pool=2988`、`signal=1540`、`skill_dict=285`、`job_skill=717`、`job_definition=717`、`job_change_log=275`、`resume=0`、`talent_raw=0`；`identity_status/content_eligible/identity_evidence` 三列均不存在，迁移状态为未应用。
 
 ## 未执行与下一步
 

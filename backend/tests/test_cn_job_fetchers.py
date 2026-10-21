@@ -120,6 +120,45 @@ process.stdin.on('end',()=>{
     assert result['_observation_key'].startswith('zhaopin:')
 
 
+def test_identical_zhaopin_dom_cards_survive_before_detail_sampling():
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node required for actual extraction JavaScript")
+    runner = r'''
+const vm=require('node:vm'); let input='';
+process.stdin.on('data',d=>input+=d);
+process.stdin.on('end',()=>{
+  const text=value=>({innerText:value,textContent:value,querySelectorAll:()=>[],getBoundingClientRect:()=>({width:100,height:100})});
+  const card=()=>({
+    innerText:'后端工程师 甲公司 20-30K 上海',
+    querySelector:s=>s.includes('title')?text('后端工程师'):
+      s.includes('company')?text('甲公司'):
+      s.includes('salary')?text('20-30K'):
+      s.includes('location')?text('上海'):null,
+    querySelectorAll:()=>[],
+    getBoundingClientRect:()=>({width:300,height:100})
+  });
+  const document={querySelectorAll:s=>s.includes('.job-card')?[card(),card()]:[]};
+  const pageLocation={href:'https://www.zhaopin.com/jobs/?jl=538&kw=Java&page=1'};
+  const value=vm.runInNewContext(input,{document,location:pageLocation,getComputedStyle:()=>({display:'block',visibility:'visible'})});
+  process.stdout.write(JSON.stringify(value));
+});'''
+    done = subprocess.run(
+        [node, '-e', runner],
+        input=build_search_extract_js(SITES['zhaopin']),
+        text=True,
+        capture_output=True,
+        encoding='utf-8',
+        check=True,
+    )
+    extracted = json.loads(done.stdout)
+    jobs = deduplicate_jobs(SITES['zhaopin'], extracted)
+
+    assert len(jobs) == 2
+    assert jobs[0]['url'] != jobs[1]['url']
+    assert jobs[0]['_observation_key'] != jobs[1]['_observation_key']
+
+
 def test_zhaopin_panel_probe_reports_active_card_and_panel():
     node = shutil.which("node")
     if not node:

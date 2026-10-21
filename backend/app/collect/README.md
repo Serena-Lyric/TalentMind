@@ -2,9 +2,9 @@
 
 ## 2026-10-21 岗位身份待审
 
-内容资格与身份可信度分开。身份为 `verified / pending / unknown`，拒绝/失败仍是采集结果。智联 DOM 卡片只有在点击前后面板变化、目标卡片 active、连续两次稳定、标题一致，并通过正文有效性/截断/错岗检查后，才可写为 `pending`；仅有 active、标题相同或固定等待仍拒绝。
+内容资格与身份可信度分开。身份为 `verified / pending / unknown`，拒绝/失败仍是采集结果。智联 DOM 卡片只有在点击前后面板变化、目标卡片 active、连续两次稳定、标题一致，并通过正文有效性/截断/错岗检查后，才可写为 `pending`；点击前已 active 不豁免面板变化门禁，仅有 active、标题相同或固定等待仍拒绝。
 
-DOM fingerprint 使用列表页、卡片位置、标题、公司、薪资/地点、正文 SHA-256、观察时间和绑定策略版本生成 SHA-256，仅定位观察，不证明唯一招聘岗位。`source_detail` 保存最终 `dom://zhaopin/<hash>`，事件另用 `_observation_key` 关联 listed/detail/persisted。`detail_obtained` 不代表正文合格；`content_eligible`、`identity_pending`、`identity_verified` 独立统计，既有 `complete` 只增加 `verified` 且内容合格记录。
+详情采样前的临时 DOM URL 包含列表页、卡片位置和展示摘要哈希，展示字段完全相同的两张卡片也会分别保留。DOM fingerprint 使用列表页、卡片位置、标题、公司、薪资/地点、正文 SHA-256、观察时间和绑定策略版本生成 SHA-256，仅定位观察，不证明唯一招聘岗位。`source_detail` 保存最终 `dom://zhaopin/<hash>`，事件另用 `_observation_key` 关联 listed/detail/persisted。`detail_obtained` 不代表正文合格；`content_eligible`、`identity_pending`、`identity_verified` 独立统计，既有 `complete` 只增加 `verified` 且内容合格记录。
 
 `jd_pool` 已声明追加字段 `identity_status`（历史默认 `unknown`）、`content_eligible`（历史 NULL）和 `identity_evidence`。迁移脚本只提交、未执行；旧 schema 若收到 pending/内容证据会在 INSERT 前明确报 `identity_schema_migration_required`，不静默丢字段。M2/M3 可读取 pending 作候选分析和候选观察，但不能计正式独立岗位或已确认需求。迁移、备份与回退见[设计](../superpowers/specs/2026-10-21-zhaopin-identity-pending-design.md)，实测/回放见[报告](../../../docs/review/Zhaopin-identity-pending-2026-10-21.md)。
 

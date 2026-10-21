@@ -304,8 +304,9 @@ def build_search_extract_js(spec: SiteSpec) -> str:
     const anchor = [...card.querySelectorAll(linkSelector)]
       .find((node) => node.href && /\\/(job|a|job_detail)\\//i.test(node.href));
     const key = [title, company, salary, location, tags.join('|')].join('|');
-    const url = anchor?.href || 'dom://{spec.source}/' + hash(key);
-    const observationKey = {json.dumps(spec.source)} + ':' + hash(listUrl + '|' + cardIndex + '|' + key);
+    const observationHash = hash(listUrl + '|' + cardIndex + '|' + key);
+    const url = anchor?.href || 'dom://{spec.source}/' + observationHash;
+    const observationKey = {json.dumps(spec.source)} + ':' + observationHash;
     return {{
       url,
       title: title || text(anchor),
