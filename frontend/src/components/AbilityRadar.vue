@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div v-if="hasData" ref="chartRef" class="radar-chart"></div>
   <div v-else class="radar-empty">暂无能力维度数据</div>
 </template>
@@ -45,8 +45,8 @@ function render() {
     series: [{
       type: 'radar',
       data: [
-        { name: '岗位要求', value: props.data.jobStandard, lineStyle: { color: '#E07B6D', width: 2 }, itemStyle: { color: '#E07B6D' }, areaStyle: { color: '#E07B6D20' } },
-        { name: '个人能力', value: props.data.personalAbility, lineStyle: { color: '#66BB6A', width: 2 }, itemStyle: { color: '#66BB6A' }, areaStyle: { color: '#66BB6A20' } }
+        { name: '岗位要求', value: props.data.jobStandard, lineStyle: { color: '#247CA2', width: 2 }, itemStyle: { color: '#247CA2' }, areaStyle: { color: '#247CA220' } },
+        { name: '个人能力', value: props.data.personalAbility, lineStyle: { color: '#55B88D', width: 2 }, itemStyle: { color: '#55B88D' }, areaStyle: { color: '#55B88D20' } }
       ]
     }]
   })
@@ -69,6 +69,6 @@ onBeforeUnmount(() => chart?.dispose())
   place-items: center;
   color: #B0B0B0;
   font-size: 13px;
-  background: #FDFBF7;
+  background: #F8FAFB;
 }
 </style>

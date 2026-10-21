@@ -4,10 +4,10 @@
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-card">
         <div class="brand-row">
-          <div class="brand-mark" aria-hidden="true"><img src="/guangzhou-school.jpg" alt="" /></div>
+          <div class="brand-mark" aria-hidden="true"><img src="/brand-nebula-girl.png" alt="" /></div>
           <div class="brand-copy">
             <strong>TalentMind</strong>
-            <small>面向数字经济的人才能力大脑<br />与岗位演化预测系统</small>
+            <small>CAREER NEBULA</small>
           </div>
           <button class="collapse-button" type="button" aria-label="折叠导航" @click="sidebarCollapsed = !sidebarCollapsed">
             <el-icon><DArrowLeft v-if="!sidebarCollapsed" /><DArrowRight v-else /></el-icon>
@@ -28,11 +28,12 @@
           </router-link>
         </nav>
 
+        <div class="sidebar-mascot" aria-hidden="true">
+          <img class="sidebar-mascot__image" src="/sidebar-nebula-girl.png" alt="" />
+        </div>
         <div class="sidebar-footer">
-          <div class="footer-orbit orbit-one"></div>
-          <div class="footer-orbit orbit-two"></div>
-          <div class="footer-signal"><span></span><span></span><span></span></div>
-          <p>数据驱动人才洞察</p>
+          <div class="footer-status"><i></i><span>Career Nebula 视觉主题</span></div>
+          <p>页面状态以实时结果为准</p>
         </div>
       </div>
     </aside>
@@ -45,7 +46,7 @@
           <strong>{{ currentTitle }}</strong>
         </div>
         <div class="topbar-actions">
-          <span class="system-state"><i></i>系统运行中</span>
+          <span class="system-state"><i></i>演示模式</span>
           <el-tooltip content="当前版本的统一前端入口" placement="bottom">
             <el-icon class="topbar-info"><InfoFilled /></el-icon>
           </el-tooltip>
@@ -100,13 +101,13 @@ function logout() {
 }
 
 const navItems = [
-  { label: '采集模块管理', path: '/collection', icon: Connection },
+  { label: '数据采集控制台', path: '/collection', icon: Connection },
   { label: '新版 M2 分析', path: '/m2', icon: MagicStick },
-  { label: 'JD岗位管理', path: '/jobs', icon: Files },
+  { label: '岗位机会雷达', path: '/jobs', icon: Files },
   { label: '能力动态更新', path: '/evolution', icon: TrendCharts },
   { label: '岗位星云图谱', path: '/graph', icon: Collection },
-  { label: '简历分析', path: '/resume', icon: Document },
-  { label: '技能学习路径', path: '/learning', icon: MagicStick },
+  { label: '简历星体分析', path: '/resume', icon: Document },
+  { label: '技能成长轨道', path: '/learning', icon: MagicStick },
 ]
 
 const currentTitle = computed(() => String(route.meta.title || '数据概览'))

@@ -1,7 +1,7 @@
 <template>
   <div class="resume-demo-page">
     <div v-if="!resume" class="empty-state">
-      <el-icon :size="48" color="#D98B6E"><Document /></el-icon>
+      <el-icon :size="48" color="#247CA2"><Document /></el-icon>
       <h2>暂无可预览的简历</h2>
       <p>请先在“简历解析匹配”页面上传并完成一次简历解析。</p>
       <el-button type="primary" @click="goBack">返回简历解析</el-button>
@@ -73,7 +73,7 @@
             <div v-for="(detail, dim) in resume.skills.details" :key="dim" class="skill-item">
               <div class="skill-header">
                 <span class="skill-name">{{ dim }}</span>
-                <el-progress :percentage="detail.level" :stroke-width="6" :show-text="false" color="#2f7cf6" />
+                <el-progress :percentage="detail.level" :stroke-width="6" :show-text="false" color="#2F6FCE" />
                 <span class="skill-level">{{ detail.level }}分</span>
               </div>
               <div class="skill-tags">
@@ -176,23 +176,23 @@ function goBack() {
 async function exportPDF() {
   if (!resume.value) { ElMessage.warning('暂无可导出的简历'); return }
   ElMessage.info('正在生成PDF，请稍候...')
-  
+
   try {
     // 动态导入 html2canvas 和 jspdf
     const html2canvas = (await import('html2canvas')).default
     const { jsPDF } = await import('jspdf')
-    
+
     if (!resumeRef.value) return
-    
+
     const element = resumeRef.value.querySelector('.resume-paper') as HTMLElement
     if (!element) return
-    
+
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff'
     })
-    
+
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF('p', 'mm', 'a4')
     const pdfWidth = pdf.internal.pageSize.getWidth()
@@ -202,10 +202,10 @@ async function exportPDF() {
     const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
     const imgX = (pdfWidth - imgWidth * ratio) / 2
     const imgY = 0
-    
+
     pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
     pdf.save('TalentMind-简历.pdf')
-    
+
     ElMessage.success('PDF导出成功！')
   } catch (error) {
     console.error('PDF导出失败:', error)
@@ -223,7 +223,7 @@ async function exportPDF() {
   justify-content: center;
   gap: 12px;
   background: #fff;
-  border: 1px solid #F0EBE3;
+  border: 1px solid #D9E2E7;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   text-align: center;
@@ -292,7 +292,7 @@ async function exportPDF() {
   justify-content: space-between;
   align-items: flex-start;
   padding-bottom: 20px;
-  border-bottom: 2px solid #2f7cf6;
+  border-bottom: 2px solid #2F6FCE;
   margin-bottom: 24px;
 }
 
@@ -309,7 +309,7 @@ async function exportPDF() {
 
 .job-intention {
   font-size: 14px;
-  color: #2f7cf6;
+  color: #2F6FCE;
   margin-bottom: 12px;
   font-weight: 500;
 }
@@ -330,7 +330,7 @@ async function exportPDF() {
 
 .contact-info .el-icon {
   font-size: 14px;
-  color: #2f7cf6;
+  color: #2F6FCE;
 }
 
 .header-right {
@@ -341,11 +341,11 @@ async function exportPDF() {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #e8f4ff;
+  background: #E8F0FA;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2f7cf6;
+  color: #2F6FCE;
 }
 
 /* 章节标题 */
@@ -441,7 +441,7 @@ async function exportPDF() {
 
 .skill-level {
   font-size: 12px;
-  color: #2f7cf6;
+  color: #2F6FCE;
   font-weight: 600;
 }
 
@@ -482,7 +482,7 @@ async function exportPDF() {
 
 .tech-stack {
   font-size: 12px;
-  color: #2f7cf6;
+  color: #2F6FCE;
 }
 
 .project-right {
@@ -546,26 +546,26 @@ async function exportPDF() {
   .resume-paper {
     padding: 24px;
   }
-  
+
   .resume-header {
     flex-direction: column-reverse;
     align-items: center;
     text-align: center;
   }
-  
+
   .header-right {
     margin-left: 0;
     margin-bottom: 16px;
   }
-  
+
   .contact-info {
     justify-content: center;
   }
-  
+
   .skills-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .edu-header,
   .project-header {
     flex-direction: column;

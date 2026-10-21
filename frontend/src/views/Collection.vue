@@ -1,8 +1,27 @@
 <template>
   <section class="page collection-page">
     <div class="page-title">
-      <div><h1>采集工作台</h1><p>配置一次有界采集，先准备浏览器，再明确启动。登录或验证由你在浏览器中完成。</p></div>
-      <el-button :loading="refreshing" @click="refreshAll(true)">刷新状态</el-button>
+      <div class="title-left">
+        <div class="module-mark collection-mark"><el-icon><Connection /></el-icon></div>
+        <div>
+          <h1>采集工作台</h1>
+          <p>统一管理单轮与批量任务；先准备浏览器，再明确启动。登录或验证由你在浏览器中完成。</p>
+        </div>
+      </div>
+      <div class="collection-guide-stage">
+        <div class="collection-guide-mascot" aria-hidden="true">
+          <img class="collection-guide-mascot__image" src="/collection-nebula-girl.png" alt="" />
+          <span class="collector-spark spark-one">✦</span>
+          <span class="collector-spark spark-two">✧</span>
+          <aside class="collector-skill-bubble" aria-label="采集功能概述">
+            <div class="collector-bubble-title"><span>✦</span><b>采集功能概述</b></div>
+            <p>可创建单轮与批量任务计划，先手动准备浏览器，再显式开始或统一停止；逐项查看进度、原文、停止原因和历史结果。</p>
+          </aside>
+        </div>
+      </div>
+      <div class="page-actions">
+        <el-button class="btn-soft" :loading="refreshing" @click="refreshAll(true)"><el-icon><Refresh /></el-icon>刷新状态</el-button>
+      </div>
     </div>
     <el-alert v-if="refreshErrors.length" :title="refreshErrors.join('；')" type="error" :closable="false" show-icon />
 
@@ -130,6 +149,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Connection, Refresh } from '@element-plus/icons-vue'
 import CollectionBatch from '../components/CollectionBatch.vue'
 import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionPlatforms, getCollectionRaw, getCollectionResults, getCollectionStatus, getDatabaseStats, prepareCollection, startCollection, stopCollection, type CDPStatus, type CollectionAccess, type CollectionConfig, type CollectionPlatform, type CollectionPreparation, type CollectionRaw, type CollectionResult, type CollectionStats, type CollectionTask } from '../api/collection'
 
@@ -367,29 +387,33 @@ onUnmounted(() => { if (timer) clearInterval(timer); resultsRequest++; historyRe
 </script>
 
 <style scoped>
-.collection-page { --muted: #8c8581; }
-.page-title p, .section-heading p { color: var(--muted); line-height: 1.65; }
+.collection-page { --muted: #69808e; }
+.collection-page .page-title { position: relative; z-index: 30; min-height: 58px; overflow: visible; }
+.collection-page .title-left::after { display: none; }
+.module-mark { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border-radius: 14px; font-size: 23px; }
+.collection-mark { color: #5f8fbb; background: linear-gradient(145deg, #edf7fd, #e5eef9); }
+.page-title p, .section-heading p { line-height: 1.65; }
 .panel { margin: 18px 0; padding: 24px; border-radius: 16px; }
 h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 18px; }
 h3 { margin-top: 24px; font-size: 15px; }
-.step { display: inline-grid; place-items: center; width: 26px; height: 26px; background: #edf3fa; color: #688db5; border-radius: 8px; font-size: 14px; }
+.step { display: inline-grid; place-items: center; width: 26px; height: 26px; border: 1px solid rgba(95, 143, 187, .16); background: #edf5fb; color: #5f8fbb; border-radius: 8px; font-size: 14px; }
 .config-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; }
 .config-grid :deep(.el-select), .config-grid :deep(.el-input-number) { width: 100%; }
 .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .action-grid .panel { margin: 0; }
 .action-grid p { color: var(--muted); line-height: 1.7; }
-.launch-panel { border: 1px solid #dce8f5; background: #fafdff; }
+.launch-panel { border: 1px solid #d7e7f2; background: linear-gradient(145deg, #fbfeff, #f4f9fd); }
 .launch-summary { font-size: 16px; color: var(--text) !important; }
 .access-row, .button-row, .gate-note { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
 .access-row span, .gate-note span, .hint { font-size: 12px; line-height: 1.7; color: var(--muted); }
 .gate-note { margin-bottom: 0; padding-top: 12px; border-top: 1px solid var(--line); }
 .task-context, .source-meta, .quality-row { display: flex; gap: 12px 22px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 14px 0; }
 .count-grid { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
-.count-grid > div { padding: 18px 8px; background: #f8fafc; border-radius: 12px; text-align: center; }
+.count-grid > div { padding: 18px 8px; border: 1px solid rgba(213, 224, 228, .72); background: linear-gradient(160deg, #f9fcfd, #f3f8fa); border-radius: 12px; text-align: center; }
 .count-grid strong { display: block; color: var(--text); font-size: 24px; margin-bottom: 7px; }
 .count-grid span { font-size: 12px; color: var(--muted); }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 12px; margin-top: 18px; }
-.stats-grid > div { padding: 18px; border-radius: 10px; background: #fcfaf8; }
+.stats-grid > div { padding: 18px; border: 1px solid rgba(213, 224, 228, .72); border-radius: 12px; background: linear-gradient(150deg, #fbfdfd, #f5f9fa); }
 .stats-grid span { font-size: 12px; color: var(--muted); }
 .stats-grid strong { display: block; font-size: 22px; margin-top: 8px; }
 .mono { font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
@@ -400,6 +424,96 @@ h3 { margin-top: 24px; font-size: 15px; }
 .source-detail small { display: block; color: var(--muted); }
 .el-alert { margin: 12px 0; }
 .el-pagination { justify-content: flex-end; margin-top: 18px; }
-@media (max-width: 1100px) { .count-grid { grid-template-columns: repeat(5, 1fr); } }
-@media (max-width: 760px) { .config-grid, .action-grid { grid-template-columns: 1fr; } .count-grid { grid-template-columns: repeat(3, 1fr); } .panel { padding: 18px; } .page-title, .section-heading { flex-wrap: wrap; gap: 12px; } }
+
+/* 采集小管家为纯视觉装饰，不参与采集状态与业务判断。 */
+.collection-guide-stage {
+  position: absolute;
+  z-index: 42;
+  top: -7px;
+  left: 50%;
+  width: min(470px, 42vw);
+  height: 88px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.collection-guide-mascot {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  z-index: 3;
+  width: 126px;
+  height: 106px;
+  cursor: default;
+  isolation: isolate;
+  pointer-events: auto;
+}
+.collection-guide-mascot__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: contrast(1.05) saturate(1.08) brightness(1.02) drop-shadow(0 11px 15px rgba(62, 73, 135, .18));
+  transition: transform .24s ease, filter .24s ease;
+}
+.collection-guide-mascot:hover .collection-guide-mascot__image { transform: translateY(-4px) rotate(-1deg) scale(1.05); filter: contrast(1.07) saturate(1.12) brightness(1.03) drop-shadow(0 15px 20px rgba(62, 73, 135, .23)); }
+.collection-guide-mascot::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 18px 15px 4px;
+  border: 1px dashed rgba(54, 70, 182, .18);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(105, 201, 208, .15), transparent 67%);
+  transform: rotate(-7deg);
+  transition: transform .3s ease, border-color .3s ease;
+}
+.collector-spark { position: absolute; z-index: 6; color: var(--purple); font-size: 13px; line-height: 1; }
+.spark-one { top: 8px; left: 17px; color: #edbd5e; animation: collector-float 2.6s ease-in-out infinite; }
+.spark-two { top: 30px; right: 7px; color: #7c70d5; animation: collector-float 2.2s .35s ease-in-out infinite reverse; }
+.collection-guide-mascot:hover { animation: collector-hello .58s cubic-bezier(.2,.8,.2,1); }
+.collection-guide-mascot:hover::before { transform: rotate(8deg) scale(1.08); border-color: rgba(54,70,182,.32); }
+.collector-skill-bubble {
+  position: absolute;
+  z-index: 5;
+  top: 22px;
+  right: calc(100% - 20px);
+  width: 390px;
+  padding: 12px 15px;
+  border: 1px solid rgba(88, 87, 181, .18);
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(247, 247, 255, .98), rgba(233, 249, 246, .97));
+  box-shadow: 0 14px 30px rgba(62, 73, 135, .16);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  text-align: left;
+  transform: translateX(8px) scale(.96);
+  transform-origin: right center;
+  transition: opacity .2s ease, visibility .2s ease, transform .24s ease, box-shadow .24s ease;
+}
+.collector-skill-bubble::before { content: ""; position: absolute; top: 25px; right: -7px; width: 12px; height: 12px; border-top: 1px solid rgba(88, 87, 181, .18); border-right: 1px solid rgba(88, 87, 181, .18); border-radius: 0 2px 0 0; background: #f7f7ff; transform: rotate(45deg); }
+.collector-skill-bubble::after { content: "✦"; position: absolute; top: -11px; right: 12px; color: var(--purple); font-size: 14px; font-weight: 700; }
+.collector-bubble-title { display: flex; align-items: center; gap: 7px; color: #4d6f99; font-size: 13px; }
+.collector-bubble-title span { color: var(--purple); }
+.collector-skill-bubble p { margin: 6px 0 0; color: #607084; font-size: 12px; line-height: 1.75; }
+.collection-guide-mascot:hover .collector-skill-bubble { opacity: 1; visibility: visible; transform: translateX(0) scale(1); animation: collector-bubble-speak .34s ease; }
+@keyframes collector-float { 0%, 100% { transform: translateY(0) rotate(0); opacity: .55; } 50% { transform: translateY(-5px) rotate(15deg); opacity: 1; } }
+@keyframes collector-hello { 0%, 100% { transform: translateX(-4px) translateY(0) scale(1); } 38% { transform: translateX(-4px) translateY(-7px) rotate(-2deg) scale(1.04); } 70% { transform: translateX(-4px) translateY(-2px) rotate(1deg) scale(1.02); } }
+@keyframes collector-bubble-speak { 0% { opacity: 0; transform: translateX(8px) scale(.96); } 65% { opacity: 1; transform: translateX(-3px) scale(1.01); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+
+@media (max-width: 1100px) {
+  .count-grid { grid-template-columns: repeat(5, 1fr); }
+  .collection-guide-stage { left: 56%; width: 360px; }
+}
+@media (max-width: 760px) {
+  .config-grid, .action-grid { grid-template-columns: 1fr; }
+  .count-grid { grid-template-columns: repeat(3, 1fr); }
+  .panel { padding: 18px; }
+  .page-title, .section-heading { flex-wrap: wrap; gap: 12px; }
+  .collection-page .page-title { padding-top: 82px; }
+  .collection-guide-stage { top: 0; left: auto; right: 4px; width: 152px; height: 82px; transform: none; }
+  .collection-guide-mascot { right: 0; transform: scale(.76); transform-origin: top right; }
+  .collector-skill-bubble { display: none; }
+}
 </style>
