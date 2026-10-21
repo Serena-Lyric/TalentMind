@@ -412,13 +412,31 @@ def get_results(run_id: str) -> list[dict[str, Any]]:
 def get_raw(raw_id: int) -> dict[str, Any] | None:
     from sqlalchemy import text
     from app.db.mysql import SessionLocal
+    from app.collect.repository import schema_capabilities
     with SessionLocal() as db:
-        row = db.execute(text('SELECT id, source, source_detail, job_title, crawled_at, raw_text, duties, quality FROM jd_pool WHERE id=:id'), {'id': raw_id}).mappings().first()
+        fields = ['id', 'source', 'source_detail', 'job_title', 'crawled_at', 'raw_text', 'duties', 'quality']
+        capabilities = schema_capabilities(db)
+        if all(capabilities.values()):
+            fields.extend(('identity_status', 'content_eligible', 'identity_evidence'))
+        row = db.execute(
+            text('SELECT ' + ', '.join(fields) + ' FROM jd_pool WHERE id=:id'),
+            {'id': raw_id},
+        ).mappings().first()
         if row is None:
             return None
         sections = source_sections(row['raw_text'])
-        return {**dict(row), 'jd_pool_id': row['id'], 'duties': row['duties'] or sections['duties'],
-                'requirements': sections['requirements'], 'structure_source': sections['structure_source']}
+        result = {**dict(row), 'jd_pool_id': row['id'], 'duties': row['duties'] or sections['duties'],
+                  'requirements': sections['requirements'], 'structure_source': sections['structure_source']}
+        if 'content_eligible' in result and result['content_eligible'] is not None:
+            result['content_eligible'] = bool(result['content_eligible'])
+        if isinstance(result.get('identity_evidence'), str) and result['identity_evidence'].strip():
+            try:
+                result['identity_evidence'] = json.loads(result['identity_evidence'])
+            except ValueError:
+                result['identity_evidence'] = None
+        elif 'identity_evidence' in result and not isinstance(result['identity_evidence'], dict):
+            result['identity_evidence'] = None
+        return result
 
 
 def _search_target(config: dict[str, Any]) -> str:

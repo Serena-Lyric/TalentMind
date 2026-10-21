@@ -487,6 +487,35 @@ def test_raw_adds_requirements_and_preserves_stored_duties(monkeypatch):
     assert result['requirements'] == 'Python'
 
 
+def test_raw_reads_identity_metadata_from_migrated_schema(tmp_path, monkeypatch):
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import sessionmaker
+    import app.db.mysql as mysql
+    path = tmp_path / 'raw-identity.sqlite3'
+    engine = create_engine('sqlite:///' + str(path))
+    try:
+        with engine.begin() as db:
+            db.execute(text(
+                'CREATE TABLE jd_pool (id INTEGER PRIMARY KEY, source TEXT, source_detail TEXT, '
+                'job_title TEXT, crawled_at TEXT, raw_text TEXT, duties TEXT, quality FLOAT, '
+                'identity_status TEXT, content_eligible BOOLEAN, identity_evidence TEXT)'
+            ))
+            db.execute(text(
+                'INSERT INTO jd_pool VALUES (1, :source, :detail, :title, NULL, :raw, NULL, 0, '
+                ':identity, 1, :evidence)'
+            ), dict(source='zhaopin', detail='dom://zhaopin/' + 'a' * 64,
+                    title='Python', raw='负责平台开发', identity='pending',
+                    evidence='{"binding_policy":"zhaopin-dom-panel-v1"}'))
+        monkeypatch.setattr(mysql, 'SessionLocal', sessionmaker(bind=engine))
+        result = control.get_raw(1)
+        assert result['identity_status'] == 'pending'
+        assert result['content_eligible'] is True
+        assert result['identity_evidence'] == {'binding_policy': 'zhaopin-dom-panel-v1'}
+    finally:
+        engine.dispose()
+        path.unlink(missing_ok=True)
+
+
 def test_status_poll_lets_owned_exited_worker_finish_watcher_archive(monkeypatch):
     from io import StringIO
     state = control._default_state()

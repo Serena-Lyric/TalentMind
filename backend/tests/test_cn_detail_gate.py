@@ -32,7 +32,13 @@ def offline(monkeypatch,tmp_path):
     def dates(conn,cursor,stmt,params,ctx,many):
         return stmt,tuple(x.isoformat() if isinstance(x,datetime) else x for x in params)
     with engine.begin() as db:
-        db.exec_driver_sql('CREATE TABLE jd_pool (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, source_detail TEXT, job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT)')
+        db.exec_driver_sql(
+            'CREATE TABLE jd_pool (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, '
+            'source_detail TEXT, job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, '
+            'quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT, '
+            'identity_status TEXT NOT NULL DEFAULT \'unknown\', content_eligible BOOLEAN NULL, '
+            'identity_evidence TEXT NULL)'
+        )
     def provider():
         with Session(engine) as db:yield db
     monkeypatch.setattr(mysql,'get_db',provider)
@@ -199,7 +205,9 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
         db.exec_driver_sql(
             'CREATE TABLE jd_pool (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, '
             'source_detail TEXT, job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, '
-            'quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT)'
+            'quality FLOAT, dup_group TEXT, crawled_at DATETIME, status TEXT, '
+            'identity_status TEXT NOT NULL DEFAULT \'unknown\', content_eligible BOOLEAN NULL, '
+            'identity_evidence TEXT NULL)'
         )
     def provider():
         with Session(engine) as db:
