@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from sqlalchemy.engine import URL
 
 from app.integration import import_exchange, import_graph
 from app.integration.destructive_guard import (
@@ -19,7 +20,8 @@ from app.integration.destructive_guard import (
 TARGET = {
     "kind": "mysql",
     "host": "127.0.0.1",
-    "port": 23307,
+    "connection_port": 23307,
+    "server_port": 3306,
     "database": "talentmind_isolated",
     "hostname": "isolated-container",
     "server_uuid": "00000000-1111-2222-3333-444444444444",
@@ -117,9 +119,19 @@ class FakeMappingResult:
 
 
 class IdentitySession:
-    bind = None
-
-    def __init__(self):
+    def __init__(self, connection_port=23307, server_port=3306):
+        self.bind = type(
+            "Bind",
+            (),
+            {
+                "url": URL.create(
+                    "mysql+pymysql",
+                    host="127.0.0.1",
+                    port=connection_port,
+                )
+            },
+        )()
+        self.server_port = server_port
         self.statements = []
 
     def execute(self, statement):
@@ -129,7 +141,7 @@ class IdentitySession:
                 "hostname": "isolated-container",
                 "server_uuid": "00000000-1111-2222-3333-444444444444",
                 "database_name": "talentmind_isolated",
-                "port": 3306,
+                "server_port": self.server_port,
                 "version": "8.0.46",
             }
         )
@@ -138,10 +150,35 @@ class IdentitySession:
 def test_mysql_identity_uses_live_server_and_database():
     session = IdentitySession()
 
-    assert mysql_target_identity(session) == TARGET | {"port": 3306, "host": None}
+    assert mysql_target_identity(session) == TARGET
     assert "@@hostname" in session.statements[0]
     assert "@@server_uuid" in session.statements[0]
     assert "DATABASE()" in session.statements[0]
+
+
+def test_same_mysql_clone_on_different_host_ports_has_distinct_fingerprint():
+    first = mysql_target_identity(IdentitySession(connection_port=23307))
+    second = mysql_target_identity(IdentitySession(connection_port=23308))
+
+    assert first["hostname"] == second["hostname"]
+    assert first["server_uuid"] == second["server_uuid"]
+    assert first["server_port"] == second["server_port"] == 3306
+    assert first["connection_port"] == 23307
+    assert second["connection_port"] == 23308
+    assert target_fingerprint(first) != target_fingerprint(second)
+
+
+def test_authorization_for_one_host_port_rejects_same_clone_on_another(tmp_path):
+    first = mysql_target_identity(IdentitySession(connection_port=23307))
+    second = mysql_target_identity(IdentitySession(connection_port=23308))
+    path = write_authorization(tmp_path / "authorization.json", target=first)
+
+    with pytest.raises(DestructiveOperationDenied, match="fingerprint"):
+        authorize_destructive_operation(
+            operation="mysql.import_all",
+            target=second,
+            authorization_file=path,
+        )
 
 
 class FakeNeo4jResult:

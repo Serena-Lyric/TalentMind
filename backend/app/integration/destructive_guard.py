@@ -52,7 +52,7 @@ def _safe_uri(uri: str) -> str:
     return urlunsplit((parsed.scheme, host, parsed.path, parsed.query, parsed.fragment))
 
 
-def _configured_host(session: Session) -> str | None:
+def _configured_target(session: Session) -> tuple[str, int]:
     bind = getattr(session, "bind", None)
     if bind is None:
         get_bind = getattr(session, "get_bind", None)
@@ -62,7 +62,11 @@ def _configured_host(session: Session) -> str | None:
             except Exception:
                 bind = None
     url = getattr(bind, "url", None)
-    return url.host if url is not None else None
+    if url is None:
+        url = getattr(getattr(bind, "engine", None), "url", None)
+    if url is None or not url.host:
+        raise ValueError("could not determine the configured MySQL host")
+    return url.host, int(url.port or 3306)
 
 
 def mysql_target_identity(session: Session) -> dict[str, Any]:
@@ -73,7 +77,7 @@ def mysql_target_identity(session: Session) -> dict[str, Any]:
                 SELECT @@hostname AS hostname,
                        @@server_uuid AS server_uuid,
                        DATABASE() AS database_name,
-                       @@port AS port,
+                       @@port AS server_port,
                        VERSION() AS version
                 """
             )
@@ -81,10 +85,12 @@ def mysql_target_identity(session: Session) -> dict[str, Any]:
         .mappings()
         .one()
     )
+    host, connection_port = _configured_target(session)
     return {
         "kind": "mysql",
-        "host": _configured_host(session),
-        "port": int(row["port"]),
+        "host": host,
+        "connection_port": connection_port,
+        "server_port": int(row["server_port"]),
         "database": row["database_name"],
         "hostname": row["hostname"],
         "server_uuid": row["server_uuid"],

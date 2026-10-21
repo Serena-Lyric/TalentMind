@@ -17,7 +17,7 @@ A 负责的交接导入、模块编排和完整系统组装入口。
 3. 文件中的 `target`、`target_fingerprint` 与实际连接实例完全一致；
 4. `expires_at` 尚未到期，且 `authorized_by`、`purpose` 非空。
 
-MySQL 目标身份来自实际连接的 `@@hostname`、`@@server_uuid`、`DATABASE()`、`@@port` 和 `VERSION()`，不是仅比较 `.env` URL。Neo4j 目标身份来自实际数据库 `db.info()`、`dbms.components()` 和脱敏后的 URI。复制 MySQL 数据卷会保留相同 `server_uuid`，所以 `@@hostname` 也是必要判别项。
+MySQL 目标身份同时保存 SQLAlchemy 配置的 `host`、实际连接宿主 `connection_port`，以及服务端 `@@hostname`、`@@server_uuid`、`DATABASE()`、`@@port`（`server_port`）和 `VERSION()`。宿主映射端口与容器/服务端端口分别参与指纹；即使克隆卷的 `server_uuid` 相同，不同宿主连接端口也不能复用同一授权。Neo4j 目标身份来自实际数据库 `db.info()`、`dbms.components()` 和脱敏后的 URI。
 
 当前操作名：
 
