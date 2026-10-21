@@ -87,6 +87,31 @@ def evidence_audit(value, row):
     return dict(matched=len(found), invalid=invalid)
 
 
+def _machine_sha256(item, versions):
+    value = dict(item)
+    value.setdefault('identity_status', 'unknown')
+    value.setdefault('content_eligible', None)
+    value.setdefault('identity_evidence', None)
+    payload = {
+        key: value.get(key)
+        for key in (
+            'ordinal', 'jd_id', 'source', 'title', 'input_sha256', 'warnings',
+            'final_status', 'reason', 'identity_status', 'content_eligible',
+            'identity_evidence', 'formal_statistics_eligible',
+            'confirmed_demand_eligible', 'evidence', 'stages',
+        )
+    }
+    payload['versions'] = versions
+    return digest(payload)
+
+
+def _latest_reviews(reviews):
+    latest = {}
+    for event in reviews:
+        latest[event['ordinal']] = event
+    return latest
+
+
 class Workflow:
     def __init__(self, root):
         self.root = safe_destination(root)
@@ -106,6 +131,12 @@ class Workflow:
                     body TEXT NOT NULL, PRIMARY KEY(run_id,ordinal));
                 CREATE TABLE IF NOT EXISTS product_reports (
                     run_id TEXT PRIMARY KEY REFERENCES product_runs(id), body TEXT NOT NULL, sha256 TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS product_reviews (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id TEXT NOT NULL, ordinal INTEGER NOT NULL,
+                    machine_sha256 TEXT NOT NULL, body TEXT NOT NULL,
+                    sha256 TEXT NOT NULL, created_at TEXT NOT NULL,
+                    FOREIGN KEY(run_id,ordinal) REFERENCES product_items(run_id,ordinal));
                 CREATE TRIGGER IF NOT EXISTS product_frozen BEFORE UPDATE OF
                     input_json,input_sha256,selection,provenance,versions,parent_id ON product_runs
                     BEGIN SELECT RAISE(ABORT,'immutable product input and versions'); END;
@@ -115,6 +146,10 @@ class Workflow:
                     BEGIN SELECT RAISE(ABORT,'immutable product report'); END;
                 CREATE TRIGGER IF NOT EXISTS product_report_delete BEFORE DELETE ON product_reports
                     BEGIN SELECT RAISE(ABORT,'immutable product report'); END;
+                CREATE TRIGGER IF NOT EXISTS product_review_update BEFORE UPDATE ON product_reviews
+                    BEGIN SELECT RAISE(ABORT,'immutable product review'); END;
+                CREATE TRIGGER IF NOT EXISTS product_review_delete BEFORE DELETE ON product_reviews
+                    BEGIN SELECT RAISE(ABORT,'immutable product review'); END;
             ''')
         try:
             lease = Lease(self.root / 'worker.lock')
@@ -133,6 +168,7 @@ class Workflow:
         conn = sqlite3.connect(self.root / 'workflow.sqlite3', timeout=10)
         conn.row_factory = sqlite3.Row
         conn.execute('PRAGMA foreign_keys=ON')
+        conn.execute('PRAGMA recursive_triggers=ON')
         try:
             with conn: yield conn
         finally: conn.close()
@@ -228,6 +264,8 @@ class Workflow:
     def get(self, run_id):
         row = self._row(run_id)
         items = self._items(run_id)
+        reviews = self.reviews(run_id)
+        latest = _latest_reviews(reviews)
         compact = []
         for item in items:
             copy = {k: v for k, v in item.items() if k != 'stages'}
@@ -235,11 +273,13 @@ class Workflow:
             copy.setdefault('content_eligible', None)
             copy.setdefault('identity_evidence', None)
             copy['stages'] = {s: {k: v for k, v in stage.items() if k != 'result'} for s, stage in item['stages'].items()}
+            copy['machine_sha256'] = _machine_sha256(item, json.loads(row['versions']))
+            copy['human_review'] = latest.get(item['ordinal'])
             compact.append(copy)
         return dict(run_id=run_id, status=row['status'], reason=row['reason'], created_at=row['created_at'],
             finished_at=row['finished_at'], parent_run_id=row['parent_id'], input_sha256=row['input_sha256'],
             versions=json.loads(row['versions']), selection=json.loads(row['selection']), provenance=json.loads(row['provenance']),
-            items=compact, summary=summarize(items), formal_statistics_eligible=False,
+            items=compact, summary=summarize(items, reviews), formal_statistics_eligible=False,
             artifacts=dict(sqlite=str(self.root / 'analysis.sqlite3'), workflow=str(self.root / 'workflow.sqlite3'),
                 input=str(self.root / 'runs' / run_id / 'input.json'), report=str(self.root / 'reports' / (run_id + '.json'))))
 
@@ -250,7 +290,130 @@ class Workflow:
         body.setdefault('identity_status', 'unknown')
         body.setdefault('content_eligible', None)
         body.setdefault('identity_evidence', None)
-        return dict(body, input=rows[ordinal - 1], input_provenance=self.get(run_id)['provenance'])
+        run = self._row(run_id)
+        reviews = [event for event in self.reviews(run_id) if event['ordinal'] == ordinal]
+        return dict(
+            body,
+            input=rows[ordinal - 1],
+            input_provenance=self.get(run_id)['provenance'],
+            machine_sha256=_machine_sha256(body, json.loads(run['versions'])),
+            human_review=reviews[-1] if reviews else None,
+            reviews=reviews,
+        )
+
+    def reviews(self, run_id):
+        self._row(run_id)
+        with self.db() as conn:
+            rows = conn.execute(
+                'SELECT id,body,sha256 FROM product_reviews WHERE run_id=? ORDER BY rowid',
+                (run_id,),
+            ).fetchall()
+        events = []
+        for row in rows:
+            body = json.loads(row['body'])
+            if digest(body) != row['sha256']:
+                raise ValueError('human review integrity mismatch')
+            events.append(dict(body, review_id=row['id'], sha256=row['sha256']))
+        return events
+
+    def review(self, run_id, ordinal, event):
+        row = self._row(run_id)
+        if row['status'] not in {'completed', 'completed_with_issues'}:
+            raise ValueError('run must be complete before human review')
+        if type(ordinal) is not int:
+            raise ValueError('M2 item not found')
+        items = self._items(run_id)
+        if not 1 <= ordinal <= len(items):
+            raise ValueError('M2 item not found')
+        if not isinstance(event, dict):
+            raise ValueError('invalid human review event')
+        decision = event.get('decision')
+        if decision not in {'accepted', 'rejected', 'needs_followup'}:
+            raise ValueError('invalid human review decision')
+        reviewer = event.get('reviewer')
+        if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer.strip()) > 80:
+            raise ValueError('human review reviewer is required')
+        note = event.get('note')
+        if not isinstance(note, str) or len(note) > 4000:
+            raise ValueError('invalid human review note')
+        supplied_machine = event.get('machine_sha256')
+        if not isinstance(supplied_machine, str) or not re.fullmatch(r'[a-f0-9]{64}', supplied_machine):
+            raise ValueError('human review machine_sha256 is required')
+        item = items[ordinal - 1]
+        versions = json.loads(row['versions'])
+        machine_sha256 = _machine_sha256(item, versions)
+        if supplied_machine != machine_sha256:
+            raise ValueError('human review machine result changed')
+        reviewed_at = now()
+        body = {
+            'schema_version': 'm2-human-review-1',
+            'run_id': run_id,
+            'ordinal': ordinal,
+            'jd_id': item.get('jd_id'),
+            'input_sha256': item.get('input_sha256'),
+            'machine_sha256': machine_sha256,
+            'versions': versions,
+            'machine_status': item.get('final_status'),
+            'decision': decision,
+            'reviewer': reviewer.strip(),
+            'note': note,
+            'reviewed_at': reviewed_at,
+            'formal_truth_claim': False,
+        }
+        event_sha256 = digest(body)
+        with self.db() as conn:
+            cursor = conn.execute(
+                'INSERT INTO product_reviews '
+                '(run_id,ordinal,machine_sha256,body,sha256,created_at) '
+                'VALUES (?,?,?,?,?,?)',
+                (run_id, ordinal, machine_sha256, canonical(body), event_sha256, reviewed_at),
+            )
+            review_id = cursor.lastrowid
+        return dict(body, review_id=review_id, sha256=event_sha256)
+
+    def review_export(self, run_id):
+        row = self._row(run_id)
+        items = self._items(run_id)
+        inputs = self._inputs(run_id)
+        reviews = self.reviews(run_id)
+        latest = _latest_reviews(reviews)
+        versions = json.loads(row['versions'])
+        reviewed_items = []
+        for item, source_row in zip(items, inputs):
+            human = latest.get(item['ordinal'])
+            if human is None:
+                continue
+            reviewed_items.append({
+                'ordinal': item['ordinal'],
+                'jd_id': item.get('jd_id'),
+                'source': item.get('source'),
+                'input_sha256': item.get('input_sha256'),
+                'input': source_row,
+                'machine': {
+                    'sha256': _machine_sha256(item, versions),
+                    'final_status': item.get('final_status'),
+                    'reason': item.get('reason'),
+                    'versions': versions,
+                    'stages': item.get('stages'),
+                },
+                'human_review': human,
+                'review_events': [event for event in reviews if event['ordinal'] == item['ordinal']],
+            })
+        return {
+            'schema_version': 'm2-human-review-export-1',
+            'generated_at': now(),
+            'run': {
+                'run_id': run_id,
+                'status': row['status'],
+                'input_sha256': row['input_sha256'],
+                'selection': json.loads(row['selection']),
+                'versions': versions,
+            },
+            'summary': summarize(items, reviews)['review'],
+            'items': reviewed_items,
+            'reviews': reviews,
+            'formal_statistics_eligible': False,
+        }
 
     def list_runs(self):
         with self.db() as conn:
@@ -415,9 +578,11 @@ class Workflow:
         return body
 
 
-def summarize(items):
+def summarize(items, reviews=None):
     total = len(items)
     finals = Counter(i['final_status'] for i in items)
+    latest_reviews = _latest_reviews(reviews or [])
+    review_decisions = Counter(event['decision'] for event in latest_reviews.values())
     summary = dict(input_total=total, finalized=sum(finals[s] for s in TERMINAL),
         stage_complete=sum(all(i['stages'][s]['status'] == 'saved' for s in STAGES) for i in items),
         final_counts={s: finals[s] for s in ('pending', 'stopped', 'interrupted', 'processed', 'partial', 'needs_review', 'input_invalid', 'failed')},
@@ -427,6 +592,14 @@ def summarize(items):
         b3=Counter(dict.fromkeys(('candidate_jds','pending_review','unable_to_classify','failed','blocked','pending','running'), 0)),
         identity=Counter(dict.fromkeys(('verified','pending','unknown'), 0)),
         content=Counter(dict.fromkeys(('eligible','ineligible','unknown'), 0)),
+        review=dict(
+            total_items=total,
+            reviewed_items=len(latest_reviews),
+            unreviewed_items=total - len(latest_reviews),
+            accepted=review_decisions['accepted'],
+            rejected=review_decisions['rejected'],
+            needs_followup=review_decisions['needs_followup'],
+        ),
         evidence=dict(outputs_with_evidence=0, outputs_without_evidence=0, matched_spans=0, invalid_spans=0, unparseable_jds=finals['input_invalid']),
         interpretation='工程处理覆盖，不是语义准确率；各阶段互相重叠的指标不可相加', formal_statistics_eligible=False)
     for item in items:

@@ -6,6 +6,7 @@ import * as vue from 'vue'
 
 export function m2Component(overrides: Record<string, any> = {}) {
   const navigations:string[] = []
+  const downloads:any[] = []
   const mounted: (() => any)[] = [], unmounted: (() => any)[] = [], intervals: (() => any)[] = [], calls: any[] = [], cleared: any[] = []
   const defaults: Record<string, any> = { getM2Sources: { sources: [{ source: 'boss', total: 10 }], total: 10, cohorts: [] }, getM2Runs: [] }
   const api = new Proxy({}, { get: (_, method: string) => async (...args: any[]) => {
@@ -22,8 +23,10 @@ export function m2Component(overrides: Record<string, any> = {}) {
     if (id === '../api/m2') return api
     throw new Error('Unexpected module ' + id)
   }
-  new Function('require', 'module', 'exports', 'setInterval', 'clearInterval', 'window', code)(require, module, module.exports, (fn: () => any) => intervals.push(fn), (id: any) => cleared.push(id), {location:{assign:(url:string)=>navigations.push(url)}})
+  const document = {createElement: () => ({href:'',download:'',click(){downloads.push(this)}})}
+  const url = {createObjectURL:()=> 'blob:fixture', revokeObjectURL:()=> undefined}
+  new Function('require', 'module', 'exports', 'setInterval', 'clearInterval', 'window', 'document', 'URL', code)(require, module, module.exports, (fn: () => any) => intervals.push(fn), (id: any) => cleared.push(id), {location:{assign:(url:string)=>navigations.push(url)}}, document, url)
   const scope = vue.effectScope()
   const state = scope.run(() => module.exports.default.setup({}, { expose() {} }))
-  return { state, calls, intervals, cleared, navigations, mounted: async () => { for (const fn of mounted) await fn() }, stop: () => { for (const fn of unmounted) fn(); scope.stop() } }
+  return { state, calls, intervals, cleared, navigations, downloads, mounted: async () => { for (const fn of mounted) await fn() }, stop: () => { for (const fn of unmounted) fn(); scope.stop() } }
 }
