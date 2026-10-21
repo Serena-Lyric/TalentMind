@@ -24,10 +24,8 @@ from app.collect.fetchers.job_sites import (
     clean as clean_text,
     deduplicate_jobs,
     normalize_job,
-    normalize_url,
 )
 from app.collect.pipeline import run_pipeline
-from app.collect.cleaner import clean, is_valid_jd
 from app.collect import browser
 from app.collect.events import emit_event
 from app.collect.identity import content_rejection, dom_fingerprint, identity_decision
@@ -65,14 +63,17 @@ def fetch_search_page(client: CdpClient, spec: SiteSpec, url: str, settle: float
     return extract_current_page(client, spec)
 
 
-def _panel_signature(probe: dict) -> tuple[str, str, str, bool, bool]:
+def _panel_content_signature(probe: dict) -> tuple[str, str, str, bool]:
     return (
         clean_text(probe.get('panel_title')),
         clean_text(probe.get('description')),
         clean_text(probe.get('company')),
         bool(probe.get('panel_visible')),
-        bool(probe.get('target_active')),
     )
+
+
+def _panel_stability_signature(probe: dict) -> tuple:
+    return (*_panel_content_signature(probe), bool(probe.get('target_active')))
 
 
 def await_stable_panel(
@@ -91,7 +92,7 @@ def await_stable_panel(
     while time.monotonic() < deadline:
         probe = client.evaluate(build_panel_probe_js(spec, card_index))
         if isinstance(probe, dict):
-            signature = _panel_signature(probe)
+            signature = _panel_stability_signature(probe)
             stable_samples = stable_samples + 1 if signature == previous else 1
             previous = signature
             last = probe
@@ -103,7 +104,7 @@ def await_stable_panel(
         'target_active_before': bool(before.get('target_active')),
         'target_active_after': bool(last.get('target_active')),
         'panel_visible': bool(last.get('panel_visible')),
-        'panel_changed': _panel_signature(before) != _panel_signature(last),
+        'panel_changed': _panel_content_signature(before) != _panel_content_signature(last),
         'stable_samples': stable_samples,
         'panel_title': clean_text(last.get('panel_title')),
         'before_panel_title': clean_text(before.get('panel_title')),

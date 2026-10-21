@@ -115,6 +115,24 @@ def test_group_conflict_does_not_spread_to_another_member():
     assert next(e for e in graph["edges"] if e["target"]=="skill:go")["conflict"] is False
 
 
+def test_project_keeps_legacy_node_shape_when_source_has_no_identity_metadata():
+    from app.graph.real_pipeline import project
+    overlay = dict(
+        original_semantics=dict(statements=[], effective=[]),
+        skills=[],
+    )
+    sources = dict(records=[dict(
+        eligible=True, screening={}, governance=overlay,
+        namespace="legacy", jd_id="1",
+        payload=dict(source="synthetic", job_title="Python", raw_text="Python"),
+    )])
+    graph, _ = project(sources)
+    job = next(node for node in graph["nodes"] if node["type"] == "job")
+    assert "identity_status" not in job
+    assert "content_eligible" not in job
+    assert "identity_evidence" not in job
+
+
 def test_verify_recomputes_derived_and_layout_instead_of_trusting_rehashed_file(tmp_path):
     import hashlib
     from app.graph.real_pipeline import run_pipeline, verify_bundle

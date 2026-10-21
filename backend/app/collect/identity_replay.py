@@ -38,6 +38,7 @@ def _binding(job: dict, detail: dict, observed_at: str, **overrides) -> dict:
         'stable_samples': 2,
         'panel_title': detail.get('title') or '',
         'before_panel_title': 'replay-before-panel',
+        'description': detail.get('description') or '',
         'list_url': detail.get('url') or job.get('_list_url') or '',
         'list_title': job.get('title') or '',
         'list_company': job.get('company') or '',

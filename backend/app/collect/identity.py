@@ -68,6 +68,8 @@ def identity_decision(
         if (_text(binding.get('panel_title')).casefold() != expected_title
                 or _text(detail.get('title')).casefold() != expected_title):
             return 'unknown', {}, 'title_mismatch'
+        if _text(binding.get('description')) != _text(detail.get('description')):
+            return 'unknown', {}, 'panel_changed_during_capture'
 
         description = str(detail.get('description') or '')
         evidence = {

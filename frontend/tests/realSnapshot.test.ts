@@ -41,6 +41,9 @@ test('真实产物绑定哈希并保留五态与原始来源；错误摘要及�
   const identityMismatch=JSON.stringify({...graph,nodes:[{...graph.nodes[0],identity_status:'verified'},graph.nodes[1]]})
   const identityMismatchLayout=JSON.stringify({...layout,snapshot_sha256_lf:await sha256LF(identityMismatch)})
   await assert.rejects(validateRealBundle({...manifest,artifacts:{...manifest.artifacts,'facts.json':await sha256LF(identityMismatch),'layout.json':await sha256LF(identityMismatchLayout)}},{...texts,'facts.json':identityMismatch,'layout.json':identityMismatchLayout}),/identity/i)
+  const contentMismatch=JSON.stringify({...graph,nodes:[{...graph.nodes[0],content_eligible:false},graph.nodes[1]]})
+  const contentMismatchLayout=JSON.stringify({...layout,snapshot_sha256_lf:await sha256LF(contentMismatch)})
+  await assert.rejects(validateRealBundle({...manifest,artifacts:{...manifest.artifacts,'facts.json':await sha256LF(contentMismatch),'layout.json':await sha256LF(contentMismatchLayout)}},{...texts,'facts.json':contentMismatch,'layout.json':contentMismatchLayout}),/content/i)
   // Python offsets are Unicode code points; an emoji before the quote must remain valid.
   payload.raw_text='😀必须掌握Python';evidence.start=5;evidence.end=11
   const unicodeTexts={'facts.json':JSON.stringify(graph),'sources.json':JSON.stringify(sources),'layout.json':JSON.stringify({...layout,snapshot_sha256_lf:await sha256LF(JSON.stringify(graph))})}

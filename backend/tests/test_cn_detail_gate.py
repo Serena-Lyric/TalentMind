@@ -197,6 +197,23 @@ def test_stable_panel_requires_update_then_two_identical_samples(monkeypatch):
     assert result['target_active_after'] is True
 
 
+def test_card_active_alone_does_not_count_as_panel_update(monkeypatch):
+    before = {'panel_title': '同名', 'description': '同一正文', 'company': '同一公司',
+              'panel_visible': True, 'target_active': False, 'list_url': 'u'}
+    after = {**before, 'target_active': True}
+    class Client:
+        def evaluate(self, script):
+            return after
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+
+    result = cn.await_stable_panel(
+        Client(), SITES['zhaopin'], 0, before, timeout=1.0, interval=0.01
+    )
+
+    assert result['target_active_after'] is True
+    assert result['panel_changed'] is False
+
+
 def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monkeypatch):
     from app.db import mysql
     path = tmp_path / 'zhaopin-pending.sqlite3'

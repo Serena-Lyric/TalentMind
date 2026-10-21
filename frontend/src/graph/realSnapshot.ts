@@ -25,6 +25,7 @@ export async function validateRealBundle(manifest:RealManifest,texts:Record<stri
     if(node.type==='job'){
       const record=sources.records[node.source_records[0]]
       if((node.identity_status??'unknown')!==(record.identity_status??'unknown'))throw new Error('Invalid job identity status')
+      if((node.content_eligible??null)!==(record.content_eligible??null))throw new Error('Invalid job content eligibility')
     }
   }
   for(const edge of raw.edges){

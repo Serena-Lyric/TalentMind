@@ -36,6 +36,7 @@ def binding(**extra):
         'stable_samples': 2,
         'panel_title': 'Python 工程师',
         'before_panel_title': 'Java 工程师',
+        'description': '负责 Python 平台开发\n熟悉 SQL 和 Docker',
         'list_url': 'https://www.zhaopin.com/jobs/?jl=538&kw=Java&page=1',
         'list_title': 'Python 工程师',
         'list_company': '甲公司',
@@ -123,6 +124,18 @@ def test_title_mismatch_is_rejected():
     )
 
     assert (status, rejection) == ('unknown', 'title_mismatch')
+
+
+def test_detail_must_still_match_stable_panel_description():
+    from app.collect.identity import identity_decision
+
+    status, _, rejection = identity_decision(
+        SITES['zhaopin'], job(), detail(),
+        binding(description='面板在抽取前又变成另一条详情'),
+        '2026-10-21T22:00:00+08:00',
+    )
+
+    assert (status, rejection) == ('unknown', 'panel_changed_during_capture')
 
 
 def test_url_identity_must_match_detail_url():
