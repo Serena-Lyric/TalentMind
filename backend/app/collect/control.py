@@ -33,6 +33,7 @@ _PROCESS: subprocess.Popen[str] | None = None
 _START_THREAD: threading.Thread | None = None
 _STARTING_RUN: str | None = None
 _DONE_EVENTS: dict[str, threading.Event] = {}
+_RESERVATION: object | None = None
 _spawn_process = worker_process.spawn
 _ACTIVE_STATUSES = {"preparing", "waiting_for_browser", "running", "waiting_next_round", "stopping"}
 _QUALITY_COUNTERS = ('detail_attempted', 'detail_obtained', 'complete', 'inserted',
@@ -421,6 +422,15 @@ def get_cdp_status(endpoint: str | None = None, user_data_dir: str | None = None
 def prepare_browser(auto_start: bool = False, platform: str | None = None,
                     config_payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Prepare only. Legacy auto_start is accepted but can never start collection."""
+    reservation = _reserve_tasks()
+    try:
+        return _prepare_browser(auto_start, platform, config_payload)
+    finally:
+        _release_tasks(reservation)
+
+
+def _prepare_browser(auto_start: bool, platform: str | None,
+                     config_payload: dict[str, Any] | None) -> dict[str, Any]:
     payload = dict(config_payload or {})
     if platform is not None:
         payload['platform'] = platform
@@ -722,9 +732,45 @@ def _archive_task(run_id: str, **changes) -> None:
         _save_state(state)
 
 
-def start_task(payload: dict[str, Any]) -> dict[str, Any]:
+def _reserve_tasks() -> object:
+    global _RESERVATION
+    with _LOCK:
+        if _RESERVATION is not None or _PROCESS is not None or _STARTING_RUN is not None:
+            raise RuntimeError('已有采集任务、批次或浏览器准备正在运行')
+        _RESERVATION = object()
+        return _RESERVATION
+
+
+def _release_tasks(reservation: object) -> None:
+    global _RESERVATION
+    with _LOCK:
+        if _RESERVATION is not reservation:
+            raise RuntimeError('批次占用已失效')
+        if _PROCESS is not None or _STARTING_RUN is not None:
+            raise RuntimeError('采集尚未停止归档，不能释放批次占用')
+        _RESERVATION = None
+
+
+def _task_snapshot(run_id: str) -> dict[str, Any]:
+    with _LOCK:
+        state = _load_state()
+        task = state.get('current_task') or {}
+        if task.get('run_id') != run_id:
+            task = next((h for h in state['history'] if h.get('run_id') == run_id), {})
+        return dict(task)
+
+
+def _wait_task_done(run_id: str, timeout: float) -> bool:
+    with _LOCK:
+        event = _DONE_EVENTS.get(run_id)
+    return bool(event and event.wait(timeout))
+
+
+def start_task(payload: dict[str, Any], *, _reservation: object | None = None) -> dict[str, Any]:
     global _START_THREAD, _STARTING_RUN
     with _LOCK:
+        if _RESERVATION is not _reservation:
+            raise RuntimeError('已有采集批次正在运行')
         if _PROCESS is not None or _STARTING_RUN is not None:
             raise RuntimeError('已有采集任务正在运行')
         state = _load_state()
@@ -732,7 +778,9 @@ def start_task(payload: dict[str, Any]) -> dict[str, Any]:
         run_id = f"{config['platform']}-{uuid.uuid4().hex}"
         task = _empty_task(run_id, config)
         task['log_path'] = str(_STATE_DIR / f'{run_id}.out.log')
-        state.update(config=config, current_task=task)
+        state['current_task'] = task
+        if _reservation is None:
+            state['config'] = config
         _save_state(state)
         for previous in list(_DONE_EVENTS):
             if _DONE_EVENTS[previous].is_set():

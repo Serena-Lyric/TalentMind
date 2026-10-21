@@ -5,9 +5,13 @@ import ts from 'typescript'
 import * as vue from 'vue'
 
 // 执行真实采集页 setup，外部 API 与计时器隔离；不连接浏览器或数据库。
-export function collectionComponent(overrides: Record<string, any> = {}) {
-  const filename = resolve(import.meta.dirname, '../../src/views/Collection.vue')
+export function collectionComponent(overrides: Record<string, any> = {}, options: { batch?: boolean; props?: Record<string, any> } = {}) {
+  const filename = resolve(import.meta.dirname, options.batch ? '../../src/components/CollectionBatch.vue' : '../../src/views/Collection.vue')
   const mounted: (() => any)[] = []
+  const unmounted: (() => any)[] = []
+  const intervals: (() => any)[] = []
+  const cleared: any[] = []
+  const events: { name: string; value: any }[] = []
   const calls: { method: string; args: any[] }[] = []
   const messages: string[] = []
   const defaults: Record<string, any> = {
@@ -20,6 +24,7 @@ export function collectionComponent(overrides: Record<string, any> = {}) {
     getCollectionHistory: { items: [], total: 0 },
     getCollectionResults: [],
     getCollectionRecent: [],
+    getCollectionBatches: { items: [], total: 0 },
     prepareCollection: { access_state: 'public_accessible', can_collect: true, message: '公开可访问', cdp: { reachable: true } },
     startCollection: { run_id: 'new-run', status: 'preparing' },
     getCollectionRaw: { jd_pool_id: 7, raw_text: '完整正文\n第二行' },
@@ -36,14 +41,16 @@ export function collectionComponent(overrides: Record<string, any> = {}) {
   const code = ts.transpileModule(input, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const module = { exports: {} as any }
   const require = (id: string): any => {
-    if (id === 'vue') return { ...vue, onMounted: (callback: () => any) => mounted.push(callback), onUnmounted() {} }
+    if (id === 'vue') return { ...vue, onMounted: (callback: () => any) => mounted.push(callback), onUnmounted: (callback: () => any) => unmounted.push(callback) }
+    if (id.endsWith('CollectionBatch.vue')) return {}
     if (id === '../api/collection') return api
     if (id === '@element-plus/icons-vue') return {}
     if (id === 'element-plus') return { ElMessage: Object.fromEntries(['info', 'success', 'warning', 'error'].map(key => [key, (message: string) => messages.push(message)])), ElMessageBox: { confirm: async () => {} } }
     throw new Error(`Unexpected dependency: ${id}`)
   }
-  new Function('require', 'module', 'exports', 'setInterval', 'clearInterval', code)(require, module, module.exports, () => 1, () => {})
+  new Function('require', 'module', 'exports', 'setInterval', 'clearInterval', code)(require, module, module.exports, (callback: () => any) => intervals.push(callback), (id: any) => cleared.push(id))
   const scope = vue.effectScope()
-  const state = scope.run(() => module.exports.default.setup({}, { expose() {} }))
-  return { state, calls, messages, mounted: async () => { for (const callback of mounted) await callback() }, stop: () => scope.stop() }
+  const props = vue.reactive(options.props || {})
+  const state = scope.run(() => module.exports.default.setup(props, { expose() {}, emit: (name: string, value: any) => events.push({ name, value }) }))
+  return { state, calls, messages, props, intervals, cleared, events, mounted: async () => { for (const callback of mounted) await callback() }, stop: () => { for (const callback of unmounted) callback(); scope.stop() } }
 }

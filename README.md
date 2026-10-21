@@ -1,5 +1,7 @@
 # TalentMind
 
+> **多关键词×多城市批次（2026-10-21）**：采集工作台顶部切换“批量任务”，多选关键词与平台城市，预览组合后先创建待执行计划，再显式开始/统一停止。串行低速、单项门禁不变，本轮没有运行真实批次。见[批次报告](docs/review/Collection-batches-2026-10-21.md)。
+
 > **2026-10-21 统一产品集成候选**：本工作区运行 `pwsh -File scripts/start-local.ps1`，访问 `http://127.0.0.1:18080/#/collection`；停止用 `pwsh -File scripts/stop-local.ps1`。入口检查原有Docker容器、本树依赖、后端健康与真实API代理，不自动采集。合并版本、真实验收与限制见[本轮报告](docs/review/Product-integration-2026-10-21.md)。
 
 > **2026-10-20 M1 历史链路接入**：补齐原控制台到平台循环的配置/编码/质量统计与停止处理，真实子进程离线闭环通过。用户选择先处理离线修复，本轮未实采，Gate1与日常恢复仍待真实条件；[历史对照及验收报告](docs/review/M1-historical-chain.md)。

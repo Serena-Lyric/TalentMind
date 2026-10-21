@@ -13,6 +13,7 @@
 - M1控制器须向原循环传递解析后的配置及UTF-8约定；离线子进程通过不等于Gate1或站点验证解除。见[历史控制链路陷阱](docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)。
 - 统一本地产品入口为 `scripts/start-local.ps1` / `stop-local.ps1`；完整正文与任务结果只在显式本地授权下读取，停止须确认整个采集子树退出及历史归档。见[产品集成陷阱](docs/superpowers/traps/2026-10-21-product-integration.md)。
 - M1准备必须绑定当前平台/关键词/城市对应目标，重新检查不得重复导航规避门禁，后台旧响应不得覆盖显式准备结果。见[准备目标陷阱](docs/superpowers/traps/2026-10-21-collection-prepare-target.md)。
+- 批次创建不执行；停止覆盖准备/运行/等待，确认子树退出后归档并释放占用，不能用100项滚动历史代替长期日志索引。见[批次生命周期](docs/superpowers/traps/2026-10-21-collection-batch-lifecycle.md)。
 
 - 真实图谱来源校验须同时绑定 JD/陈述/技能身份，Python 原文偏移按 Unicode 码点处理；不要以文件 hash 代替关联校验。见[真实链路陷阱](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)。
 

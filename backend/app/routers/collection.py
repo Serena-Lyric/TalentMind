@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Body, Query, Request, HTTPException
 
-from app.collect import control
+from app.collect import batch, control
 from app.response import BizError, ok
 
 router = APIRouter()
@@ -121,4 +121,38 @@ def collection_start(payload: dict[str, Any] = Body(default={} )):
 
 @router.post("/collection/stop")
 def collection_stop(payload: dict[str, Any] = Body(default={} )):
+    stopped = _biz_call(batch.stop_active)
+    if stopped is not None:
+        return ok(stopped)
     return ok(_biz_call(control.stop_task, payload.get("run_id")))
+
+
+@router.post('/collection/batches')
+def collection_batch_create(payload: dict[str, Any] = Body(...)):
+    return ok(_biz_call(batch.create_batch, payload))
+
+
+@router.get('/collection/batches')
+def collection_batch_list():
+    return ok(_biz_call(batch.list_batches))
+
+
+@router.get('/collection/batches/{batch_id}')
+def collection_batch_get(batch_id: str):
+    return ok(_biz_call(batch.get_batch, batch_id))
+
+
+@router.get('/collection/batches/{batch_id}/items/{item_id}/task')
+def collection_batch_item_task(batch_id: str, item_id: str, request: Request):
+    _require_local_raw(request)
+    return ok(_biz_call(batch.get_item_task, batch_id, item_id))
+
+
+@router.post('/collection/batches/{batch_id}/start')
+def collection_batch_start(batch_id: str):
+    return ok(_biz_call(batch.start_batch, batch_id))
+
+
+@router.post('/collection/batches/{batch_id}/stop')
+def collection_batch_stop(batch_id: str):
+    return ok(_biz_call(batch.stop_batch, batch_id))

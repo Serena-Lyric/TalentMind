@@ -1,5 +1,9 @@
 # M1 采集模块（backend/app/collect/）
 
+## 多关键词×多城市批次（2026-10-21）
+
+控制台“批量任务”先创建笛卡尔组合草稿，不调用浏览器或采集器；显式开始后串行复用原单轮controller。每项保留1页/5条门禁，默认组合间隔沿配置6–12分钟，停止可中断等待；登录/安全验证/正文限制阻断后续项，不自动重试。批次与单项/显式准备共享互斥，重启只归档中断，不自动恢复。所有批次JSON/日志在忽略的data/local/collection中，无DDL迁移或重复招聘库。接口、停止/日志生命周期与本轮仅草稿验收见[批次报告](../../../docs/review/Collection-batches-2026-10-21.md)。
+
 ## 2026-10-21 统一产品操作入口
 
 在仓库根目录运行 `pwsh -File scripts/start-local.ps1`（PowerShell 7），或双击 `start_system.bat`。打开18080采集页，选择平台/城市/关键词，显式准备Edge，再显式启动单轮；不填写CDP参数。`stop_system.bat` / `scripts/stop-local.ps1` 等待采集整树停止及历史归档，保留原数据库容器/数据和Edge。完整验收见[集成报告](../../../docs/review/Product-integration-2026-10-21.md)。

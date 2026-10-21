@@ -105,6 +105,56 @@ export interface CollectionResult {
 }
 export interface CollectionRaw extends CollectionResult { id?: number; content?: string }
 
+export type CollectionBatchStatus = 'queued' | 'running' | 'waiting_next_round' | 'stopping' | 'stopped' | 'completed' | 'blocked' | 'error' | 'interrupted'
+export type CollectionBatchItemStatus = 'queued' | 'preparing' | 'running' | 'completed' | 'error' | 'blocked' | 'cancelled' | 'stopped' | 'interrupted'
+export interface CollectionBatchItem {
+  item_id: string
+  keyword: string
+  city: CollectionCity
+  status: CollectionBatchItemStatus
+  run_id: string | null
+  started_at: string | null
+  finished_at: string | null
+  stop_reason: string | null
+  listed: number | null
+  detail_attempted: number | null
+  detail_obtained: number | null
+  complete: number | null
+  inserted: number | null
+  updated: number | null
+  skipped: number | null
+  rejected: number | null
+  failed: number | null
+}
+export interface CollectionBatch {
+  batch_id: string
+  platform: string
+  status: CollectionBatchStatus
+  created_at: string
+  started_at: string | null
+  finished_at: string | null
+  stop_reason: string | null
+  total: number
+  completed: number
+  current_item_id: string | null
+  next_run_at: string | null
+  items: CollectionBatchItem[]
+}
+export interface CollectionBatchPlan {
+  platform: string
+  keywords: string[]
+  cities: CollectionCity[]
+  pages: 1
+  max_jobs: number
+  detail_limit: number
+}
+export function createCollectionBatch(data: CollectionBatchPlan) { return post<CollectionBatch>('/collection/batches', data) }
+export function getCollectionBatches() { return get<{ items: CollectionBatch[]; total: number }>('/collection/batches') }
+export function getCollectionBatch(batch_id: string) { return get<CollectionBatch>(`/collection/batches/${encodeURIComponent(batch_id)}`) }
+export function getCollectionBatchItemTask(batch_id: string, item_id: string) { return get<CollectionTask>(`/collection/batches/${encodeURIComponent(batch_id)}/items/${encodeURIComponent(item_id)}/task`) }
+export function startCollectionBatch(batch_id: string) { return post<CollectionBatch>(`/collection/batches/${encodeURIComponent(batch_id)}/start`, {}) }
+export function stopCollectionBatch(batch_id: string) { return post<CollectionBatch>(`/collection/batches/${encodeURIComponent(batch_id)}/stop`, {}) }
+
 // 浏览器准备可能包含进程启动和页面就绪等待；沿用统一请求与响应解包。
 export function prepareCollection(auto_start = false, platform?: string, config: Partial<CollectionConfig> = {}) { return post<CollectionPreparation>('/collection/prepare', { ...config, auto_start, platform }, { timeout: 120000 }) }
 export function getCollectionPlatforms() { return get<CollectionPlatform[]>('/collection/platforms') }
