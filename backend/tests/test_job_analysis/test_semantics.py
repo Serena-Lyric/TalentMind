@@ -131,6 +131,51 @@ def test_years_do_not_become_degree_and_unparsed_text_blocks_complete():
     assert result["coverage"] == "incomplete"
 
 
+def test_unrelated_conditional_does_not_poison_separate_requirement():
+    result = analyze(
+        "岗位职责：负责开发软件。\n"
+        "任职要求：熟悉 Python。\n"
+        "如果参加其他项目，则需要掌握 Docker。"
+    )
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["condition"] is None
+
+
+def test_inline_requirement_heading_changes_section_after_duty_sentence():
+    result = analyze("岗位职责：负责后端接口开发。任职要求：熟悉 Python。")
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["section"] == "requirements"
+
+
+@pytest.mark.parametrize("text,skill,want", [
+    ("任职要求：\n熟练掌握 Python，并能独立完成接口开发。", "python", "required"),
+    ("加分项：\n熟悉 Docker，具备容器化交付经验。", "docker", "preferred"),
+])
+def test_explicit_capability_with_trailing_context_keeps_requirement_state(text, skill, want):
+    result = analyze(text)
+
+    assert states(result, skill) == [want]
+    assert result["statements"][0]["evidence"]["quote"] in text
+
+
+def test_job_title_lists_skill_as_mention_only():
+    result = analyze("暂无描述", job_title="Python 工程师")
+
+    assert states(result) == ["mentioned"]
+    assert result["statements"][0]["reason"] == "title_reference_only"
+    assert result["statements"][0]["evidence"]["field"] == "job_title"
+
+
+def test_structured_clause_wins_over_identical_raw_text_copy():
+    text = "工作职责：使用 Python 开发服务。"
+    result = analyze(text, duties=text)
+
+    assert states(result) == ["mentioned"]
+    assert [statement["evidence"]["field"] for statement in result["statements"]] == ["duties"]
+
+
 def test_unknown_skill_no_result_is_not_execution_failure_or_uncertain_skill():
     result = analyze("要求掌握 UnlistedFixtureLang。")
     assert result["outcome"] == "no_recognized_skills"

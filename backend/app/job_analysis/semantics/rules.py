@@ -9,12 +9,15 @@ from ..foundation.models import AnalyzerSpec
 from ..foundation.runner import dictionary
 from .models import resolve
 
-RULESET = "bounded-skill-clauses-v3"
+RULESET = "bounded-skill-clauses-v4"
 HEADINGS = {"任职要求": "requirements", "岗位要求": "requirements", "技能要求": "requirements",
     "加分项": "preferred", "优先条件": "preferred", "加分条件": "preferred",
     "技术栈": "stack", "工作职责": "duties", "岗位职责": "duties",
     "职位要求": "requirements", "任职条件": "requirements", "任职资格": "requirements",
-    "兼职要求": "requirements"}
+    "兼职要求": "requirements", "工作内容": "duties", "岗位内容": "duties",
+    "主要工作内容": "duties", "职责描述": "duties", "岗位描述": "duties",
+    "能力要求": "requirements", "核心能力要求": "requirements",
+    "技术要求": "requirements", "专业要求": "requirements"}
 DEGREES = {"基础了解": "basic", "了解": "basic", "熟悉": "familiar",
     "熟练掌握": "proficient", "熟练": "proficient", "精通": "expert"}
 VERB = r"(?:基础了解|了解|熟悉|熟练掌握|熟练使用|熟练|精通|掌握|具备)"
@@ -23,6 +26,7 @@ MODAL = r"(?:必须|需要|要求|需|须|应)"
 RISK = re.compile(r"如果|若|仅当|除非|针对|对于|前端岗位|后端岗位|公司|我司|本团队|例如|示例|教程|曾经|过去|并非|不是|不但|而且|非本岗位|据说|可能|待定|视情况|候选人以外")
 SCOPE_RISK = re.compile(r"如果|若|仅当|除非|当.+时|仅适用|适用于|仅限|限于|仅对|只对|针对|对于|前端岗位|后端岗位|不必满足|无须满足|无需满足|不需要满足|条件.{0,8}见")
 GROUP_SCOPE_RISK = re.compile(r'[二三四五六七八九十\d]+选[一二三\d]+|满足.{0,8}(?:一项|其一)|(?:以上|上述|以下)(?:技能|要求|条件|能力|条款|满足)')
+RECORD_SCOPE_RISK = re.compile(r"仅适用于|仅限|仅对|只对|适用于|条件.{0,8}见")
 
 
 def evidence(record, field, start, end):
@@ -51,7 +55,8 @@ NUMBER = r"(?:[（(]\d{1,2}[)）]|\d{1,2}[、.．](?!\d))"
 def logical_lines(text):
     # Split structural markers by original offsets; never rewrite the evidence string.
     labels = '|'.join(re.escape(h) for h in sorted(HEADINGS, key=len, reverse=True))
-    marker = rf"(?<!\S)(?:[【\[](?:{labels})[】\]]|(?:{labels})(?=[:：]|\s+{NUMBER}))|(?:(?<!\S)|(?<=[:：])){NUMBER}"
+    starts = r"(?:(?<!\S)|(?<=[。；;!?！？]))"
+    marker = rf"{starts}(?:[【\[](?:{labels})[】\]]|(?:{labels})(?=[:：]|\s+{NUMBER}))|(?:(?<!\S)|(?<=[:：])){NUMBER}"
     for line in re.finditer(r"[^\n]+", text):
         cuts = sorted({line.start(), *(line.start() + m.start() for m in re.finditer(marker, line[0]))})
         for a, b in zip(cuts, cuts[1:] + [line.end()]):
@@ -85,13 +90,13 @@ def units(text, default_section, aliases):
         numbering = re.match(rf"\s*{NUMBER}\s*", text[start:end])
         if numbering:
             start += numbering.end()
-        context_start = header_start if header_start is not None else lines[max(0, index - 1)][0]
-        context_end = lines[min(len(lines) - 1, index + 1)][1]
         for sentence in re.finditer(r"[^。；;]+", text[start:end]):
             a, b = start + sentence.start(), start + sentence.end()
             whole = text[a:b]
             if not whole.strip():
                 continue
+            context_start = header_start if header_start is not None else a
+            context_end = b
             # Only this explicit contrast has an implemented cross-clause scope.
             split_contrast = re.fullmatch(r"\s*(?:不要求|无需|不需要).+[，,]\s*但(?:是)?(?:需|需要|必须).+", whole)
             comma_parts = list(re.finditer(r"[^，,]+", whole))
@@ -144,6 +149,18 @@ def classify(template, section, risky):
         return "preferred" if section == "preferred" else "required", None, "explicit_requirement"
     if full(VERB + r"S(?:基础|语言|数据库)?") and section in ("requirements", "preferred"):
         return "preferred" if section == "preferred" else "required", None, "section_capability"
+    if section in ("requirements", "preferred"):
+        direct = re.match(r"(?:" + MODAL + r")?(?:" + VERB + r")\ufdd0", template)
+        if direct:
+            state = "preferred" if section == "preferred" else "required"
+            tail = template[direct.end():]
+            if "\ufdd0" in tail and not re.search(r"至少|任意|一种|项|例如|如|等|可能|待定", tail):
+                if "或" in template[direct.start():]:
+                    return state, "any_of", "section_capability_extended_any_of"
+                if re.search(r"(?:和|及|与|、|/)\ufdd0", tail):
+                    return state, "all_of", "section_capability_extended_all_of"
+            if "\ufdd0" not in tail:
+                return state, None, "section_capability_extended"
     if full(r"S(?:(?:和|及|与|、|/|或)S)*") or full(
             r"(?:负责)?(?:工作中)?(?:使用|运用)S(?:开发服务|开发软件|开发|工作)?"):
         return "mentioned", None, "list_or_work_use"
@@ -152,15 +169,25 @@ def classify(template, section, risky):
 
 def extract(record, aliases):
     statements, issues = [], []
-    scope_evidence = []
-    for field in ("raw_text", "requirements", "duties", "experience", "job_title"):
-        for fragment in re.finditer(r"[^\n。；;]+", record.payload.get(field, "")):
-            if SCOPE_RISK.search(fragment[0]) or GROUP_SCOPE_RISK.search(fragment[0]):
-                scope_evidence.append(evidence(record, field, *fragment.span()))
-    for field, default in (("raw_text", "unspecified"), ("requirements", "requirements"),
-                           ("duties", "duties"), ("experience", "experience"), ("job_title", "title")):
+    record_scope = []
+    for field in ("raw_text", "requirements", "duties", "experience"):
+        text = record.payload.get(field, "")
+        for match in re.finditer(r"[^\n。；;]+", text):
+            fragment = match.group()
+            if RECORD_SCOPE_RISK.search(fragment) and not occurrences(fragment, aliases):
+                record_scope.append(
+                    evidence(record, field, match.start(), match.end())
+                )
+    clause_owners = {}
+    for field, default in (("requirements", "requirements"), ("duties", "duties"),
+                           ("raw_text", "unspecified"), ("experience", "experience"),
+                           ("job_title", "title")):
         text = record.payload.get(field, "")
         for start, end, section, ca, cb, sentence in units(text, default, aliases):
+            signature = re.sub(r"\s+", "", sentence)
+            if signature in clause_owners and clause_owners[signature] != field:
+                continue
+            clause_owners.setdefault(signature, field)
             clause = text[start:end]
             found = occurrences(clause, aliases)
             if not found:
@@ -174,8 +201,15 @@ def extract(record, aliases):
                 position = b
             template += clause[position:]
             template = re.sub(r"\s+", "", template)
-            risky = bool(scope_evidence) or bool(RISK.search(text[ca:cb])) or "\ufdd0" in clause
+            context = text[ca:cb]
+            scope_items = list(record_scope)
+            for pattern in (SCOPE_RISK, GROUP_SCOPE_RISK):
+                for match in pattern.finditer(context):
+                    scope_items.append(evidence(record, field, ca + match.start(), ca + match.end()))
+            risky = bool(scope_items) or bool(RISK.search(context)) or "\ufdd0" in clause
             state, relation, reason = classify(template, section, risky)
+            if field == "job_title":
+                state, relation, reason = "mentioned", None, "title_reference_only"
             if relation and len({name for _, _, name in found}) < 2:
                 state, relation, reason = "uncertain", None, "non_distinct_group_members"
             if section in ("duties", "stack", "title", "experience") and relation:
@@ -189,7 +223,7 @@ def extract(record, aliases):
                 degree_hit = None
             if state == "uncertain":
                 issues.append(dict(reason=reason, evidence=evidence(record, field, start, end)))
-            condition = ("\n".join(e["quote"] for e in scope_evidence) or text[ca:cb]) if state == "uncertain" else None
+            condition = ("\n".join(e["quote"] for e in scope_items) or context) if state == "uncertain" else None
             # Unparsed clauses with multiple skills retain independent uncertain statements,
             # not a fabricated conjunction. Preserve the unresolved object/condition in full.
             selections = [found] if relation else [[match] for match in found]
@@ -203,7 +237,7 @@ def extract(record, aliases):
                     target="unresolved:" + condition if condition else "candidate",
                     condition=condition, section=section, reason=reason,
                     evidence=evidence(record, field, start, end), context=evidence(record, field, ca, cb),
-                    scope_evidence=scope_evidence))
+                    scope_evidence=scope_items))
     if not statements and not issues:
         # No result is observable without inventing an uncertain skill or negative assertion.
         issues.append(dict(reason="no_supported_skill_content", evidence=evidence(record, "raw_text", 0, len(record.payload["raw_text"]))))
