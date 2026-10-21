@@ -182,6 +182,7 @@ export interface CollectionBridgeSession {
   updated_at?: string | null
   finished_at: string | null
   stop_reason?: string | null
+  last_error?: string | null
 }
 export interface CollectionBridgePairing {
   token: string

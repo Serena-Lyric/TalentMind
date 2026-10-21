@@ -6,7 +6,9 @@ import hashlib
 import json
 import os
 import secrets
+from ipaddress import ip_address
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import HTTPException, Request
 
@@ -14,11 +16,11 @@ TOKEN_HEADER = "X-TalentMind-Bridge-Token"
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _TOKEN_PATH = _REPO_ROOT / "data" / "local" / "collection" / "bridge.token"
 _MANIFEST_PATH = _REPO_ROOT / "frontend" / "bridge-extension" / "manifest.json"
-_LOOPBACK_CLIENTS = {"127.0.0.1", "::1"}
 _MANAGEMENT_ORIGINS = {
     "http://127.0.0.1:18080",
     "http://localhost:18080",
 }
+_LOCAL_HOSTS = {"127.0.0.1:18000", "localhost:18000"}
 
 
 def _manifest_path() -> Path:
@@ -66,7 +68,12 @@ def get_bridge_token(*, create: bool = True) -> str:
 
 def _require_loopback(request: Request) -> None:
     client = getattr(request, "client", None)
-    if client is None or client.host not in _LOOPBACK_CLIENTS:
+    try:
+        loopback = bool(client and ip_address(client.host).is_loopback)
+    except ValueError:
+        loopback = False
+    host_header = str(request.headers.get("host") or "").strip().lower()
+    if not loopback or host_header not in _LOCAL_HOSTS:
         raise HTTPException(status_code=403, detail="仅允许本机回环桥接请求")
 
 
@@ -76,8 +83,17 @@ def _origin(request: Request) -> str:
 
 def require_bridge_management(request: Request) -> None:
     _require_loopback(request)
-    if _origin(request) not in _MANAGEMENT_ORIGINS:
-        raise HTTPException(status_code=403, detail="仅允许本地管理页面读取桥接配对信息")
+    if str(request.headers.get("sec-fetch-site") or "").lower() == "cross-site":
+        raise HTTPException(status_code=403, detail="拒绝跨站管理请求")
+    origin = _origin(request)
+    if origin in _MANAGEMENT_ORIGINS:
+        return
+    if not origin:
+        referer = urlsplit(str(request.headers.get("referer") or ""))
+        referer_origin = f"{referer.scheme}://{referer.netloc}".rstrip("/")
+        if referer_origin in _MANAGEMENT_ORIGINS:
+            return
+    raise HTTPException(status_code=403, detail="仅允许本地管理页面读取桥接配对信息")
 
 
 def require_bridge_access(request: Request) -> None:
