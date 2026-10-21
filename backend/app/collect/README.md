@@ -8,6 +8,8 @@
 
 本轮未执行正式 DDL；隔离 MySQL 已验证旧 schema 阻断、追加迁移后历史 `unknown/NULL` 保持和 pending 可写。完整真实结果见[Phase 1 M1 报告](../../../docs/review/Phase1-M1-real-collection-2026-10-22.md)。
 
+测试安全补充：`backend/tests/conftest.py` 默认跳过 integration；只有设置 `TALENTMIND_ALLOW_INTEGRATION=1` 且人工确认目标为隔离实例后才执行。裸 `pytest -q` 不应再连接或重建正式库。
+
 ## 2026-10-21 岗位身份待审
 
 内容资格与身份可信度分开。身份为 `verified / pending / unknown`，拒绝/失败仍是采集结果。智联 DOM 卡片只有在点击前后面板变化、目标卡片 active、连续两次稳定、标题一致，并通过正文有效性/截断/错岗检查后，才可写为 `pending`；点击前已 active 不豁免面板变化门禁，仅有 active、标题相同或固定等待仍拒绝。

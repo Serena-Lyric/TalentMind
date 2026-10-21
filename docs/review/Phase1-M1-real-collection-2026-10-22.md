@@ -8,6 +8,7 @@
 - 图谱独立 PR：[#48](https://github.com/Serena-Lyric/TalentMind/pull/48)，分支 `codex/graph-node-field-default-20261022`，只包含 `c9608bc`。
 - M1 分支保留桥接、扩展、控制台入口、代理回环兼容和 CN 修复；未合并 `master`。
 - 正式数据库目标：`localhost:23306/talentmind`。未执行 DDL、未删除或回填真实数据。
+- 开发过程中曾错误裸跑后端全量 pytest，触发 integration 默认导入并改写分析层；事故、当前状态和待批准恢复方案见下文，不能把本轮描述为“所有真实表均未变化”。
 
 ## 三平台结果
 
@@ -59,12 +60,32 @@
 
 正式迁移仍需用户另行批准。建议批准内容：冻结 M1 写入、重新采集正式 schema/八表计数与摘要、生成冷备、完成隔离恢复、执行追加 SQL、行数和历史含义对账；默认回退为应用回退并保留新增列。
 
+## 验证事故与当前正式数据
+
+在后续验证中，Codex 错误使用裸 `pytest -q`，未排除 integration。集成用例 `test_import_exchange_idempotent` 调用默认 `import_all()`，真实重建了正式分析层：
+
+| 项目 | 事故前/批准基线 | 事故后当前值 | 状态 |
+|---|---:|---:|---|
+| `jd_pool` | 2988 | 2988 | checksum `442656160` 与采前 dump 一致 |
+| `signal` | 1540 | 1540 | 未变 |
+| `skill_dict` | 285 | 285 | 未变 |
+| `job_definition` | 717 | 719 | **被测试改写** |
+| `job_skill` | 717 | 719 | **被测试改写** |
+| `job_change_log` | 275 | 243 | **被测试改写** |
+| Neo4j | 7845 / 11412（Job 717） | 7845 / 11412（Job 717） | 未变，但与分析层不一致 |
+
+- 事故后三表私有 dump：`data/local/phase1-acceptance-20261022/analysis-after-accidental-integration-20261021T175645Z.sql`，2,069,818 bytes，SHA-256 `AE587AB5D719F2D5154B586AC41276174EEC1D880BD5734B9A34E76E068F82DD`。
+- 恢复源 `data/local/talentmind-db-full-20260904.sql` 已在临时 MySQL 恢复并核对为 `jd_pool=2984 / 717 / 717 / 275`。因此不能整库回灌；若获批准，应只选择性恢复三张分析表，保留当前 2988 条原始 JD。
+- 未执行任何恢复、DELETE、TRUNCATE、DDL 或 Neo4j 重建。
+- 新增 `backend/tests/conftest.py` 安全门禁；默认 `pytest -m integration` 现在为 `24 skipped / 1529 deselected`，只有显式设置 `TALENTMIND_ALLOW_INTEGRATION=1` 且确认隔离实例后才运行。
+
 ## 验证
 
 - CN/浏览器/控制器相关：168 passed。
 - 浏览器运行专项：63 passed。
 - CN 详情专项：21 passed。
 - 回环桥接安全、schema、会话和用例：28 passed。
+- 测试入口门禁：2 passed；无许可 integration 收集结果 `24 skipped / 1529 deselected`。
 - 两个既有 B3 文档来源摘要失败未通过修改历史依据来“修绿”。
 
 ## 需要用户完成或批准
@@ -72,5 +93,6 @@
 1. 猎聘：在独立 CDP Edge（控制台打开的采集浏览器）中完成一次正常登录，随后告知可“重新检查猎聘”。Codex 不处理账号、验证码或扫码。
 2. BOSS 扩展：在 `edge://extensions` 开启开发人员模式，加载 `frontend/bridge-extension`；从 TalentMind 采集页读取当前桥接任务 ID 和配对令牌，填入扩展。用户在普通 Edge 手动打开一个正常可访问的 BOSS 岗位详情并主动点击“采集当前详情”。
 3. 正式 DDL：审查本报告和隔离恢复结果后，单独批准正式迁移；批准前不得执行正式 DDL。
+4. 测试事故恢复：如用户要求恢复 717/717/275，请先确认恢复源与 `jd_pool` 保留边界；默认建议仅恢复三张分析表，不整库覆盖。当前 719/719/243 不得称为基线。
 
 在这些人工/授权条件完成前，不宣称三平台真实采集整体通过。
