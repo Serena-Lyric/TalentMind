@@ -7,7 +7,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from app.config import get_settings
 from app.db.neo4j import get_neo4j
+from app.integration.destructive_guard import (
+    require_neo4j_destructive_authorization,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 GRAPH_PATH = REPO_ROOT / "exchange" / "m3" / "graph.json"
@@ -20,6 +24,11 @@ def import_graph(path: Path | None = None) -> dict:
     edges = data.get("edges", [])
     driver = get_neo4j()
     try:
+        require_neo4j_destructive_authorization(
+            "neo4j.import_graph",
+            driver,
+            uri=get_settings().neo4j_uri,
+        )
         with driver.session() as session:
             session.run("MATCH (n) DETACH DELETE n").consume()
             for node_type, label in (("job", "Job"), ("skill", "Skill"), ("industry", "Industry")):
@@ -42,7 +51,9 @@ def import_graph(path: Path | None = None) -> dict:
             counts = session.run("MATCH (n) WITH count(n) AS nodes OPTIONAL MATCH ()-[r]->() RETURN nodes, count(r) AS edges").single()
             return {"nodes": int(counts["nodes"]), "edges": int(counts["edges"])}
     finally:
-        driver.close()
+        close = getattr(driver, "close", None)
+        if callable(close):
+            close()
 
 
 if __name__ == "__main__":

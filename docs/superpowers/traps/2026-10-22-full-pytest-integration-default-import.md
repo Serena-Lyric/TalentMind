@@ -12,6 +12,14 @@
 
 新增 `backend/tests/conftest.py`：默认给所有 integration item 添加 skip。只有显式设置 `TALENTMIND_ALLOW_INTEGRATION=1`，且人工核对目标是隔离实例后，才允许执行。核验命令在未授权时得到 `24 skipped / 1529 deselected`。
 
+后续复核确认，测试标记与环境变量只能防止默认收集，不能证明实际连接目标安全。新增 `backend/app/integration/destructive_guard.py`：
+
+- MySQL 破坏性入口按实际 `@@hostname`、`@@server_uuid`、`DATABASE()`、端口和版本生成目标指纹；
+- Neo4j 清图入口按实际 `db.info()`、服务组件和脱敏 URI 生成目标指纹；
+- 每次操作还必须匹配独立授权文件中的 `operation`、完整目标、指纹和有效期；`TALENTMIND_ALLOW_INTEGRATION=1` 单独存在也不会放行。
+
+2026-10-22 事故审计进一步确认：`skill_dict` 虽仍为 285 行，但 285 个主键全部后移 570；`job_definition`/`job_skill` 新增原回包中的两个已删除岗位；`job_change_log` 删除 32 条演示记录。`jd_pool`/`talent_raw` 行内容未变，但测试夹具插入后清理使 `AUTO_INCREMENT` 分别前移 3 和 2，行数相等不能证明没有副作用。
+
 ## 后续恢复边界
 
 - 已保存事故后三表私有 dump：`data/local/phase1-acceptance-20261022/analysis-after-accidental-integration-20261021T175645Z.sql`。
@@ -20,4 +28,4 @@
 
 ## 教训
 
-“完整测试”不等于“所有标记都执行”。包含真实服务写入的测试必须默认安全关闭；不能依赖测试名、文档提醒或运行者记忆来保护正式库。
+“完整测试”不等于“所有标记都执行”。“幂等”也不等于无损。包含真实服务写入的测试必须默认安全关闭；不能依赖测试标记、环境变量、测试名、行数、文档提醒或运行者记忆来保护正式库。破坏性入口必须验证实际目标并要求独立、绑定目标指纹的显式授权。

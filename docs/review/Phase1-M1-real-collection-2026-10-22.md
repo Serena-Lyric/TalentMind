@@ -62,22 +62,23 @@
 
 ## 验证事故与当前正式数据
 
-在后续验证中，Codex 错误使用裸 `pytest -q`，未排除 integration。集成用例 `test_import_exchange_idempotent` 调用默认 `import_all()`，真实重建了正式分析层：
+在后续验证中，Codex 错误使用裸 `pytest -q`，未排除 integration。当次结果为 `1548 passed / 3 failed`；`test_import_exchange_idempotent` 调用默认 `import_all()`，`test_import_graph_idempotent` 的 warning 也直接证明两次清图导入实际执行：
 
 | 项目 | 事故前/批准基线 | 事故后当前值 | 状态 |
 |---|---:|---:|---|
-| `jd_pool` | 2988 | 2988 | checksum `442656160` 与采前 dump 一致 |
-| `signal` | 1540 | 1540 | 未变 |
-| `skill_dict` | 285 | 285 | 未变 |
+| `jd_pool` | 2988 | 2988 | 内容 SHA 未变；`AUTO_INCREMENT` 258123→258126 |
+| `signal` | 1540 | 1540 | 内容 SHA 和自增均未变 |
+| `skill_dict` | 285 | 285 | 业务内容相同，但 285 个主键统一 +570 |
 | `job_definition` | 717 | 719 | **被测试改写** |
 | `job_skill` | 717 | 719 | **被测试改写** |
 | `job_change_log` | 275 | 243 | **被测试改写** |
-| Neo4j | 7845 / 11412（Job 717） | 7845 / 11412（Job 717） | 未变，但与分析层不一致 |
+| Neo4j | 7845 / 11412（Job 717） | 7845 / 11412（Job 717） | 节点/关系/属性及物理哈希均一致 |
 
 - 事故后三表私有 dump：`data/local/phase1-acceptance-20261022/analysis-after-accidental-integration-20261021T175645Z.sql`，2,069,818 bytes，SHA-256 `AE587AB5D719F2D5154B586AC41276174EEC1D880BD5734B9A34E76E068F82DD`。
-- 恢复源 `data/local/talentmind-db-full-20260904.sql` 已在临时 MySQL 恢复并核对为 `jd_pool=2984 / 717 / 717 / 275`。因此不能整库回灌；若获批准，应只选择性恢复三张分析表，保留当前 2988 条原始 JD。
+- 首选恢复源改为 `D:\backup\TalentMind-mysql-start-20261017-090847\mysql_data.tar.gz`：隔离复算八表 SHA 与 2026-10-21 12:47 事故前摘要完全一致。不能整库回灌；若获批准，应仅恢复四张受影响表，保留当前 2988 条原始 JD。
 - 未执行任何恢复、DELETE、TRUNCATE、DDL 或 Neo4j 重建。
-- 新增 `backend/tests/conftest.py` 安全门禁；默认 `pytest -m integration` 现在为 `24 skipped / 1529 deselected`，只有显式设置 `TALENTMIND_ALLOW_INTEGRATION=1` 且确认隔离实例后才运行。
+- 隔离 MySQL 已完成候选恢复与回退预演，正式库仍未变。新增 `backend/tests/conftest.py` 和破坏性导入授权门禁；`TALENTMIND_ALLOW_INTEGRATION=1` 单独存在也不能放行清库。
+- 完整差异、备份哈希、关联核对和恢复/回退证据见 [P0 数据事故报告](P0-data-incident-restore-rehearsal-2026-10-22.md)。
 
 ## 验证
 
@@ -93,6 +94,6 @@
 1. 猎聘：在独立 CDP Edge（控制台打开的采集浏览器）中完成一次正常登录，随后告知可“重新检查猎聘”。Codex 不处理账号、验证码或扫码。
 2. BOSS 扩展：在 `edge://extensions` 开启开发人员模式，加载 `frontend/bridge-extension`；从 TalentMind 采集页读取当前桥接任务 ID 和配对令牌，填入扩展。用户在普通 Edge 手动打开一个正常可访问的 BOSS 岗位详情并主动点击“采集当前详情”。
 3. 正式 DDL：审查本报告和隔离恢复结果后，单独批准正式迁移；批准前不得执行正式 DDL。
-4. 测试事故恢复：如用户要求恢复 717/717/275，请先确认恢复源与 `jd_pool` 保留边界；默认建议仅恢复三张分析表，不整库覆盖。当前 719/719/243 不得称为基线。
+4. 测试事故恢复：审查 P0 报告后另行批准正式冻结与四表恢复；当前 `285/719/719/243` 不得称为基线。正式 DDL 与本项恢复仍分别授权。
 
 在这些人工/授权条件完成前，不宣称三平台真实采集整体通过。

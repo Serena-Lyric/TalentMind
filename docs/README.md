@@ -6,6 +6,7 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
+| [P0 数据事故影响与隔离恢复预演](review/P0-data-incident-restore-rehearsal-2026-10-22.md) | 2026-10-21 裸跑 pytest 的四表全内容差异、主键/关联/其他表影响、Neo4j 全内容核对、事故前原像、隔离恢复与回退证据；正式恢复和 DDL 未执行 |
 | [Phase 1 M1 原版采集与三平台真实验收](review/Phase1-M1-real-collection-2026-10-22.md) | 图谱独立 PR #48、智联真实 pending/慢面板/迁移门禁、猎聘登录墙、BOSS 扩展待人工、隔离 MySQL 恢复与正式 DDL 未执行 |
 | [智联岗位身份待审](review/Zhaopin-identity-pending-2026-10-21.md) | verified/pending/unknown、DOM动态绑定、M1→M2→M3透传、5条私有回放；DDL未执行 |
 | [多关键词×多城市批量任务](review/Collection-batches-2026-10-21.md) | 未启动计划、串行控制、逐项日志/结果、停止与异常边界；本轮不运行真实批次 |

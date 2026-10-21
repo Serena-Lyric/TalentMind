@@ -12,8 +12,9 @@ def pytest_collection_modifyitems(config, items):
         return
     skip = pytest.mark.skip(
         reason=(
-            "integration tests require an explicitly verified isolated instance; "
-            "set TALENTMIND_ALLOW_INTEGRATION=1 only after checking the target"
+            "integration tests require an explicitly verified isolated instance, "
+            "TALENTMIND_ALLOW_INTEGRATION=1, and the destructive-import "
+            "authorization file bound to the live target"
         )
     )
     for item in items:
