@@ -111,7 +111,7 @@ API：
 - M2 规则、真实质量边界、产品/API：`366 passed`。
 - 完整非集成回归，从项目 `backend/.venv` 运行：`1547 passed / 2 skipped / 24 deselected / 2 failed`。两项失败是 P0 已记录的 `PRODUCT_DECISIONS` 来源固定哈希/引文失配；本轮未修改该产品文档，也未通过重签来源修绿。
 - integration 默认关闭测试：`24 skipped / 1511 deselected`；没有进入正式写入口。
-- 前端：`156 passed`；`vue-tsc --noEmit` 与 Vite 生产构建通过，仅保留既有大 chunk 和动态/静态导入提示。
+- 前端：`157 passed`；`vue-tsc --noEmit` 与 Vite 生产构建通过，仅保留既有大 chunk 和动态/静态导入提示。
 - 实际页面从 `v9` 主集显式生成 run-bound 候选图：本地候选图 190 节点 / 698 关系，继续标为规则分析待审；没有写 Neo4j。
 
 正式 MySQL 与 P0 基线逐表全字段 SHA-256 相同：`jd_pool=2988`、`signal=1540`、`skill_dict=285`、`job_definition/job_skill/job_change_log=717/717/275`、`resume/talent_raw=0`。Neo4j 仍为 7,845 节点 / 11,412 关系，物理 SHA `4cad52d3…d7e8a`、语义 SHA `0d6a80fe…557d`，均与 P0 相同。私有复核：`data/local/m2-real-analysis-20261022/formal-post-v9-audit.json`。

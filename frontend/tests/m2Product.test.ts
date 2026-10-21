@@ -209,3 +209,20 @@ test('审核返回不能覆盖后来打开的 JD', async () => {
     assert.equal(page.state.detail.value.human_review, undefined)
   } finally { page.stop() }
 })
+
+test('延迟导出使用发起时的 run_id 命名结果', async () => {
+  let finishExport!: (value:any) => void
+  const page = m2Component({
+    exportM2Reviews: () => new Promise(resolve => { finishExport = resolve }),
+  })
+  try {
+    page.state.selected.value = { ...draft, run_id: 'a'.repeat(32) }
+    page.state.selectedId.value = 'a'.repeat(32)
+    const pending = page.state.downloadReviews()
+    page.state.selected.value = { ...draft, run_id: 'b'.repeat(32) }
+    page.state.selectedId.value = 'b'.repeat(32)
+    finishExport({ reviews: [] })
+    await pending
+    assert.equal(page.downloads[0].download, `m2-reviews-${'a'.repeat(32)}.json`)
+  } finally { page.stop() }
+})

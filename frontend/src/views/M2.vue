@@ -88,7 +88,7 @@ const canSubmitReview = computed(() => !!detail.value?.machine_sha256 && ['compl
 const text: Record<string, string> = {
   queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'机器待复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', unreviewed:'人工未审核', accepted:'人工接受', rejected:'人工拒绝', needs_followup:'人工需跟进', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
 }
-const metrics: Record<string,string> = {valid:'有效 JD',invalid:'无效 JD',undetermined:'有效性待复核',in_scope:'范围内 JD',out_of_scope:'范围外 JD',needs_review:'范围待复核 JD',not_applicable:'范围不适用 JD',not_evaluated:'未评估 JD',failed:'失败 JD',blocked:'未执行 JD',pending:'待处理 JD',running:'执行中 JD',completed:'受支持语法完整 JD',partial:'部分处理 JD',no_recognized_skills:'无已识别技能 JD',unresolved_jds:'有未决内容 JD',processed:'治理已处理 JD',candidate_jds:'有候选 JD',candidates:'候选项数',semantic_conflict_jds:'已检查的语义冲突 JD',catalog_conflict_assessment:'目录治理冲突评估',unresolved_fragments:'未解决片段数',pending_review:'待审核 JD',unable_to_classify:'无法分类 JD',outputs_with_evidence:'有原文引文的阶段输出',outputs_without_evidence:'无引文的阶段输出',matched_spans:'已匹配原文位置',invalid_spans:'位置校验异常',unparseable_jds:'不可解析 JD',statements_required:'明确要求陈述',statements_preferred:'加分优先陈述',statements_mentioned:'仅提及陈述',statements_not_required:'明确不要求陈述',statements_uncertain:'待判断陈述'}
+const metrics: Record<string,string> = {valid:'有效 JD',invalid:'无效 JD',undetermined:'有效性待复核',in_scope:'范围内 JD',out_of_scope:'范围外 JD',needs_review:'范围待复核 JD',not_applicable:'范围不适用 JD',not_evaluated:'未评估 JD',failed:'失败 JD',blocked:'未执行 JD',pending:'待处理 JD',running:'执行中 JD',completed:'受支持语法完整 JD',partial:'部分处理 JD',no_recognized_skills:'无已识别技能 JD',unresolved_jds:'有未决内容 JD',processed:'治理已处理 JD',candidate_jds:'有候选 JD',candidates:'候选项数',semantic_conflict_jds:'已检查的语义冲突 JD',catalog_conflict_assessment:'目录治理冲突评估',unresolved_fragments:'未解决片段数',pending_review:'待审核 JD',unable_to_classify:'无法分类 JD',outputs_with_evidence:'有原文引文的阶段输出',outputs_without_evidence:'无引文的阶段输出',matched_spans:'已匹配原文位置',invalid_spans:'位置校验异常',unparseable_jds:'不可解析 JD',statements_required:'明确要求陈述',statements_preferred:'加分优先陈述',statements_mentioned:'仅提及陈述',statements_not_required:'明确不要求陈述',statements_uncertain:'待判断陈述',total_items:'审核分母条目',reviewed_items:'人工已提交条目',unreviewed_items:'人工未提交条目'}
 function statusText(value: string) { return text[value] || value }
 function metricText(value: string, stage?: string) {
   if (stage === 'identity') return identityText(value)
@@ -192,12 +192,13 @@ async function submitReview() {
 }
 async function downloadReviews() {
   if (!selected.value || reviewExporting.value) return
+  const id = selected.value.run_id
   reviewExporting.value = true; error.value = ''
   try {
-    const value = await exportM2Reviews(selected.value.run_id)
+    const value = await exportM2Reviews(id)
     if (disposed) return
     const url = URL.createObjectURL(new Blob([pretty(value)], { type: 'application/json;charset=utf-8' }))
-    const link = document.createElement('a'); link.href = url; link.download = `m2-reviews-${selected.value.run_id}.json`; link.click(); URL.revokeObjectURL(url)
+    const link = document.createElement('a'); link.href = url; link.download = `m2-reviews-${id}.json`; link.click(); URL.revokeObjectURL(url)
   } catch (e) { if (!disposed) error.value = message(e) }
   finally { reviewExporting.value = false }
 }
