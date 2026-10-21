@@ -202,11 +202,13 @@ def _snapshot_js(platform: str) -> str:
       const nonempty = s => nodes(s).filter(n => (n.innerText||'').trim().length>10).length;
       const gates = nodes('[role="dialog"], .sign-form, .login-dialog, .login-modal, .verify-wrap, .geetest_panel');
       const frames = nodes('iframe').map(n=>n.src||'');
+      const qrLoginWall = nodes('.content-right-section').some(n =>
+        /APP扫码/.test(n.innerText||'') && /打开猎聘APP/.test(n.innerText||''));
       return {url:location.href, ready_state:document.readyState,
         text:(document.body?.innerText||'').slice(0,18000),
         gate_text:gates.map(n=>n.innerText||'').join('\n').slice(0,6000),
         challenge_visible:frames.some(src=>/captcha|verify|security-check|challenge/i.test(src)) || nodes('.geetest_panel').length>0,
-        login_visible:frames.some(src=>/\/login|passport\./i.test(src)),
+        login_visible:frames.some(src=>/\/login|passport\./i.test(src)) || qrLoginWall,
         content_limited:nodes('.job-detail-login-gate, .job-list-login-gate, .job-description__content--guest-clamp').length>0,
         authenticated:nodes('a,button').some(n=>/^(退出登录|退出账号|注销登录)$/.test((n.innerText||'').trim())) ||
           nodes('.user-nav .nav-figure').some(n=>/1[0-9]{2}[*＊]{3,}[0-9]{2,4}/.test(n.innerText||'')),

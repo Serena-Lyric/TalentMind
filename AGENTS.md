@@ -21,6 +21,7 @@
 - `input/人岗匹配/` 迁移/脱敏入库仍暂缓；`input/图谱模块/` 等未入库原件先查未决状态。未经用户明确授权，不迁移、移动或删除真实数据/原始交付物，不运行大规模真实采集；不以测试或恢复为由清空原库/原卷。
 - 不绕过登录、验证码或反爬；人工登录与注销由用户完成，不索取或导出凭据。采集操作按本次授权范围执行。
 - 集成测试只用隔离实例；运行前核对实际连接，禁止在演示库测试后再恢复。测试写入 DB/文件的数据按夹具唯一标记、`job_title`/`identity_hint` 等精确清理，放在 `finally`/fixture teardown，断言失败也要清理；禁止按 `source` 等宽泛条件 DELETE。运行后查询确认夹具计数为 0、生产数据未误删，并报告证据（D37）。
+- `import_all()`、`import_skill_dict()`、`import_job_definitions()`、`import_job_skills()`、`import_change_logs()`、`import_graph()` 等导入写入口必须通过 `destructive_guard.py` 的实际目标身份校验，并匹配独立授权文件中的操作、完整目标指纹和有效期。pytest `integration` 标记、`TALENTMIND_ALLOW_INTEGRATION=1` 或 URL 本身不能单独授权写入。
 - 导入可能破坏现有数据：`import_all()`/`import_change_logs()` 默认读本地旧回包；图谱导入先全量删除。执行前读 [部署与导入说明](docs/部署与导入说明.md)及 [integration 说明](backend/app/integration/README.md)，核对显式路径、目标实例与许可；不得直接覆盖已核验交接文件。
 
 ## 3. GitHub 协作流程

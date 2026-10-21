@@ -157,6 +157,48 @@ export interface CollectionBatchPlan {
   max_jobs: number
   detail_limit: number
 }
+export interface CollectionBridgeSession {
+  run_id: string
+  platform: 'boss'
+  status: string
+  keywords?: string[]
+  cities?: CollectionCity[]
+  current_keyword?: string | null
+  current_city?: string | null
+  listed: number
+  detail_attempted: number
+  detail_obtained: number
+  content_eligible: number
+  identity_pending: number
+  identity_verified: number
+  complete: number
+  inserted: number
+  updated: number
+  new?: number
+  skipped: number
+  rejected: number
+  failed: number
+  started_at?: string | null
+  updated_at?: string | null
+  finished_at: string | null
+  stop_reason?: string | null
+  last_error?: string | null
+}
+export interface CollectionBridgePairing {
+  token: string
+  extension_id: string
+  extension_path: string
+  sessions: CollectionBridgeSession[]
+}
+export interface CollectionBridgeCreate {
+  platform: 'boss'
+  keyword: string
+  city_name: string
+  city_code: string
+  pages: 1
+  detail_limit: number
+  max_jobs: number
+}
 export function createCollectionBatch(data: CollectionBatchPlan) { return post<CollectionBatch>('/collection/batches', data) }
 export function getCollectionBatches() { return get<{ items: CollectionBatch[]; total: number }>('/collection/batches') }
 export function getCollectionBatch(batch_id: string) { return get<CollectionBatch>(`/collection/batches/${encodeURIComponent(batch_id)}`) }
@@ -182,3 +224,7 @@ export function stopCollection(run_id?: string | null) { return post('/collectio
 export function getCollectionResults(run_id: string) { return get<CollectionResult[]>('/collection/results', { run_id }) }
 export function getCollectionRaw(id: number) { return get<CollectionRaw>(`/collection/raw/${id}`) }
 export function getCollectionRecent(limit = 10) { return get<CollectionRaw[]>('/collection/recent', { limit }) }
+export function getBridgePairing() { return get<CollectionBridgePairing>('/collection/bridge/pairing') }
+export function createBridgeSession(data: CollectionBridgeCreate) { return post<{ run_id: string; session: CollectionBridgeSession }>('/collection/bridge/sessions', data) }
+export function getBridgeSession(run_id: string) { return get<CollectionBridgeSession>(`/collection/bridge/sessions/${encodeURIComponent(run_id)}`) }
+export function finishBridgeSession(run_id: string, reason?: string) { return post<CollectionBridgeSession>(`/collection/bridge/sessions/${encodeURIComponent(run_id)}/finish`, reason ? { reason } : {}) }

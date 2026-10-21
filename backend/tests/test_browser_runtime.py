@@ -362,6 +362,15 @@ def test_actual_liepin_current_camelcase_cards_are_publicly_accessible():
     assert runtime().classify_page(page,'liepin')['can_collect']
 
 
+def test_actual_liepin_qr_login_wall_without_cards_is_login_required():
+    page = dom_snapshot('liepin', [{
+        'selector': '.content-right-section',
+        'text': 'APP扫码 微信扫码 打开猎聘APP 在我的页面顶部扫一扫',
+    }])
+    assert page['login_visible'] is True
+    assert runtime().classify_page(page, 'liepin')['access_state'] == 'login_required'
+
+
 def test_guest_partial_detail_blocks_collection_despite_visible_cards():
     result=runtime().classify_page(snapshot(cards=3,details=1,content_limited=True),'liepin')
     assert not result['can_collect'] and result['content_limited'] is True

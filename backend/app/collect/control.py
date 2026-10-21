@@ -791,6 +791,19 @@ def _archive_task(run_id: str, **changes) -> None:
         _save_state(state)
 
 
+def upsert_external_task(task: dict[str, Any]) -> None:
+    """Archive a non-subprocess task without pretending it owns the worker process."""
+    run_id = str(task.get("run_id") or "")
+    if not run_id:
+        raise ValueError("外部任务缺少 run_id")
+    with _LOCK:
+        state = _load_state()
+        history = [dict(item) for item in state.get("history", []) if item.get("run_id") != run_id]
+        history.insert(0, dict(task))
+        state["history"] = history[:100]
+        _save_state(state)
+
+
 def _reserve_tasks() -> object:
     global _RESERVATION
     with _LOCK:

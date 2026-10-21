@@ -214,6 +214,50 @@ def test_card_active_alone_does_not_count_as_panel_update(monkeypatch):
     assert result['panel_changed'] is False
 
 
+def test_slow_panel_update_waits_past_stable_old_content(monkeypatch):
+    before = {'panel_title': '旧岗位', 'description': '旧正文', 'company': '旧公司',
+              'panel_visible': True, 'target_active': True, 'list_url': 'u'}
+    changed = {**before, 'panel_title': '目标岗位', 'description': '目标岗位正文',
+               'company': '目标公司'}
+
+    class Client:
+        def __init__(self):
+            self.values = iter([before, before, before, changed, changed])
+
+        def evaluate(self, script):
+            return next(self.values)
+
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+    result = cn.await_stable_panel(
+        Client(), SITES['zhaopin'], 0, before, timeout=1.0, interval=0.01
+    )
+
+    assert result['panel_changed'] is True
+    assert result['panel_title'] == '目标岗位'
+    assert result['stable_samples'] == 2
+
+
+def test_persistence_gate_emits_specific_failure_and_finished_stats(offline, monkeypatch):
+    _, _, rows, run = offline
+    events = []
+
+    def migration_gate(*args, **kwargs):
+        raise RuntimeError('identity_schema_migration_required')
+
+    monkeypatch.setattr(cn, 'run_pipeline', migration_gate)
+
+    with pytest.raises(RuntimeError, match='identity_schema_migration_required'):
+        run(detail_limit=1, on_event=events.append)
+
+    failure = next(event for event in events if event['event'] == 'failure')
+    finished = next(event for event in events if event['event'] == 'finished')
+    assert failure['reason'] == 'identity_schema_migration_required'
+    assert failure['phase'] == 'persistence'
+    assert finished['stats']['failed'] == 1
+    assert finished['stats']['stop_reason'] == 'identity_schema_migration_required'
+    assert rows() == []
+
+
 def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monkeypatch):
     from app.db import mysql
     path = tmp_path / 'zhaopin-pending.sqlite3'
