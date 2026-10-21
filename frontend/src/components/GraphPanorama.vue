@@ -12,7 +12,7 @@
         <p>输入 {{ realManifest.counts?.input }} · 进入分析 {{ realManifest.counts?.eligible_jd }} · 拒绝或待审 {{ realManifest.counts?.excluded_or_pending }}</p>
         <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 身份；非标准职业。五态来自有限规则，未作人工审核。</p>
         <p v-if="realManifest.m2_product">M2 run：{{ realManifest.m2_product.run_id }}<br />分析版本 {{ realManifest.m2_product.versions.revision }} · {{ realManifest.m2_product.versions.implementation.slice(0,12) }}<br />范围待复核 {{ realManifest.counts?.scope_pending }}；仅作候选证据。</p>
-        <a href="?#/graph">返回历史 P2.5 图谱</a>
+        <a href="?#/graph">返回历史图谱</a>
         <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ identityText(record.identity_status) }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
       </div>
       <label class="nebula-label">搜索</label>
@@ -61,11 +61,11 @@
       </div>
       <details class="snapshot-note technical-info"><summary>技术信息 / 版本与诊断</summary>
       <p class="snapshot-note">{{ realMode ? '已有真实 JD 的独立版本，非实时数据库' : '已核验历史交接快照' }}<br />非新版标准岗位目录</p>
-      <p v-if="nodeFieldMode" class="snapshot-note">node-field-v1 候选：背景分布由原旋臂与知识坐标平滑混合。节点位置不变，星尘不表达职业分类或社区。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
+      <p v-if="nodeFieldMode" class="snapshot-note">node-field-v1 默认：背景分布由原旋臂与知识坐标平滑混合。节点位置不变，星尘不表达职业分类或社区。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · seed 42<br />{{ realMode ? '仅无冲突、无条件的明确必备/加分单项参与相似计算；其余陈述仍保留。' : 'layout-v1 · PR32@377e9b8。' }}只用于候选空间布局，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
-      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?graphStars=p24#/graph">P2.4恒星外观</a> · <a href="?#/graph">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?graphStars=p24#/graph">P2.4恒星外观</a> · <a href="?graphSpace=legacy#/graph">P2.5旧空间</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
       <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
       <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
         <label v-if="spatialMode && stellarMode && !semanticMode">P2.4恒星外观预设
@@ -170,7 +170,7 @@ const stellarMode=query.get('graphStars')!=='p23'
 const semanticMode=stellarMode&&query.get('graphStars')!=='p24'
 const stellarPreset=ref<StellarType|''>('')
 const spatialMode=query.get('graphCamera')!=='fixed'&&visual==='p22'&&!comparison.preset
-const nodeFieldMode=spatialMode&&query.get('graphSpace')==='node-field-v1'
+const nodeFieldMode=spatialMode&&query.get('graphSpace')!=='legacy'
 const cameraRig=shallowRef<GalaxyCamera|null>(null)
 let spatialKnowledge:SpatialKnowledge|null=null,spatialDirty=true,disposed=false,composing=false
 const cameraKeys=new Set<string>()
