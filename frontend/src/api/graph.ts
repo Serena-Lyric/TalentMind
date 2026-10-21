@@ -31,6 +31,10 @@ export interface GraphNode {
   is_emerging?: boolean
   canonical_name?: string
   evolution?: Record<string, unknown>
+  identity_status?: 'verified' | 'pending' | 'unknown'
+  content_eligible?: boolean | null
+  identity_evidence?: Record<string, any> | null
+  formal_statistics_eligible?: boolean
   raw?: Record<string, any>
   sourceIndex?: number
 }

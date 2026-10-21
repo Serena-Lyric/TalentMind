@@ -14,6 +14,20 @@ from .candidate_layout import snapshot_hash
 FILES = {'manifest.json', 'facts.json', 'sources.json', 'layout.json', 'derived.json'}
 
 
+def _identity_metadata(row):
+    content = row.get('content_eligible')
+    if content is not None:
+        content = bool(int(content))
+    evidence = row.get('identity_evidence')
+    if isinstance(evidence, str) and evidence.strip():
+        evidence = json.loads(evidence)
+    return (
+        row.get('identity_status') or 'unknown',
+        content,
+        evidence if isinstance(evidence, dict) else None,
+    )
+
+
 def implementation():
     return dict(code_hashes(), product_projection=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
 
@@ -54,6 +68,7 @@ def build_bundle(engine, run_id):
     sources = dict(schema_version='m3-real-sources-1', input_sha256=report['input_sha256'], records=[])
     for item in report['items']:
         row = item['input']
+        identity_status, content_eligible, identity_evidence = _identity_metadata(row)
         stages = item['stages']
         decision = stages['b1']['result'] or {}
         overlay = stages['b22']['result'] if stages['b22']['status'] == 'saved' else None
@@ -82,6 +97,9 @@ def build_bundle(engine, run_id):
                 raise ValueError('M2 source evidence mismatch')
         sources['records'].append(dict(namespace=namespace, jd_id=str(row.get('id')), fingerprint=fingerprint,
             payload=payload, observation=row.get('crawled_at'), screening=decision,
+            identity_status=identity_status,
+            content_eligible=content_eligible,
+            identity_evidence=identity_evidence,
             eligible=eligible, governance=overlay['body'] if eligible else None,
             m2_reference={s: {k: v for k, v in stage.items() if k != 'result'} for s, stage in stages.items()},
             final_status=item['final_status'], formal_statistics_eligible=False))
@@ -102,6 +120,18 @@ def build_bundle(engine, run_id):
             counts=dict(input=len(sources['records']), eligible_jd=eligible_count,
                 excluded_or_pending=len(sources['records']) - eligible_count,
                 scope_pending=sum(r['eligible'] and r['screening'].get('scope_status') == 'needs_review' for r in sources['records']),
+                identity={
+                    status: sum(r['identity_status'] == status for r in sources['records'])
+                    for status in ('verified', 'pending', 'unknown')
+                },
+                content={
+                    status: sum(
+                        ('eligible' if r['content_eligible'] is True else
+                         'ineligible' if r['content_eligible'] is False else 'unknown') == status
+                        for r in sources['records']
+                    )
+                    for status in ('eligible', 'ineligible', 'unknown')
+                },
                 fact_nodes=len(graph['nodes']), fact_edges=len(graph['edges']),
                 states=dict(Counter(e['state'] for e in graph['edges']))),
             formal_statistics_eligible=False, analysis_complete=False, semantic_review='not_performed',

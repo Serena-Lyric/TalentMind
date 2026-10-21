@@ -40,6 +40,9 @@ def project(sources):
         nodes[job] = dict(id=job, type="job", name=record["payload"]["job_title"], source=[record["payload"]["source"]],
             entity_semantics="original_jd_record_not_standard_occupation_or_vacancy", source_records=[index],
             canonical_job=None, family=None, core_duties=record["payload"].get("duties", ""),
+            identity_status=record.get("identity_status", "unknown"),
+            content_eligible=record.get("content_eligible"),
+            identity_evidence=record.get("identity_evidence"),
             analysis_complete=False, formal_statistics_eligible=False)
         sets[job] = set()
         original = overlay["original_semantics"]

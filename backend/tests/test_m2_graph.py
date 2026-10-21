@@ -9,8 +9,10 @@ from app.job_analysis.product.workflow import Workflow
 
 @pytest.fixture
 def completed(tmp_path, monkeypatch):
-    rows = [dict(id=1, source='boss', job_title='后端工程师',
-                 raw_text='岗位职责：负责软件开发。\n任职要求：必须掌握 Python。'),
+    rows = [dict(id=1, source='zhaopin', job_title='后端工程师',
+                 raw_text='岗位职责：负责软件开发。\n任职要求：必须掌握 Python。',
+                 identity_status='pending', content_eligible=1,
+                 identity_evidence={'binding_policy': 'zhaopin-dom-panel-v1'}),
             dict(id=2, source='boss', job_title='空正文', raw_text=None)]
     monkeypatch.setattr(source, 'read_mysql', lambda _: (rows, {'kind': 'synthetic'}))
     engine = Workflow(tmp_path / 'product')
@@ -37,13 +39,22 @@ def test_graph_reuses_exact_report_and_frozen_input(completed, monkeypatch):
     assert manifest['input_sha256'] == report['input_sha256']
     assert manifest['counts']['input'] == 2
     assert manifest['counts']['eligible_jd'] == 1
+    assert manifest['counts']['identity'] == {'verified': 0, 'pending': 1, 'unknown': 1}
+    assert manifest['counts']['content'] == {'eligible': 1, 'ineligible': 0, 'unknown': 1}
     assert manifest['formal_statistics_eligible'] is False
     graph = read_bundle(engine, run_id, 'facts.json')
     assert any(n['type'] == 'job' for n in graph['nodes'])
+    job = next(n for n in graph['nodes'] if n['type'] == 'job')
+    assert job['identity_status'] == 'pending'
+    assert job['content_eligible'] is True
+    assert job['formal_statistics_eligible'] is False
     assert all(e['type'] == 'HAS_SKILL_STATEMENT' and not e['formal_statistics_eligible'] for e in graph['edges'])
     assert all(e['semantic_review'] == 'unreviewed' for e in graph['edges'])
     sources = read_bundle(engine, run_id, 'sources.json')
     assert len(sources['records']) == 2 and not sources['records'][1]['eligible']
+    assert sources['records'][0]['identity_status'] == 'pending'
+    assert sources['records'][0]['content_eligible'] is True
+    assert sources['records'][0]['identity_evidence'] == {'binding_policy': 'zhaopin-dom-panel-v1'}
     assert sources['records'][0]['m2_reference']['b22']['run_id'] == report['items'][0]['stages']['b22']['run_id']
     assert build_bundle(engine, run_id) == manifest
     assert engine.report(run_id) == report
