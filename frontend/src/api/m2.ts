@@ -4,14 +4,16 @@ export interface M2Selection { sources: string[]; id_min: number | null; id_max:
 export interface M2Stage { status: string; reason?: string | null; run_id: string | null; version_id?: string; result?: any }
 export interface M2Item {
   ordinal: number; jd_id: number | string; source: string | null; title: string | null; final_status: string; reason: string | null
-  warnings: string[]; input_sha256: string; formal_statistics_eligible: false; stages: Record<string, M2Stage>
+  warnings: string[]; input_sha256: string; formal_statistics_eligible: false; confirmed_demand_eligible?: false
+  identity_status?: 'verified' | 'pending' | 'unknown'; content_eligible?: boolean | null
+  identity_evidence?: Record<string, any> | null; stages: Record<string, M2Stage>
   evidence: { matched: number; invalid: number }; input?: Record<string, any>; input_provenance?: Record<string, any>
 }
 export interface M2Run {
   run_id: string; status: string; reason: string | null; created_at: string; finished_at: string | null; parent_run_id: string | null
   versions: { revision: string; implementation: string; adapter: string; scope: string; taxonomy: string }
   input_sha256: string; selection: M2Selection; provenance: Record<string, any>; items: M2Item[]
-  summary: { input_total: number; finalized: number; stage_complete: number; final_counts: Record<string, number>; b1: Record<string, any>; b2: Record<string, any>; b22: Record<string, any>; b3: Record<string, any>; evidence: Record<string, any> }
+  summary: { input_total: number; finalized: number; stage_complete: number; final_counts: Record<string, number>; b1: Record<string, any>; b2: Record<string, any>; b22: Record<string, any>; b3: Record<string, any>; evidence: Record<string, any>; identity: Record<string, number>; content: Record<string, number> }
   artifacts: Record<string, string>
 }
 export interface M2History { run_id: string; status: string; created_at: string; reason?: string | null }

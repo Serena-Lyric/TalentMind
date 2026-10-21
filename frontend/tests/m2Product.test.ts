@@ -101,3 +101,33 @@ test('冻结创建较慢时，不能覆盖用户后来选择的历史任务', as
     assert.equal(page.state.selected.value.run_id, 'chosen')
   } finally { page.stop() }
 })
+
+test('待审身份显示为独立标签并进入报告汇总', async () => {
+  const pendingRun = {
+    ...draft,
+    status: 'completed_with_issues',
+    summary: {
+      input_total: 1, finalized: 1, stage_complete: 1,
+      final_counts: { needs_review: 1 },
+      identity: { verified: 0, pending: 1, unknown: 0 },
+      content: { eligible: 1, ineligible: 0, unknown: 0 },
+    },
+    items: [{
+      ordinal: 1, jd_id: 101, source: 'zhaopin', title: 'Python 工程师',
+      identity_status: 'pending', content_eligible: true,
+      identity_evidence: { binding_policy: 'zhaopin-dom-panel-v1' },
+      final_status: 'needs_review', evidence: { matched: 0, invalid: 0 },
+      stages: {},
+    }],
+  }
+  const page = m2Component({ getM2Runs: [pendingRun], getM2Run: pendingRun })
+  try {
+    await page.mounted()
+    page.state.selected.value = pendingRun
+    assert.equal(page.state.identityText('pending'), '身份待审')
+    assert.equal(page.state.identityText('verified'), '身份已验证')
+    assert.equal(page.state.identityText('unknown'), '身份未知')
+    assert.equal(page.state.stageMetrics.value.identity.pending, 1)
+    assert.equal(page.state.stageMetrics.value.content.eligible, 1)
+  } finally { page.stop() }
+})
