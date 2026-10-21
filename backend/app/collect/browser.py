@@ -146,6 +146,7 @@ def classify_page(page: dict, platform: str) -> dict:
     gate = str(page.get('gate_text') or '')
     path = urlsplit(url).path.lower()
     host = urlsplit(url).hostname or ''
+    query = dict(parse_qsl(urlsplit(url).query))
     cards, details = int(page.get('cards') or 0), int(page.get('details') or 0)
     state, reason = 'page_error', 'no_access_evidence'
     challenge = ('安全验证', '访问验证', '异常访问', '访问过于频繁', '操作过于频繁', '拖动滑块', '完成验证', '人机验证')
@@ -157,6 +158,7 @@ def classify_page(page: dict, platform: str) -> dict:
         reason = 'unexpected_domain'
     elif (page.get('challenge_visible') is True
           or any(word in path for word in ('captcha', 'verify', 'security', 'challenge'))
+          or '_security_check' in query
           or any(word in gate for word in challenge) or challenge_prompt
           or ('验证码' in gate and not any(word in gate for word in ('获取验证码', '发送验证码')))):
         state, reason = 'verification_required', 'manual_verification_or_access_limit'
@@ -240,6 +242,9 @@ def _search_target(url: str) -> str:
 
 def _same_search_target(observed: str, target: str) -> bool:
     actual, expected = urlsplit(observed), urlsplit(target)
+    actual_query = dict(parse_qsl(actual.query))
+    if '_security_check' in actual_query:
+        return False
     return (actual.scheme == expected.scheme and actual.hostname == expected.hostname
             and actual.path.rstrip('/') == expected.path.rstrip('/')
             and set(parse_qsl(expected.query)) <= set(parse_qsl(actual.query)))
@@ -248,6 +253,10 @@ def _same_search_target(observed: str, target: str) -> bool:
 def _inspect_targets(endpoint: str, targets: list[dict], platform: str, target_id=None,
                      target_url: str | None = None) -> dict:
     pages = [page for page in targets if host_matches(str(page.get('url', '')), HOSTS[platform])]
+    if target_id:
+        pages = [page for page in pages if page.get('id') == target_id]
+        if not pages:
+            return {**_unavailable('page_missing', 'target_page_missing'), 'target_id': target_id}
     best = _unavailable('page_missing', 'target_page_missing')
     priority = {'page_missing': 0, 'page_error': 1, 'loading': 2, 'login_required': 3,
                 'empty_results': 4, 'public_accessible': 5, 'authenticated_accessible': 6}
@@ -266,14 +275,15 @@ def _inspect_targets(endpoint: str, targets: list[dict], platform: str, target_i
             return state
         if target_id and page.get('id') != target_id:
             continue
-        if target_url and state['can_collect'] and not _same_search_target(state.get('search_url', ''), target_url):
+        if target_url and not _same_search_target(state.get('search_url', ''), target_url):
             state.update(access_state='page_error', can_collect=False, reason='target_page_redirected')
         if priority.get(state['access_state'], 0) > priority.get(best['access_state'], 0):
             best = state
     return best
 
 
-def status(endpoint='http://127.0.0.1:9333', user_data_dir=None) -> dict:
+def status(endpoint='http://127.0.0.1:9333', user_data_dir=None, platform=None,
+           target_url: str | None = None, target_id: str | None = None) -> dict:
     if endpoint != 'auto':
         validate_endpoint(endpoint)
     profile = _profile(user_data_dir)
@@ -291,7 +301,20 @@ def status(endpoint='http://127.0.0.1:9333', user_data_dir=None) -> dict:
                 result['platform_pages'][key] = len(pages)
                 result['platform_access'][key] = _unavailable('page_missing', 'target_page_missing')
                 if pages:
-                    result['platform_access'][key] = _inspect_targets(actual, pages, key)
+                    bound_id = target_id if key == platform else None
+                    bound_url = target_url if key == platform else None
+                    if key == platform and bound_id is None:
+                        prepared_url, prepared_id = _PREPARED_TARGETS.get((str(profile), key), ('', ''))
+                        bound_id = prepared_id or None
+                        bound_url = bound_url or prepared_url or None
+                    if key == platform and bound_url and bound_id is None:
+                        matching = [page for page in pages if _same_search_target(str(page.get('url', '')), bound_url)]
+                        if len(matching) == 1:
+                            bound_id = matching[0].get('id')
+                        elif len(pages) == 1:
+                            bound_id = pages[0].get('id')
+                    result['platform_access'][key] = _inspect_targets(
+                        actual, pages, key, target_id=bound_id, target_url=bound_url)
     except (CdpError, OSError, ValueError, subprocess.SubprocessError, httpx.HTTPError):
         result['error'] = '无法核实受控 Edge 或读取 CDP 状态'
     result['boss_page_count'] = result['platform_pages']['boss']
@@ -337,11 +360,13 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
             target_id = None
             matches = [t for t in targets if host_matches(str(t.get('url', '')), HOSTS[platform])]
             if url:
-                existing = _inspect_targets(actual, matches, platform)
-                if existing['access_state'] in _BLOCKED:
-                    return {**base, **existing}
                 previous_url, previous_id = _PREPARED_TARGETS.get((str(profile), platform), ('', ''))
                 pinned = [t for t in matches if previous_url == target and t.get('id') == previous_id]
+                existing = _inspect_targets(
+                    actual, pinned or matches, platform,
+                    target_id=previous_id if pinned else None)
+                if existing['access_state'] in _BLOCKED:
+                    return {**base, **existing}
                 matches = pinned or [t for t in matches if _same_search_target(str(t.get('url', '')), target)]
             if not matches:
                 created = _create_page(actual, target) or {}

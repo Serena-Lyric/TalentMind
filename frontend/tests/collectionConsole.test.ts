@@ -1,8 +1,26 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { nextTick } from 'vue'
+import { parse } from 'vue/compiler-sfc'
 import { collectionComponent } from './helpers/collectionComponent.ts'
 import type { CollectionTask } from '../src/api/collection.ts'
+
+test('准备搜索目标只读展示，不再生成普通外链', () => {
+  const filename = resolve(import.meta.dirname, '../src/views/Collection.vue')
+  const root = parse(readFileSync(filename, 'utf8')).descriptor.template!.ast!
+  const nodes: any[] = []
+  function walk(node: any) {
+    if (!node || typeof node !== 'object') return
+    if (node.props?.some((prop: any) => String(prop.exp?.content || '').includes('preparation.target_url'))) nodes.push(node)
+    for (const child of node.children || []) walk(child)
+  }
+  walk(root)
+  assert.equal(nodes.length, 1)
+  assert.notEqual(nodes[0].tag, 'a')
+  assert.equal(nodes[0].props.some((prop: any) => prop.name === 'target'), false)
+})
 
 test('进入采集页只刷新，不准备浏览器或启动任务', async () => {
   const page = collectionComponent()
@@ -128,6 +146,28 @@ test('定时状态发现验证门禁时撤销旧准备结果，恢复后仍须�
     access_state = 'public_accessible'
     await page.state.refreshAll()
     assert.equal(page.state.canStart.value, false)
+  } finally { page.stop() }
+})
+
+test('检测到安全验证后暂停自动浏览器检查，手动重新检查才恢复', async () => {
+  let preparation: any = {
+    access_state: 'verification_required', can_collect: false, message: '需人工完成安全验证',
+    cdp: { reachable: true, platform_access: { boss: { access_state: 'verification_required', can_collect: false, reason: 'manual_verification_or_access_limit' } } },
+  }
+  const page = collectionComponent({ prepareCollection: () => preparation })
+  try {
+    await page.mounted()
+    await page.state.prepareBrowser()
+    const checksAfterPrepare = page.calls.filter(call => call.method === 'getCDPStatus').length
+    await page.state.refreshAll()
+    assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checksAfterPrepare)
+    assert.equal(page.state.canStart.value, false)
+    preparation = { access_state: 'public_accessible', can_collect: true, message: '搜索页可访问', cdp: { reachable: true, platform_access: { boss: { access_state: 'public_accessible', can_collect: true } } } }
+    await page.state.prepareBrowser()
+    assert.equal(page.state.canStart.value, true)
+    const checksAfterRecovery = page.calls.filter(call => call.method === 'getCDPStatus').length
+    await page.state.refreshAll()
+    assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checksAfterRecovery + 1)
   } finally { page.stop() }
 })
 
@@ -377,11 +417,10 @@ test('后台受限轮询不抹去最近准备失败的具体提示和搜索目�
   } finally { page.stop() }
 })
 
-test('准备成功后的新门禁撤销凭据且展示新原因，保留搜索目标', async () => {
-  let fail = false
+test('准备成功后新门禁撤销凭据并暂停自动检查，保留验证原因与搜索目标', async () => {
   const page = collectionComponent({
     prepareCollection: { access_state: 'public_accessible', can_collect: true, message: '搜索页可访问', target_url: 'https://www.zhipin.com/web/geek/job?query=Python&city=101010100', cdp: { reachable: true } },
-    getCDPStatus: () => { if (fail) throw new Error('connection refused'); return { reachable: true, platform_access: { boss: { access_state: 'verification_required', can_collect: false, reason: 'manual_verification_or_access_limit' } } } },
+    getCDPStatus: { reachable: true, platform_access: { boss: { access_state: 'verification_required', can_collect: false, reason: 'manual_verification_or_access_limit' } } },
   })
   try {
     await page.mounted()
@@ -390,10 +429,11 @@ test('准备成功后的新门禁撤销凭据且展示新原因，保留搜索�
     assert.equal(page.state.canStart.value, false)
     assert.match(page.state.accessMessage.value, /人工验证/)
     assert.ok(page.state.preparation.value?.target_url)
-    fail = true
+    const checks = page.calls.filter(call => call.method === 'getCDPStatus').length
     await page.state.refreshAll()
+    assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checks)
     assert.equal(page.state.canStart.value, false)
-    assert.match(page.state.accessMessage.value, /浏览器检查失败/)
+    assert.match(page.state.accessMessage.value, /人工验证/)
     assert.ok(page.state.preparation.value?.target_url)
   } finally { page.stop() }
 })

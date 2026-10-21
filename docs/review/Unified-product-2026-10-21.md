@@ -46,6 +46,8 @@
 
 一次Vite开发进程在验收中退出，页面显示Network Error；用同一幂等启动入口恢复后，批次保存/停止和后续页面成功。退出根因未确定，不把恢复当成永久修复。
 
+后续安全门禁修复：真实复现确认 BOSS 在搜索页与 `passport/zp/security.html` 之间通过递增 `_security_check` 连续跳转，约6秒后回首页。TalentMind 没有调用 `Page.reload`；修复后该参数立即归为人工验证，状态与准备均锁定当前目标标签，验证期间暂停自动CDP检查，搜索目标不再生成普通外链。详见[陷阱记录](../superpowers/traps/2026-10-21-boss-security-check-loop.md)。
+
 ## 运行版本关联
 
 新增graph/product_bundle.py，仅消费指定M2保存报告，复用real_pipeline.project/derive和图谱组件，不调用run_pipeline或重跑分析、不写Neo4j。POST `/api/m2/runs/{run_id}/graph` 显式生成/复用，GET同路径查看；GET `/graph/{manifest,facts,sources,layout,derived}.json`提供受控产物。

@@ -407,14 +407,26 @@ def _search_target(config: dict[str, Any]) -> str:
 def _ensure_browser(endpoint: str, user_data_dir: str | None, platform: str = "boss",
                     target_url: str | None = None) -> dict[str, Any]:
     prepared = browser.prepare(platform, endpoint, user_data_dir, url=target_url)
-    current = get_cdp_status(prepared["endpoint"], prepared["user_data_dir"])
+    current = get_cdp_status(prepared["endpoint"], prepared["user_data_dir"], platform,
+                             prepared.get("target_url"), prepared.get("target_id"))
     current["platform_access"][platform] = prepared
     current["user_data_dir"] = prepared["user_data_dir"]
     return current
 
 
-def get_cdp_status(endpoint: str | None = None, user_data_dir: str | None = None) -> dict[str, Any]:
-    result = browser.status(endpoint or _DEFAULT_CONFIG["cdp_endpoint"], user_data_dir or _DEFAULT_CONFIG["user_data_dir"])
+def get_cdp_status(endpoint: str | None = None, user_data_dir: str | None = None,
+                   platform: str | None = None, target_url: str | None = None,
+                   target_id: str | None = None) -> dict[str, Any]:
+    config = get_config()
+    platform = platform or config["platform"]
+    target_url = target_url or _search_target(config)
+    result = browser.status(
+        endpoint or _DEFAULT_CONFIG["cdp_endpoint"],
+        user_data_dir or _DEFAULT_CONFIG["user_data_dir"],
+        platform=platform,
+        target_url=target_url,
+        target_id=target_id,
+    )
     result["last_checked_at"] = _now()
     return result
 

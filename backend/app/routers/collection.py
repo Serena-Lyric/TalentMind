@@ -68,7 +68,9 @@ def collection_progress():
 @router.get("/collection/cdp-status")
 def collection_cdp_status():
     config = control.get_config()
-    return ok(control.get_cdp_status(config.get("cdp_endpoint"), config.get("user_data_dir")))
+    return ok(control.get_cdp_status(
+        config.get("cdp_endpoint"), config.get("user_data_dir"),
+        platform=config.get("platform"), target_url=control._search_target(config)))
 
 
 @router.post("/collection/prepare")

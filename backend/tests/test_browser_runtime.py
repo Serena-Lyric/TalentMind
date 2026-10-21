@@ -244,6 +244,18 @@ def test_challenge_iframe_over_cards_blocks_access():
     assert result['access_state']=='verification_required'
 
 
+def test_boss_security_check_redirect_is_terminal_even_when_cards_render():
+    page = snapshot(
+        url='https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1&_security_check=2_1792586203472',
+        cards=2,
+        text='Java 后端工程师',
+    )
+    state = runtime().classify_page(page, 'boss')
+    assert state['access_state'] == 'verification_required'
+    assert state['reason'] == 'manual_verification_or_access_limit'
+    assert state['can_collect'] is False
+
+
 @pytest.mark.parametrize('text', ['负责安全验证系统开发', '处理服务异常与网络异常，开发验证服务'])
 def test_job_description_words_do_not_masquerade_as_access_gate(text):
     assert runtime().classify_page(snapshot(details=1,text=text),'liepin')['can_collect']
@@ -403,6 +415,67 @@ def test_prepare_search_never_opens_another_tab_past_existing_gate(browser_env, 
     assert result['access_state'] == state
     assert result['can_collect'] is False
     assert len(targets) == 1
+
+
+def test_pinned_search_target_is_not_blocked_by_unrelated_same_platform_gate(browser_env, monkeypatch):
+    b, profile, _, targets, _, _ = browser_env
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1'
+    class Client:
+        def __init__(self, target): self.target = target
+        def evaluate(self, script):
+            if self.target == 'target':
+                return snapshot(url=url, cards=2, authenticated=True)
+            return snapshot(url='https://www.zhipin.com/web/passport/zp/security.html', cards=2,
+                            challenge_visible=True)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client(kw['target_id']))
+    first = b.prepare('boss', user_data_dir=str(profile), timeout=1, url=url)
+    assert first['can_collect'] and first['target_id'] == 'target'
+    targets.append({'id': 'stale-gate', 'type': 'page', 'url': 'https://www.zhipin.com/'})
+    again = b.prepare('boss', user_data_dir=str(profile), timeout=1, url=url)
+    assert again['can_collect'] and again['target_id'] == 'target'
+    assert len(targets) == 2
+
+
+def test_status_uses_bound_target_instead_of_unrelated_security_tab(browser_env, monkeypatch):
+    b, profile, sessions, targets, _, _ = browser_env
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1'
+    sessions.append({'pid': 123, 'profile': str(profile), 'port': 19444,
+                     'listeners': [{'port': 19444, 'address': '127.0.0.1'}]})
+    targets.extend([
+        {'id': 'target', 'type': 'page', 'url': url},
+        {'id': 'stale-gate', 'type': 'page', 'url': 'https://www.zhipin.com/web/passport/zp/security.html'},
+    ])
+    class Client:
+        def __init__(self, target): self.target = target
+        def evaluate(self, script):
+            if self.target == 'target':
+                return snapshot(url=url, cards=2, authenticated=True)
+            return snapshot(url='https://www.zhipin.com/web/passport/zp/security.html',
+                            challenge_visible=True)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client(kw['target_id']))
+    result = b.status(user_data_dir=str(profile), platform='boss', target_url=url, target_id='target')
+    access = result['platform_access']['boss']
+    assert access['can_collect'] is True
+    assert access['target_id'] == 'target'
+
+
+def test_status_marks_bound_home_fallback_as_redirect_not_ready(browser_env, monkeypatch):
+    b, profile, sessions, targets, _, _ = browser_env
+    url = 'https://www.zhipin.com/web/geek/jobs?city=101010100&query=Java&page=1'
+    sessions.append({'pid': 123, 'profile': str(profile), 'port': 19444,
+                     'listeners': [{'port': 19444, 'address': '127.0.0.1'}]})
+    targets.append({'id': 'target', 'type': 'page', 'url': 'https://www.zhipin.com/'})
+    class Client:
+        def evaluate(self, script): return snapshot(url='https://www.zhipin.com/', cards=0, authenticated=True)
+        def close(self): pass
+    monkeypatch.setattr(b.CdpClient, 'connect_first_page', lambda *a, **kw: Client())
+    result = b.status(user_data_dir=str(profile), platform='boss', target_url=url, target_id='target')
+    access = result['platform_access']['boss']
+    assert access['can_collect'] is False
+    assert access['reason'] == 'target_page_redirected'
+    assert access['target_id'] == 'target'
 
 
 def test_unknown_search_cannot_borrow_ready_detail_or_create_duplicate(browser_env, monkeypatch):

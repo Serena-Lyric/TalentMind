@@ -38,7 +38,7 @@
         <h2><span class="step">2</span>准备浏览器</h2>
         <p>打开独立采集浏览器并检查当前平台访问状态。准备操作不会开始采集或写库。</p>
         <div class="access-row"><el-tag :type="accessReady ? 'success' : 'warning'">{{ accessText(accessState) }}</el-tag><span>{{ accessMessage }}</span></div>
-        <p v-if="preparation?.target_url" class="source-detail">搜索目标：<a v-if="sourceUrl(preparation.target_url)" :href="sourceUrl(preparation.target_url)" target="_blank" rel="noopener noreferrer">{{ preparation.target_url }}</a><span v-else>搜索地址无效，请重新检查。</span></p>
+        <p v-if="preparation?.target_url" class="source-detail">采集目标：<span class="mono" :title="preparation.target_url">{{ preparation.target_url }}</span><small>此地址只读展示；准备完成后请在独立采集浏览器中操作，避免重复打开搜索页。</small></p>
         <p v-if="['login_required', 'verification_required', 'content_limited'].includes(accessState)" class="hint">请在浏览器人工处理；完成后再次点击“准备 / 重新检查”。受限时采集会停止。</p>
         <el-button :loading="preparing" :disabled="!selectedPlatform?.supported || busy || starting || batchBusy" @click="prepareBrowser">{{ preparing ? '浏览器准备中，请稍候' : '准备 / 重新检查' }}</el-button>
       </section>
@@ -186,6 +186,7 @@ const canStop = computed(() => busy.value && !!currentTask.value.run_id && !stop
 const access = computed<CollectionAccess | null>(() => cdpStatus.value && !cdpStatus.value.reachable ? { access_state: 'cdp_unavailable', can_collect: false } : cdpStatus.value?.platform_access?.[configForm.platform || ''] || preparation.value)
 const accessState = computed(() => preparing.value ? 'preparing' : access.value?.content_limited || preparation.value?.content_limited || preparation.value?.access_state === 'content_limited' ? 'content_limited' : access.value?.access_state || 'unready')
 const accessReady = computed(() => access.value?.can_collect === true && ['public_accessible', 'authenticated_accessible', 'public', 'auth', 'empty_results'].includes(accessState.value))
+const browserCheckPaused = computed(() => accessState.value === 'verification_required')
 const accessMessage = computed(() => {
   if (accessState.value === 'content_limited') return '正文访问受限，请在浏览器中人工处理后重新检查。'
   const last = preparation.value
@@ -268,7 +269,8 @@ async function loadBrowserStatus() {
 async function refreshAll() {
   if (refreshing.value) return
   refreshing.value = true
-  const checks = await Promise.allSettled([loadStatus(), loadStats(), loadHistory(), loadBrowserStatus()])
+  const browserStatus = browserCheckPaused.value ? Promise.resolve() : loadBrowserStatus()
+  const checks = await Promise.allSettled([loadStatus(), loadStats(), loadHistory(), browserStatus])
   refreshErrors.value = checks.flatMap((result, index) => result.status === 'rejected' ? [`${['进度', '数据库', '历史', '浏览器状态'][index]}读取失败：${errorText(result.reason)}`] : [])
   refreshing.value = false
 }
@@ -388,6 +390,7 @@ h3 { margin-top: 24px; font-size: 15px; }
 .raw-db { min-height: 70px; }
 .source-detail { overflow-wrap: anywhere; font-size: 13px; line-height: 1.7; }
 .source-detail a { color: #547fae; }
+.source-detail small { display: block; color: var(--muted); }
 .el-alert { margin: 12px 0; }
 .el-pagination { justify-content: flex-end; margin-top: 18px; }
 @media (max-width: 1100px) { .count-grid { grid-template-columns: repeat(5, 1fr); } }

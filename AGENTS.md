@@ -41,6 +41,7 @@
   M2候选图：[运行版本、历史读取与迟到导航](docs/superpowers/traps/2026-10-21-m2-graph-run-binding.md)（2026-10-21）。
   M2 产品编排：[缓存成员、跨模块依赖、报告发布与迟到响应](docs/superpowers/traps/2026-10-21-m2-product-recovery.md)（2026-10-21）。
   M1 浏览器记录：[准备/采集分离、端点归属与访问状态](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)（2026-10-20）。
+  BOSS 安全循环：[目标页锁定、验证暂停与首页回退](docs/superpowers/traps/2026-10-21-boss-security-check-loop.md)（2026-10-21）。
   M1 详情记录：[列表回落、换行及推荐字段污染](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)（2026-10-20）。
   M1 控制记录：[历史循环接口、子进程配置/编码与停止状态](docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)（2026-10-20）。
   产品集成记录：[启动归属、任务停止与原文边界](docs/superpowers/traps/2026-10-21-product-integration.md)（2026-10-21）。
