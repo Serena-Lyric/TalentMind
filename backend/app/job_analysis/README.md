@@ -1,5 +1,23 @@
 # job_analysis
 
+## 真实历史语料改进与人工复核（2026-10-22）
+
+独立分支 `codex/m2-real-analysis-20261022` 保留既有 A/B1/B2/B2.2/B3 编排，在相同主集 120、留出集 60 冻结输入上完成 `v9` 新产品运行。旧 run 和 `v3`～`v8` 中间版本均保留，不覆盖冻结输入或历史报告。
+
+- B1 `conservative-activity-v4` 增加对象前置的中文技术职责关系，并排除开发进度、工具采购、流程/管理/任务等非交付对象。
+- B2 `bounded-skill-clauses-v4` 将普通风险词限制到当前句，保留“仅适用于/以上技能”等明确跨句作用域；修复内联/连续章节和结构化字段副本重复；标题技能只记为 `mentioned`。
+- B3 在明确当前职责中增加有限“动作 + 技术对象”大类候选，规则标识为 `closed-action-object-duties-v1`。公司/企业背景、纯经验学历、产品/销售/培训、历史、否定和标题单独出现不能生成候选；候选始终待审。
+- 控制库新增只追加 `product_reviews`。审核事件绑定 run、条目、机器结果 SHA-256、决定、署名、备注和时间，不修改机器阶段或已发布报告。
+
+最终主集 run `b190f85b7ec94830b8bcfe908c0ffa32`：120 输入、113 四阶段完成、7 输入异常、0 执行失败；B1 范围内 23、B2 required 15、uncertain 703、B3 大类候选 29 个 JD。留出 run `e2dfc4e6069145a1a0722f8a8e895f69`：60 输入、52 完成、8 异常、0 失败；B1 范围内 8、required 1、uncertain 535、B3 候选 14 个 JD。两集证据位置异常均为 0。
+
+人工审核 API：
+
+- `POST /api/m2/runs/{run_id}/items/{ordinal}/review`，请求包含 `decision`（`accepted` / `rejected` / `needs_followup`）、`reviewer`、`note`、当前 `machine_sha256`。
+- `GET /api/m2/runs/{run_id}/reviews/export`，导出已审核条目的冻结原文、机器结果、全部人工事件和当前人工决定。
+
+真实审核人尚未提交任何主集/留出集结论，因此不计算真实 precision/recall，不把候选升级为正式需求或标准岗位。逐条私有对照、正式数据哈希和限制见 [阶段报告](../../../docs/review/M2-real-analysis-2026-10-22.md)。
+
 ## 本地产品工作台（2026-10-21）
 
 从仓库根 `pwsh -File scripts/start-local.ps1` 启动，访问 `http://127.0.0.1:18080/#/m2`。演示账号只控制前端导航；后端全部 `/api/m2/*` 受 `TALENTMIND_LOCAL_RAW=1`、回环客户端/Host/Origin、非跨站请求门禁控制。统一入口设置本地开关并绑定回环，不是生产身份授权。
