@@ -22,7 +22,7 @@
 
 私有事件：`data/local/collection/zhaopin-5f7079ff40394431b084ca07f55e2d5e.events.jsonl`。
 
-私有输出：`data/local/identity-pending-replay-20261021/replay.json`。
+私有输出：`data/local/identity-pending-replay-20261021-v2/replay.json`。
 
 结果：
 
@@ -37,7 +37,8 @@
 
 ## 验证
 
-- 相关后端：142 passed / 0 failed。
+- 相关后端：152 passed / 0 failed。
+- 全量非集成：1489 passed / 2 failed / 24 deselected。两项失败均为既有 B3 `PRODUCT_DECISIONS` 固定来源摘要/引文失配，本次未改候选来源或修绿。
 - 前端完整测试：154 passed / 0 failed。
 - `vue-tsc --noEmit && vite build`：通过；保留既有大 chunk、动态/静态 import 提示。
 - 当前 MySQL 只读核查：`jd_pool=2988`，`identity_status/content_eligible/identity_evidence` 三列均不存在。
