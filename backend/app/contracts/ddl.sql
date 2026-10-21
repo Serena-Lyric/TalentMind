@@ -6,8 +6,11 @@ CREATE TABLE IF NOT EXISTS jd_pool (
   job_title VARCHAR(128), raw_text TEXT,
   duties TEXT, experience VARCHAR(255), quality FLOAT DEFAULT 0,  -- 2026-08-15 扩容 32->255 (D33); 2026-08-16 cleaner 提取上限 255（单行描述曾捕获整段致 1406）
   dup_group VARCHAR(64), crawled_at DATETIME, status VARCHAR(16) DEFAULT 'raw',
+  identity_status VARCHAR(16) NOT NULL DEFAULT 'unknown',
+  content_eligible TINYINT(1) NULL DEFAULT NULL,
+  identity_evidence TEXT NULL,
   cross_source TINYINT(1) DEFAULT 0,  -- 多源交叉验证命中标记(D42 2026-08-17; 0=未命中 1=linkedin+hn 同岗位出现)
-  INDEX idx_status (status), INDEX idx_source (source)
+  INDEX idx_status (status), INDEX idx_source (source), INDEX idx_identity_status (identity_status)
 );
 CREATE TABLE IF NOT EXISTS `signal` (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,

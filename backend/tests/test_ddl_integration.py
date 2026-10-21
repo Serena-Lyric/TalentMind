@@ -65,3 +65,12 @@ def test_talent_raw_has_frozen_columns():
                 "experience_hint", "quality", "dup_group", "crawled_at", "status"}.issubset(cols)
     finally:
         db.close()
+
+
+def test_jd_pool_has_identity_metadata_columns():
+    db = next(get_db())
+    try:
+        cols = _cols(db, "jd_pool")
+        assert {"identity_status", "content_eligible", "identity_evidence"}.issubset(cols)
+    finally:
+        db.close()
