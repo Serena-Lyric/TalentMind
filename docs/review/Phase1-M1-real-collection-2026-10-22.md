@@ -7,8 +7,8 @@
 - 基线：`origin/master@2de9c42`，最新 PR #46 已包含智联身份待审机制。
 - 图谱独立 PR：[#48](https://github.com/Serena-Lyric/TalentMind/pull/48)，分支 `codex/graph-node-field-default-20261022`，只包含 `c9608bc`。
 - M1 分支保留桥接、扩展、控制台入口、代理回环兼容和 CN 修复；未合并 `master`。
-- 正式数据库目标：`localhost:23306/talentmind`。未执行 DDL、未删除或回填真实数据。
-- 开发过程中曾错误裸跑后端全量 pytest，触发 integration 默认导入并改写分析层；事故、当前状态和待批准恢复方案见下文，不能把本轮描述为“所有真实表均未变化”。
+- 正式数据库目标：`localhost:23306/talentmind`。M1 采集验收期间未执行身份字段 DDL；后续 2026-10-22 P0 恢复只重建了四张分析表，未新增身份三列。
+- 开发过程中曾错误裸跑后端全量 pytest，触发 integration 默认导入并改写分析层；事故、恢复与当前基线见下文。
 
 ## 三平台结果
 
@@ -60,9 +60,9 @@
 
 正式迁移仍需用户另行批准。建议批准内容：冻结 M1 写入、重新采集正式 schema/八表计数与摘要、生成冷备、完成隔离恢复、执行追加 SQL、行数和历史含义对账；默认回退为应用回退并保留新增列。
 
-## 验证事故与当前正式数据
+## 验证事故、恢复过程与当前正式数据
 
-在后续验证中，Codex 错误使用裸 `pytest -q`，未排除 integration。当次结果为 `1548 passed / 3 failed`；`test_import_exchange_idempotent` 调用默认 `import_all()`，`test_import_graph_idempotent` 的 warning 也直接证明两次清图导入实际执行：
+在后续验证中，Codex 错误使用裸 `pytest -q`，未排除 integration。当次结果为 `1548 passed / 3 failed`；`test_import_exchange_idempotent` 调用默认 `import_all()`，`test_import_graph_idempotent` 的 warning 也直接证明两次清图导入实际执行。以下表格保留事故时历史值；2026-10-22 02:49 已在后续单独授权后恢复为 `285/717/717/275`：
 
 | 项目 | 事故前/批准基线 | 事故后当前值 | 状态 |
 |---|---:|---:|---|
@@ -79,6 +79,7 @@
 - 未执行任何恢复、DELETE、TRUNCATE、DDL 或 Neo4j 重建。
 - 隔离 MySQL 已完成候选恢复与回退预演，正式库仍未变。新增 `backend/tests/conftest.py` 和破坏性导入授权门禁；`TALENTMIND_ALLOW_INTEGRATION=1` 单独存在也不能放行清库。
 - 完整差异、备份哈希、关联核对和恢复/回退证据见 [P0 数据事故报告](P0-data-incident-restore-rehearsal-2026-10-22.md)。
+- 正式恢复已另行执行并通过八表、主键、关联和 Neo4j 只读核验，见 [P0 正式恢复最终报告](P0-formal-restore-final-2026-10-22.md)。
 
 ## 验证
 
@@ -94,6 +95,6 @@
 1. 猎聘：在独立 CDP Edge（控制台打开的采集浏览器）中完成一次正常登录，随后告知可“重新检查猎聘”。Codex 不处理账号、验证码或扫码。
 2. BOSS 扩展：在 `edge://extensions` 开启开发人员模式，加载 `frontend/bridge-extension`；从 TalentMind 采集页读取当前桥接任务 ID 和配对令牌，填入扩展。用户在普通 Edge 手动打开一个正常可访问的 BOSS 岗位详情并主动点击“采集当前详情”。
 3. 正式 DDL：审查本报告和隔离恢复结果后，单独批准正式迁移；批准前不得执行正式 DDL。
-4. 测试事故恢复：审查 P0 报告后另行批准正式冻结与四表恢复；当前 `285/719/719/243` 不得称为基线。正式 DDL 与本项恢复仍分别授权。
+4. 测试事故恢复：已完成。当前正式基线已恢复为 `285/717/717/275`；正式身份字段 DDL 仍未执行，继续单独授权。
 
 在这些人工/授权条件完成前，不宣称三平台真实采集整体通过。
