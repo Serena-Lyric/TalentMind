@@ -166,3 +166,26 @@ const vm=require('node:vm');let input='';process.stdin.on('data',d=>input+=d);pr
     got=json.loads(done.stdout)
     assert got['description']==(body if has_body else '')
     assert got['company']==''
+
+
+def test_stable_panel_requires_update_then_two_identical_samples(monkeypatch):
+    old = {'panel_title': '旧岗位', 'description': '旧正文', 'company': '旧公司',
+           'panel_visible': True, 'target_active': False,
+           'list_url': 'https://www.zhaopin.com/jobs/?jl=538&kw=Java&page=1'}
+    changed = {**old, 'panel_title': 'Python 工程师', 'description': '负责平台开发',
+               'company': '甲公司', 'target_active': True}
+    class Client:
+        def __init__(self):
+            self.values = iter([old, changed, changed])
+        def evaluate(self, script):
+            return next(self.values)
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+
+    result = cn.await_stable_panel(
+        Client(), SITES['zhaopin'], 0, old, timeout=1.0, interval=0.01
+    )
+
+    assert result['panel_changed'] is True
+    assert result['stable_samples'] == 2
+    assert result['target_active_before'] is False
+    assert result['target_active_after'] is True

@@ -18,7 +18,9 @@ from app.collect.fetchers.job_sites import (
     SiteSpec,
     build_activate_card_js,
     build_detail_extract_js,
+    build_panel_probe_js,
     build_search_extract_js,
+    clean as clean_text,
     deduplicate_jobs,
     normalize_job,
     normalize_url,
@@ -59,6 +61,55 @@ def extract_current_page(client: CdpClient, spec: SiteSpec) -> list[dict]:
 def fetch_search_page(client: CdpClient, spec: SiteSpec, url: str, settle: float) -> list[dict]:
     client.navigate(url, settle_seconds=settle)
     return extract_current_page(client, spec)
+
+
+def _panel_signature(probe: dict) -> tuple[str, str, str, bool, bool]:
+    return (
+        clean_text(probe.get('panel_title')),
+        clean_text(probe.get('description')),
+        clean_text(probe.get('company')),
+        bool(probe.get('panel_visible')),
+        bool(probe.get('target_active')),
+    )
+
+
+def await_stable_panel(
+    client: CdpClient,
+    spec: SiteSpec,
+    card_index: int,
+    before: dict,
+    timeout: float = 5.0,
+    interval: float = 0.2,
+) -> dict:
+    """Poll the detail panel until one update becomes stable twice in a row."""
+    deadline = time.monotonic() + timeout
+    previous = None
+    stable_samples = 0
+    last = {}
+    while time.monotonic() < deadline:
+        probe = client.evaluate(build_panel_probe_js(spec, card_index))
+        if isinstance(probe, dict):
+            signature = _panel_signature(probe)
+            stable_samples = stable_samples + 1 if signature == previous else 1
+            previous = signature
+            last = probe
+            if stable_samples >= 2:
+                break
+        time.sleep(interval)
+    return {
+        'target_card_found': bool(last.get('target_card_found')),
+        'target_active_before': bool(before.get('target_active')),
+        'target_active_after': bool(last.get('target_active')),
+        'panel_visible': bool(last.get('panel_visible')),
+        'panel_changed': _panel_signature(before) != _panel_signature(last),
+        'stable_samples': stable_samples,
+        'panel_title': clean_text(last.get('panel_title')),
+        'before_panel_title': clean_text(before.get('panel_title')),
+        'description': str(last.get('description') or ''),
+        'company': clean_text(last.get('company')),
+        'list_url': str(last.get('list_url') or before.get('list_url') or ''),
+        'binding_policy': 'zhaopin-dom-panel-v1',
+    }
 
 
 def detail_rejection(spec: SiteSpec, job: dict, detail) -> str | None:

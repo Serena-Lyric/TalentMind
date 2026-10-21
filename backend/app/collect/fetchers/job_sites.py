@@ -287,6 +287,7 @@ def build_search_extract_js(spec: SiteSpec) -> str:
   const locationSelectors = {_js_array(spec.location_selectors)};
   const cardNodes = [...document.querySelectorAll(cards)];
   const titleRequired = {str(spec.source != "zhaopin").lower()};
+  const listUrl = location.href;
   const seen = new Set();
   return cardNodes.map((card, cardIndex) => {{
     if (!visible(card)) return null;
@@ -300,6 +301,7 @@ def build_search_extract_js(spec: SiteSpec) -> str:
       .find((node) => node.href && /\\/(job|a|job_detail)\\//i.test(node.href));
     const key = [title, company, salary, location, tags.join('|')].join('|');
     const url = anchor?.href || 'dom://{spec.source}/' + hash(key);
+    const observationKey = {json.dumps(spec.source)} + ':' + hash(listUrl + '|' + cardIndex + '|' + key);
     return {{
       url,
       title: title || text(anchor),
@@ -309,6 +311,8 @@ def build_search_extract_js(spec: SiteSpec) -> str:
       tags,
       _card_index: cardIndex,
       _dom: !anchor,
+      _list_url: listUrl,
+      _observation_key: observationKey,
     }};
   }}).filter((job) => {{
     if (!job || !job.url || (titleRequired && !job.title) || seen.has(job.url)) return false;
@@ -330,6 +334,53 @@ def build_activate_card_js(spec: SiteSpec, card_index: int) -> str:
   card.scrollIntoView({{block: 'center', inline: 'nearest'}});
   card.click();
   return {{clicked: true, title: (card.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 200)}};
+}})()
+"""
+
+
+def build_panel_probe_js(spec: SiteSpec, card_index: int) -> str:
+    import json
+
+    return f"""
+(() => {{
+  const text = (node) => (node?.innerText || node?.textContent || '').replace(/\\s+/g, ' ').trim();
+  const visible = (node) => {{
+    if (!node) return false;
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+  }};
+  const cards = [...document.querySelectorAll({json.dumps(', '.join(spec.card_selectors), ensure_ascii=False)})];
+  const card = cards[{int(card_index)}];
+  const root = document.querySelector('.job-detail-panel');
+  const first = (selectors) => {{
+    for (const selector of selectors) {{
+      const nodes = root?.querySelectorAll(selector) || [];
+      for (const node of nodes) if (visible(node) && text(node)) return text(node);
+    }}
+    return '';
+  }};
+  const descriptionSelectors = {_js_array(spec.description_selectors)};
+  let description = '', descriptionSelector = '';
+  for (const selector of descriptionSelectors) {{
+    const node = [...(root?.querySelectorAll(selector) || [])].find(n => visible(n) && text(n));
+    if (!node) continue;
+    description = (node.innerText || node.textContent || '').replace(/\\r\\n/g, '\\n').trim();
+    descriptionSelector = selector;
+    break;
+  }}
+  return {{
+    target_card_found: Boolean(card),
+    target_active: Boolean(card && card.classList?.contains('job-card--active')),
+    panel_visible: visible(root),
+    panel_title: first({_js_array(spec.title_selectors)}),
+    company: first({_js_array(spec.company_selectors)}),
+    salary: first({_js_array(spec.salary_selectors)}),
+    location: first({_js_array(spec.location_selectors)}),
+    description,
+    description_selector: descriptionSelector,
+    list_url: location.href,
+  }};
 }})()
 """
 
