@@ -19,4 +19,3 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if item.get_closest_marker("integration") is not None:
             item.add_marker(skip)
-

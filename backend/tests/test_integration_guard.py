@@ -44,4 +44,3 @@ def test_integration_can_run_only_with_explicit_isolated_opt_in(monkeypatch):
     conftest.pytest_collection_modifyitems(None, [integration])
 
     assert integration.markers == []
-

@@ -303,4 +303,3 @@ Commit message: `docs(m2): record real analysis improvement and review evidence`
 - [ ] **Step 2: Push the independent branch**
 - [ ] **Step 3: Open a ready PR against `master` only after verification**
 - [ ] **Step 4: Attach the PR and report its URL, validation evidence and remaining manual-review items**
-
