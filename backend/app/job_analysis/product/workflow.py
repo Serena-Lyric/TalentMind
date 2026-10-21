@@ -231,6 +231,9 @@ class Workflow:
         compact = []
         for item in items:
             copy = {k: v for k, v in item.items() if k != 'stages'}
+            copy.setdefault('identity_status', 'unknown')
+            copy.setdefault('content_eligible', None)
+            copy.setdefault('identity_evidence', None)
             copy['stages'] = {s: {k: v for k, v in stage.items() if k != 'result'} for s, stage in item['stages'].items()}
             compact.append(copy)
         return dict(run_id=run_id, status=row['status'], reason=row['reason'], created_at=row['created_at'],
@@ -244,6 +247,9 @@ class Workflow:
         rows = self._inputs(run_id)
         if type(ordinal) is not int or not 1 <= ordinal <= len(rows): raise ValueError('M2 item not found')
         body = self._items(run_id)[ordinal - 1]
+        body.setdefault('identity_status', 'unknown')
+        body.setdefault('content_eligible', None)
+        body.setdefault('identity_evidence', None)
         return dict(body, input=rows[ordinal - 1], input_provenance=self.get(run_id)['provenance'])
 
     def list_runs(self):

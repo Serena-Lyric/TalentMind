@@ -83,7 +83,7 @@ watch(platform, () => { cityCodes.value = [] }, { flush: 'sync' })
 watch(() => props.platforms, () => { if (!selectedPlatform.value?.supported) platform.value = props.platforms.find(item => item.supported)?.platform || '' }, { immediate: true })
 watch(() => !!activeBatch.value || starting.value || stopping.value, value => emit('busy', value), { immediate: true, flush: 'sync' })
 
-const countFields = [['listed', '列表识别'], ['detail_attempted', '详情尝试'], ['detail_obtained', '详情取得'], ['complete', '完整 JD'], ['inserted', '新增入库'], ['updated', '更新入库'], ['skipped', '跳过'], ['rejected', '拒绝'], ['failed', '失败']] as const
+const countFields = [['listed', '列表识别'], ['detail_attempted', '详情尝试'], ['detail_obtained', '详情取得'], ['content_eligible', '内容合格'], ['identity_pending', '身份待审'], ['identity_verified', '身份已验证'], ['complete', '完整 JD'], ['inserted', '新增入库'], ['updated', '更新入库'], ['skipped', '跳过'], ['rejected', '拒绝'], ['failed', '失败']] as const
 function formatCount(value?: number | null) { return typeof value === 'number' && Number.isFinite(value) ? String(value) : '—' }
 function formatTime(value?: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }) }
 function platformText(value: string) { return props.platforms.find(item => item.platform === value)?.label || value }

@@ -469,6 +469,25 @@ def test_results_and_task_keep_pending_identity_separate_from_complete():
     assert task['complete'] == 0
 
 
+def test_rejected_dom_event_keeps_temporary_source_identity():
+    event = {
+        'event': 'detail', 'platform': 'zhaopin',
+        'job': {
+            'url': 'dom://zhaopin/provisional',
+            '_observation_key': 'zhaopin:card-0',
+            'title': 'Python 工程师',
+        },
+        'detail': {'description': '负责 Python 开发'},
+        'rejection': 'panel_not_updated',
+        'identity_status': 'unknown',
+        'content_eligible': True,
+    }
+    control._parse_log_line('rejected', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+    result = control.get_results('rejected')[0]
+    assert result['source_detail'] == 'dom://zhaopin/provisional'
+    assert result['observation_key'] == 'zhaopin:card-0'
+
+
 def test_raw_adds_requirements_and_preserves_stored_duties(monkeypatch):
     import app.db.mysql as mysql
     body = '岗位职责：来源职责\n任职要求：Python\n福利待遇：五险'

@@ -50,7 +50,11 @@ def test_full_denominator_native_stages_and_original_nulls(product):
     assert result['summary']['b2']['failed'] == 0
     assert result['summary']['b22']['catalog_conflict_assessment'] == 'not_evaluated'
     assert len(result['items']) == 4
+    assert all(item['identity_status'] == 'unknown' for item in result['items'])
+    assert all(item['content_eligible'] is None for item in result['items'])
     detail = engine.item(draft['run_id'], 1)
+    assert detail['identity_status'] == 'unknown'
+    assert detail['content_eligible'] is None
     assert detail['input']['duties'] is None
     assert set(detail['stages']) == {'b1', 'b2', 'b22', 'b3'}
     assert all(detail['stages'][s]['status'] == 'saved' for s in ('b1', 'b2', 'b22', 'b3'))
@@ -207,6 +211,22 @@ def test_pending_identity_runs_but_content_ineligible_never_enters_stages(produc
     assert result['summary']['identity'] == {'verified': 0, 'pending': 1, 'unknown': 1}
     assert result['summary']['content'] == {'eligible': 1, 'ineligible': 1, 'unknown': 0}
     assert result['formal_statistics_eligible'] is False
+
+
+def test_legacy_product_items_default_identity_to_unknown(product):
+    engine, source, _ = product
+    draft = engine.create(source.Selection(limit=1))
+    item = engine._items(draft['run_id'])[0]
+    for key in ('identity_status', 'content_eligible', 'identity_evidence'):
+        item.pop(key, None)
+    engine._save_item(draft['run_id'], item)
+
+    result = engine.get(draft['run_id'])
+    assert result['items'][0]['identity_status'] == 'unknown'
+    assert result['items'][0]['content_eligible'] is None
+    detail = engine.item(draft['run_id'], 1)
+    assert detail['identity_status'] == 'unknown'
+    assert detail['content_eligible'] is None
 
 
 def test_version_tracks_shared_dictionary_and_cleaner(tmp_path, monkeypatch):

@@ -382,7 +382,7 @@ def get_results(run_id: str) -> list[dict[str, Any]]:
             if not key:
                 continue
             item = items.setdefault(key, dict(source=event.get('platform'), job_title=job.get('title'),
-                source_detail=key, crawled_at=event.get('observed_at'), raw_text=None, duties=None, requirements=None,
+                source_detail=job.get('url') or key, crawled_at=event.get('observed_at'), raw_text=None, duties=None, requirements=None,
                 quality=None, rejection_reason=None, outcome='listed', jd_pool_id=None,
                 identity_status='unknown', content_eligible=None, identity_evidence=None,
                 observation_key=job.get('_observation_key')))

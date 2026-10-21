@@ -125,6 +125,9 @@ export interface CollectionBatchItem {
   listed: number | null
   detail_attempted: number | null
   detail_obtained: number | null
+  content_eligible: number | null
+  identity_pending: number | null
+  identity_verified: number | null
   complete: number | null
   inserted: number | null
   updated: number | null
