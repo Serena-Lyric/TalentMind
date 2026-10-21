@@ -1,4 +1,4 @@
-# Optional offline graph build only; not production service requirements.
+# Shared by offline graph builds and the explicit local M2 candidate projection.
 networkx==3.6.1
 igraph==1.0.0
 leidenalg==0.11.0

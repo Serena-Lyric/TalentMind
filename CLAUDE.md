@@ -8,6 +8,8 @@
 
 模块状态见 [资产与状态](docs/superpowers/资产与状态.md)，历史裁决见 [决策跟踪](docs/superpowers/决策跟踪.md)；无需在这里重复维护摘要。
 
+- M2候选图仅消费指定run保存报告，历史读取按保存版本校验，不比较当前源码或重跑分析；异步导航须绑定请求代次。见[运行图谱陷阱](docs/superpowers/traps/2026-10-21-m2-graph-run-binding.md)。
+
 - M1 prepare 只准备浏览器，不能触发采集；公开可访问与认证、完整详情分开判断，遇人工验证停止。见[浏览器访问陷阱](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)。
 - CN详情失败、游客截断或身份未核实不能用列表技能补成完整JD；正文换行及目标容器须保留。见[详情门禁陷阱](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)。
 - M1控制器须向原循环传递解析后的配置及UTF-8约定；离线子进程通过不等于Gate1或站点验证解除。见[历史控制链路陷阱](docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)。

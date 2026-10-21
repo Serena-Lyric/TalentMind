@@ -38,6 +38,7 @@
 - 业务改动核对需求到实际执行路径，运行相关测试与必要集成/构建；字段、提示词或测试名称存在不能单独证明功能完成。历史通过数、演示分数和合成历史数据都要保留来源与日期。
 - 新增/移动/删除资产、修改契约/目录/交接文档后及时更新 [资产与状态](docs/superpowers/资产与状态.md)；产品决策写主文档并更新决策索引；按需同步 README/导航，CLAUDE 仅维护补充约束。
 - AI 修复业务/脚本 bug 后，在 `docs/superpowers/traps/YYYY-MM-DD-简述.md` 记录“症状 → 根因 → 修复 → 教训”；按模块阅读既有陷阱，不在根指引复制完整索引。
+  M2候选图：[运行版本、历史读取与迟到导航](docs/superpowers/traps/2026-10-21-m2-graph-run-binding.md)（2026-10-21）。
   M2 产品编排：[缓存成员、跨模块依赖、报告发布与迟到响应](docs/superpowers/traps/2026-10-21-m2-product-recovery.md)（2026-10-21）。
   M1 浏览器记录：[准备/采集分离、端点归属与访问状态](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)（2026-10-20）。
   M1 详情记录：[列表回落、换行及推荐字段污染](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)（2026-10-20）。

@@ -11,6 +11,7 @@
       <div v-if="realManifest" class="snapshot-note" aria-label="真实数据版本">
         <p>输入 {{ realManifest.counts?.input }} · 进入分析 {{ realManifest.counts?.eligible_jd }} · 拒绝或待审 {{ realManifest.counts?.excluded_or_pending }}</p>
         <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 身份；非标准职业。五态来自有限规则，未作人工审核。</p>
+        <p v-if="realManifest.m2_product">M2 run：{{ realManifest.m2_product.run_id }}<br />分析版本 {{ realManifest.m2_product.versions.revision }} · {{ realManifest.m2_product.versions.implementation.slice(0,12) }}<br />范围待复核 {{ realManifest.counts?.scope_pending }}；仅作候选证据。</p>
         <a href="?#/graph">返回历史 P2.5 图谱</a>
         <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
       </div>
@@ -648,7 +649,7 @@ async function loadGraph() {
   loading.value = true
   loadError.value = ''
   try {
-    const realResult = realMode ? await loadRealGraph() : null
+    const realResult = realMode ? await loadRealGraph(query.get('m2Run'),query.get('m2Graph')) : null
     const result = realResult || await loadHistoricalGraph()
     const data = result.graph
     if (generation !== loadGeneration) return

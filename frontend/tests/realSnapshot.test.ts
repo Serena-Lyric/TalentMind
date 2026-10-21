@@ -1,7 +1,17 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { sha256LF } from '../src/graph/historicalSnapshot.ts'
-import { validateRealBundle } from '../src/graph/realSnapshot.ts'
+import { validateRealBundle, validateM2GraphBinding } from '../src/graph/realSnapshot.ts'
+
+test('M2候选图拒绝其他运行与缺失分析版本，输入版本必须一致', () => {
+  const id = 'a'.repeat(32)
+  const manifest = { schema_version:'m3-real-bundle-1', data_version:'v', artifacts:{}, input_sha256:'input',
+    m2_product:{run_id:id,input_sha256:'input',report_sha256:'report',versions:{implementation:'code',revision:'v1'}} }
+  validateM2GraphBinding(manifest,id)
+  assert.throws(() => validateM2GraphBinding(manifest,'b'.repeat(32)), /binding/i)
+  assert.throws(() => validateM2GraphBinding({...manifest,input_sha256:'other'},id), /binding/i)
+  assert.throws(() => validateM2GraphBinding({...manifest,m2_product:{...manifest.m2_product,versions:{}}},id), /binding/i)
+})
 
 test('真实产物绑定哈希并保留五态与原始来源；错误摘要及越界来源拒绝', async () => {
   const payload = {source:'synthetic',job_title:'软件工程师',raw_text:'必须掌握Python'}

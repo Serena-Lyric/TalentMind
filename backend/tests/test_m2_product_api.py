@@ -34,6 +34,8 @@ def api(monkeypatch, tmp_path):
     ('runs/'+'a'*32,'GET',None), ('runs/'+'a'*32+'/items/1','GET',None),
     ('runs/'+'a'*32+'/start','POST',{}), ('runs/'+'a'*32+'/stop','POST',{}),
     ('runs/'+'a'*32+'/replay','POST',{}), ('runs/'+'a'*32+'/report','GET',None),
+    ('runs/'+'a'*32+'/graph','POST',{}), ('runs/'+'a'*32+'/graph','GET',None),
+    ('runs/'+'a'*32+'/graph/facts.json','GET',None),
 ])
 def test_all_m2_routes_gate_origin_before_io(api, monkeypatch, path, method, payload):
     client, m2, _ = api
@@ -65,3 +67,22 @@ def test_api_create_does_not_start_and_validation_is_bounded(api, monkeypatch):
     report = client.get(f'/api/m2/runs/{run_id}/report').json()['data']
     assert report['summary']['input_total'] == 1
     assert report['summary']['stage_complete'] == 1
+
+
+def test_graph_artifacts_are_run_bound_and_local_only(api, monkeypatch):
+    import hashlib
+    client, m2, engine = api
+    monkeypatch.setattr(m2.source, 'read_mysql', lambda _: ([dict(id=7, source='boss', job_title='后端工程师', raw_text='负责软件开发，必须掌握 Python')], {'kind':'synthetic'}))
+    run_id = client.post('/api/m2/runs', json={'limit':1}).json()['data']['run_id']
+    assert client.post(f'/api/m2/runs/{run_id}/graph').status_code == 400
+    engine.start(run_id)
+    engine.join(20)
+    info = client.post(f'/api/m2/runs/{run_id}/graph').json()['data']
+    assert info['manifest']['m2_product']['run_id'] == run_id
+    response = client.get(f'/api/m2/runs/{run_id}/graph/manifest.json')
+    assert response.status_code == 200
+    assert hashlib.sha256(response.content).hexdigest() == info['manifest_sha256']
+    assert response.headers['cache-control'] == 'no-store'
+    assert client.get(f'/api/m2/runs/{run_id}/graph/facts.json').json()['nodes']
+    assert client.get(f'/api/m2/runs/{run_id}/graph/workflow.sqlite3').status_code == 400
+    assert client.get(f'/api/m2/runs/{run_id}/graph/facts.json', headers={'Origin':'https://evil.example'}).status_code == 403

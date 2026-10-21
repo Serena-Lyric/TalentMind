@@ -82,3 +82,23 @@ def replay(run_id: str, payload: Replay):
 @router.get('/runs/{run_id}/report')
 def report(run_id: str):
     return call(get_workflow().report, run_id)
+
+
+@router.post('/runs/{run_id}/graph')
+def generate_graph(run_id: str):
+    from app.graph.product_bundle import graph_info
+    return call(graph_info, get_workflow(), run_id, True)
+
+
+@router.get('/runs/{run_id}/graph')
+def graph(run_id: str):
+    from app.graph.product_bundle import graph_info
+    return call(graph_info, get_workflow(), run_id)
+
+
+@router.get('/runs/{run_id}/graph/{name}')
+def graph_artifact(run_id: str, name: str):
+    from app.graph.product_bundle import read_bundle
+    from app.job_analysis.foundation.inputs import canonical
+    result = call(read_bundle, get_workflow(), run_id, name)
+    return Response(canonical(result['data']) + '\n', media_type='application/json', headers={'Cache-Control': 'no-store'})

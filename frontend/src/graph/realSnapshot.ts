@@ -5,7 +5,7 @@ export interface SourceRecord {
   eligible:boolean; screening:Record<string,any>; governance:Record<string,any>|null
 }
 export interface RealSources { records:SourceRecord[] }
-export interface RealManifest { schema_version:string; data_version:string; artifacts:Record<string,string>; counts?:Record<string,any> }
+export interface RealManifest { schema_version:string; data_version:string; artifacts:Record<string,string>; counts?:Record<string,any>; input_sha256?:string; m2_product?:{run_id:string;input_sha256:string;report_sha256:string;versions:Record<string,any>} }
 const files = ['facts.json','sources.json','layout.json'] as const
 const encoded=(value:string)=>encodeURIComponent(value).replace(/[!'()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase())
 const jdIdentity=(record:SourceRecord)=>`jd:${encoded(record.namespace)}:${encoded(record.jd_id)}`
@@ -40,15 +40,24 @@ export async function validateRealBundle(manifest:RealManifest,texts:Record<stri
   return {graph,artifact,sources,manifest}
 }
 
-export async function loadRealGraph() {
+export function validateM2GraphBinding(manifest:RealManifest,runId:string) {
+  const binding=manifest.m2_product
+  if(!binding||binding.run_id!==runId||binding.input_sha256!==manifest.input_sha256||!binding.report_sha256
+    ||!binding.versions?.implementation||!binding.versions?.revision)throw new Error('M2 graph version binding mismatch')
+}
+
+export async function loadRealGraph(runId?:string|null,manifestSha?:string|null) {
+  if(runId&&(!/^[a-f0-9]{32}$/.test(runId)||!manifestSha||!/^[a-f0-9]{64}$/.test(manifestSha)))throw new Error('Invalid M2 graph run or manifest binding')
   async function read(name:string){
-    const response=await fetch(`/real-graph-artifacts/${name}`)
+    const response=await fetch(runId?`/api/m2/runs/${runId}/graph/${name}`:`/real-graph-artifacts/${name}`)
     if(!response.ok)throw new Error(`Real bundle unavailable: ${name}`)
     return response.text()
   }
   const manifestText=await read('manifest.json')
-  if(!__REAL_GRAPH_MANIFEST_SHA256__||await sha256LF(manifestText)!==__REAL_GRAPH_MANIFEST_SHA256__)throw new Error('Real manifest hash mismatch or preview not enabled')
+  const expected=runId?manifestSha:__REAL_GRAPH_MANIFEST_SHA256__
+  if(!expected||await sha256LF(manifestText)!==expected)throw new Error('Real manifest hash mismatch or preview not enabled')
   const manifest=JSON.parse(manifestText)
+  if(runId)validateM2GraphBinding(manifest,runId)
   const values=await Promise.all(files.map(read))
   return validateRealBundle(manifest,Object.fromEntries(files.map((name,i)=>[name,values[i]])))
 }

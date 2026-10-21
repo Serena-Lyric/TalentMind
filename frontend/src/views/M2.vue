@@ -21,6 +21,7 @@
       <div class="section-heading"><h2>2. 显式启动分析</h2><el-select :model-value="selectedId" @change="selectRun" placeholder="选择历史任务" class="history-select" aria-label="历史任务"><el-option v-for="r in history" :key="r.run_id" :value="r.run_id" :label="`${r.created_at.slice(0,19)} · ${statusText(r.status)} · ${r.run_id.slice(0,8)}`" /></el-select></div>
       <template v-if="selected">
         <div class="run-meta"><code>{{ selected.run_id }}</code><el-tag :type="tagType(selected.status)">{{ statusText(selected.status) }}</el-tag><span v-if="selected.reason">原因：{{ statusText(selected.reason) }}</span></div>
+        <el-button :disabled="mutating || !['completed','completed_with_issues'].includes(selected.status)" :loading="graphLoading" @click="openGraph">生成 / 查看本次候选图谱</el-button>
         <div class="actions"><el-button type="primary" :disabled="!canStart" :loading="mutating" @click="startRun">{{ ['stopped','interrupted','publication_failed'].includes(selected.status) ? '恢复分析' : '开始分析' }}</el-button><el-button :disabled="mutating || !['running','stopping','queued'].includes(selected.status)" @click="stopRun">停止分析</el-button><el-input v-model="revision" aria-label="重放版本" placeholder="版本，例如 v2" class="revision" /><el-button :disabled="mutating || active" @click="replayRun">创建版本重放</el-button><el-button :disabled="!selected.finished_at || mutating" @click="downloadReport">下载本地完整报告</el-button></div>
         <p class="muted">停止在阶段边界生效；已提交结果保留。全部输出仍受规则覆盖和人工审核限制。{{ active ? '任务执行中，请勿关闭后端。' : '' }}</p>
         <div class="stat-grid"><div><strong>{{ selected.summary.input_total }}</strong><span>输入 JD 总量</span></div><div><strong>{{ selected.summary.finalized }}</strong><span>已有最终去向</span></div><div><strong>{{ selected.summary.stage_complete }}</strong><span>四阶段已走完</span></div><div><strong>{{ selected.summary.final_counts.needs_review || 0 }}</strong><span>待人工复核</span></div><div><strong>{{ selected.summary.final_counts.failed || 0 }}</strong><span>真正执行失败</span></div><div><strong>{{ selected.summary.final_counts.input_invalid || 0 }}</strong><span>输入不可解析</span></div></div>
@@ -53,12 +54,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { createM2Run, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, startM2Run, stopM2Run, type M2History, type M2Item, type M2Run, type M2Sources } from '../api/m2'
+import { createM2Run, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, startM2Run, stopM2Run, type M2History, type M2Item, type M2Run, type M2Sources } from '../api/m2'
 
 const catalog = ref<M2Sources | null>(null), history = ref<M2History[]>([]), selected = ref<M2Run | null>(null)
 const selectedId = ref(''), detail = ref<M2Item | null>(null), drawer = ref(false), detailLoading = ref(false), detailTab = ref('source')
 const sources = ref<string[]>([]), cohort = ref('history'), idMin = ref<number>(), idMax = ref<number>(), limit = ref(5), revision = ref('v1'), page = ref(1)
 const error = ref(''), refreshing = ref(false), mutating = ref(false)
+const graphLoading = ref(false)
 const stages = ['b1','b2','b22','b3']
 const stageLabels: Record<string, string> = { b1:'B1 筛选', b2:'B2 语义', b22:'B2.2 治理', b3:'B3 候选', evidence:'证据审计' }
 let disposed = false, runRequest = 0, itemRequest = 0, timer: ReturnType<typeof setInterval> | undefined
@@ -124,6 +126,16 @@ async function action(fn: (id: string) => Promise<M2Run>) {
   finally { mutating.value = false }
 }
 async function startRun() { if (canStart.value) await action(startM2Run) }
+async function openGraph() {
+  if (!selected.value || graphLoading.value || mutating.value || !['completed','completed_with_issues'].includes(selected.value.status)) return
+  const id = selected.value.run_id, request = runRequest
+  graphLoading.value = true; error.value = ''
+  try {
+    const graph = await generateM2Graph(id)
+    if (!disposed && request === runRequest && selectedId.value === id && graph.run_id === id) window.location.assign(graph.url)
+  } catch (e) { if (!disposed && selected.value?.run_id === id) error.value = message(e) }
+  finally { graphLoading.value = false }
+}
 async function stopRun() { await action(stopM2Run) }
 async function replayRun() { if (!active.value) await action(id => replayM2Run(id, revision.value)) }
 async function inspectItem(ordinal: number) {
