@@ -102,7 +102,7 @@ function logout() {
 
 const navItems = [
   { label: '数据采集控制台', path: '/collection', icon: Connection },
-  { label: '新版 M2 分析', path: '/m2', icon: MagicStick },
+  { label: '岗位分析工作台', path: '/m2', icon: MagicStick },
   { label: '岗位机会雷达', path: '/jobs', icon: Files },
   { label: '能力动态更新', path: '/evolution', icon: TrendCharts },
   { label: '岗位星云图谱', path: '/graph', icon: Collection },

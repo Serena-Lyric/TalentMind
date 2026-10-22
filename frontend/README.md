@@ -6,7 +6,7 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ## 页面
 
-- 新版 M2 分析：独立 `/#/m2`，历史 JD 有界选择、冻结与显式启动、四阶段进度、停止/恢复/版本重放、逐条证据及历史报告。后端严格本地门禁，演示登录不代表生产授权；仅写隔离 SQLite。四阶段完成不是准确率，B1 未决和 B3 未发布状态明确保留；见[交付报告](../docs/review/M2-product-2026-10-21.md)。
+- 岗位分析工作台：独立 `/#/m2`，历史 JD 有界选择、冻结与显式启动、四阶段进度、停止/恢复/版本重放、逐条证据及历史报告。后端严格本地门禁，演示登录不代表生产授权；仅写隔离 SQLite。四阶段完成不是准确率，B1 未决和 B3 未发布状态明确保留；见[交付报告](../docs/review/M2-product-2026-10-21.md)。
 
 - 数据概览：真实岗位、简历、技能和 signal 趋势
 - JD 岗位管理：岗位列表、详情、导入、新增、编辑、删除
@@ -19,9 +19,9 @@ TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Pl
 
 ## 启动
 
-### 节点引导空间候选（2026-10-20，#37 增量）
+### 节点引导空间（2026-10-22 默认启用；原 2026-10-20 #37 候选）
 
-`/?graphSpace=node-field-v1#/graph` 显式启用平滑节点密度与基础旋臂混合的背景空间，节点坐标与星体语义不变。省略参数或 `/?graphSpace=legacy#/graph` 回退原P2.5空间；原P2.4/P2.3/Canvas回退保留。世界坐标范围固定，窗口resize/相机操作不重采样。版本、统计、实际截图及未验收边界见[空间场报告](../docs/review/M3-node-guided-galaxy-field.md)。真实71/52节点本轮仅作私有布局算法统计，尚未在此分支正式Vue集成。
+普通菜单 `/#/graph` 默认启用 `node-field-v1`：星尘分布响应知识节点总体密度，并保留基础旋臂；`/?graphSpace=node-field-v1#/graph` 显式指定同一版本，`/?graphSpace=legacy#/graph` 回退原 P2.5 空间。固定相机、受控对照和旧 Canvas 入口保持原行为；节点坐标与星体语义不变，窗口 resize/相机操作不重采样。原候选的版本、统计和截图见[空间场报告](../docs/review/M3-node-guided-galaxy-field.md)，其中“省略参数回退旧版”为当时状态，已由本次用户授权替代；该报告的历史验收范围不因默认切换扩大。
 
 复现历史空间统计：在 `frontend` 执行 `node --experimental-strip-types scripts/measureGalaxyField.ts`。可追加显式只读layout路径；仅输出聚合空间指标/摘要，不输出节点身份或JD原文。
 

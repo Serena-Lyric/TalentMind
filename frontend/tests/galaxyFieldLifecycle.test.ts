@@ -12,8 +12,23 @@ test('空间回退保留真实数据集与相机参数',t=>{
  assert.equal(app.state.legacySpaceHref,'?graphDataset=real&graphSpace=legacy&graphCamera=fixed#/graph')
 })
 
-test('real Vue layout path refreshes field coordinates and failed reload releases stale knowledge',async t=>{
- const app=graphComponent(undefined,'?nebulaDebug=1&graphSpace=node-field-v1');t.after(app.stop)
+test('空间默认使用节点场，显式旧版、固定相机和受控对照保持回退',t=>{
+ for(const [search,enabled] of [
+  ['',true],
+  ['?graphSpace=node-field-v1',true],
+  ['?graphDataset=real',true],
+  ['?graphSpace=legacy',false],
+  ['?graphCamera=fixed',false],
+  ['?graphCompare=overview',false],
+  ['?graphVisual=p21',false],
+ ] as const){
+  const app=graphComponent(undefined,search);t.after(app.stop)
+  assert.equal(app.state.nodeFieldMode,enabled,search||'普通菜单入口')
+ }
+})
+
+test('default Vue layout path refreshes field coordinates and failed reload releases stale knowledge',async t=>{
+ const app=graphComponent(undefined,'?nebulaDebug=1');t.after(app.stop)
  const s=app.state,scene=new Group(),dust=createDust(scene),cache=createGalaxySpatialFieldCache()
  globalThis.DOMRect??=class {x=0;y=0;width=0;height=0} as typeof DOMRect
  globalThis.window={devicePixelRatio:1} as any;t.after(()=>{delete (globalThis as any).window})

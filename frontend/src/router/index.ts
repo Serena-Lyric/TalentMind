@@ -11,7 +11,7 @@ const router = createRouter({
     { path: '/graph-collection', redirect: '/graph' },
     { path: '/analytics', name: 'Analytics', component: () => import('../views/Analytics.vue'), meta: { title: '数据分析' } },
     { path: '/collection', name: 'Collection', component: () => import('../views/Collection.vue'), meta: { title: '采集模块管理' } },
-    { path: '/m2', name: 'M2', component: () => import('../views/M2.vue'), meta: { title: '新版 M2 分析' } },
+    { path: '/m2', name: 'M2', component: () => import('../views/M2.vue'), meta: { title: '岗位分析工作台' } },
     { path: '/evolution', name: 'Evolution', component: () => import('../views/JobEvolution.vue'), meta: { title: '能力动态更新' } },
     { path: '/resume', name: 'Resume', component: () => import('../views/Resume.vue'), meta: { title: '简历分析' } },
     { path: '/resume-demo', name: 'ResumeDemo', component: () => import('../views/ResumeDemo.vue'), meta: { title: '简历预览' } },
