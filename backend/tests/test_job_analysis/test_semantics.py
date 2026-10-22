@@ -131,6 +131,105 @@ def test_years_do_not_become_degree_and_unparsed_text_blocks_complete():
     assert result["coverage"] == "incomplete"
 
 
+def test_unrelated_conditional_does_not_poison_separate_requirement():
+    result = analyze(
+        "岗位职责：负责开发软件。\n"
+        "任职要求：熟悉 Python。\n"
+        "如果参加其他项目，则需要掌握 Docker。"
+    )
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["condition"] is None
+
+
+def test_inline_requirement_heading_changes_section_after_duty_sentence():
+    result = analyze("岗位职责：负责后端接口开发。任职要求：熟悉 Python。")
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["section"] == "requirements"
+
+
+@pytest.mark.parametrize("text", [
+    "任职要求：\n本科及以上学历。\n熟练掌握 Python，并能独立完成接口开发。",
+    "职位描述 1.负责后端接口开发。 职位要求 1.本科及以上学历。 2.熟练掌握 Python。",
+    "任职要求：\n针对有项目经验的候选人，需要了解业务流程。\n熟练掌握 Python。",
+])
+def test_unparsed_experience_lines_do_not_erase_following_requirement_section(text):
+    result = analyze(text)
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["section"] == "requirements"
+
+
+@pytest.mark.parametrize("text,skill,want", [
+    ("任职要求：\n熟练掌握 Python，并能独立完成接口开发。", "python", "required"),
+    ("加分项：\n熟悉 Docker，具备容器化交付经验。", "docker", "preferred"),
+])
+def test_explicit_capability_with_trailing_context_keeps_requirement_state(text, skill, want):
+    result = analyze(text)
+
+    assert states(result, skill) == [want]
+    assert result["statements"][0]["evidence"]["quote"] in text
+
+
+@pytest.mark.parametrize("text", [
+    "任职要求：\n熟悉 Python 或其他技术。",
+    "任职要求：\n熟悉 Python（非必备）。",
+    "任职要求：\n熟悉 Python，属于可选要求。",
+    "任职要求：\n熟悉 Python，非硬性条件。",
+])
+def test_open_choice_or_limiting_tail_does_not_promote_single_skill(text):
+    result = analyze(text)
+
+    assert states(result) == ["uncertain"]
+    assert result["statements"][0]["reason"] != "section_capability_extended"
+    assert result["coverage"] == "incomplete"
+
+
+@pytest.mark.parametrize("text", [
+    "任职要求：\n熟悉 Python 或自研脚本语言。",
+    "任职要求：\n熟悉 Python 或未登记内部框架。",
+])
+def test_known_skill_with_unregistered_alternative_stays_uncertain(text):
+    result = analyze(text)
+
+    assert states(result) == ["uncertain"]
+    assert result["statements"][0]["reason"] == "unresolved_alternative"
+    assert result["coverage"] == "incomplete"
+
+
+def test_enumeration_delimiter_without_unparsed_alternative_keeps_required():
+    result = analyze("任职要求：\n熟悉 Python、业务流程。")
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["reason"] == "section_capability_extended"
+
+
+def test_job_title_lists_skill_as_mention_only():
+    result = analyze("暂无描述", job_title="Python 工程师")
+
+    assert states(result) == ["mentioned"]
+    assert result["statements"][0]["reason"] == "title_reference_only"
+    assert result["statements"][0]["evidence"]["field"] == "job_title"
+
+
+def test_compatibility_variant_at_least_one_keeps_any_of_semantics():
+    result = analyze("任职要求：\n熟练掌握 Java、Python、TypeScript ⾄少⼀种")
+
+    statement = result["statements"][0]
+    assert statement["state"] == "required"
+    assert statement["relation"] == "any_of"
+    assert {skill["name"] for skill in statement["skills"]} == {"java", "python", "typescript"}
+
+
+def test_structured_clause_wins_over_identical_raw_text_copy():
+    text = "工作职责：使用 Python 开发服务。"
+    result = analyze(text, duties=text)
+
+    assert states(result) == ["mentioned"]
+    assert [statement["evidence"]["field"] for statement in result["statements"]] == ["duties"]
+
+
 def test_unknown_skill_no_result_is_not_execution_failure_or_uncertain_skill():
     result = analyze("要求掌握 UnlistedFixtureLang。")
     assert result["outcome"] == "no_recognized_skills"

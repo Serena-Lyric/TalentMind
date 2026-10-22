@@ -24,12 +24,12 @@
         <el-button :disabled="mutating || !['completed','completed_with_issues'].includes(selected.status)" :loading="graphLoading" @click="openGraph">生成 / 查看本次候选图谱</el-button>
         <div class="actions"><el-button type="primary" :disabled="!canStart" :loading="mutating" @click="startRun">{{ ['stopped','interrupted','publication_failed'].includes(selected.status) ? '恢复分析' : '开始分析' }}</el-button><el-button :disabled="mutating || !['running','stopping','queued'].includes(selected.status)" @click="stopRun">停止分析</el-button><el-input v-model="revision" aria-label="重放版本" placeholder="版本，例如 v2" class="revision" /><el-button :disabled="mutating || active" @click="replayRun">创建版本重放</el-button><el-button :disabled="!selected.finished_at || mutating" @click="downloadReport">下载本地完整报告</el-button></div>
         <p class="muted">停止在阶段边界生效；已提交结果保留。全部输出仍受规则覆盖和人工审核限制。{{ active ? '任务执行中，请勿关闭后端。' : '' }}</p>
-        <div class="stat-grid"><div><strong>{{ selected.summary.input_total }}</strong><span>输入 JD 总量</span></div><div><strong>{{ selected.summary.finalized }}</strong><span>已有最终去向</span></div><div><strong>{{ selected.summary.stage_complete }}</strong><span>四阶段已走完</span></div><div><strong>{{ selected.summary.final_counts.needs_review || 0 }}</strong><span>待人工复核</span></div><div><strong>{{ selected.summary.final_counts.failed || 0 }}</strong><span>真正执行失败</span></div><div><strong>{{ selected.summary.final_counts.input_invalid || 0 }}</strong><span>输入不可解析</span></div></div>
+        <div class="stat-grid"><div><strong>{{ selected.summary.input_total }}</strong><span>输入 JD 总量</span></div><div><strong>{{ selected.summary.finalized }}</strong><span>已有最终去向</span></div><div><strong>{{ selected.summary.stage_complete }}</strong><span>四阶段已走完</span></div><div><strong>{{ selected.summary.final_counts.needs_review || 0 }}</strong><span>机器待复核</span></div><div><strong>{{ selected.summary.review?.reviewed_items || 0 }}</strong><span>人工已提交</span></div><div><strong>{{ selected.summary.review?.unreviewed_items ?? selected.summary.input_total }}</strong><span>人工未提交</span></div><div><strong>{{ selected.summary.final_counts.failed || 0 }}</strong><span>真正执行失败</span></div><div><strong>{{ selected.summary.final_counts.input_invalid || 0 }}</strong><span>输入不可解析</span></div></div>
         <el-progress :percentage="Math.round(100 * selected.summary.finalized / selected.summary.input_total)" :stroke-width="8" />
         <p class="metric-note">进度仅表示工程处理覆盖，不是语义准确率。B2“完整”也仅限已知别名和受支持句式；不代表开放域识别完整。</p>
         <div class="summary-grid"><article v-for="(metrics, stage) in stageMetrics" :key="stage"><h3>{{ stageLabels[stage] }}</h3><dl><template v-for="(value, key) in metrics" :key="key"><dt>{{ metricText(String(key), String(stage)) }}</dt><dd>{{ typeof value === 'number' ? value : statusText(String(value)) }}</dd></template></dl></article></div>
         <el-collapse><el-collapse-item title="输入、版本与本地产物" name="provenance"><p>输入 SHA-256：<code>{{ selected.input_sha256 }}</code></p><pre>{{ pretty({ versions: selected.versions, provenance: selected.provenance, artifacts: selected.artifacts, parent_run_id: selected.parent_run_id }) }}</pre></el-collapse-item></el-collapse>
-        <el-table :data="pageItems" stripe class="gap" aria-label="逐条 JD 结果"><el-table-column prop="jd_id" label="JD ID" width="90" /><el-table-column prop="source" label="来源" width="95" /><el-table-column label="身份" width="110"><template #default="{ row }"><el-tag effect="plain">{{ identityText(row.identity_status) }}</el-tag></template></el-table-column><el-table-column prop="title" label="原始标题" min-width="200" show-overflow-tooltip /><el-table-column label="最终去向" width="130"><template #default="{ row }"><el-tag :type="tagType(row.final_status)">{{ statusText(row.final_status) }}</el-tag></template></el-table-column><el-table-column v-for="stage in stages" :key="stage" :label="stageLabels[stage]" width="108"><template #default="{ row }">{{ statusText(row.stages[stage].status) }}</template></el-table-column><el-table-column label="证据" width="65"><template #default="{ row }">{{ row.evidence.matched }}</template></el-table-column><el-table-column label="详情" width="90" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="inspectItem(row.ordinal)">查看</el-button></template></el-table-column></el-table>
+        <el-table :data="pageItems" stripe class="gap" aria-label="逐条 JD 结果"><el-table-column prop="jd_id" label="JD ID" width="90" /><el-table-column prop="source" label="来源" width="95" /><el-table-column label="身份" width="110"><template #default="{ row }"><el-tag effect="plain">{{ identityText(row.identity_status) }}</el-tag></template></el-table-column><el-table-column prop="title" label="原始标题" min-width="200" show-overflow-tooltip /><el-table-column label="机器去向" width="130"><template #default="{ row }"><el-tag :type="tagType(row.final_status)">{{ statusText(row.final_status) }}</el-tag></template></el-table-column><el-table-column label="人工审核" width="115"><template #default="{ row }">{{ statusText(row.human_review?.decision || 'unreviewed') }}</template></el-table-column><el-table-column v-for="stage in stages" :key="stage" :label="stageLabels[stage]" width="108"><template #default="{ row }">{{ statusText(row.stages[stage].status) }}</template></el-table-column><el-table-column label="证据" width="65"><template #default="{ row }">{{ row.evidence.matched }}</template></el-table-column><el-table-column label="详情" width="90" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="inspectItem(row.ordinal)">查看</el-button></template></el-table-column></el-table>
         <el-pagination v-model:current-page="page" :page-size="20" :total="selected.items.length" layout="prev, pager, next, total" class="gap" />
       </template><el-empty v-else description="创建冻结任务或选择历史任务，然后显式开始分析。" />
     </section>
@@ -47,6 +47,20 @@
             <h3>原文位置与审核上下文</h3><p class="muted">位置为 Python 字符索引 [start,end)，对应冻结字段；引文匹配只证明可回源，不证明语义正确。</p><div v-for="(ev, index) in evidenceRows(detail.stages[stage].result)" :key="index" class="evidence-row"><code>{{ ev.field }} [{{ ev.start }}, {{ ev.end }})</code><blockquote>{{ ev.quote }}</blockquote></div><el-empty v-if="!evidenceRows(detail.stages[stage].result).length" description="当前阶段没有可展示的原文引文；查看阶段原因。" /><el-collapse><el-collapse-item title="完整阶段 JSON（含组合、上下文、复核原因与原生运行 ID）"><pre>{{ pretty(detail.stages[stage]) }}</pre></el-collapse-item></el-collapse>
           </el-tab-pane>
         </el-tabs>
+        <section class="review-panel gap" aria-label="人工复核">
+          <div class="section-heading"><div><h2>人工复核</h2><p class="muted">人工结论单独追加保存，不覆盖机器预测、原文或历史报告。</p></div><el-button :disabled="!selected || !detail || reviewExporting" :loading="reviewExporting" @click="downloadReviews">导出人工审核 JSON</el-button></div>
+          <p>自动状态：<el-tag :type="tagType(detail.final_status)">{{ statusText(detail.final_status) }}</el-tag> · 当前人工状态：<el-tag effect="plain">{{ statusText(detail.human_review?.decision || 'unreviewed') }}</el-tag></p>
+          <p>机器结果摘要：<code>{{ detail.machine_sha256 || '尚未生成' }}</code></p>
+          <div class="review-form">
+            <label>审核决定<el-select v-model="reviewDecision" placeholder="选择人工决定"><el-option label="接受机器结果" value="accepted" /><el-option label="拒绝机器结果" value="rejected" /><el-option label="需要继续核对" value="needs_followup" /></el-select></label>
+            <label>审核人<el-input v-model="reviewReviewer" maxlength="80" placeholder="必须由实际审核人填写" /></label>
+            <label class="review-note">备注<el-input v-model="reviewNote" type="textarea" :rows="3" maxlength="4000" show-word-limit placeholder="记录判断依据、需要修正的内容或待补证据" /></label>
+            <el-button type="primary" :disabled="!canSubmitReview" :loading="reviewSaving" @click="submitReview">记录人工判断</el-button>
+          </div>
+          <el-alert title="审核提交只代表本机录入的自述判断，不验证人员身份，也不会把机器预测升级为已确认需求或正式岗位。" type="info" :closable="false" />
+          <el-table v-if="detail.reviews?.length" :data="detail.reviews" stripe class="gap" aria-label="人工审核历史"><el-table-column prop="reviewed_at" label="时间" min-width="180" /><el-table-column prop="reviewer" label="审核人" width="140" /><el-table-column label="决定" width="130"><template #default="{ row }">{{ statusText(row.decision) }}</template></el-table-column><el-table-column prop="note" label="备注" min-width="260" /><el-table-column label="机器摘要" width="140"><template #default="{ row }"><code>{{ row.machine_sha256.slice(0, 12) }}…</code></template></el-table-column></el-table>
+          <el-empty v-else description="尚无人工审核事件；系统不会自动填写真值。" />
+        </section>
       </template>
     </el-drawer>
   </div>
@@ -54,24 +68,27 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { createM2Run, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, startM2Run, stopM2Run, type M2History, type M2Item, type M2Run, type M2Sources } from '../api/m2'
+import { createM2Run, exportM2Reviews, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, reviewM2Item, startM2Run, stopM2Run, type M2History, type M2Item, type M2ReviewDecision, type M2Run, type M2Sources } from '../api/m2'
 
 const catalog = ref<M2Sources | null>(null), history = ref<M2History[]>([]), selected = ref<M2Run | null>(null)
 const selectedId = ref(''), detail = ref<M2Item | null>(null), drawer = ref(false), detailLoading = ref(false), detailTab = ref('source')
 const sources = ref<string[]>([]), cohort = ref('history'), idMin = ref<number>(), idMax = ref<number>(), limit = ref(5), revision = ref('v1'), page = ref(1)
 const error = ref(''), refreshing = ref(false), mutating = ref(false)
 const graphLoading = ref(false)
+const reviewDecision = ref<M2ReviewDecision | ''>(''), reviewReviewer = ref(''), reviewNote = ref('')
+const reviewSaving = ref(false), reviewExporting = ref(false)
 const stages = ['b1','b2','b22','b3']
-const stageLabels: Record<string, string> = { b1:'B1 筛选', b2:'B2 语义', b22:'B2.2 治理', b3:'B3 候选', evidence:'证据审计', identity:'身份可信度', content:'内容资格' }
+const stageLabels: Record<string, string> = { b1:'B1 筛选', b2:'B2 语义', b22:'B2.2 治理', b3:'B3 候选', evidence:'证据审计', identity:'身份可信度', content:'内容资格', review:'人工复核' }
 let disposed = false, runRequest = 0, itemRequest = 0, timer: ReturnType<typeof setInterval> | undefined
 const active = computed(() => selected.value && ['running','stopping'].includes(selected.value.status))
 const canStart = computed(() => !mutating.value && selected.value && ['queued','stopped','interrupted','publication_failed'].includes(selected.value.status) && !history.value.some(r => ['running','stopping'].includes(r.status)))
 const pageItems = computed(() => selected.value?.items.slice((page.value - 1) * 20, page.value * 20) || [])
-const stageMetrics = computed(() => Object.fromEntries(['b1','b2','b22','b3','evidence','identity','content'].map(s => [s, (selected.value?.summary as any)?.[s] || {}])))
+const stageMetrics = computed(() => Object.fromEntries(['b1','b2','b22','b3','evidence','identity','content','review'].map(s => [s, (selected.value?.summary as any)?.[s] || {}])))
+const canSubmitReview = computed(() => !!detail.value?.machine_sha256 && ['completed','completed_with_issues'].includes(selected.value?.status || '') && !!reviewDecision.value && !!reviewReviewer.value.trim() && !reviewSaving.value)
 const text: Record<string, string> = {
-  queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'待人工复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
+  queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'机器待复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', unreviewed:'人工未审核', accepted:'人工接受', rejected:'人工拒绝', needs_followup:'人工需跟进', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
 }
-const metrics: Record<string,string> = {valid:'有效 JD',invalid:'无效 JD',undetermined:'有效性待复核',in_scope:'范围内 JD',out_of_scope:'范围外 JD',needs_review:'范围待复核 JD',not_applicable:'范围不适用 JD',not_evaluated:'未评估 JD',failed:'失败 JD',blocked:'未执行 JD',pending:'待处理 JD',running:'执行中 JD',completed:'受支持语法完整 JD',partial:'部分处理 JD',no_recognized_skills:'无已识别技能 JD',unresolved_jds:'有未决内容 JD',processed:'治理已处理 JD',candidate_jds:'有候选 JD',candidates:'候选项数',semantic_conflict_jds:'已检查的语义冲突 JD',catalog_conflict_assessment:'目录治理冲突评估',unresolved_fragments:'未解决片段数',pending_review:'待审核 JD',unable_to_classify:'无法分类 JD',outputs_with_evidence:'有原文引文的阶段输出',outputs_without_evidence:'无引文的阶段输出',matched_spans:'已匹配原文位置',invalid_spans:'位置校验异常',unparseable_jds:'不可解析 JD',statements_required:'明确要求陈述',statements_preferred:'加分优先陈述',statements_mentioned:'仅提及陈述',statements_not_required:'明确不要求陈述',statements_uncertain:'待判断陈述'}
+const metrics: Record<string,string> = {valid:'有效 JD',invalid:'无效 JD',undetermined:'有效性待复核',in_scope:'范围内 JD',out_of_scope:'范围外 JD',needs_review:'范围待复核 JD',not_applicable:'范围不适用 JD',not_evaluated:'未评估 JD',failed:'失败 JD',blocked:'未执行 JD',pending:'待处理 JD',running:'执行中 JD',completed:'受支持语法完整 JD',partial:'部分处理 JD',no_recognized_skills:'无已识别技能 JD',unresolved_jds:'有未决内容 JD',processed:'治理已处理 JD',candidate_jds:'有候选 JD',candidates:'候选项数',semantic_conflict_jds:'已检查的语义冲突 JD',catalog_conflict_assessment:'目录治理冲突评估',unresolved_fragments:'未解决片段数',pending_review:'待审核 JD',unable_to_classify:'无法分类 JD',outputs_with_evidence:'有原文引文的阶段输出',outputs_without_evidence:'无引文的阶段输出',matched_spans:'已匹配原文位置',invalid_spans:'位置校验异常',unparseable_jds:'不可解析 JD',statements_required:'明确要求陈述',statements_preferred:'加分优先陈述',statements_mentioned:'仅提及陈述',statements_not_required:'明确不要求陈述',statements_uncertain:'待判断陈述',total_items:'审核分母条目',reviewed_items:'人工已提交条目',unreviewed_items:'人工未提交条目'}
 function statusText(value: string) { return text[value] || value }
 function metricText(value: string, stage?: string) {
   if (stage === 'identity') return identityText(value)
@@ -147,9 +164,43 @@ async function inspectItem(ordinal: number) {
   if (!selected.value) return
   const id = selected.value.run_id, request = ++itemRequest
   detail.value = null; detailLoading.value = true; drawer.value = true; detailTab.value = 'source'; error.value = ''
+  reviewDecision.value = ''; reviewReviewer.value = ''; reviewNote.value = ''
   try { const value = await getM2Item(id, ordinal); if (!disposed && request === itemRequest && selectedId.value === id) detail.value = value }
   catch (e) { if (!disposed && request === itemRequest) error.value = message(e) }
   finally { if (request === itemRequest) detailLoading.value = false }
+}
+async function submitReview() {
+  if (!selected.value || !detail.value || !canSubmitReview.value || !reviewDecision.value) return
+  const id = selected.value.run_id, ordinal = detail.value.ordinal, machine = detail.value.machine_sha256
+  const request = itemRequest
+  reviewSaving.value = true; error.value = ''
+  try {
+    const value = await reviewM2Item(id, ordinal, {
+      decision: reviewDecision.value,
+      reviewer: reviewReviewer.value.trim(),
+      note: reviewNote.value,
+      machine_sha256: machine || '',
+    })
+    if (!disposed && request === itemRequest && selectedId.value === id && detail.value?.ordinal === ordinal) {
+      detail.value = value
+      reviewDecision.value = ''; reviewNote.value = ''
+      const refreshed = await getM2Run(id)
+      if (!disposed && request === itemRequest && selectedId.value === id) selected.value = refreshed
+    }
+  } catch (e) { if (!disposed && request === itemRequest) error.value = message(e) }
+  finally { reviewSaving.value = false }
+}
+async function downloadReviews() {
+  if (!selected.value || reviewExporting.value) return
+  const id = selected.value.run_id
+  reviewExporting.value = true; error.value = ''
+  try {
+    const value = await exportM2Reviews(id)
+    if (disposed) return
+    const url = URL.createObjectURL(new Blob([pretty(value)], { type: 'application/json;charset=utf-8' }))
+    const link = document.createElement('a'); link.href = url; link.download = `m2-reviews-${id}.json`; link.click(); URL.revokeObjectURL(url)
+  } catch (e) { if (!disposed) error.value = message(e) }
+  finally { reviewExporting.value = false }
 }
 async function downloadReport() {
   if (!selected.value) return
@@ -165,5 +216,5 @@ onUnmounted(() => { disposed = true; ++runRequest; ++itemRequest; if (timer !== 
 </script>
 
 <style scoped>
-.m2-page{max-width:1600px;margin:auto;color:#18344b}.m2-heading,.section-heading,.run-meta,.actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.m2-heading{margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:1.3px;color:#397a94}h1{font-size:28px;margin:8px 0}h2{font-size:18px;margin:0 0 18px}h3{font-size:15px}p{line-height:1.7}small,.muted{font-size:12px;color:#62778a;font-weight:400}.gap{margin-top:20px}.m2-card{background:#fff;border:1px solid #dde8ee;border-radius:16px;padding:24px;box-shadow:0 4px 20px #18344b05}.selection-grid{display:grid;grid-template-columns:1.35fr 1.7fr 1fr 1fr 1fr auto;align-items:end;gap:12px}label{font-size:12px;color:#516d80;display:flex;flex-direction:column;gap:8px}label .el-select,label .el-input-number{width:100%}.history-select{width:440px;max-width:100%}.run-meta{justify-content:flex-start;margin:14px 0}.actions{justify-content:flex-start}.revision{width:135px}.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:22px 0}.stat-grid>div{background:#f1f7fa;border-radius:10px;padding:16px}.stat-grid strong{display:block;font-size:26px;color:#25667c}.stat-grid span{font-size:12px;color:#526e80}.metric-note{background:#fff8e8;border-left:3px solid #d3a044;padding:10px 14px;font-size:12px}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.summary-grid article{border:1px solid #e1eaf0;padding:14px;border-radius:10px}dl{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px}dd{margin:0;font-weight:600}code{font-size:12px;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 Consolas,monospace;background:#f4f7fa;padding:16px;border-radius:8px;max-height:600px;overflow:auto}.source-text{font-family:inherit;font-size:14px}.evidence-row{border-bottom:1px solid #e5edf2;padding:12px 0}.evidence-row blockquote{white-space:pre-wrap;margin:8px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}@media(max-width:1100px){.selection-grid{grid-template-columns:repeat(3,1fr)}.stat-grid,.summary-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.selection-grid,.stat-grid,.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.m2-card{padding:16px}.summary-grid article{grid-column:span 2}}
+.m2-page{max-width:1600px;margin:auto;color:#18344b}.m2-heading,.section-heading,.run-meta,.actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.m2-heading{margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:1.3px;color:#397a94}h1{font-size:28px;margin:8px 0}h2{font-size:18px;margin:0 0 18px}h3{font-size:15px}p{line-height:1.7}small,.muted{font-size:12px;color:#62778a;font-weight:400}.gap{margin-top:20px}.m2-card{background:#fff;border:1px solid #dde8ee;border-radius:16px;padding:24px;box-shadow:0 4px 20px #18344b05}.selection-grid{display:grid;grid-template-columns:1.35fr 1.7fr 1fr 1fr 1fr auto;align-items:end;gap:12px}label{font-size:12px;color:#516d80;display:flex;flex-direction:column;gap:8px}label .el-select,label .el-input-number{width:100%}.history-select{width:440px;max-width:100%}.run-meta{justify-content:flex-start;margin:14px 0}.actions{justify-content:flex-start}.revision{width:135px}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}.stat-grid>div{background:#f1f7fa;border-radius:10px;padding:16px}.stat-grid strong{display:block;font-size:26px;color:#25667c}.stat-grid span{font-size:12px;color:#526e80}.metric-note{background:#fff8e8;border-left:3px solid #d3a044;padding:10px 14px;font-size:12px}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.summary-grid article{border:1px solid #e1eaf0;padding:14px;border-radius:10px}dl{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px}dd{margin:0;font-weight:600}.review-panel{border-top:1px solid #dde8ee;padding-top:22px}.review-form{display:grid;grid-template-columns:.8fr 1fr 2fr auto;align-items:end;gap:12px;margin:16px 0}.review-form .el-select,.review-form .el-input{width:100%}.review-note{grid-column:span 1}code{font-size:12px;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 Consolas,monospace;background:#f4f7fa;padding:16px;border-radius:8px;max-height:600px;overflow:auto}.source-text{font-family:inherit;font-size:14px}.evidence-row{border-bottom:1px solid #e5edf2;padding:12px 0}.evidence-row blockquote{white-space:pre-wrap;margin:8px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}@media(max-width:1100px){.selection-grid,.review-form{grid-template-columns:repeat(3,1fr)}.stat-grid,.summary-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.selection-grid,.stat-grid,.summary-grid,.review-form{grid-template-columns:repeat(2,minmax(0,1fr))}.review-note{grid-column:span 2}.m2-card{padding:16px}.summary-grid article{grid-column:span 2}}
 </style>

@@ -32,6 +32,8 @@ def api(monkeypatch, tmp_path):
 @pytest.mark.parametrize('path,method,payload', [
     ('sources','GET',None), ('runs','GET',None), ('runs','POST',{}),
     ('runs/'+'a'*32,'GET',None), ('runs/'+'a'*32+'/items/1','GET',None),
+    ('runs/'+'a'*32+'/items/1/review','POST',{}),
+    ('runs/'+'a'*32+'/reviews/export','GET',None),
     ('runs/'+'a'*32+'/start','POST',{}), ('runs/'+'a'*32+'/stop','POST',{}),
     ('runs/'+'a'*32+'/replay','POST',{}), ('runs/'+'a'*32+'/report','GET',None),
     ('runs/'+'a'*32+'/graph','POST',{}), ('runs/'+'a'*32+'/graph','GET',None),
@@ -67,6 +69,47 @@ def test_api_create_does_not_start_and_validation_is_bounded(api, monkeypatch):
     report = client.get(f'/api/m2/runs/{run_id}/report').json()['data']
     assert report['summary']['input_total'] == 1
     assert report['summary']['stage_complete'] == 1
+
+
+def test_review_api_binds_machine_result_and_exports_human_events(api, monkeypatch):
+    client, m2, engine = api
+    monkeypatch.setattr(m2.source, 'read_mysql', lambda _: ([dict(
+        id=7,
+        source='boss',
+        job_title='后端工程师',
+        raw_text='岗位职责：负责软件开发。\n任职要求：熟悉 Python。',
+        duties=None,
+        experience=None,
+    )], {'kind':'synthetic'}))
+    run_id = client.post('/api/m2/runs', json={'limit':1}).json()['data']['run_id']
+    assert client.post(f'/api/m2/runs/{run_id}/items/1/review', json={
+        'decision': 'accepted',
+        'reviewer': 'human-reviewer',
+        'note': '',
+        'machine_sha256': '0' * 64,
+    }).status_code == 400
+    assert client.post(f'/api/m2/runs/{run_id}/start', json={}).status_code == 200
+    engine.join(20)
+    detail = client.get(f'/api/m2/runs/{run_id}/items/1').json()['data']
+    response = client.post(f'/api/m2/runs/{run_id}/items/1/review', json={
+        'decision': 'needs_followup',
+        'reviewer': 'human-reviewer',
+        'note': '需要人工核对组合要求',
+        'machine_sha256': detail['machine_sha256'],
+    })
+    assert response.status_code == 200
+    reviewed = response.json()['data']
+    assert reviewed['human_review']['reviewer'] == 'human-reviewer'
+    assert reviewed['stages'] == detail['stages']
+    assert response.headers['cache-control'] == 'no-store'
+
+    exported = client.get(f'/api/m2/runs/{run_id}/reviews/export')
+    assert exported.status_code == 200
+    payload = exported.json()['data']
+    assert payload['schema_version'] == 'm2-human-review-export-1'
+    assert payload['items'][0]['input']['id'] == 7
+    assert payload['reviews'][0]['decision'] == 'needs_followup'
+    assert exported.headers['cache-control'] == 'no-store'
 
 
 def test_graph_artifacts_are_run_bound_and_local_only(api, monkeypatch):

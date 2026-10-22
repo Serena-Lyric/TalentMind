@@ -10,7 +10,7 @@ from ...collect.cleaner import is_valid_jd
 from ..foundation.inputs import canonical, parse_json
 from ..foundation.models import VersionName
 
-RULESET = "conservative-activity-v3"
+RULESET = "conservative-activity-v4"
 
 
 class ScopeDefinition(BaseModel):
@@ -80,11 +80,37 @@ ACTIVITIES['software_development'] += (
     r'(?:应用程序|软件模块|后端业务系统|后端服务|前端应用)的'
     r'(?:设计|开发|维护|优化)(?:(?:与|和|及)(?:设计|开发|维护|优化))*(?=\s*(?:[，,、。；;!?！？\n]|$))'
 )
+ACTIVITIES['software_development'] += (
+    r'|(?:系统|平台|模块|软件|程序|代码|接口|后端|前端|应用|服务|中间件)'
+    r'(?:架构|业务|通信框架)?(?:的)?(?:设计|开发|研发|实现|编码|调试|重构|优化|维护|迭代)'
+    r'(?!(?:经验|流程|框架|效率|进度|工程师|工具|采购|管理|任务|需求)|'
+    r'(?:与|和|及)?(?:设计|开发|研发|实现|编码|调试|重构|优化|维护|迭代)?'
+    r'(?:进度|工具|采购|管理|任务|需求))'
+)
+ACTIVITIES['software_testing'] += (
+    r'|(?:测试用例|自动化测试|接口测试|集成测试|回归测试|性能测试)'
+    r'(?:的)?(?:设计|编写|执行|维护|跟踪)'
+)
+ACTIVITIES['data'] += (
+    r'|(?:数据仓库|数据管道|数据模型|业务数据|数据集|数据质量|ETL)'
+    r'(?:流程)?(?:的)?(?:建模|设计|开发|建设|分析|清洗|校验|治理|维护)'
+)
+ACTIVITIES['it_operations'] += (
+    r'|(?:服务器|云平台|集群|网络系统|数据库|应用|容器|系统)'
+    r'(?:的)?(?:部署|维护|运维|监控|管理|保障)'
+)
 
 
 def _matches(field, text, pattern, signal):
     return [dict(field=field, start=m.start(), end=m.end(), quote=m.group(), signal=signal)
             for m in re.finditer(pattern, text, re.IGNORECASE)]
+
+
+def _unique_evidence(items):
+    unique = {}
+    for item in items:
+        unique[(item["field"], item["start"], item["end"], item["quote"], item["signal"])] = item
+    return sorted(unique.values(), key=lambda item: (item["field"], item["start"], item["end"], item["signal"]))
 
 
 def screen(record, scope):
@@ -120,7 +146,9 @@ def screen(record, scope):
             qualification += qualifiers
             non_job += adverts
             context += background
-    evidence = titles + other_titles + technical + other + qualification + ambiguous + non_job + context
+    evidence = _unique_evidence(
+        titles + other_titles + technical + other + qualification + ambiguous + non_job + context
+    )
     substantive = technical or other or qualification or ambiguous
     text = "\n".join(payload.get(f, "") for f in ("raw_text", "duties", "requirements"))
     validity = "valid" if substantive else "undetermined"

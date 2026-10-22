@@ -104,6 +104,93 @@ def test_same_version_repeat_reuses_native_facts_without_overwriting_old_report(
     assert engine.item(first['run_id'], 1)['stages']['b2']['result']['attempt_id'] == engine.item(replay['run_id'], 1)['stages']['b2']['result']['attempt_id']
 
 
+def test_human_review_is_append_only_machine_bound_and_exportable(product):
+    engine, source, _ = product
+    draft = engine.create(source.Selection(limit=4))
+    finish(engine, draft['run_id'])
+    original_report = engine.report(draft['run_id'])
+    item = engine.item(draft['run_id'], 1)
+    assert item['human_review'] is None
+    assert item['machine_sha256']
+
+    with pytest.raises(ValueError, match='machine'):
+        engine.review(draft['run_id'], 1, {
+            'decision': 'accepted',
+            'reviewer': 'human-reviewer',
+            'note': 'stale result',
+            'machine_sha256': '0' * 64,
+        })
+
+    accepted = engine.review(draft['run_id'], 1, {
+        'decision': 'accepted',
+        'reviewer': 'human-reviewer',
+        'note': '职责与技能证据可接受',
+        'machine_sha256': item['machine_sha256'],
+    })
+    rejected = engine.review(draft['run_id'], 1, {
+        'decision': 'rejected',
+        'reviewer': 'second-reviewer',
+        'note': '需要后续修订',
+        'machine_sha256': item['machine_sha256'],
+    })
+    assert accepted['review_id'] != rejected['review_id']
+    refreshed = engine.item(draft['run_id'], 1)
+    assert refreshed['human_review']['decision'] == 'rejected'
+    assert len(refreshed['reviews']) == 2
+    assert engine.report(draft['run_id']) == original_report
+
+    run = engine.get(draft['run_id'])
+    assert run['summary']['review'] == {
+        'total_items': 4,
+        'reviewed_items': 1,
+        'unreviewed_items': 3,
+        'accepted': 0,
+        'rejected': 1,
+        'needs_followup': 0,
+    }
+    assert run['items'][0]['human_review']['reviewer'] == 'second-reviewer'
+
+    exported = engine.review_export(draft['run_id'])
+    assert exported['schema_version'] == 'm2-human-review-export-1'
+    assert exported['run']['run_id'] == draft['run_id']
+    assert len(exported['reviews']) == 2
+    reviewed = next(item for item in exported['items'] if item['ordinal'] == 1)
+    assert reviewed['input']['id'] == 1
+    assert reviewed['machine']['sha256'] == item['machine_sha256']
+    assert reviewed['human_review']['decision'] == 'rejected'
+
+    with closing(sqlite3.connect(engine.root / 'workflow.sqlite3')) as conn:
+        conn.execute('PRAGMA recursive_triggers=ON')
+        assert conn.execute('SELECT COUNT(*) FROM product_reviews').fetchone()[0] == 2
+        saved = conn.execute('SELECT * FROM product_reviews LIMIT 1').fetchone()
+        for sql in (
+            'DELETE FROM product_reviews',
+            'INSERT OR REPLACE INTO product_reviews VALUES ({})'.format(','.join('?' for _ in saved)),
+        ):
+            with pytest.raises(sqlite3.IntegrityError):
+                conn.execute(sql, tuple(saved) if 'INSERT' in sql else ())
+
+
+def test_human_review_rejects_unfinished_or_unknown_item(product):
+    engine, source, _ = product
+    draft = engine.create(source.Selection(limit=4))
+    with pytest.raises(ValueError, match='complete'):
+        engine.review(draft['run_id'], 1, {
+            'decision': 'accepted',
+            'reviewer': 'human-reviewer',
+            'note': '',
+            'machine_sha256': '0' * 64,
+        })
+    finish(engine, draft['run_id'])
+    with pytest.raises(ValueError, match='not found'):
+        engine.review(draft['run_id'], 99, {
+            'decision': 'accepted',
+            'reviewer': 'human-reviewer',
+            'note': '',
+            'machine_sha256': '0' * 64,
+        })
+
+
 def test_stop_stage_boundary_resume_keeps_committed_stage(product, monkeypatch):
     engine, source, _ = product
     entered, release = threading.Event(), threading.Event()

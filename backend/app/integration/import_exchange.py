@@ -13,6 +13,9 @@ from typing import Any
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
+from app.integration.destructive_guard import (
+    require_mysql_destructive_authorization,
+)
 from app.integration.m2_package import DEFAULT_PACKAGE_DIR, load_json_items, load_return_package, package_summary
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -124,17 +127,13 @@ def _definition_skills(definition: dict[str, Any], skill_records: list[dict[str,
 
 
 def import_skill_dict(path: Path | None = None, session=None) -> int:
-    entries = _load_json(path or SKILL_DICT_PATH)
     db = session or SessionLocal()
     try:
-        db.execute(text("DELETE FROM skill_dict"))
-        for entry in entries:
-            db.execute(text("INSERT INTO skill_dict (canonical, aliases, category) VALUES (:canonical, :aliases, :category)"), {
-                "canonical": entry["canonical"], "aliases": _json(entry.get("aliases", [])), "category": entry.get("category", "")
-            })
+        require_mysql_destructive_authorization("mysql.import_skill_dict", db)
+        count = _replace_skill_dict(db, _load_json(path or SKILL_DICT_PATH))
         if session is None:
             db.commit()
-        return len(entries)
+        return count
     except Exception:
         if session is None:
             db.rollback()
@@ -142,6 +141,15 @@ def import_skill_dict(path: Path | None = None, session=None) -> int:
     finally:
         if session is None:
             db.close()
+
+
+def _replace_skill_dict(db, entries: list[dict[str, Any]]) -> int:
+    db.execute(text("DELETE FROM skill_dict"))
+    for entry in entries:
+        db.execute(text("INSERT INTO skill_dict (canonical, aliases, category) VALUES (:canonical, :aliases, :category)"), {
+            "canonical": entry["canonical"], "aliases": _json(entry.get("aliases", [])), "category": entry.get("category", "")
+        })
+    return len(entries)
 
 
 def _definitions_and_skills(defs: list[dict[str, Any]], skills: list[dict[str, Any]], aliases: dict[str, str], session=None) -> tuple[int, int, dict[str, int]]:
@@ -211,32 +219,34 @@ def _definitions_and_skills(defs: list[dict[str, Any]], skills: list[dict[str, A
 
 
 def import_job_definitions(path: Path | None = None, session=None) -> int:
-    if path is None and DEFAULT_PACKAGE_DIR.exists():
-        package = load_return_package(DEFAULT_PACKAGE_DIR)
-        defs = package["definitions"]
-        skills = package["skills"]
-        _, aliases = _load_skill_dict()
-        count, _, _ = _definitions_and_skills(defs, skills, aliases)
-        return count
-    defs = _load_json(path or EXCHANGE_M2 / "job_definition.json")
     db = session or SessionLocal()
     try:
-        _ensure_columns(db)
-        db.execute(text("DELETE FROM job_definition"))
-        for d in defs:
-            db.execute(text("""
-                INSERT INTO job_definition (job_name, core_duties, required_skills, bonus_skills, scenarios, source, quality, is_emerging, evolution, first_seen, collected_at, updated_at)
-                VALUES (:job_name, :core_duties, :required_skills, :bonus_skills, :scenarios, :source, :quality, :is_emerging, :evolution, :first_seen, :collected_at, :updated_at)
-            """), {
-                "job_name": d.get("job_name", ""), "core_duties": d.get("core_duties", ""),
-                "required_skills": _json(d.get("required_skills", [])), "bonus_skills": _json(d.get("bonus_skills", [])),
-                "scenarios": _json(d.get("scenarios", [])), "source": _json(d.get("source", [])), "quality": float(d.get("quality", 0) or 0),
-                "is_emerging": int(bool(d.get("is_emerging", False))), "evolution": _json(d.get("evolution", {})),
-                "first_seen": d.get("first_seen") or None, "collected_at": d.get("collected_at") or None, "updated_at": d.get("updated_at") or None,
-            })
+        require_mysql_destructive_authorization("mysql.import_job_definitions", db)
+        if path is None and DEFAULT_PACKAGE_DIR.exists():
+            package = load_return_package(DEFAULT_PACKAGE_DIR)
+            _, aliases = _load_skill_dict()
+            count, _, _ = _definitions_and_skills(
+                package["definitions"], package["skills"], aliases, session=db
+            )
+        else:
+            defs = _load_json(path or EXCHANGE_M2 / "job_definition.json")
+            _ensure_columns(db)
+            db.execute(text("DELETE FROM job_definition"))
+            for d in defs:
+                db.execute(text("""
+                    INSERT INTO job_definition (job_name, core_duties, required_skills, bonus_skills, scenarios, source, quality, is_emerging, evolution, first_seen, collected_at, updated_at)
+                    VALUES (:job_name, :core_duties, :required_skills, :bonus_skills, :scenarios, :source, :quality, :is_emerging, :evolution, :first_seen, :collected_at, :updated_at)
+                """), {
+                    "job_name": d.get("job_name", ""), "core_duties": d.get("core_duties", ""),
+                    "required_skills": _json(d.get("required_skills", [])), "bonus_skills": _json(d.get("bonus_skills", [])),
+                    "scenarios": _json(d.get("scenarios", [])), "source": _json(d.get("source", [])), "quality": float(d.get("quality", 0) or 0),
+                    "is_emerging": int(bool(d.get("is_emerging", False))), "evolution": _json(d.get("evolution", {})),
+                    "first_seen": d.get("first_seen") or None, "collected_at": d.get("collected_at") or None, "updated_at": d.get("updated_at") or None,
+                })
+            count = len(defs)
         if session is None:
             db.commit()
-        return len(defs)
+        return count
     except Exception:
         if session is None:
             db.rollback()
@@ -250,6 +260,7 @@ def import_job_skills(path: Path | None = None, session=None) -> int:
     items = _load_json(path or EXCHANGE_M2 / "job_skill.json")
     db = session or SessionLocal()
     try:
+        require_mysql_destructive_authorization("mysql.import_job_skills", db)
         rows = db.execute(text("SELECT id, job_name FROM job_definition")).mappings().all()
         id_by_name = {str(row["job_name"]): row["id"] for row in rows}
         db.execute(text("DELETE FROM job_skill"))
@@ -278,43 +289,45 @@ def _parse_datetime(value: Any) -> str | None:
     return str(value).replace("T", " ")[:19]
 
 
+def _import_change_log_rows(db, logs: list[dict[str, Any]], *, replace_all: bool) -> int:
+    _ensure_columns(db)
+    rows = db.execute(text("SELECT id, job_name, m2_job_id, name_en, job_name_zh FROM job_definition")).mappings().all()
+    lookup = {}
+    for row in rows:
+        for key in (row.get("m2_job_id"), row.get("job_name"), row.get("name_en"), row.get("job_name_zh")):
+            if key:
+                lookup[str(key).strip().lower()] = int(row["id"])
+    if replace_all:
+        db.execute(text("DELETE FROM job_change_log"))
+    imported = 0
+    for log in logs:
+        raw_ref = str(log.get("job_id") or "").strip()
+        job_id = lookup.get(raw_ref.lower())
+        if job_id is None and raw_ref.isdigit():
+            job_id = int(raw_ref)
+        if job_id is None and not replace_all:
+            # Explicit legacy imports keep their historical behavior.
+            continue
+        db.execute(text("""
+            INSERT INTO job_change_log
+            (job_id, m2_job_id, object_type, change_type, skill_name, detail, source, reason, created_at, source_jd_time)
+            VALUES (:job_id, :m2_job_id, :object_type, :change_type, :skill_name, :detail, :source, :reason, :created_at, :source_jd_time)
+        """), {
+            "job_id": job_id, "m2_job_id": raw_ref[:64], "object_type": str(log.get("object_type") or "skill")[:32],
+            "change_type": str(log.get("change_type") or "")[:32], "skill_name": str(log.get("skill_name") or "")[:128],
+            "detail": _json(log.get("detail", {})), "source": json.dumps(log.get("source", []), ensure_ascii=False)[:128],
+            "reason": log.get("reason") or "", "created_at": _parse_datetime(log.get("created_at")), "source_jd_time": _parse_datetime(log.get("source_jd_time")),
+        })
+        imported += 1
+    return imported
+
+
 def import_change_logs(path: Path | None = None, session=None, package_dir: Path | None = None) -> int:
     logs = _load_json(path) if path else load_return_package(package_dir or DEFAULT_PACKAGE_DIR)["change_logs"]
     db = session or SessionLocal()
     try:
-        _ensure_columns(db)
-        rows = db.execute(text("SELECT id, job_name, m2_job_id, name_en, job_name_zh FROM job_definition")).mappings().all()
-        lookup = {}
-        for row in rows:
-            for key in (row.get("m2_job_id"), row.get("job_name"), row.get("name_en"), row.get("job_name_zh")):
-                if key:
-                    lookup[str(key).strip().lower()] = int(row["id"])
-        if path is None:
-            db.execute(text("DELETE FROM job_change_log"))
-        imported = 0
-        orphaned = 0
-        for log in logs:
-            raw_ref = str(log.get("job_id") or "").strip()
-            job_id = lookup.get(raw_ref.lower())
-            if job_id is None and raw_ref.isdigit():
-                job_id = int(raw_ref)
-            if job_id is None:
-                orphaned += 1
-                # 显式导入旧测试/外部文件时保留旧语义：无法关联的记录不写入生产表；
-                # 默认 M2 回包导入则保留原始 job_id，保证 243 条变更记录可审计。
-                if path is not None:
-                    continue
-            db.execute(text("""
-                INSERT INTO job_change_log
-                (job_id, m2_job_id, object_type, change_type, skill_name, detail, source, reason, created_at, source_jd_time)
-                VALUES (:job_id, :m2_job_id, :object_type, :change_type, :skill_name, :detail, :source, :reason, :created_at, :source_jd_time)
-            """), {
-                "job_id": job_id, "m2_job_id": raw_ref[:64], "object_type": str(log.get("object_type") or "skill")[:32],
-                "change_type": str(log.get("change_type") or "")[:32], "skill_name": str(log.get("skill_name") or "")[:128],
-                "detail": _json(log.get("detail", {})), "source": json.dumps(log.get("source", []), ensure_ascii=False)[:128],
-                "reason": log.get("reason") or "", "created_at": _parse_datetime(log.get("created_at")), "source_jd_time": _parse_datetime(log.get("source_jd_time")),
-            })
-            imported += 1
+        require_mysql_destructive_authorization("mysql.import_change_logs", db)
+        imported = _import_change_log_rows(db, logs, replace_all=path is None)
         if session is None:
             db.commit()
         return imported
@@ -340,11 +353,15 @@ def import_all(package_dir: Path | str | None = None, session=None) -> dict[str,
     _, aliases = _load_skill_dict()
     db = session or SessionLocal()
     try:
+        require_mysql_destructive_authorization("mysql.import_all", db)
         _ensure_columns(db)
-        import_skill_dict(session=db)
-        db.execute(text("DELETE FROM job_change_log"))
+        _replace_skill_dict(db, _load_json(SKILL_DICT_PATH))
         job_count, skill_record_count, _ = _definitions_and_skills(defs, skills, aliases, session=db)
-        change_count = import_change_logs(session=db, package_dir=Path(package_dir or DEFAULT_PACKAGE_DIR))
+        change_count = _import_change_log_rows(
+            db,
+            load_return_package(package_dir or DEFAULT_PACKAGE_DIR)["change_logs"],
+            replace_all=True,
+        )
         orphaned = int(db.execute(text("SELECT COUNT(*) FROM job_change_log WHERE job_id IS NULL")).scalar() or 0)
         if session is None:
             db.commit()

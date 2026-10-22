@@ -1,5 +1,6 @@
 """Explicit localhost-only M2 tasks; demo login grants no backend access."""
 from functools import lru_cache
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
@@ -39,6 +40,14 @@ class Replay(BaseModel):
     revision: str = Field(default='v1', pattern=r'^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')
 
 
+class ReviewRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    decision: Literal['accepted', 'rejected', 'needs_followup']
+    reviewer: str = Field(min_length=1, max_length=80)
+    note: str = Field(default='', max_length=4000)
+    machine_sha256: str = Field(pattern=r'^[a-f0-9]{64}$')
+
+
 @router.get('/sources')
 def sources():
     return call(source.available_sources)
@@ -72,6 +81,20 @@ def start(run_id: str):
 @router.post('/runs/{run_id}/stop')
 def stop(run_id: str):
     return call(get_workflow().stop, run_id)
+
+
+@router.post('/runs/{run_id}/items/{ordinal}/review')
+def review(run_id: str, ordinal: int, payload: ReviewRequest):
+    def submit():
+        workflow = get_workflow()
+        workflow.review(run_id, ordinal, payload.model_dump())
+        return workflow.item(run_id, ordinal)
+    return call(submit)
+
+
+@router.get('/runs/{run_id}/reviews/export')
+def review_export(run_id: str):
+    return call(get_workflow().review_export, run_id)
 
 
 @router.post('/runs/{run_id}/replay')

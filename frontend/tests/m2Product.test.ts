@@ -131,3 +131,98 @@ test('待审身份显示为独立标签并进入报告汇总', async () => {
     assert.equal(page.state.stageMetrics.value.content.eligible, 1)
   } finally { page.stop() }
 })
+
+test('人工审核绑定机器摘要并可读取历史和导出', async () => {
+  const completed = {
+    ...draft,
+    status: 'completed_with_issues',
+    summary: {
+      ...draft.summary,
+      review: { total_items: 1, reviewed_items: 1, unreviewed_items: 0, accepted: 1, rejected: 0, needs_followup: 0 },
+    },
+  }
+  const detail:any = {
+    ordinal: 1, jd_id: 101, source: 'boss', title: '后端工程师', final_status: 'needs_review',
+    evidence: { matched: 1, invalid: 0 }, machine_sha256: 'a'.repeat(64),
+    human_review: null, reviews: [], stages: {}, warnings: [], input_sha256: 'b'.repeat(64),
+    input: { id: 101, raw_text: '负责软件开发' },
+  }
+  const event = {
+    review_id: 1, schema_version: 'm2-human-review-1', run_id: completed.run_id,
+    ordinal: 1, jd_id: 101, input_sha256: 'b'.repeat(64), machine_sha256: 'a'.repeat(64),
+    machine_status: 'needs_review', decision: 'accepted', reviewer: '审核员',
+    note: '职责证据明确', reviewed_at: '2026-10-22T10:00:00+00:00',
+    sha256: 'c'.repeat(64), formal_truth_claim: false,
+  }
+  const page = m2Component({
+    getM2Run: completed,
+    getM2Item: detail,
+    reviewM2Item: { ...detail, human_review: event, reviews: [event] },
+    exportM2Reviews: { schema_version: 'm2-human-review-export-1', reviews: [event], items: [] },
+  })
+  try {
+    await page.mounted()
+    page.state.selected.value = completed
+    page.state.selectedId.value = completed.run_id
+    await page.state.inspectItem(1)
+    page.state.reviewDecision.value = 'accepted'
+    page.state.reviewReviewer.value = '审核员'
+    page.state.reviewNote.value = '职责证据明确'
+    await page.state.submitReview()
+
+    assert.deepEqual(page.calls.find(c => c.method === 'reviewM2Item').args, [
+      completed.run_id, 1,
+      { decision: 'accepted', reviewer: '审核员', note: '职责证据明确', machine_sha256: 'a'.repeat(64) },
+    ])
+    assert.equal(page.state.detail.value.human_review.decision, 'accepted')
+    assert.equal(page.state.reviewDecision.value, '')
+    await page.state.downloadReviews()
+    assert.equal(page.downloads[0].download, `m2-reviews-${completed.run_id}.json`)
+  } finally { page.stop() }
+})
+
+test('审核返回不能覆盖后来打开的 JD', async () => {
+  let finishReview!: (value:any) => void
+  const completed = { ...draft, status: 'completed_with_issues' }
+  const first:any = {
+    ordinal: 1, jd_id: 101, title: '岗位一', final_status: 'needs_review',
+    machine_sha256: 'a'.repeat(64), reviews: [], stages: {}, evidence: { matched: 0, invalid: 0 },
+  }
+  const second:any = { ...first, ordinal: 2, jd_id: 102, title: '岗位二', machine_sha256: 'd'.repeat(64) }
+  const page = m2Component({
+    getM2Run: completed,
+    getM2Item: (_id: string, ordinal: number) => ordinal === 1 ? first : second,
+    reviewM2Item: () => new Promise(resolve => { finishReview = resolve }),
+  })
+  try {
+    await page.mounted()
+    page.state.selected.value = completed
+    page.state.selectedId.value = completed.run_id
+    await page.state.inspectItem(1)
+    page.state.reviewDecision.value = 'accepted'
+    page.state.reviewReviewer.value = '审核员'
+    const pending = page.state.submitReview()
+    await page.state.inspectItem(2)
+    finishReview({ ...first, human_review: { decision: 'accepted' } })
+    await pending
+    assert.equal(page.state.detail.value.ordinal, 2)
+    assert.equal(page.state.detail.value.human_review, undefined)
+  } finally { page.stop() }
+})
+
+test('延迟导出使用发起时的 run_id 命名结果', async () => {
+  let finishExport!: (value:any) => void
+  const page = m2Component({
+    exportM2Reviews: () => new Promise(resolve => { finishExport = resolve }),
+  })
+  try {
+    page.state.selected.value = { ...draft, run_id: 'a'.repeat(32) }
+    page.state.selectedId.value = 'a'.repeat(32)
+    const pending = page.state.downloadReviews()
+    page.state.selected.value = { ...draft, run_id: 'b'.repeat(32) }
+    page.state.selectedId.value = 'b'.repeat(32)
+    finishExport({ reviews: [] })
+    await pending
+    assert.equal(page.downloads[0].download, `m2-reviews-${'a'.repeat(32)}.json`)
+  } finally { page.stop() }
+})
