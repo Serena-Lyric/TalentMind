@@ -4,6 +4,8 @@
 
 基线 `master@ce9e068`，分支 `codex/m1-platform-repair-20261022`。用户授权按平台逐步修复；只采用当前产品内容/身份规则，不执行正式 DDL、清理或高频采集。既有头像修改不纳入此阶段提交。
 
+交付：[Draft PR #52](https://github.com/Serena-Lyric/TalentMind/pull/52)，面向master，未启用自动合并。智联提交`2f95bc3`，BOSS提交`2cf7702`；两阶段代码及独立复核证据在本报告归档，真实验收仍未完成，Codex自检不替代ChatGPT的GitHub审查。
+
 修复慢面板提前稳定、空列表标题与正文资格混淆、整轮缓冲造成停止丢项、数据库故障事件缺失，以及父进程到智联 worker 的目标身份传递。复用了历史 `5a2cddb` 所指问题的修复思路，并补可见/非空/active 等待、逐条保存及控制器目标绑定；没有整合 PR49 或改变 BOSS。
 
 ### 验证
