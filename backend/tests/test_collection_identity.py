@@ -46,6 +46,16 @@ def binding(**extra):
     return result
 
 
+def test_missing_list_title_keeps_content_eligibility_but_rejects_identity():
+    from app.collect.identity import content_rejection, identity_decision
+    missing_title = {**job(), 'title': ''}
+    assert content_rejection(SITES['zhaopin'], missing_title, detail()) is None
+    status, _, reason = identity_decision(
+        SITES['zhaopin'], missing_title, detail(), binding(), '2026-10-22T12:00:00Z'
+    )
+    assert (status, reason) == ('unknown', 'missing_list_title')
+
+
 def test_valid_dom_binding_is_pending_not_verified():
     from app.collect.identity import identity_decision
 

@@ -304,6 +304,8 @@ def status(endpoint='http://127.0.0.1:9333', user_data_dir=None, platform=None,
             for key, host in HOSTS.items():
                 pages = [t for t in targets if host_matches(str(t.get('url', '')), host)]
                 result['platform_pages'][key] = len(pages)
+                if target_id and platform and key != platform:
+                    continue
                 result['platform_access'][key] = _unavailable('page_missing', 'target_page_missing')
                 if pages:
                     bound_id = target_id if key == platform else None
@@ -409,8 +411,17 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
         return {**base, **_unavailable(reason='edge_or_cdp_error')}
 
 
-def ensure_ready(platform: str, endpoint: str, user_data_dir: str | None, **kwargs) -> dict:
-    state = prepare(platform, endpoint, user_data_dir, **kwargs)
+def ensure_ready(platform: str, endpoint: str, user_data_dir: str | None, *,
+                 target_id: str | None = None, target_url: str | None = None, **kwargs) -> dict:
+    if target_id or target_url:
+        if not target_id or not target_url:
+            raise CdpError('incomplete_prepared_target_binding')
+        current = status(endpoint, user_data_dir, platform=platform,
+                         target_id=target_id, target_url=target_url)
+        state = {**current['platform_access'][platform], 'endpoint': current['endpoint'],
+                 'user_data_dir': user_data_dir, 'target_url': target_url}
+    else:
+        state = prepare(platform, endpoint, user_data_dir, **kwargs)
     if not state['can_collect']:
         raise CdpError(f"{platform}: {state['access_state']} ({state['reason']})")
     return state

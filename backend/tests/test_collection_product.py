@@ -20,6 +20,29 @@ def test_platform_switch_uses_own_city_codes():
     assert control.get_platforms()[1]['cities'][0]['code'] == '530'
 
 
+@pytest.mark.parametrize('target_id', ['chosen', None])
+def test_zhaopin_worker_receives_prepared_target_or_fails_closed(monkeypatch, target_id):
+    config = control._validated_config(control._DEFAULT_CONFIG, {'platform': 'zhaopin'})
+    state = control._default_state()
+    state['current_task'] = control._empty_task('zhaopin-binding-test', config)
+    control._save_state(state)
+    access = dict(can_collect=True, access_state='public_accessible', target_id=target_id)
+    monkeypatch.setattr(control, '_ensure_browser', lambda *a: {
+        'endpoint': 'http://127.0.0.1:9333', 'user_data_dir': 'synthetic-profile',
+        'platform_access': {'zhaopin': access},
+    })
+    monkeypatch.setattr(control, '_worker_environment', lambda: {})
+    spawned = []
+    monkeypatch.setattr(control, '_spawn_worker', lambda run_id, config, task, state, env: spawned.append(env))
+    control._launch_task('zhaopin-binding-test', config)
+    if target_id:
+        assert spawned[0]['TALENTMIND_COLLECTION_TARGET_ID'] == 'chosen'
+        assert spawned[0]['TALENTMIND_COLLECTION_TARGET_URL'] == 'https://www.zhaopin.com/jobs?jl=530&kw=Python&page=1'
+    else:
+        assert spawned == []
+        assert control._load_state()['current_task']['last_error'] == 'prepared_target_missing'
+
+
 @pytest.mark.parametrize('platform,city,url', [
     ('boss', {'name': '上海', 'code': '101020100'},
      'https://www.zhipin.com/web/geek/jobs?city=101020100&query=Java&page=1'),

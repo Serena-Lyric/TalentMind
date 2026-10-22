@@ -873,6 +873,11 @@ def _launch_task(run_id: str, config: dict[str, Any]) -> None:
             task['browser_page_status'] = access['access_state']
             env = _worker_environment()
             env['TALENTMIND_COLLECTION_EVENTS'] = '1'
+            if platform == 'zhaopin':
+                if not access.get('target_id'):
+                    raise RuntimeError('prepared_target_missing')
+                env['TALENTMIND_COLLECTION_TARGET_ID'] = access['target_id']
+                env['TALENTMIND_COLLECTION_TARGET_URL'] = _search_target(config)
             _spawn_worker(run_id, config, task, state, env)
             spawned = True
     except Exception as exc:

@@ -1,5 +1,9 @@
 # M1 采集模块（backend/app/collect/）
 
+## 2026-10-22 智联稳定性与逐条保存修复
+
+智联列表空标题最多有界等待6秒；详情仅在目标active、可见且标题/正文非空并变化后累计稳定样本。缺列表标题明确拒绝身份，不把正文误标无效。合格详情在下一条访问前逐条保存，数据库故障输出明确failure/finished。controller将目标ID/URL传给智联worker，目标丢失不另选标签。相关离线267项通过；本轮正式数据库未运行，未执行迁移或真实采集，详见[分平台修复报告](../../../docs/review/M1-platform-repair-2026-10-22.md)及[陷阱](../../../docs/superpowers/traps/2026-10-22-zhaopin-panel-persistence-target.md)。本节替代下方“CN仍整轮缓冲”的历史实现状态，不改变身份、完整性或DDL门禁。
+
 ## 2026-10-21 岗位身份待审
 
 内容资格与身份可信度分开。身份为 `verified / pending / unknown`，拒绝/失败仍是采集结果。智联 DOM 卡片只有在点击前后面板变化、目标卡片 active、连续两次稳定、标题一致，并通过正文有效性/截断/错岗检查后，才可写为 `pending`；点击前已 active 不豁免面板变化门禁，仅有 active、标题相同或固定等待仍拒绝。

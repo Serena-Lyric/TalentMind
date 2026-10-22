@@ -29,7 +29,7 @@ def batch(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_worker_environment', os.environ.copy)
     monkeypatch.setattr(control, '_ensure_browser', lambda endpoint, profile, platform, target: {
         'endpoint': endpoint, 'user_data_dir': profile,
-        'platform_access': {platform: {'can_collect': True, 'access_state': 'public_accessible'}}})
+        'platform_access': {platform: {'can_collect': True, 'access_state': 'public_accessible', 'target_id': 'synthetic-target'}}})
     monkeypatch.setattr(control, 'get_database_stats', lambda: pytest.fail('batch must not query DB'))
     control.update_config({'switch_interval_min': 0, 'switch_interval_max': 0})
     yield module

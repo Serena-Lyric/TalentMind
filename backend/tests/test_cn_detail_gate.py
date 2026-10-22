@@ -214,6 +214,127 @@ def test_card_active_alone_does_not_count_as_panel_update(monkeypatch):
     assert result['panel_changed'] is False
 
 
+def test_slow_panel_update_waits_past_stable_old_content(monkeypatch):
+    old = dict(panel_title='旧岗位', description='旧正文', company='旧公司',
+               panel_visible=True, target_active=True, list_url='synthetic')
+    changed = {**old, 'panel_title': '目标岗位', 'description': '目标正文'}
+    probes = iter([old, old, old, changed, changed])
+    class Client:
+        def evaluate(self, script):
+            return next(probes)
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+    result = cn.await_stable_panel(Client(), SITES['zhaopin'], 0, old, timeout=1)
+    assert result['panel_changed'] is True
+    assert result['panel_title'] == '目标岗位'
+    assert result['stable_samples'] == 2
+
+
+def test_list_waits_for_delayed_titles_without_navigating_again(monkeypatch):
+    blank = {'url': 'dom://zhaopin/synthetic', 'title': '', '_card_index': 0, '_dom': True}
+    snapshots = iter([[blank], [{**blank, 'title': 'Python 工程师'}]])
+    class Client:
+        def evaluate(self, script):
+            return next(snapshots)
+    monkeypatch.setattr(cn.browser, 'wait_access', lambda *a: {'can_collect': True})
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+    jobs = cn.extract_current_page(Client(), SITES['zhaopin'])
+    assert jobs[0]['title'] == 'Python 工程师'
+
+
+@pytest.mark.parametrize('intermediate', [
+    dict(panel_title='', description='', panel_visible=False, target_active=True),
+    dict(panel_title='目标岗位', description='目标正文', panel_visible=True, target_active=False),
+])
+def test_panel_loading_or_inactive_state_does_not_end_stability_wait(monkeypatch, intermediate):
+    old = dict(panel_title='旧岗位', description='旧正文', panel_visible=True, target_active=False)
+    ready = dict(panel_title='目标岗位', description='目标正文', panel_visible=True, target_active=True)
+    probes = iter([intermediate, intermediate, ready, ready])
+    class Client:
+        def evaluate(self, script):
+            return next(probes)
+    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
+    result = cn.await_stable_panel(Client(), SITES['zhaopin'], 0, old, timeout=1)
+    assert result['panel_visible'] is True
+    assert result['target_active_after'] is True
+    assert result['panel_title'] == '目标岗位'
+    assert result['stable_samples'] == 2
+
+
+def test_cn_worker_consumes_parent_target_binding(offline, monkeypatch):
+    _, _, _, run = offline
+    target = 'https://www.liepin.com/zhaopin/?key=Python&dqs=010&currentPage=1'
+    monkeypatch.setenv('TALENTMIND_COLLECTION_TARGET_ID', 'parent-chosen')
+    monkeypatch.setenv('TALENTMIND_COLLECTION_TARGET_URL', target)
+    seen = []
+    def ready(*args, **kwargs):
+        seen.append(kwargs)
+        return {'endpoint': 'http://127.0.0.1:9333', 'target_id': 'parent-chosen'}
+    monkeypatch.setattr(cn.browser, 'ensure_ready', ready)
+    run(detail_limit=1)
+    assert seen[0]['target_id'] == 'parent-chosen'
+    assert seen[0]['target_url'] == target
+
+
+def test_missing_titles_wait_is_bounded_and_preserves_unresolved_candidates(monkeypatch):
+    blank = {'url': 'dom://zhaopin/synthetic', 'title': '', '_dom': True}
+    ticks = [0.0]
+    class Client:
+        def evaluate(self, script):
+            return [blank]
+    monkeypatch.setattr(cn.browser, 'wait_access', lambda *a: {'can_collect': True})
+    monkeypatch.setattr(cn.time, 'monotonic', lambda: ticks[0])
+    monkeypatch.setattr(cn.time, 'sleep', lambda delay: ticks.__setitem__(0, ticks[0] + delay))
+    assert cn.extract_current_page(Client(), SITES['zhaopin']) == [blank]
+    assert ticks[0] == 6.0
+
+
+def test_database_provider_failure_still_emits_finished_stats(offline, monkeypatch):
+    from app.db import mysql
+    _, _, rows, run = offline
+    def unavailable():
+        raise RuntimeError('synthetic_database_unavailable')
+        yield
+    monkeypatch.setattr(mysql, 'get_db', unavailable)
+    events = []
+    with pytest.raises(RuntimeError, match='synthetic_database_unavailable'):
+        run(detail_limit=1, on_event=events.append)
+    finished = next(e for e in events if e['event'] == 'finished')['stats']
+    assert finished['failed'] == 1
+    assert finished['stop_reason'] == 'synthetic_database_unavailable'
+    assert rows() == []
+
+
+def test_first_detail_is_committed_before_next_access(offline, monkeypatch):
+    cards, details, rows, run = offline
+    cards.append(card(2)); details[card(2)['url']] = detail(2)
+    checks = []
+    def access(*a, **kw):
+        checks.append(len(rows()))
+        return {'can_collect': True, 'content_limited': False}
+    monkeypatch.setattr(cn.browser, 'wait_access', access)
+    stats = run(detail_limit=2)
+    assert checks == [0, 1]
+    assert stats['inserted'] == 2 and len(rows()) == 2
+
+
+def test_persistence_failure_emits_specific_reason_and_stops_next_detail(offline, monkeypatch):
+    cards, details, rows, run = offline
+    cards.append(card(2)); details[card(2)['url']] = detail(2)
+    events = []
+    def fail(*args, **kwargs):
+        raise RuntimeError('identity_schema_migration_required')
+    monkeypatch.setattr(cn, 'run_pipeline', fail)
+    with pytest.raises(RuntimeError, match='identity_schema_migration_required'):
+        run(detail_limit=2, on_event=events.append)
+    failure = next(e for e in events if e['event'] == 'failure')
+    finished = next(e for e in events if e['event'] == 'finished')['stats']
+    assert failure['phase'] == 'persistence'
+    assert failure['reason'] == 'identity_schema_migration_required'
+    assert finished['failed'] == 1 and finished['detail_attempted'] == 1
+    assert finished['stop_reason'] == 'identity_schema_migration_required'
+    assert rows() == []
+
+
 def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monkeypatch):
     from app.db import mysql
     path = tmp_path / 'zhaopin-pending.sqlite3'
