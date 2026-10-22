@@ -57,8 +57,37 @@
             <label class="review-note">备注<el-input v-model="reviewNote" type="textarea" :rows="3" maxlength="4000" show-word-limit placeholder="记录判断依据、需要修正的内容或待补证据" /></label>
             <el-button type="primary" :disabled="!canSubmitReview" :loading="reviewSaving" @click="submitReview">记录人工判断</el-button>
           </div>
+          <div class="review-dimension" aria-label="B1 范围人工标签">
+            <h3>B1 范围人工真值</h3>
+            <div class="review-label-grid">
+              <label>人工范围判断<el-select v-model="reviewScopeStatus" clearable placeholder="未填写"><el-option label="范围内" value="in_scope" /><el-option label="范围外" value="out_of_scope" /><el-option label="范围待审" value="needs_review" /><el-option label="不适用" value="not_applicable" /></el-select></label>
+              <label>B1 依据<el-input v-model="reviewScopeNote" maxlength="1000" placeholder="仅记录人工判断依据" /></label>
+            </div>
+          </div>
+          <div class="review-dimension" aria-label="B2 技能陈述人工标签">
+            <h3>B2 技能陈述与要求状态人工真值</h3>
+            <p class="muted">机器五态与组合条件保持只读；人工列未填写时仍为“未审核”。</p>
+            <el-table v-if="b2ReviewRows.length" :data="b2ReviewRows" size="small" stripe>
+              <el-table-column prop="skill" label="机器技能" width="120" />
+              <el-table-column label="机器陈述" min-width="260"><template #default="{ row }"><span>{{ row.quote }}</span><small>{{ statusText(row.machine_state) }} · 组合 {{ row.relation || '单项' }}<template v-if="row.condition"> · 有上下文条件</template></small></template></el-table-column>
+              <el-table-column label="人工状态" width="135"><template #default="{ row }"><el-select v-model="humanStatementStates[row.key]" clearable placeholder="未填写"><el-option v-for="state in humanSkillStates" :key="state" :label="statusText(state)" :value="state" /></el-select></template></el-table-column>
+              <el-table-column label="人工依据" min-width="180"><template #default="{ row }"><el-input v-model="humanStatementNotes[row.key]" maxlength="1000" placeholder="可选" /></template></el-table-column>
+            </el-table>
+            <el-empty v-else description="当前机器结果没有可逐项标注的 B2 技能陈述。" />
+          </div>
+          <div class="review-dimension" aria-label="B3 大类候选人工标签">
+            <h3>B3 大类候选人工真值</h3>
+            <p class="muted">机器候选保持只读；可额外选择已登记大类，记录机器漏判候选。</p>
+            <label class="additional-family">补充机器漏判候选<el-select v-model="reviewAdditionalB3Family" clearable placeholder="未补充"><el-option v-for="family in familyOptions" :key="family.id" :label="family.label" :value="family.id" /></el-select></label>
+            <el-table v-if="b3ReviewRows.length" :data="b3ReviewRows" size="small" stripe>
+              <el-table-column label="大类" width="180"><template #default="{ row }">{{ row.label }}<small>{{ row.machine ? '机器候选' : '人工补充' }}</small></template></el-table-column>
+              <el-table-column prop="evidence" label="机器职责证据" min-width="280" />
+              <el-table-column label="人工判断" width="145"><template #default="{ row }"><el-select v-model="humanB3Decisions[row.family_id]" clearable placeholder="未填写"><el-option label="接受候选" value="accepted" /><el-option label="拒绝候选" value="rejected" /><el-option label="需要跟进" value="needs_followup" /></el-select></template></el-table-column>
+              <el-table-column label="人工依据" min-width="180"><template #default="{ row }"><el-input v-model="humanB3Notes[row.family_id]" maxlength="1000" placeholder="可选" /></template></el-table-column>
+            </el-table>
+          </div>
           <el-alert title="审核提交只代表本机录入的自述判断，不验证人员身份，也不会把机器预测升级为已确认需求或正式岗位。" type="info" :closable="false" />
-          <el-table v-if="detail.reviews?.length" :data="detail.reviews" stripe class="gap" aria-label="人工审核历史"><el-table-column prop="reviewed_at" label="时间" min-width="180" /><el-table-column prop="reviewer" label="审核人" width="140" /><el-table-column label="决定" width="130"><template #default="{ row }">{{ statusText(row.decision) }}</template></el-table-column><el-table-column prop="note" label="备注" min-width="260" /><el-table-column label="机器摘要" width="140"><template #default="{ row }"><code>{{ row.machine_sha256.slice(0, 12) }}…</code></template></el-table-column></el-table>
+          <el-table v-if="detail.reviews?.length" :data="detail.reviews" stripe class="gap" aria-label="人工审核历史"><el-table-column prop="reviewed_at" label="时间" min-width="180" /><el-table-column prop="reviewer" label="审核人" width="140" /><el-table-column label="决定" width="130"><template #default="{ row }">{{ statusText(row.decision) }}</template></el-table-column><el-table-column label="逐项标签" width="95"><template #default="{ row }">{{ annotationCount(row) }}</template></el-table-column><el-table-column prop="note" label="备注" min-width="220" /><el-table-column label="机器摘要" width="140"><template #default="{ row }"><code>{{ row.machine_sha256.slice(0, 12) }}…</code></template></el-table-column></el-table>
           <el-empty v-else description="尚无人工审核事件；系统不会自动填写真值。" />
         </section>
       </template>
@@ -67,8 +96,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { createM2Run, exportM2Reviews, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, reviewM2Item, startM2Run, stopM2Run, type M2History, type M2Item, type M2ReviewDecision, type M2Run, type M2Sources } from '../api/m2'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { createM2Run, exportM2Reviews, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, reviewM2Item, startM2Run, stopM2Run, type M2History, type M2HumanAnnotations, type M2HumanReview, type M2HumanSkillState, type M2Item, type M2ReviewDecision, type M2ReviewRequest, type M2Run, type M2Sources } from '../api/m2'
+
+interface B2ReviewRow {
+  key: string; skill_ids: string[]; statement_id: string; skill: string; quote: string
+  machine_state: string; relation: string | null; condition: string | null
+}
+interface B3ReviewRow {
+  family_id: string; label: string; machine: boolean; evidence: string
+}
 
 const catalog = ref<M2Sources | null>(null), history = ref<M2History[]>([]), selected = ref<M2Run | null>(null)
 const selectedId = ref(''), detail = ref<M2Item | null>(null), drawer = ref(false), detailLoading = ref(false), detailTab = ref('source')
@@ -76,6 +113,12 @@ const sources = ref<string[]>([]), cohort = ref('history'), idMin = ref<number>(
 const error = ref(''), refreshing = ref(false), mutating = ref(false)
 const graphLoading = ref(false)
 const reviewDecision = ref<M2ReviewDecision | ''>(''), reviewReviewer = ref(''), reviewNote = ref('')
+const reviewScopeStatus = ref<'' | 'in_scope' | 'out_of_scope' | 'needs_review' | 'not_applicable'>(''), reviewScopeNote = ref('')
+const reviewAdditionalB3Family = ref('')
+const humanStatementStates = reactive<Record<string, M2HumanSkillState | ''>>({})
+const humanStatementNotes = reactive<Record<string, string>>({})
+const humanB3Decisions = reactive<Record<string, M2ReviewDecision | ''>>({})
+const humanB3Notes = reactive<Record<string, string>>({})
 const reviewSaving = ref(false), reviewExporting = ref(false)
 const stages = ['b1','b2','b22','b3']
 const stageLabels: Record<string, string> = { b1:'B1 筛选', b2:'B2 语义', b22:'B2.2 治理', b3:'B3 候选', evidence:'证据审计', identity:'身份可信度', content:'内容资格', review:'人工复核' }
@@ -85,8 +128,47 @@ const canStart = computed(() => !mutating.value && selected.value && ['queued','
 const pageItems = computed(() => selected.value?.items.slice((page.value - 1) * 20, page.value * 20) || [])
 const stageMetrics = computed(() => Object.fromEntries(['b1','b2','b22','b3','evidence','identity','content','review'].map(s => [s, (selected.value?.summary as any)?.[s] || {}])))
 const canSubmitReview = computed(() => !!detail.value?.machine_sha256 && ['completed','completed_with_issues'].includes(selected.value?.status || '') && !!reviewDecision.value && !!reviewReviewer.value.trim() && !reviewSaving.value)
+const humanSkillStates: M2HumanSkillState[] = ['required', 'preferred', 'mentioned', 'not_required', 'uncertain', 'not_skill']
+const familyOptions = [
+  { id: 'software_engineering', label: '软件研发' },
+  { id: 'test_quality_engineering', label: '测试与质量工程' },
+  { id: 'data_ai', label: '数据与人工智能' },
+  { id: 'infrastructure_operations', label: '基础设施与运维' },
+  { id: 'network_information_security', label: '网络与信息安全' },
+  { id: 'embedded_system_software', label: '嵌入式与系统软件' },
+  { id: 'technical_services_delivery', label: '技术服务与交付' },
+  { id: 'hardware_integrated_circuits', label: '硬件与集成电路' },
+]
+const b2ReviewRows = computed<B2ReviewRow[]>(() => {
+  const statements = detail.value?.stages.b2?.result?.body?.statements || []
+  const normalized = detail.value?.stages.b22?.result?.body?.skills || []
+  return statements.map((statement: any) => {
+    const skills = normalized.filter((skill: any) => (skill.statement_ids || []).includes(statement.id))
+    return {
+      key: statement.id, skill_ids: skills.map((skill: any) => skill.id), statement_id: statement.id,
+      skill: skills.map((skill: any) => skill.canonical || skill.raw_name).join(' / ')
+        || (statement.skills || []).map((skill: any) => skill.name).join(' / '),
+      quote: statement.evidence?.quote || '', machine_state: statement.state,
+      relation: statement.relation, condition: statement.condition,
+    }
+  })
+})
+const b3ReviewRows = computed<B3ReviewRow[]>(() => {
+  const candidates = detail.value?.stages.b3?.result?.body?.candidates || []
+  const rows: B3ReviewRow[] = candidates.map((candidate: any) => ({
+    family_id: candidate.family_id,
+    label: familyOptions.find(family => family.id === candidate.family_id)?.label || candidate.family_id,
+    machine: true,
+    evidence: (candidate.clues || []).map((clue: any) => clue.evidence?.quote).filter(Boolean).join('；'),
+  }))
+  const additional = reviewAdditionalB3Family.value
+  if (additional && !rows.some((row: any) => row.family_id === additional)) {
+    rows.push({ family_id: additional, label: familyOptions.find(family => family.id === additional)?.label || additional, machine: false, evidence: '机器未给出该大类候选；由人工补充待核。' })
+  }
+  return rows
+})
 const text: Record<string, string> = {
-  queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'机器待复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', unreviewed:'人工未审核', accepted:'人工接受', rejected:'人工拒绝', needs_followup:'人工需跟进', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
+  queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'机器待复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', not_skill:'非技能陈述', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', unreviewed:'人工未审核', accepted:'人工接受', rejected:'人工拒绝', needs_followup:'人工需跟进', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
 }
 const metrics: Record<string,string> = {valid:'有效 JD',invalid:'无效 JD',undetermined:'有效性待复核',in_scope:'范围内 JD',out_of_scope:'范围外 JD',needs_review:'范围待复核 JD',not_applicable:'范围不适用 JD',not_evaluated:'未评估 JD',failed:'失败 JD',blocked:'未执行 JD',pending:'待处理 JD',running:'执行中 JD',completed:'受支持语法完整 JD',partial:'部分处理 JD',no_recognized_skills:'无已识别技能 JD',unresolved_jds:'有未决内容 JD',processed:'治理已处理 JD',candidate_jds:'有候选 JD',candidates:'候选项数',semantic_conflict_jds:'已检查的语义冲突 JD',catalog_conflict_assessment:'目录治理冲突评估',unresolved_fragments:'未解决片段数',pending_review:'待审核 JD',unable_to_classify:'无法分类 JD',outputs_with_evidence:'有原文引文的阶段输出',outputs_without_evidence:'无引文的阶段输出',matched_spans:'已匹配原文位置',invalid_spans:'位置校验异常',unparseable_jds:'不可解析 JD',statements_required:'明确要求陈述',statements_preferred:'加分优先陈述',statements_mentioned:'仅提及陈述',statements_not_required:'明确不要求陈述',statements_uncertain:'待判断陈述',total_items:'审核分母条目',reviewed_items:'人工已提交条目',unreviewed_items:'人工未提交条目'}
 function statusText(value: string) { return text[value] || value }
@@ -107,6 +189,17 @@ function evidenceRows(value: any) {
     Object.values(node).forEach(walk)
   }
   walk(value); return [...found.values()]
+}
+function resetReviewAnnotations() {
+  reviewScopeStatus.value = ''; reviewScopeNote.value = ''; reviewAdditionalB3Family.value = ''
+  Object.keys(humanStatementStates).forEach(key => delete humanStatementStates[key])
+  Object.keys(humanStatementNotes).forEach(key => delete humanStatementNotes[key])
+  Object.keys(humanB3Decisions).forEach(key => delete humanB3Decisions[key])
+  Object.keys(humanB3Notes).forEach(key => delete humanB3Notes[key])
+}
+function annotationCount(review: M2HumanReview) {
+  const annotations = review.human_annotations
+  return (annotations?.b1_scope ? 1 : 0) + (annotations?.b2_statements?.length || 0) + (annotations?.b3_categories?.length || 0)
 }
 function saveRun(value: M2Run) {
   selected.value = value; selectedId.value = value.run_id
@@ -164,7 +257,7 @@ async function inspectItem(ordinal: number) {
   if (!selected.value) return
   const id = selected.value.run_id, request = ++itemRequest
   detail.value = null; detailLoading.value = true; drawer.value = true; detailTab.value = 'source'; error.value = ''
-  reviewDecision.value = ''; reviewReviewer.value = ''; reviewNote.value = ''
+  reviewDecision.value = ''; reviewReviewer.value = ''; reviewNote.value = ''; resetReviewAnnotations()
   try { const value = await getM2Item(id, ordinal); if (!disposed && request === itemRequest && selectedId.value === id) detail.value = value }
   catch (e) { if (!disposed && request === itemRequest) error.value = message(e) }
   finally { if (request === itemRequest) detailLoading.value = false }
@@ -175,15 +268,30 @@ async function submitReview() {
   const request = itemRequest
   reviewSaving.value = true; error.value = ''
   try {
-    const value = await reviewM2Item(id, ordinal, {
+    const annotations: M2HumanAnnotations = {
+      b1_scope: reviewScopeStatus.value ? { scope_status: reviewScopeStatus.value, note: reviewScopeNote.value } : null,
+      b2_statements: b2ReviewRows.value.flatMap(row => humanStatementStates[row.key] ? [{
+        statement_id: row.statement_id, skill_ids: row.skill_ids,
+        human_state: humanStatementStates[row.key] as M2HumanSkillState,
+        note: humanStatementNotes[row.key] || '',
+      }] : []),
+      b3_categories: b3ReviewRows.value.flatMap(row => humanB3Decisions[row.family_id] ? [{
+        family_id: row.family_id,
+        human_decision: humanB3Decisions[row.family_id] as M2ReviewDecision,
+        note: humanB3Notes[row.family_id] || '',
+      }] : []),
+    }
+    const payload: M2ReviewRequest = {
       decision: reviewDecision.value,
       reviewer: reviewReviewer.value.trim(),
       note: reviewNote.value,
       machine_sha256: machine || '',
-    })
+    }
+    if (annotations.b1_scope || annotations.b2_statements.length || annotations.b3_categories.length) payload.annotations = annotations
+    const value = await reviewM2Item(id, ordinal, payload)
     if (!disposed && request === itemRequest && selectedId.value === id && detail.value?.ordinal === ordinal) {
       detail.value = value
-      reviewDecision.value = ''; reviewNote.value = ''
+      reviewDecision.value = ''; reviewNote.value = ''; resetReviewAnnotations()
       const refreshed = await getM2Run(id)
       if (!disposed && request === itemRequest && selectedId.value === id) selected.value = refreshed
     }
@@ -217,4 +325,12 @@ onUnmounted(() => { disposed = true; ++runRequest; ++itemRequest; if (timer !== 
 
 <style scoped>
 .m2-page{max-width:1600px;margin:auto;color:#18344b}.m2-heading,.section-heading,.run-meta,.actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.m2-heading{margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:1.3px;color:#397a94}h1{font-size:28px;margin:8px 0}h2{font-size:18px;margin:0 0 18px}h3{font-size:15px}p{line-height:1.7}small,.muted{font-size:12px;color:#62778a;font-weight:400}.gap{margin-top:20px}.m2-card{background:#fff;border:1px solid #dde8ee;border-radius:16px;padding:24px;box-shadow:0 4px 20px #18344b05}.selection-grid{display:grid;grid-template-columns:1.35fr 1.7fr 1fr 1fr 1fr auto;align-items:end;gap:12px}label{font-size:12px;color:#516d80;display:flex;flex-direction:column;gap:8px}label .el-select,label .el-input-number{width:100%}.history-select{width:440px;max-width:100%}.run-meta{justify-content:flex-start;margin:14px 0}.actions{justify-content:flex-start}.revision{width:135px}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}.stat-grid>div{background:#f1f7fa;border-radius:10px;padding:16px}.stat-grid strong{display:block;font-size:26px;color:#25667c}.stat-grid span{font-size:12px;color:#526e80}.metric-note{background:#fff8e8;border-left:3px solid #d3a044;padding:10px 14px;font-size:12px}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.summary-grid article{border:1px solid #e1eaf0;padding:14px;border-radius:10px}dl{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px}dd{margin:0;font-weight:600}.review-panel{border-top:1px solid #dde8ee;padding-top:22px}.review-form{display:grid;grid-template-columns:.8fr 1fr 2fr auto;align-items:end;gap:12px;margin:16px 0}.review-form .el-select,.review-form .el-input{width:100%}.review-note{grid-column:span 1}code{font-size:12px;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 Consolas,monospace;background:#f4f7fa;padding:16px;border-radius:8px;max-height:600px;overflow:auto}.source-text{font-family:inherit;font-size:14px}.evidence-row{border-bottom:1px solid #e5edf2;padding:12px 0}.evidence-row blockquote{white-space:pre-wrap;margin:8px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}@media(max-width:1100px){.selection-grid,.review-form{grid-template-columns:repeat(3,1fr)}.stat-grid,.summary-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.selection-grid,.stat-grid,.summary-grid,.review-form{grid-template-columns:repeat(2,minmax(0,1fr))}.review-note{grid-column:span 2}.m2-card{padding:16px}.summary-grid article{grid-column:span 2}}
+</style>
+<style scoped>
+.review-dimension{border-top:1px dashed #d8e5eb;padding:18px 0;margin-top:18px}
+.review-dimension h3{margin-bottom:10px}
+.review-label-grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}
+.additional-family{max-width:360px;margin-bottom:12px}
+.review-dimension .el-table small{display:block;color:#6c8191;margin-top:4px}
+@media(max-width:700px){.review-label-grid{grid-template-columns:1fr}}
 </style>

@@ -3,10 +3,17 @@ import { get, post } from '../utils/request'
 export interface M2Selection { sources: string[]; id_min: number | null; id_max: number | null; limit: number; cohort: string }
 export interface M2Stage { status: string; reason?: string | null; run_id: string | null; version_id?: string; result?: any }
 export type M2ReviewDecision = 'accepted' | 'rejected' | 'needs_followup'
+export type M2HumanSkillState = 'required' | 'preferred' | 'mentioned' | 'not_required' | 'uncertain' | 'not_skill'
+export interface M2HumanAnnotations {
+  b1_scope: { scope_status: 'in_scope' | 'out_of_scope' | 'needs_review' | 'not_applicable'; note: string } | null
+  b2_statements: { statement_id: string; skill_ids: string[]; human_state: M2HumanSkillState; note: string }[]
+  b3_categories: { family_id: string; human_decision: M2ReviewDecision; note: string }[]
+}
 export interface M2HumanReview {
   review_id: number; schema_version: 'm2-human-review-1'; run_id: string; ordinal: number; jd_id: number | string
   input_sha256: string; machine_sha256: string; machine_status: string; decision: M2ReviewDecision
   reviewer: string; note: string; reviewed_at: string; sha256: string; formal_truth_claim: false
+  human_annotations?: M2HumanAnnotations
 }
 export interface M2Item {
   ordinal: number; jd_id: number | string; source: string | null; title: string | null; final_status: string; reason: string | null
@@ -25,7 +32,7 @@ export interface M2Run {
 }
 export interface M2History { run_id: string; status: string; created_at: string; reason?: string | null }
 export interface M2Sources { total: number; sources: { source: string | null; total: number; id_min: number; id_max: number }[]; cohorts: { name: string; available: boolean; total: number; sha256?: string }[] }
-export interface M2ReviewRequest { decision: M2ReviewDecision; reviewer: string; note: string; machine_sha256: string }
+export interface M2ReviewRequest { decision: M2ReviewDecision; reviewer: string; note: string; machine_sha256: string; annotations?: M2HumanAnnotations }
 const path = (id: string) => `/m2/runs/${encodeURIComponent(id)}`
 export const getM2Sources = () => get<M2Sources>('/m2/sources')
 export const getM2Runs = () => get<M2History[]>('/m2/runs')

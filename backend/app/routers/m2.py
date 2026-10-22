@@ -40,12 +40,41 @@ class Replay(BaseModel):
     revision: str = Field(default='v1', pattern=r'^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')
 
 
+class HumanScopeAnnotation(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    scope_status: Literal['in_scope', 'out_of_scope', 'needs_review', 'not_applicable']
+    note: str = Field(default='', max_length=1000)
+
+
+class HumanSkillStatementAnnotation(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    statement_id: str = Field(min_length=1, max_length=80)
+    skill_ids: list[str] = Field(default_factory=list, max_length=20)
+    human_state: Literal['required', 'preferred', 'mentioned', 'not_required', 'uncertain', 'not_skill']
+    note: str = Field(default='', max_length=1000)
+
+
+class HumanCategoryAnnotation(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    family_id: str = Field(min_length=1, max_length=80)
+    human_decision: Literal['accepted', 'rejected', 'needs_followup']
+    note: str = Field(default='', max_length=1000)
+
+
+class HumanAnnotations(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    b1_scope: HumanScopeAnnotation | None = None
+    b2_statements: list[HumanSkillStatementAnnotation] = Field(default_factory=list, max_length=200)
+    b3_categories: list[HumanCategoryAnnotation] = Field(default_factory=list, max_length=50)
+
+
 class ReviewRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
     decision: Literal['accepted', 'rejected', 'needs_followup']
     reviewer: str = Field(min_length=1, max_length=80)
     note: str = Field(default='', max_length=4000)
     machine_sha256: str = Field(pattern=r'^[a-f0-9]{64}$')
+    annotations: HumanAnnotations | None = None
 
 
 @router.get('/sources')

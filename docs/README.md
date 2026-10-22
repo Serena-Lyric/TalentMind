@@ -6,6 +6,8 @@
 
 | 文件 | 内容 / 用途 |
 |---|---|
+| [M2→M3 Gate 3 验收（2026-10-22）](review/M2-M3-Gate-3-acceptance-2026-10-22.md) | 三套 v12 run 的独立 M3 候选图、来源/版本/哈希/布局审计、正式 Vue 交互与失败关闭、33条人工待审准备；工程条件通过、语义未验证 |
+| [M2→M3 人工语义审核规范（2026-10-22）](review/M2-M3-Gate-3-human-review-protocol.md) | B1范围、逐条B2五态、B3大类候选的真值填写规则；机器预测与人工真值分离，未审不计算准确率 |
 | [M2 真实分析与人工复核（2026-10-22）](review/M2-real-analysis-2026-10-22.md) | P0 三测试容器/卷清理、v9 主集120/留出60对照、B1/B2/B3改善与反例、人工审核 API/页面及正式数据不变证据 |
 | [智联岗位身份待审](review/Zhaopin-identity-pending-2026-10-21.md) | verified/pending/unknown、DOM动态绑定、M1→M2→M3透传、5条私有回放；DDL未执行 |
 | [多关键词×多城市批量任务](review/Collection-batches-2026-10-21.md) | 未启动计划、串行控制、逐项日志/结果、停止与异常边界；本轮不运行真实批次 |

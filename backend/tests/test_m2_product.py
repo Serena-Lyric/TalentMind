@@ -171,6 +171,73 @@ def test_human_review_is_append_only_machine_bound_and_exportable(product):
                 conn.execute(sql, tuple(saved) if 'INSERT' in sql else ())
 
 
+def test_human_review_keeps_b1_b2_b3_labels_separate_from_machine_result(product):
+    engine, source, _ = product
+    draft = engine.create(source.Selection(limit=4))
+    finish(engine, draft['run_id'])
+    item = engine.item(draft['run_id'], 1)
+    body = item['stages']['b22']['result']['body']
+    skill = body['skills'][0]
+    statement_id = skill['statement_ids'][0]
+    annotations = {
+        'b1_scope': {'scope_status': 'in_scope', 'note': '人工确认技术范围'},
+        'b2_statements': [{
+            'statement_id': statement_id,
+            'skill_ids': [skill['id']],
+            'human_state': 'required',
+            'note': '原文明确要求',
+        }],
+        'b3_categories': [{
+            'family_id': 'software_engineering',
+            'human_decision': 'accepted',
+            'note': '主要技术交付属于软件研发',
+        }],
+    }
+    reviewed = engine.review(draft['run_id'], 1, {
+        'decision': 'accepted',
+        'reviewer': 'human-reviewer',
+        'note': '逐项标签已提交',
+        'machine_sha256': item['machine_sha256'],
+        'annotations': annotations,
+    })
+    assert reviewed['human_annotations'] == annotations
+    assert reviewed['machine_sha256'] == item['machine_sha256']
+    refreshed = engine.item(draft['run_id'], 1)
+    assert refreshed['human_review']['human_annotations'] == annotations
+    assert refreshed['stages'] == item['stages']
+
+    invalid = dict(annotations)
+    invalid['b2_statements'] = [{
+        'statement_id': 'not-a-statement',
+        'skill_ids': [skill['id']],
+        'human_state': 'required',
+        'note': '',
+    }]
+    with pytest.raises(ValueError, match='annotation'):
+        engine.review(draft['run_id'], 1, {
+            'decision': 'rejected',
+            'reviewer': 'human-reviewer',
+            'note': '',
+            'machine_sha256': item['machine_sha256'],
+            'annotations': invalid,
+        })
+    malformed = dict(annotations)
+    malformed['b2_statements'] = [{
+        'statement_id': statement_id,
+        'skill_ids': [[]],
+        'human_state': 'required',
+        'note': '',
+    }]
+    with pytest.raises(ValueError, match='annotation'):
+        engine.review(draft['run_id'], 1, {
+            'decision': 'rejected',
+            'reviewer': 'human-reviewer',
+            'note': '',
+            'machine_sha256': item['machine_sha256'],
+            'annotations': malformed,
+        })
+
+
 def test_human_review_rejects_unfinished_or_unknown_item(product):
     engine, source, _ = product
     draft = engine.create(source.Selection(limit=4))

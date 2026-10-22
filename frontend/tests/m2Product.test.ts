@@ -144,8 +144,23 @@ test('人工审核绑定机器摘要并可读取历史和导出', async () => {
   const detail:any = {
     ordinal: 1, jd_id: 101, source: 'boss', title: '后端工程师', final_status: 'needs_review',
     evidence: { matched: 1, invalid: 0 }, machine_sha256: 'a'.repeat(64),
-    human_review: null, reviews: [], stages: {}, warnings: [], input_sha256: 'b'.repeat(64),
+    human_review: null, reviews: [], warnings: [], input_sha256: 'b'.repeat(64),
     input: { id: 101, raw_text: '负责软件开发' },
+    stages: {
+      b2: { status: 'saved', result: { body: {
+        statements: [
+          { id: 's1', state: 'required', relation: null, condition: null, skills: [{ name: 'python' }], evidence: { quote: '必须掌握 Python' } },
+          { id: 's2', state: 'uncertain', relation: null, condition: null, skills: [{ name: '未登记框架' }], evidence: { quote: '了解未登记框架' } },
+        ],
+      } } },
+      b22: { status: 'saved', result: { body: {
+        skills: [{ id: 'k1', canonical: 'python', statement_ids: ['s1'] }],
+        original_semantics: { statements: [{ id: 's1', state: 'required', relation: null, condition: null, evidence: { quote: '必须掌握 Python' } }] },
+      } } },
+      b3: { status: 'saved', result: { body: {
+        candidates: [{ family_id: 'software_engineering', clues: [{ evidence: { quote: '负责软件开发' } }] }],
+      } } },
+    },
   }
   const event = {
     review_id: 1, schema_version: 'm2-human-review-1', run_id: completed.run_id,
@@ -168,11 +183,25 @@ test('人工审核绑定机器摘要并可读取历史和导出', async () => {
     page.state.reviewDecision.value = 'accepted'
     page.state.reviewReviewer.value = '审核员'
     page.state.reviewNote.value = '职责证据明确'
+    if (page.state.reviewScopeStatus) page.state.reviewScopeStatus.value = 'in_scope'
+    if (page.state.humanStatementStates) page.state.humanStatementStates.s1 = 'required'
+    if (page.state.humanStatementStates) page.state.humanStatementStates.s2 = 'not_skill'
+    if (page.state.humanB3Decisions) page.state.humanB3Decisions.software_engineering = 'accepted'
     await page.state.submitReview()
 
     assert.deepEqual(page.calls.find(c => c.method === 'reviewM2Item').args, [
       completed.run_id, 1,
-      { decision: 'accepted', reviewer: '审核员', note: '职责证据明确', machine_sha256: 'a'.repeat(64) },
+      {
+        decision: 'accepted', reviewer: '审核员', note: '职责证据明确', machine_sha256: 'a'.repeat(64),
+        annotations: {
+          b1_scope: { scope_status: 'in_scope', note: '' },
+          b2_statements: [
+            { statement_id: 's1', skill_ids: ['k1'], human_state: 'required', note: '' },
+            { statement_id: 's2', skill_ids: [], human_state: 'not_skill', note: '' },
+          ],
+          b3_categories: [{ family_id: 'software_engineering', human_decision: 'accepted', note: '' }],
+        },
+      },
     ])
     assert.equal(page.state.detail.value.human_review.decision, 'accepted')
     assert.equal(page.state.reviewDecision.value, '')
