@@ -29,6 +29,7 @@ EXTENDED_LIMIT_RISK = re.compile(
     r"或其他(?:技术|能力|技能|工具|语言|框架)|"
     r"非必备|非必需|非必要|非强制|非硬性|可选(?:要求|条件|技能)?"
 )
+UNRESOLVED_ALTERNATIVE = re.compile(r"[或/]")
 SCOPE_RISK = re.compile(r"如果|若|仅当|除非|当.+时|仅适用|适用于|仅限|限于|仅对|只对|针对|对于|前端岗位|后端岗位|不必满足|无须满足|无需满足|不需要满足|条件.{0,8}见")
 GROUP_SCOPE_RISK = re.compile(r'[二三四五六七八九十\d]+选[一二三\d]+|满足.{0,8}(?:一项|其一)|(?:以上|上述|以下)(?:技能|要求|条件|能力|条款|满足)')
 RECORD_SCOPE_RISK = re.compile(
@@ -175,6 +176,8 @@ def classify(template, section, risky):
                     return state, "any_of", "section_capability_extended_any_of"
                 if re.search(r"(?:和|及|与|、|/)\ufdd0", tail):
                     return state, "all_of", "section_capability_extended_all_of"
+            if "\ufdd0" not in tail and UNRESOLVED_ALTERNATIVE.search(tail):
+                return "uncertain", None, "unresolved_alternative"
             if "\ufdd0" not in tail:
                 return state, None, "section_capability_extended"
     if full(r"S(?:(?:和|及|与|、|/|或)S)*") or full(

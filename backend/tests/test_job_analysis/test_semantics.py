@@ -186,6 +186,25 @@ def test_open_choice_or_limiting_tail_does_not_promote_single_skill(text):
     assert result["coverage"] == "incomplete"
 
 
+@pytest.mark.parametrize("text", [
+    "任职要求：\n熟悉 Python 或自研脚本语言。",
+    "任职要求：\n熟悉 Python 或未登记内部框架。",
+])
+def test_known_skill_with_unregistered_alternative_stays_uncertain(text):
+    result = analyze(text)
+
+    assert states(result) == ["uncertain"]
+    assert result["statements"][0]["reason"] == "unresolved_alternative"
+    assert result["coverage"] == "incomplete"
+
+
+def test_enumeration_delimiter_without_unparsed_alternative_keeps_required():
+    result = analyze("任职要求：\n熟悉 Python、业务流程。")
+
+    assert states(result) == ["required"]
+    assert result["statements"][0]["reason"] == "section_capability_extended"
+
+
 def test_job_title_lists_skill_as_mention_only():
     result = analyze("暂无描述", job_title="Python 工程师")
 
