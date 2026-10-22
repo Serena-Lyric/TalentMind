@@ -238,6 +238,163 @@ def test_human_review_keeps_b1_b2_b3_labels_separate_from_machine_result(product
         })
 
 
+def test_human_review_effective_view_merges_events_and_exposes_conflicts(product):
+    engine, _, _ = product
+    draft = engine._freeze([dict(
+        id=11,
+        source='boss',
+        job_title='双技能工程师',
+        raw_text='岗位职责：负责软件开发。任职要求：必须掌握 Python。必须掌握 Java。',
+    )], {'limit': 1}, {'kind': 'synthetic'}, 'v1')
+    finish(engine, draft['run_id'])
+    item = engine.item(draft['run_id'], 1)
+    b2 = item['stages']['b2']['result']['body']['statements']
+    assert len(b2) == 2
+    statement = b2[0]
+    skills = item['stages']['b22']['result']['body']['skills']
+    skill_ids = [
+        skill['id'] for skill in skills
+        if statement['id'] in skill['statement_ids']
+    ]
+    base = {
+        'decision': 'needs_followup',
+        'machine_sha256': item['machine_sha256'],
+    }
+    b1_event = engine.review(draft['run_id'], 1, {
+        **base,
+        'reviewer': 'scope-reviewer',
+        'note': '先审范围',
+        'annotations': {
+            'b1_scope': {'scope_status': 'in_scope', 'note': '人工确认范围'},
+            'b2_statements': [],
+            'b3_categories': [],
+        },
+    })
+    b2_event = engine.review(draft['run_id'], 1, {
+        **base,
+        'reviewer': 'b2-reviewer',
+        'note': '再审第一条技能陈述',
+        'annotations': {
+            'b1_scope': None,
+            'b2_statements': [{
+                'statement_id': statement['id'],
+                'skill_ids': skill_ids,
+                'human_state': 'required',
+                'note': '第一次人工判断',
+            }],
+            'b3_categories': [],
+        },
+    })
+    b3_event = engine.review(draft['run_id'], 1, {
+        **base,
+        'reviewer': 'b3-reviewer',
+        'note': '最后审大类',
+        'annotations': {
+            'b1_scope': None,
+            'b2_statements': [],
+            'b3_categories': [{
+                'family_id': 'software_engineering',
+                'human_decision': 'accepted',
+                'note': '大类候选接受',
+            }],
+        },
+    })
+
+    reopened = engine.item(draft['run_id'], 1)
+    effective = reopened['human_effective']
+    assert reopened['human_review']['review_id'] == b3_event['review_id']
+    assert effective['has_dimension_truth'] is True
+    assert effective['event_count'] == 3
+    assert effective['annotation_event_count'] == 3
+    assert effective['legacy_review_count'] == 0
+    assert effective['b1_scope']['scope_status'] == 'in_scope'
+    assert effective['b1_scope']['provenance']['review_id'] == b1_event['review_id']
+    assert effective['b1_scope']['provenance']['reviewer'] == 'scope-reviewer'
+    assert effective['b1_scope']['provenance']['event_sha256'] == b1_event['sha256']
+    assert effective['b1_scope']['provenance']['machine_sha256'] == item['machine_sha256']
+    assert effective['b2_statements'][0]['statement_id'] == statement['id']
+    assert effective['b2_statements'][0]['human_state'] == 'required'
+    assert effective['b2_statements'][0]['provenance']['review_id'] == b2_event['review_id']
+    assert effective['b3_categories'][0]['family_id'] == 'software_engineering'
+    assert effective['b3_categories'][0]['provenance']['review_id'] == b3_event['review_id']
+    assert effective['conflicts'] == []
+
+    exported = engine.review_export(draft['run_id'])
+    exported_item = next(row for row in exported['items'] if row['ordinal'] == 1)
+    assert exported_item['human_effective'] == effective
+    assert len(exported_item['review_events']) == 3
+    assert reopened['stages'] == item['stages']
+
+    b2_correction = engine.review(draft['run_id'], 1, {
+        **base,
+        'reviewer': 'b2-correction-reviewer',
+        'note': '更正同一陈述',
+        'annotations': {
+            'b1_scope': None,
+            'b2_statements': [{
+                'statement_id': statement['id'],
+                'skill_ids': skill_ids,
+                'human_state': 'preferred',
+                'note': '更正为优先',
+            }],
+            'b3_categories': [],
+        },
+    })
+    corrected = engine.item(draft['run_id'], 1)
+    effective = corrected['human_effective']
+    assert corrected['human_review']['review_id'] == b2_correction['review_id']
+    assert len(corrected['reviews']) == 4
+    assert corrected['reviews'][1]['human_annotations']['b2_statements'][0]['human_state'] == 'required'
+    assert effective['b2_statements'][0]['human_state'] == 'preferred'
+    assert effective['b2_statements'][0]['provenance']['review_id'] == b2_correction['review_id']
+    assert effective['conflicts'] == [{
+        'dimension': 'b2_statement',
+        'key': statement['id'],
+        'previous': {
+            'statement_id': statement['id'],
+            'skill_ids': skill_ids,
+            'human_state': 'required',
+            'note': '第一次人工判断',
+            'provenance': effective['b2_statements'][0]['provenance'] | {
+                'review_id': b2_event['review_id'],
+                'reviewer': 'b2-reviewer',
+                'event_sha256': b2_event['sha256'],
+                'reviewed_at': b2_event['reviewed_at'],
+            },
+        },
+        'effective': effective['b2_statements'][0],
+    }]
+
+
+def test_legacy_jd_review_does_not_create_per_dimension_truth(product):
+    engine, source, _ = product
+    draft = engine.create(source.Selection(limit=4))
+    finish(engine, draft['run_id'])
+    item = engine.item(draft['run_id'], 2)
+    event = engine.review(draft['run_id'], 2, {
+        'decision': 'accepted',
+        'reviewer': 'legacy-reviewer',
+        'note': '仅记录 JD 级历史结论',
+        'machine_sha256': item['machine_sha256'],
+    })
+    reopened = engine.item(draft['run_id'], 2)
+    assert reopened['human_review']['review_id'] == event['review_id']
+    assert reopened['human_effective'] == {
+        'schema_version': 'm2-human-effective-1',
+        'b1_scope': None,
+        'b2_statements': [],
+        'b3_categories': [],
+        'conflicts': [],
+        'event_count': 1,
+        'annotation_event_count': 0,
+        'legacy_review_count': 1,
+        'has_dimension_truth': False,
+    }
+    exported = engine.review_export(draft['run_id'])
+    exported_item = next(row for row in exported['items'] if row['ordinal'] == 2)
+    assert exported_item['human_effective'] == reopened['human_effective']
+
+
 def test_human_review_rejects_unfinished_or_unknown_item(product):
     engine, source, _ = product
     draft = engine.create(source.Selection(limit=4))

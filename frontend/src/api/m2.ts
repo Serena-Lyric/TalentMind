@@ -9,6 +9,33 @@ export interface M2HumanAnnotations {
   b2_statements: { statement_id: string; skill_ids: string[]; human_state: M2HumanSkillState; note: string }[]
   b3_categories: { family_id: string; human_decision: M2ReviewDecision; note: string }[]
 }
+export interface M2ReviewProvenance {
+  review_id: number; event_sha256: string; reviewer: string; reviewed_at: string
+  machine_sha256: string; input_sha256: string
+}
+export interface M2EffectiveScope {
+  scope_status: 'in_scope' | 'out_of_scope' | 'needs_review' | 'not_applicable'; note: string
+  provenance: M2ReviewProvenance
+}
+export interface M2EffectiveStatement {
+  statement_id: string; skill_ids: string[]; human_state: M2HumanSkillState; note: string
+  provenance: M2ReviewProvenance
+}
+export interface M2EffectiveCategory {
+  family_id: string; human_decision: M2ReviewDecision; note: string
+  provenance: M2ReviewProvenance
+}
+export interface M2HumanReviewConflict {
+  dimension: 'b1_scope' | 'b2_statement' | 'b3_category'; key: string
+  previous: M2EffectiveScope | M2EffectiveStatement | M2EffectiveCategory
+  effective: M2EffectiveScope | M2EffectiveStatement | M2EffectiveCategory
+}
+export interface M2HumanEffective {
+  schema_version: 'm2-human-effective-1'; b1_scope: M2EffectiveScope | null
+  b2_statements: M2EffectiveStatement[]; b3_categories: M2EffectiveCategory[]
+  conflicts: M2HumanReviewConflict[]; event_count: number; annotation_event_count: number
+  legacy_review_count: number; has_dimension_truth: boolean
+}
 export interface M2HumanReview {
   review_id: number; schema_version: 'm2-human-review-1'; run_id: string; ordinal: number; jd_id: number | string
   input_sha256: string; machine_sha256: string; machine_status: string; decision: M2ReviewDecision
@@ -21,7 +48,8 @@ export interface M2Item {
   identity_status?: 'verified' | 'pending' | 'unknown'; content_eligible?: boolean | null
   identity_evidence?: Record<string, any> | null; stages: Record<string, M2Stage>
   evidence: { matched: number; invalid: number }; input?: Record<string, any>; input_provenance?: Record<string, any>
-  machine_sha256?: string; human_review?: M2HumanReview | null; reviews?: M2HumanReview[]
+  machine_sha256?: string; human_review?: M2HumanReview | null; human_effective?: M2HumanEffective
+  reviews?: M2HumanReview[]
 }
 export interface M2Run {
   run_id: string; status: string; reason: string | null; created_at: string; finished_at: string | null; parent_run_id: string | null

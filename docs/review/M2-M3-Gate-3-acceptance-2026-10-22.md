@@ -10,7 +10,7 @@
 | 验收分支 | `codex/m2-m3-gate3-acceptance` |
 | M2 版本 | `v12` |
 | 冻结 v12 报告的 M2 实现摘要 | `676cda9db572422920c87b11a81695be1a15ad6b923eaad215bc06d1dd7f67f8` |
-| Gate 3C 修复后当前 `versions('v12')` | `be6f2a367d54999db9b8e8011dffb96fdadbfdee6f5f46b1736e2ecf59c2864e`（只增加审核事件字段，不改已有分析结果） |
+| Gate 3C 复审收口后当前 `versions('v12')` | `33782cb1c54e17c8a76cb82ae98da83bcf1b98fc23c1c133064c7085834de058`（只调整审核事件与有效视图，不改已有分析结果） |
 | 图投影实现对象摘要 | `5c3ee13ee00a1f6db95071edfd0305b85266bd5a495ff9817b18ff5127c692ab` |
 | Python / Node / npm | `3.14.5` / `24.15.0` / `11.12.1` |
 | 图算法依赖 | `networkx 3.6.1`、`igraph 1.0.0`、`leidenalg 0.11.0` |
@@ -85,7 +85,7 @@ cd D:\Application\ClaudeCode\repository\TalentMind\backend
 
 ### 2.5 缓存版本行为
 
-`read_bundle()` 校验 manifest 内 M2 绑定和 artifact 哈希，但不强制旧 `implementation` 等于当前代码；旧 bundle 因而可继续只读保留。三套候选图保持冻结报告 M2 实现 `676cda…`，而 Gate 3C 审核修复后的当前代码摘要为 `be6f2a…`；页面显示旧的图 `data_version`、旧 M2 实现前缀和 `v12`，URL 又绑定完整 manifest SHA，因此没有把缓存结果改写成“新代码生成结果”。
+`read_bundle()` 校验 manifest 内 M2 绑定和 artifact 哈希，但不强制旧 `implementation` 等于当前代码；旧 bundle 因而可继续只读保留。三套候选图保持冻结报告 M2 实现 `676cda…`，而 Gate 3C 复审收口后的当前代码摘要为 `33782c…`；页面显示旧的图 `data_version`、旧 M2 实现前缀和 `v12`，URL 又绑定完整 manifest SHA，因此没有把缓存结果改写成“新代码生成结果”。
 
 这不是自动 stale 告警：如果代码版本变化，现有逻辑会继续返回旧版本，需要人员比较版本摘要。当前结论是“不会冒充”，但不是“自动判断过期”；后续如需批处理调度，可增加显式 current/stale 状态，不阻塞本轮工程验收。
 
@@ -133,7 +133,30 @@ cd D:\Application\ClaudeCode\repository\TalentMind\backend
 - 机器阶段、`machine_sha256`、已发布报告和 `formal_statistics_eligible=false` 不变；
 - 旧 JD 级审核事件保持兼容，无数据库表结构变更。
 
-正式页面实际打开留出集 `248996`（GIS 产品经理）验证 B1 空表单、8 条逐项 B2 机器陈述/人工空状态和 B3 漏判补充入口。另打开 B2 statement 41 条、B2.2 Skill 38 个的 `248988`，页面实际渲染 41 行，41 个人工状态全部为“未填写”，证明未规范化陈述没有从审核分母消失。人工标签、审核人和真值未代填。
+独立复审又发现：只读取每 JD 最后一次事件，会让后审 B2/B3 时丢失先前 B1，重新打开后也无法恢复有效标签。定向修复增加派生视图 `human_effective`：
+
+- B1、每个 B2 statement、每个 B3 family 分别按事件顺序取最新有效值；
+- 后续事件未包含某维度时不清空该维度；
+- 每个有效标签携带 review ID、事件 SHA、审核人、时间、机器摘要和输入摘要；
+- 同名对象改值时保留先前值和最新值两侧来源，并列入显式 `conflicts`；
+- 旧 JD 级事件只计入 `legacy_review_count`，不会生成 B1/B2/B3 真值；
+- item、run 列表缩略项和审核导出均包含同一个 `human_effective`；
+- 页面只把历史有效值用于显示，不把它们自动预填为下一次提交，避免重复事件。
+
+正式页面实际打开留出集 `248996`（GIS 产品经理）验证 B1 空表单、8 条逐项 B2 机器陈述/人工空状态和 B3 漏判补充入口。另打开 B2 statement 41 条、B2.2 Skill 38 个的 `248988`，页面实际渲染 41 行，41 个人工状态全部为“未填写”，证明未规范化陈述没有从审核分母消失。
+
+另在隔离的合成 run `fdf4766893b241f1a7627727d5879b34` 上完成真实页面流程，不写入真实审核数据：
+
+1. 第一次只提交 B1；
+2. 第二次只提交两条 B2 statement 中的 `s1`；
+3. 第三次只提交 B3；
+4. 关闭并重新打开同一 JD，B1、B2 `s1` 和 B3 三项有效值及各自审核人/事件 SHA/时间/机器摘要全部仍在；
+5. 第四次把同一个 B2 `s1` 从 `required` 改为 `preferred`，页面显示最新有效值，并明确列出先前值、新值及两个来源事件；四条 append-only 历史均保留；
+6. 页面导出按钮实际请求导出 API，返回 4 个事件、1 个有效条目、3 个维度有效结果、1 个冲突和同一机器摘要绑定。
+
+隔离证据保存在 `data/local/m2-m3-gate3-20261022/interaction-evidence.json`（SHA-256 `9ae46b8f44bfb505e6d629b863caa1aa8de93fc7c2770a602c8d830c579e4b15`）；完整导出保存在同目录 `interaction-export.json`（SHA-256 `3b5753ac58fc8aa309809efe79062a8801136cbf539af0cfd5ba1097d305f625`）。两者只证明页面/API 管线，`semantic_truth=false`。
+
+完成上述代码修复后再次运行 Gate3A 审计，退出码为 0；三套 v12 manifest 仍分别为 `043f228d…`、`9801b972…`、`b62b5c64…`，与会话开始及首次验收值完全一致。没有重写候选图、冻结 M2 报告或正式数据。
 
 ### 4.2 有限高价值待审队列
 
@@ -149,15 +172,17 @@ cd D:\Application\ClaudeCode\repository\TalentMind\backend
 
 逐项规范见 [人工语义审核规范](M2-M3-Gate-3-human-review-protocol.md)。只有真实审核人可填写；Codex/Agent/大模型不代签。
 
+B2 当前审核对象仅是机器已生成的 statement；没有独立“机器漏判 statement”记录，因此本轮不能声称完整抽取 recall。该范围已写入规范，不建设新的完整标注系统。
+
 ## 5. 验证结果
 
 | 验证 | 结果 |
 |---|---|
 | Gate 3A 逐边审计与隔离重生成 | 通过，三套 bundle 重生成字节一致 |
 | 后端 M2/M3 定向测试 | `13 passed` |
-| 新增人工逐项标签定向测试 | 后端 `2 passed`；前端相关 `14 passed` |
-| 后端完整非集成测试 | `1559 passed / 24 skipped / 2 failed` |
-| 前端完整测试 | `157 passed` |
+| 多事件有效视图与导出定向测试 | 后端 `3 passed`；M2 页面组件 `12 passed`；M2/M2 API 全文件 `39 passed` |
+| 后端完整非集成测试 | `1561 passed / 24 skipped / 2 failed` |
+| 前端完整测试 | `158 passed` |
 | `vue-tsc --noEmit` + Vite build | 通过；仅保留既有大 chunk 与动态/静态导入提示 |
 | integration 测试 | 默认未进入；`24 skipped` |
 

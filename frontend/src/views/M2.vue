@@ -49,8 +49,11 @@
         </el-tabs>
         <section class="review-panel gap" aria-label="人工复核">
           <div class="section-heading"><div><h2>人工复核</h2><p class="muted">人工结论单独追加保存，不覆盖机器预测、原文或历史报告。</p></div><el-button :disabled="!selected || !detail || reviewExporting" :loading="reviewExporting" @click="downloadReviews">导出人工审核 JSON</el-button></div>
-          <p>自动状态：<el-tag :type="tagType(detail.final_status)">{{ statusText(detail.final_status) }}</el-tag> · 当前人工状态：<el-tag effect="plain">{{ statusText(detail.human_review?.decision || 'unreviewed') }}</el-tag></p>
+          <p>自动状态：<el-tag :type="tagType(detail.final_status)">{{ statusText(detail.final_status) }}</el-tag> · 最近事件决定：<el-tag effect="plain">{{ statusText(detail.human_review?.decision || 'unreviewed') }}</el-tag></p>
           <p>机器结果摘要：<code>{{ detail.machine_sha256 || '尚未生成' }}</code></p>
+          <p class="muted">逐项有效事件 {{ detail.human_effective?.annotation_event_count || 0 }} / {{ detail.human_effective?.event_count || 0 }}；旧 JD 级事件 {{ detail.human_effective?.legacy_review_count || 0 }}。</p>
+          <el-alert v-if="hasLegacyOnlyReview" title="当前只有旧 JD 级审核决定，没有逐项人工真值；历史决定仍保留，但不会被当作 B1/B2/B3 标签。" type="warning" :closable="false" />
+          <el-alert v-else-if="!hasDimensionTruth && detail.reviews?.length" title="当前只有未带维度标签的人工事件，尚无 B1/B2/B3 有效逐项真值。" type="info" :closable="false" />
           <div class="review-form">
             <label>审核决定<el-select v-model="reviewDecision" placeholder="选择人工决定"><el-option label="接受机器结果" value="accepted" /><el-option label="拒绝机器结果" value="rejected" /><el-option label="需要继续核对" value="needs_followup" /></el-select></label>
             <label>审核人<el-input v-model="reviewReviewer" maxlength="80" placeholder="必须由实际审核人填写" /></label>
@@ -59,6 +62,7 @@
           </div>
           <div class="review-dimension" aria-label="B1 范围人工标签">
             <h3>B1 范围人工真值</h3>
+            <div v-if="detail.human_effective?.b1_scope" class="effective-result"><strong>有效：{{ statusText(detail.human_effective.b1_scope.scope_status) }}</strong><small>{{ detail.human_effective.b1_scope.note || '无备注' }}</small><small>{{ provenanceText(detail.human_effective.b1_scope.provenance) }}</small></div>
             <div class="review-label-grid">
               <label>人工范围判断<el-select v-model="reviewScopeStatus" clearable placeholder="未填写"><el-option label="范围内" value="in_scope" /><el-option label="范围外" value="out_of_scope" /><el-option label="范围待审" value="needs_review" /><el-option label="不适用" value="not_applicable" /></el-select></label>
               <label>B1 依据<el-input v-model="reviewScopeNote" maxlength="1000" placeholder="仅记录人工判断依据" /></label>
@@ -70,7 +74,8 @@
             <el-table v-if="b2ReviewRows.length" :data="b2ReviewRows" size="small" stripe>
               <el-table-column prop="skill" label="机器技能" width="120" />
               <el-table-column label="机器陈述" min-width="260"><template #default="{ row }"><span>{{ row.quote }}</span><small>{{ statusText(row.machine_state) }} · 组合 {{ row.relation || '单项' }}<template v-if="row.condition"> · 有上下文条件</template></small></template></el-table-column>
-              <el-table-column label="人工状态" width="135"><template #default="{ row }"><el-select v-model="humanStatementStates[row.key]" clearable placeholder="未填写"><el-option v-for="state in humanSkillStates" :key="state" :label="statusText(state)" :value="state" /></el-select></template></el-table-column>
+              <el-table-column label="有效人工结果" width="230"><template #default="{ row }"><template v-if="effectiveB2Map.get(row.statement_id)"><strong>{{ statusText(effectiveB2Map.get(row.statement_id)!.human_state) }}</strong><small>{{ effectiveB2Map.get(row.statement_id)!.note || '无备注' }}</small><small>{{ provenanceText(effectiveB2Map.get(row.statement_id)!.provenance) }}</small></template><span v-else class="muted">未形成逐项真值</span></template></el-table-column>
+              <el-table-column label="新增 / 更正" width="135"><template #default="{ row }"><el-select v-model="humanStatementStates[row.key]" clearable placeholder="未填写"><el-option v-for="state in humanSkillStates" :key="state" :label="statusText(state)" :value="state" /></el-select></template></el-table-column>
               <el-table-column label="人工依据" min-width="180"><template #default="{ row }"><el-input v-model="humanStatementNotes[row.key]" maxlength="1000" placeholder="可选" /></template></el-table-column>
             </el-table>
             <el-empty v-else description="当前机器结果没有可逐项标注的 B2 技能陈述。" />
@@ -82,10 +87,13 @@
             <el-table v-if="b3ReviewRows.length" :data="b3ReviewRows" size="small" stripe>
               <el-table-column label="大类" width="180"><template #default="{ row }">{{ row.label }}<small>{{ row.machine ? '机器候选' : '人工补充' }}</small></template></el-table-column>
               <el-table-column prop="evidence" label="机器职责证据" min-width="280" />
-              <el-table-column label="人工判断" width="145"><template #default="{ row }"><el-select v-model="humanB3Decisions[row.family_id]" clearable placeholder="未填写"><el-option label="接受候选" value="accepted" /><el-option label="拒绝候选" value="rejected" /><el-option label="需要跟进" value="needs_followup" /></el-select></template></el-table-column>
+              <el-table-column label="有效人工结果" width="230"><template #default="{ row }"><template v-if="effectiveB3Map.get(row.family_id)"><strong>{{ statusText(effectiveB3Map.get(row.family_id)!.human_decision) }}</strong><small>{{ effectiveB3Map.get(row.family_id)!.note || '无备注' }}</small><small>{{ provenanceText(effectiveB3Map.get(row.family_id)!.provenance) }}</small></template><span v-else class="muted">未形成该项真值</span></template></el-table-column>
+              <el-table-column label="新增 / 更正" width="145"><template #default="{ row }"><el-select v-model="humanB3Decisions[row.family_id]" clearable placeholder="未填写"><el-option label="接受候选" value="accepted" /><el-option label="拒绝候选" value="rejected" /><el-option label="需要跟进" value="needs_followup" /></el-select></template></el-table-column>
               <el-table-column label="人工依据" min-width="180"><template #default="{ row }"><el-input v-model="humanB3Notes[row.family_id]" maxlength="1000" placeholder="可选" /></template></el-table-column>
             </el-table>
           </div>
+          <el-alert v-if="detail.human_effective?.conflicts?.length" :title="`存在 ${detail.human_effective.conflicts.length} 项重复审核冲突；有效结果取最新事件，旧值和来源保留在下方历史。`" type="warning" :closable="false" />
+          <el-table v-if="detail.human_effective?.conflicts?.length" :data="detail.human_effective.conflicts" size="small" class="gap" aria-label="人工审核冲突"><el-table-column prop="dimension" label="维度" width="130" /><el-table-column prop="key" label="对象" min-width="120" /><el-table-column label="先前值" min-width="150"><template #default="{ row }">{{ conflictValue(row, 'previous') }}<small>{{ conflictProvenance(row, 'previous') }}</small></template></el-table-column><el-table-column label="最新有效值" min-width="150"><template #default="{ row }">{{ conflictValue(row, 'effective') }}<small>{{ conflictProvenance(row, 'effective') }}</small></template></el-table-column></el-table>
           <el-alert title="审核提交只代表本机录入的自述判断，不验证人员身份，也不会把机器预测升级为已确认需求或正式岗位。" type="info" :closable="false" />
           <el-table v-if="detail.reviews?.length" :data="detail.reviews" stripe class="gap" aria-label="人工审核历史"><el-table-column prop="reviewed_at" label="时间" min-width="180" /><el-table-column prop="reviewer" label="审核人" width="140" /><el-table-column label="决定" width="130"><template #default="{ row }">{{ statusText(row.decision) }}</template></el-table-column><el-table-column label="逐项标签" width="95"><template #default="{ row }">{{ annotationCount(row) }}</template></el-table-column><el-table-column prop="note" label="备注" min-width="220" /><el-table-column label="机器摘要" width="140"><template #default="{ row }"><code>{{ row.machine_sha256.slice(0, 12) }}…</code></template></el-table-column></el-table>
           <el-empty v-else description="尚无人工审核事件；系统不会自动填写真值。" />
@@ -97,7 +105,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { createM2Run, exportM2Reviews, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, reviewM2Item, startM2Run, stopM2Run, type M2History, type M2HumanAnnotations, type M2HumanReview, type M2HumanSkillState, type M2Item, type M2ReviewDecision, type M2ReviewRequest, type M2Run, type M2Sources } from '../api/m2'
+import { createM2Run, exportM2Reviews, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, reviewM2Item, startM2Run, stopM2Run, type M2EffectiveCategory, type M2EffectiveStatement, type M2History, type M2HumanAnnotations, type M2HumanReview, type M2HumanReviewConflict, type M2HumanSkillState, type M2Item, type M2ReviewDecision, type M2ReviewProvenance, type M2ReviewRequest, type M2Run, type M2Sources } from '../api/m2'
 
 interface B2ReviewRow {
   key: string; skill_ids: string[]; statement_id: string; skill: string; quote: string
@@ -167,6 +175,14 @@ const b3ReviewRows = computed<B3ReviewRow[]>(() => {
   }
   return rows
 })
+const effectiveB2Map = computed(() => new Map<string, M2EffectiveStatement>(
+  (detail.value?.human_effective?.b2_statements || []).map(statement => [statement.statement_id, statement]),
+))
+const effectiveB3Map = computed(() => new Map<string, M2EffectiveCategory>(
+  (detail.value?.human_effective?.b3_categories || []).map(category => [category.family_id, category]),
+))
+const hasDimensionTruth = computed(() => detail.value?.human_effective?.has_dimension_truth === true)
+const hasLegacyOnlyReview = computed(() => (detail.value?.human_effective?.legacy_review_count || 0) > 0 && !hasDimensionTruth.value)
 const text: Record<string, string> = {
   queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'机器待复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', not_skill:'非技能陈述', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', unreviewed:'人工未审核', accepted:'人工接受', rejected:'人工拒绝', needs_followup:'人工需跟进', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
 }
@@ -200,6 +216,18 @@ function resetReviewAnnotations() {
 function annotationCount(review: M2HumanReview) {
   const annotations = review.human_annotations
   return (annotations?.b1_scope ? 1 : 0) + (annotations?.b2_statements?.length || 0) + (annotations?.b3_categories?.length || 0)
+}
+function provenanceText(provenance: M2ReviewProvenance) {
+  return `事件 #${provenance.review_id} (${provenance.event_sha256.slice(0, 12)}) · ${provenance.reviewer} · ${provenance.reviewed_at} · 机器 ${provenance.machine_sha256.slice(0, 12)}`
+}
+function conflictValue(conflict: M2HumanReviewConflict, side: 'previous' | 'effective') {
+  const value: any = conflict[side]
+  if (conflict.dimension === 'b1_scope') return statusText(value.scope_status)
+  if (conflict.dimension === 'b2_statement') return statusText(value.human_state)
+  return statusText(value.human_decision)
+}
+function conflictProvenance(conflict: M2HumanReviewConflict, side: 'previous' | 'effective') {
+  return provenanceText(conflict[side].provenance)
 }
 function saveRun(value: M2Run) {
   selected.value = value; selectedId.value = value.run_id
@@ -332,5 +360,7 @@ onUnmounted(() => { disposed = true; ++runRequest; ++itemRequest; if (timer !== 
 .review-label-grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}
 .additional-family{max-width:360px;margin-bottom:12px}
 .review-dimension .el-table small{display:block;color:#6c8191;margin-top:4px}
+.effective-result{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;padding:10px 12px;border-left:3px solid #4f91a8;background:#f1f8fa;font-size:12px}
+.effective-result small{color:#60798a;overflow-wrap:anywhere}
 @media(max-width:700px){.review-label-grid{grid-template-columns:1fr}}
 </style>

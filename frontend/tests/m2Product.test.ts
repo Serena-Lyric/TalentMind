@@ -239,6 +239,80 @@ test('审核返回不能覆盖后来打开的 JD', async () => {
   } finally { page.stop() }
 })
 
+test('重新打开 JD 显示跨事件有效标签和冲突，不把旧标签自动重提', async () => {
+  const completed = { ...draft, status: 'completed_with_issues' }
+  const provenance = (reviewId: number, reviewer: string) => ({
+    review_id: reviewId, event_sha256: String(reviewId).repeat(64).slice(0, 64),
+    reviewer, reviewed_at: `2026-10-22T10:0${reviewId}:00+00:00`,
+    machine_sha256: 'a'.repeat(64), input_sha256: 'b'.repeat(64),
+  })
+  const detail:any = {
+    ordinal: 1, jd_id: 101, title: '跨事件审核', final_status: 'needs_review',
+    machine_sha256: 'a'.repeat(64), input_sha256: 'b'.repeat(64), warnings: [],
+    evidence: { matched: 1, invalid: 0 },
+    stages: {
+      b2: { status: 'saved', result: { body: { statements: [
+        { id: 's1', state: 'required', relation: null, condition: null, skills: [{ name: 'python' }], evidence: { quote: '必须掌握 Python' } },
+      ] } } },
+      b22: { status: 'saved', result: { body: { skills: [{ id: 'k1', canonical: 'python', statement_ids: ['s1'] }] } } },
+      b3: { status: 'saved', result: { body: { candidates: [
+        { family_id: 'software_engineering', clues: [{ evidence: { quote: '负责软件开发' } }] },
+      ] } } },
+    },
+    human_review: { decision: 'needs_followup', review_id: 3 },
+    reviews: [{ review_id: 1 }, { review_id: 2 }, { review_id: 3 }],
+    human_effective: {
+      schema_version: 'm2-human-effective-1',
+      b1_scope: { scope_status: 'in_scope', note: '范围', provenance: provenance(1, '范围审核员') },
+      b2_statements: [{
+        statement_id: 's1', skill_ids: ['k1'], human_state: 'required', note: '技能',
+        provenance: provenance(2, '技能审核员'),
+      }],
+      b3_categories: [{
+        family_id: 'software_engineering', human_decision: 'accepted', note: '大类',
+        provenance: provenance(3, '大类审核员'),
+      }],
+      conflicts: [{
+        dimension: 'b2_statement', key: 's1',
+        previous: {
+          statement_id: 's1', skill_ids: ['k1'], human_state: 'uncertain', note: '旧值',
+          provenance: provenance(2, '技能审核员'),
+        },
+        effective: {
+          statement_id: 's1', skill_ids: ['k1'], human_state: 'required', note: '技能',
+          provenance: provenance(3, '技能审核员'),
+        },
+      }],
+      event_count: 3, annotation_event_count: 3, legacy_review_count: 0, has_dimension_truth: true,
+    },
+  }
+  const page = m2Component({ getM2Run: completed, getM2Item: detail, reviewM2Item: { ...detail, human_review: { decision: 'needs_followup', review_id: 4 } } })
+  try {
+    await page.mounted()
+    page.state.selected.value = completed
+    page.state.selectedId.value = completed.run_id
+    await page.state.inspectItem(1)
+    assert.equal(page.state.effectiveB2Map?.value.get('s1')?.human_state, 'required')
+    assert.equal(page.state.effectiveB2Map?.value.get('s1')?.provenance.reviewer, '技能审核员')
+    assert.equal(page.state.effectiveB3Map?.value.get('software_engineering')?.human_decision, 'accepted')
+    assert.equal(page.state.detail.value.human_effective.conflicts.length, 1)
+    assert.equal(page.state.reviewScopeStatus.value, '')
+    assert.equal(page.state.humanStatementStates.s1, undefined)
+    assert.equal(page.state.humanB3Decisions.software_engineering, undefined)
+
+    page.state.reviewDecision.value = 'needs_followup'
+    page.state.reviewReviewer.value = '新增审核员'
+    page.state.humanStatementStates.s1 = 'preferred'
+    await page.state.submitReview()
+    const payload = page.calls.find(c => c.method === 'reviewM2Item').args[2]
+    assert.deepEqual(payload.annotations, {
+      b1_scope: null,
+      b2_statements: [{ statement_id: 's1', skill_ids: ['k1'], human_state: 'preferred', note: '' }],
+      b3_categories: [],
+    })
+  } finally { page.stop() }
+})
+
 test('延迟导出使用发起时的 run_id 命名结果', async () => {
   let finishExport!: (value:any) => void
   const page = m2Component({
