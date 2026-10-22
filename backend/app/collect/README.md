@@ -1,5 +1,11 @@
 # M1 采集模块（backend/app/collect/）
 
+## 2026-10-22 BOSS 普通浏览器桥接接入
+
+控制台“普通浏览器”可创建BOSS任务；扩展位于 `frontend/bridge-extension/`，只在用户点击时读取当前可见DOM，既有CDP安全门禁不绕过。后台绑定本轮搜索关键词/城市/第一页和列表成员，列表不入库，合格详情复用原pipeline逐条保存；与CDP单轮/批次互斥。缺身份列、数据库故障或验证阻断失败关闭；无自动平台访问或重试。API位于 `/api/collection/bridge/`，回环、固定扩展Origin及配对令牌共同校验。严格blocked事件只报告访问阻断，不携带正文。
+
+相关后端312项、前端177项及构建通过（合成控制API/隔离SQLite），尚未进行用户扩展实机和正式入库验收；迁移另需许可，后端重启被自动审批拒绝未执行。操作见[扩展说明](../../../frontend/bridge-extension/README.md)、[分平台报告](../../../docs/review/M1-platform-repair-2026-10-22.md)及[陷阱](../../../docs/superpowers/traps/2026-10-22-boss-bridge-scope-and-stop.md)。下方“BOSS桥接只有方案”为历史状态，不再代表本分支。
+
 ## 2026-10-22 智联稳定性与逐条保存修复
 
 智联列表空标题最多有界等待6秒；详情仅在目标active、可见且标题/正文非空并变化后累计稳定样本。缺列表标题明确拒绝身份，不把正文误标无效。合格详情在下一条访问前逐条保存，数据库故障输出明确failure/finished。controller将目标ID/URL传给智联worker，目标丢失不另选标签。相关离线267项通过；本轮正式数据库未运行，未执行迁移或真实采集，详见[分平台修复报告](../../../docs/review/M1-platform-repair-2026-10-22.md)及[陷阱](../../../docs/superpowers/traps/2026-10-22-zhaopin-panel-persistence-target.md)。本节替代下方“CN仍整轮缓冲”的历史实现状态，不改变身份、完整性或DDL门禁。

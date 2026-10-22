@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.response import ok, BizError
 from app.middleware import register_exception_handlers
+from app.collect.bridge_access import EXTENSION_ORIGIN
 
 app = FastAPI(title="TalentMind")
 register_exception_handlers(app)
@@ -13,6 +14,7 @@ app.add_middleware(
         "http://localhost:5173", "http://127.0.0.1:5173",
         "http://localhost:4173", "http://127.0.0.1:4173",
         "http://localhost:18080", "http://127.0.0.1:18080",
+        EXTENSION_ORIGIN,
     ],
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,10 +39,12 @@ from app.routers.collection import router as collection_router
 from app.routers.evolution import router as evolution_router
 from app.routers.learning import router as learning_router
 from app.routers.m2 import router as m2_router
+from app.routers.collection_bridge import router as collection_bridge_router
 
 app.include_router(mvp_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(collection_router, prefix="/api")
+app.include_router(collection_bridge_router, prefix="/api")
 app.include_router(evolution_router, prefix="/api")
 app.include_router(learning_router, prefix="/api")
 app.include_router(m2_router, prefix="/api")
