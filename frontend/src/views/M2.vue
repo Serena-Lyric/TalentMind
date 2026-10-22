@@ -169,9 +169,14 @@ const b3ReviewRows = computed<B3ReviewRow[]>(() => {
     machine: true,
     evidence: (candidate.clues || []).map((clue: any) => clue.evidence?.quote).filter(Boolean).join('；'),
   }))
-  const additional = reviewAdditionalB3Family.value
-  if (additional && !rows.some((row: any) => row.family_id === additional)) {
-    rows.push({ family_id: additional, label: familyOptions.find(family => family.id === additional)?.label || additional, machine: false, evidence: '机器未给出该大类候选；由人工补充待核。' })
+  const additionalFamilies = [
+    ...(detail.value?.human_effective?.b3_categories || []).map(category => category.family_id),
+    reviewAdditionalB3Family.value,
+  ]
+  for (const additional of additionalFamilies) {
+    if (additional && !rows.some(row => row.family_id === additional)) {
+      rows.push({ family_id: additional, label: familyOptions.find(family => family.id === additional)?.label || additional, machine: false, evidence: '机器未给出该大类候选；由人工补充待核。' })
+    }
   }
   return rows
 })

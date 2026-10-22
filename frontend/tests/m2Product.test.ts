@@ -329,3 +329,93 @@ test('延迟导出使用发起时的 run_id 命名结果', async () => {
     assert.equal(page.downloads[0].download, `m2-reviews-${'a'.repeat(32)}.json`)
   } finally { page.stop() }
 })
+
+test('B3 机器漏判的人工补充保存及重开后仍可见，更正仅提交本轮标签', async () => {
+  const completed = { ...draft, status: 'completed_with_issues' }
+  const provenance = {
+    review_id: 1, event_sha256: 'c'.repeat(64), reviewer: '合成测试员',
+    reviewed_at: '2026-10-22T10:00:00+00:00',
+    machine_sha256: 'a'.repeat(64), input_sha256: 'b'.repeat(64),
+  }
+  const category = { family_id: 'data_ai', human_decision: 'accepted', note: '合成补充依据', provenance }
+  const detail = {
+    ordinal: 1, machine_sha256: 'a'.repeat(64),
+    stages: { b3: { result: { body: { candidates: [] } } } },
+  }
+  const saved = {
+    ...detail,
+    human_effective: { b3_categories: [category] },
+  }
+  const page = m2Component({ getM2Run: completed, getM2Item: detail, reviewM2Item: saved })
+  try {
+    page.state.selected.value = completed
+    page.state.selectedId.value = completed.run_id
+    await page.state.inspectItem(1)
+    page.state.reviewAdditionalB3Family.value = 'data_ai'
+    page.state.humanB3Decisions.data_ai = 'accepted'
+    page.state.humanB3Notes.data_ai = '合成补充依据'
+    page.state.reviewDecision.value = 'accepted'
+    page.state.reviewReviewer.value = '合成测试员'
+    await page.state.submitReview()
+    assert.deepEqual(page.calls.find(c => c.method === 'reviewM2Item').args[2].annotations, {
+      b1_scope: null, b2_statements: [],
+      b3_categories: [{ family_id: 'data_ai', human_decision: 'accepted', note: '合成补充依据' }],
+    })
+    assert.equal(page.state.reviewAdditionalB3Family.value, '')
+    assert.deepEqual(page.state.b3ReviewRows.value.map((row: any) => row.family_id), ['data_ai'])
+
+    page.state.drawer.value = false
+    const reopened = m2Component({ getM2Run: completed, getM2Item: saved, reviewM2Item: saved })
+    try {
+      reopened.state.selected.value = completed
+      reopened.state.selectedId.value = completed.run_id
+      await reopened.state.inspectItem(1)
+      assert.deepEqual(reopened.state.b3ReviewRows.value, [{
+        family_id: 'data_ai', label: '数据与人工智能', machine: false,
+        evidence: '机器未给出该大类候选；由人工补充待核。',
+      }])
+      assert.deepEqual(reopened.state.effectiveB3Map.value.get('data_ai'), category)
+      assert.match(reopened.state.provenanceText(category.provenance), /事件 #1.*合成测试员/)
+      assert.equal(reopened.state.humanB3Decisions.data_ai, undefined)
+      assert.equal(reopened.state.humanB3Notes.data_ai, undefined)
+      reopened.state.reviewDecision.value = 'needs_followup'
+      reopened.state.reviewReviewer.value = '合成测试员'
+      await reopened.state.submitReview()
+      assert.equal(reopened.calls.find(c => c.method === 'reviewM2Item').args[2].annotations, undefined)
+
+      reopened.state.reviewDecision.value = 'needs_followup'
+      reopened.state.humanB3Decisions.data_ai = 'rejected'
+      reopened.state.humanB3Notes.data_ai = '合成更正依据'
+      await reopened.state.submitReview()
+      const submissions = reopened.calls.filter(c => c.method === 'reviewM2Item')
+      assert.deepEqual(submissions[1].args[2].annotations, {
+        b1_scope: null, b2_statements: [],
+        b3_categories: [{ family_id: 'data_ai', human_decision: 'rejected', note: '合成更正依据' }],
+      })
+    } finally { reopened.stop() }
+  } finally { page.stop() }
+})
+
+test('B3 合并机器候选、历史人工补充与本轮选择，按大类去重并保留机器证据', () => {
+  const page = m2Component()
+  try {
+    page.state.detail.value = {
+      stages: { b3: { result: { body: { candidates: [
+        { family_id: 'software_engineering', clues: [{ evidence: { quote: '负责软件开发' } }] },
+      ] } } } },
+      human_effective: { b3_categories: [
+        { family_id: 'software_engineering', human_decision: 'accepted' },
+        { family_id: 'data_ai', human_decision: 'needs_followup' },
+      ] },
+    }
+    page.state.reviewAdditionalB3Family.value = 'test_quality_engineering'
+    assert.deepEqual(page.state.b3ReviewRows.value.map((row: any) => row.family_id), [
+      'software_engineering', 'data_ai', 'test_quality_engineering',
+    ])
+    assert.equal(page.state.b3ReviewRows.value[0].machine, true)
+    assert.equal(page.state.b3ReviewRows.value[0].evidence, '负责软件开发')
+    page.state.reviewAdditionalB3Family.value = 'data_ai'
+    assert.deepEqual(page.state.b3ReviewRows.value.map((row: any) => row.family_id), ['software_engineering', 'data_ai'])
+    assert.deepEqual(Object.keys(page.state.humanB3Decisions), [])
+  } finally { page.stop() }
+})

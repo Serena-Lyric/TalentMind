@@ -174,17 +174,42 @@ cd D:\Application\ClaudeCode\repository\TalentMind\backend
 
 B2 当前审核对象仅是机器已生成的 statement；没有独立“机器漏判 statement”记录，因此本轮不能声称完整抽取 recall。该范围已写入规范，不建设新的完整标注系统。
 
+### 4.3 PR #51 最终收口：B3 人工漏判补充持久展示
+
+从 `e12f363d8c72191083e889dde5098e8498581913` 继续，工作区初始干净，远端 HEAD 一致。本次仅修改前端 `b3ReviewRows`：合并机器候选、`human_effective.b3_categories` 与本轮补充选择，按 `family_id` 去重；保留机器职责证据。历史有效标签不回填草稿，后端契约与机器报告未改。根因见[持久展示陷阱](../superpowers/traps/2026-10-22-m2-b3-supplement-visibility.md)。
+
+新增两项组件回归先在旧实现失败（保存后实际为空行、混合集合缺少 `data_ai`），再以最小修复转绿。覆盖无机器候选的保存/重开、备注及来源、机器同类去重、机器/历史/本轮选择并集、空草稿不重发旧标签，以及直接更正历史补充行的请求内容。日志位于私有 `data/local/m2-m3-gate3-20261022/b3-closeout/`。
+
+本次真实 Vue 页面验证使用独立 FastAPI M2 路由（`18103`）与 Vite（`18181`），目录查询返回合成目录，不连接 MySQL。用户手动完成演示登录后，在合成 run `debfcf2d03184cb4bbfc24eaf267e75d` / JD `990051` 完成：
+
+1. 机器 B3 候选为空，补充 `data_ai`，以 `synthetic-ui-test-not-human` 提交合成 `accepted` 和备注；事件 #1 SHA `948fc3fcb9e8066c5b32efa7afd821b6fc909496004c2084de3d3feb51ae0908`。
+2. 关闭并重开，补充下拉框恢复空白，但表格仍有“数据与人工智能 / 人工补充”，有效状态、备注、事件 #1 来源均可见；新增/更正和依据草稿为空。
+3. 不重新选择补充大类，直接把该行更正为合成 `rejected`；事件 #2 SHA `8ee0e77485306ef9db710eae7301b4d633d86fef4c06b0ad1d546b0df46e7c14`。页面显示最新有效值、两条历史及一个 `b3_category/data_ai` 冲突，旧 `accepted` 与两侧来源保留。
+4. 再次重开，只提交 JD 级跟进备注；事件 #3 SHA `1d9f43e15f58f2b748ae64507fc34a4c06194fd27bedf80b2c16bfb6bb788429` 不含 `human_annotations`，有效 B3 仍来自事件 #2。页面计数为逐项事件 `2 / 3`、legacy `1`，没有自动重复提交旧值。
+5. 实际点击“导出人工审核 JSON”，并只读核对同一导出 API 回包：3 个 append-only 事件、1 个有效 B3、1 个冲突与 item 一致；B1/B2 人工标签仍为空，机器阶段和摘要不变。浏览器下载事件监听未返回，不据此声称已核验浏览器落盘文件；完整回包独立保存为 `export.json`。
+
+所有合成输入 provenance 与证据均标记 `semantic_truth=false`；自述审核人明确为 synthetic，不构成实际人工签审或语义真值。验证后仅停止本次归属已核对的 `18103` / `18181` 服务，并在关闭 SQLite 连接后精确删除本次合成夹具目录；残留计数 0（`b3-closeout/cleanup.json`），截图、导出和证据保留。真实 run 与历史交互证据未清理。
+
+| 私有证据 | SHA-256 |
+|---|---|
+| `b3-closeout/evidence.json` | `de011684e7439abb183bac36aa95c1a120c1c98d2471b6e2a65df4fa48aadbe2` |
+| `b3-closeout/export.json` | `dc6a6e97efa567a4b7ed1798733d5d99522755495b3f819481a61f310f24c1d8` |
+| `b3-closeout/b3-reopened.png` | `a5eec4ab644357c5eca6881bc91ce31d375563f2aac641fbca3634ddc8ded96b` |
+| `b3-closeout/b3-corrected.png` | `2782a5b33000fd22b6f9f17d57324cf1b35ad1368f2ef7d55e25275b17a284e5` |
+
+数据保全采用直接文件哈希及 SQLite `mode=ro` 查询，不实例化真实 Workflow 或重生成图。25 份受保护文件的前后 SHA 完全一致：真实 `workflow.sqlite3` / `analysis.sqlite3`、三套 v12 输入/报告/manifest/四份图 artifacts、历史 `exchange/m3/graph.json` 与人工待审队列。三套 manifest 分别仍为 `043f228d972198227cd96fff87c80dd696961c10ef567030aca4feba8b283fa7`、`9801b972f7ab7f133bd271273e7bc8a2c637dc5e265d83a6ebaec53f7ea88e08`、`b62b5c64047a8de943132eb5b80feba8e4783021a6f9f32a70045878640db294`；三套真实 run 审核事件计数均为 0。正式 MySQL/Neo4j 未执行写入或重建。
+
 ## 5. 验证结果
 
 | 验证 | 结果 |
 |---|---|
 | Gate 3A 逐边审计与隔离重生成 | 通过，三套 bundle 重生成字节一致 |
 | 后端 M2/M3 定向测试 | `13 passed` |
-| 多事件有效视图与导出定向测试 | 后端 `3 passed`；M2 页面组件 `12 passed`；M2/M2 API 全文件 `39 passed` |
-| 后端完整非集成测试 | `1561 passed / 24 skipped / 2 failed` |
-| 前端完整测试 | `158 passed` |
+| 多事件有效视图与导出定向测试 | 既有后端 `3 passed`；本次 M2 页面组件 `14 passed`；M2/M2 API/候选图三文件 `42 passed` |
+| 后端完整非集成测试 | 本次显式 `-m "not integration"`：`1561 passed / 24 deselected / 2 failed` |
+| 前端完整测试 | 本次 `160 passed`，含新增两项 B3 持久展示回归 |
 | `vue-tsc --noEmit` + Vite build | 通过；仅保留既有大 chunk 与动态/静态导入提示 |
-| integration 测试 | 默认未进入；`24 skipped` |
+| integration 测试 | 本次显式排除 `24 deselected`；先前裸跑默认保护为 `24 skipped` |
 
 两项后端失败均为基线已有、非本轮引入的 B3 目录来源漂移：
 
@@ -213,3 +238,48 @@ B2 当前审核对象仅是机器已生成的 statement；没有独立“机器�
 4. **下一阶段批量稳定性：** 工程上可提出有限、版本化、非正式的稳定性扩容建议，但应先关闭/明确豁免两项来源门禁；不得据此直接分析全部 2,988 条。全量分析仍需单独授权。
 
 本阶段未执行正式 MySQL DDL/写入、M2 正式表重导、Neo4j 重建或写入、自动岗位批准、需求提升、真实采集或 2,988 条全量分析。
+
+## 7. PR #51 合并后的 Windows 同步与实机验收准备
+
+以下步骤**尚未执行**。必须先由 ChatGPT 独立复审、经用户授权实际合并 PR #51；当前开发分支不等于已验收的 `master`。本次不改动本地 `master`。
+
+在 PowerShell 中逐步执行；有未提交修改、本地 `master` 领先/分叉、服务占用或命令失败即停止，保留现场：
+
+```powershell
+Set-Location -LiteralPath 'D:\Application\ClaudeCode\repository\TalentMind'
+$ErrorActionPreference = 'Stop'
+git status --short --branch
+if ($LASTEXITCODE -ne 0) { throw 'Git 状态读取失败' }
+if (@(git status --porcelain).Count) { throw '工作区有未提交修改，先人工处理' }
+$pr = gh pr view 51 --json state,mergedAt | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or $pr.state -ne 'MERGED' -or -not $pr.mergedAt) {
+    throw '尚未确认 PR #51 实际合并，停止同步'
+}
+$listeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+    Where-Object { $_.LocalPort -in 18000,18080,18103,18181 })
+if ($listeners.Count) {
+    $listeners | Select-Object LocalAddress,LocalPort,OwningProcess
+    throw '先确认并结束对应旧服务；不要停止归属不明的进程'
+}
+git fetch origin
+if ($LASTEXITCODE -ne 0) { throw 'fetch 失败' }
+$ahead = git rev-list --count origin/master..master
+if ($LASTEXITCODE -ne 0 -or [int]$ahead -gt 0) { throw '本地 master 有远端之外的提交，停止同步' }
+git switch master
+if ($LASTEXITCODE -ne 0) { throw '切换 master 失败' }
+git merge --ff-only origin/master
+if ($LASTEXITCODE -ne 0) { throw '无法快进，停止并保留现场' }
+git log -1 --oneline
+git status --short --branch
+pwsh -File scripts/start-local.ps1
+```
+
+访问 `http://127.0.0.1:18080/#/m2`，登录由用户完成。统一启动入口会核对已有服务归属；遇冲突不使用 `reset --hard`、`clean`、强制推送或结束未知进程。
+
+实机验收清单（本次只准备，合并后由用户执行）：
+
+- M2 工作台正常打开，三套真实 v12 历史 run 可读取，B1/B2/B3 机器结果与人工有效标签分离。
+- 审核写入只在明确标记 `semantic_truth=false` 的隔离合成 run：补充机器漏判 B3，提交、重开、更正、检查冲突与历史、导出；新草稿为空，不自动重发旧标签。不要在统一启动后的真实 run 中试填。
+- 旧 JD 级审核保持兼容，不生成逐项真值；真实 JD 仅由实际审核人判断和签审。
+- 三套 v12 候选图正常加载；主集为 190 节点 / 698 事实关系，历史图为 7,845 节点 / 11,412 关系，候选图与历史图往返正常。
+- 只读取冻结图与报告，不触发正式 MySQL/Neo4j 写入、导入或图谱重建；不启动真实采集或全量 2,988 条分析。
