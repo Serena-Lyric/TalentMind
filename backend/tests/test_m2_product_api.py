@@ -96,10 +96,29 @@ def test_review_api_binds_machine_result_and_exports_human_events(api, monkeypat
         'reviewer': 'human-reviewer',
         'note': '需要人工核对组合要求',
         'machine_sha256': detail['machine_sha256'],
+        'annotations': {
+            'b1_scope': {'scope_status': 'in_scope', 'note': '人工核对范围'},
+            'b2_statements': [{
+                'statement_id': detail['stages']['b22']['result']['body']['skills'][0]['statement_ids'][0],
+                'skill_ids': [detail['stages']['b22']['result']['body']['skills'][0]['id']],
+                'human_state': 'uncertain',
+                'note': '组合条件仍需确认',
+            }],
+            'b3_categories': [{
+                'family_id': 'software_engineering',
+                'human_decision': 'needs_followup',
+                'note': '大类边界待定',
+            }],
+        },
     })
     assert response.status_code == 200
     reviewed = response.json()['data']
     assert reviewed['human_review']['reviewer'] == 'human-reviewer'
+    assert reviewed['human_review']['human_annotations']['b1_scope']['scope_status'] == 'in_scope'
+    assert reviewed['human_review']['human_annotations']['b2_statements'][0]['human_state'] == 'uncertain'
+    assert reviewed['human_review']['human_annotations']['b3_categories'][0]['family_id'] == 'software_engineering'
+    assert reviewed['human_effective']['has_dimension_truth'] is True
+    assert reviewed['human_effective']['b1_scope']['provenance']['review_id'] == reviewed['human_review']['review_id']
     assert reviewed['stages'] == detail['stages']
     assert response.headers['cache-control'] == 'no-store'
 
@@ -109,6 +128,7 @@ def test_review_api_binds_machine_result_and_exports_human_events(api, monkeypat
     assert payload['schema_version'] == 'm2-human-review-export-1'
     assert payload['items'][0]['input']['id'] == 7
     assert payload['reviews'][0]['decision'] == 'needs_followup'
+    assert payload['items'][0]['human_effective']['b1_scope']['scope_status'] == 'in_scope'
     assert exported.headers['cache-control'] == 'no-store'
 
 

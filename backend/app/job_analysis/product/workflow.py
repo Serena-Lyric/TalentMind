@@ -13,6 +13,7 @@ from uuid import uuid4
 from ..foundation.inputs import canonical, check_public, digest, read_snapshot
 from ..foundation.runner import publish
 from ..foundation.store import now, safe_destination
+from ..role_classification.proposals.models import FAMILY_VERSIONS
 from . import source
 
 STAGES = ('b1', 'b2', 'b22', 'b3')
@@ -105,11 +106,190 @@ def _machine_sha256(item, versions):
     return digest(payload)
 
 
+def _human_annotations(item, value):
+    if value is None:
+        return None
+    if not isinstance(value, dict) or not set(value) <= {'b1_scope', 'b2_statements', 'b3_categories'}:
+        raise ValueError('invalid human annotation')
+    scope = value.get('b1_scope')
+    statements = value.get('b2_statements', [])
+    categories = value.get('b3_categories', [])
+    if not isinstance(statements, list) or not isinstance(categories, list):
+        raise ValueError('invalid human annotation lists')
+    if scope is None and not statements and not categories:
+        raise ValueError('human annotation is empty')
+
+    normalized_scope = None
+    if scope is not None:
+        if not isinstance(scope, dict) or not set(scope) <= {'scope_status', 'note'}:
+            raise ValueError('invalid human annotation scope')
+        scope_status = scope.get('scope_status')
+        note = scope.get('note', '')
+        if not isinstance(scope_status, str) or scope_status not in {
+            'in_scope', 'out_of_scope', 'needs_review', 'not_applicable',
+        }:
+            raise ValueError('invalid human annotation scope status')
+        if not isinstance(note, str) or len(note) > 1000:
+            raise ValueError('invalid human annotation scope note')
+        normalized_scope = {'scope_status': scope_status, 'note': note}
+
+    b2 = item['stages']['b2']
+    b2_body = (b2.get('result') or {}).get('body') or {}
+    b22 = item['stages']['b22']
+    b22_body = (b22.get('result') or {}).get('body') or {}
+    skills = {skill['id']: skill for skill in b22_body.get('skills', [])}
+    statements_by_id = {
+        statement['id']: statement
+        for statement in b2_body.get('statements', [])
+    }
+    normalized_statements = []
+    seen = set()
+    for annotation in statements:
+        if not isinstance(annotation, dict) or not set(annotation) <= {
+            'statement_id', 'skill_ids', 'human_state', 'note',
+        }:
+            raise ValueError('invalid human annotation statement')
+        statement_id = annotation.get('statement_id')
+        skill_ids = annotation.get('skill_ids', [])
+        human_state = annotation.get('human_state')
+        note = annotation.get('note', '')
+        if not isinstance(statement_id, str) or statement_id not in statements_by_id:
+            raise ValueError('human annotation statement is missing from machine result')
+        if not isinstance(skill_ids, list) or len(skill_ids) > 20 or any(
+            not isinstance(skill_id, str)
+            or skill_id not in skills
+            or statement_id not in skills[skill_id]['statement_ids']
+            for skill_id in skill_ids
+        ):
+            raise ValueError('invalid human annotation skills')
+        if len(skill_ids) != len(set(skill_ids)):
+            raise ValueError('duplicate human annotation skill')
+        if not isinstance(human_state, str) or human_state not in {
+            'required', 'preferred', 'mentioned', 'not_required', 'uncertain', 'not_skill',
+        }:
+            raise ValueError('invalid human annotation skill state')
+        if not isinstance(note, str) or len(note) > 1000:
+            raise ValueError('invalid human annotation statement note')
+        if statement_id in seen:
+            raise ValueError('duplicate human annotation statement')
+        seen.add(statement_id)
+        normalized_statements.append({
+            'statement_id': statement_id,
+            'skill_ids': skill_ids,
+            'human_state': human_state,
+            'note': note,
+        })
+
+    allowed_families = set(FAMILY_VERSIONS['families-v3'])
+    normalized_categories = []
+    seen = set()
+    for annotation in categories:
+        if not isinstance(annotation, dict) or not set(annotation) <= {
+            'family_id', 'human_decision', 'note',
+        }:
+            raise ValueError('invalid human annotation category')
+        family_id = annotation.get('family_id')
+        human_decision = annotation.get('human_decision')
+        note = annotation.get('note', '')
+        if not isinstance(family_id, str) or family_id not in allowed_families:
+            raise ValueError('invalid human annotation family')
+        if not isinstance(human_decision, str) or human_decision not in {
+            'accepted', 'rejected', 'needs_followup',
+        }:
+            raise ValueError('invalid human annotation category decision')
+        if not isinstance(note, str) or len(note) > 1000:
+            raise ValueError('invalid human annotation category note')
+        if family_id in seen:
+            raise ValueError('duplicate human annotation category')
+        seen.add(family_id)
+        normalized_categories.append({
+            'family_id': family_id,
+            'human_decision': human_decision,
+            'note': note,
+        })
+
+    return {
+        'b1_scope': normalized_scope,
+        'b2_statements': normalized_statements,
+        'b3_categories': normalized_categories,
+    }
+
+
 def _latest_reviews(reviews):
     latest = {}
     for event in reviews:
         latest[event['ordinal']] = event
     return latest
+
+
+def _effective_human_reviews(reviews):
+    b1_scope = None
+    b2_statements = {}
+    b3_categories = {}
+    conflicts = []
+    annotation_event_count = 0
+    legacy_review_count = 0
+    for event in reviews:
+        annotations = event.get('human_annotations')
+        if not isinstance(annotations, dict):
+            legacy_review_count += 1
+            continue
+        annotation_event_count += 1
+        provenance = {
+            'review_id': event['review_id'],
+            'event_sha256': event['sha256'],
+            'reviewer': event['reviewer'],
+            'reviewed_at': event['reviewed_at'],
+            'machine_sha256': event['machine_sha256'],
+            'input_sha256': event['input_sha256'],
+        }
+        scope = annotations.get('b1_scope')
+        if scope is not None:
+            effective = dict(scope, provenance=provenance)
+            if b1_scope is not None and b1_scope['scope_status'] != effective['scope_status']:
+                conflicts.append({
+                    'dimension': 'b1_scope',
+                    'key': 'b1',
+                    'previous': b1_scope,
+                    'effective': effective,
+                })
+            b1_scope = effective
+        for statement in annotations.get('b2_statements', []):
+            effective = dict(statement, provenance=provenance)
+            previous = b2_statements.get(statement['statement_id'])
+            if previous is not None and (
+                previous['human_state'] != effective['human_state']
+                or previous['skill_ids'] != effective['skill_ids']
+            ):
+                conflicts.append({
+                    'dimension': 'b2_statement',
+                    'key': statement['statement_id'],
+                    'previous': previous,
+                    'effective': effective,
+                })
+            b2_statements[statement['statement_id']] = effective
+        for category in annotations.get('b3_categories', []):
+            effective = dict(category, provenance=provenance)
+            previous = b3_categories.get(category['family_id'])
+            if previous is not None and previous['human_decision'] != effective['human_decision']:
+                conflicts.append({
+                    'dimension': 'b3_category',
+                    'key': category['family_id'],
+                    'previous': previous,
+                    'effective': effective,
+                })
+            b3_categories[category['family_id']] = effective
+    return {
+        'schema_version': 'm2-human-effective-1',
+        'b1_scope': b1_scope,
+        'b2_statements': [b2_statements[key] for key in sorted(b2_statements)],
+        'b3_categories': [b3_categories[key] for key in sorted(b3_categories)],
+        'conflicts': conflicts,
+        'event_count': len(reviews),
+        'annotation_event_count': annotation_event_count,
+        'legacy_review_count': legacy_review_count,
+        'has_dimension_truth': b1_scope is not None or bool(b2_statements) or bool(b3_categories),
+    }
 
 
 class Workflow:
@@ -266,6 +446,10 @@ class Workflow:
         items = self._items(run_id)
         reviews = self.reviews(run_id)
         latest = _latest_reviews(reviews)
+        reviews_by_ordinal = {
+            ordinal: [event for event in reviews if event['ordinal'] == ordinal]
+            for ordinal in latest
+        }
         compact = []
         for item in items:
             copy = {k: v for k, v in item.items() if k != 'stages'}
@@ -275,6 +459,7 @@ class Workflow:
             copy['stages'] = {s: {k: v for k, v in stage.items() if k != 'result'} for s, stage in item['stages'].items()}
             copy['machine_sha256'] = _machine_sha256(item, json.loads(row['versions']))
             copy['human_review'] = latest.get(item['ordinal'])
+            copy['human_effective'] = _effective_human_reviews(reviews_by_ordinal.get(item['ordinal'], []))
             compact.append(copy)
         return dict(run_id=run_id, status=row['status'], reason=row['reason'], created_at=row['created_at'],
             finished_at=row['finished_at'], parent_run_id=row['parent_id'], input_sha256=row['input_sha256'],
@@ -298,6 +483,7 @@ class Workflow:
             input_provenance=self.get(run_id)['provenance'],
             machine_sha256=_machine_sha256(body, json.loads(run['versions'])),
             human_review=reviews[-1] if reviews else None,
+            human_effective=_effective_human_reviews(reviews),
             reviews=reviews,
         )
 
@@ -344,6 +530,7 @@ class Workflow:
         machine_sha256 = _machine_sha256(item, versions)
         if supplied_machine != machine_sha256:
             raise ValueError('human review machine result changed')
+        human_annotations = _human_annotations(item, event.get('annotations'))
         reviewed_at = now()
         body = {
             'schema_version': 'm2-human-review-1',
@@ -360,6 +547,8 @@ class Workflow:
             'reviewed_at': reviewed_at,
             'formal_truth_claim': False,
         }
+        if human_annotations is not None:
+            body['human_annotations'] = human_annotations
         event_sha256 = digest(body)
         with self.db() as conn:
             cursor = conn.execute(
@@ -397,6 +586,9 @@ class Workflow:
                     'stages': item.get('stages'),
                 },
                 'human_review': human,
+                'human_effective': _effective_human_reviews(
+                    [event for event in reviews if event['ordinal'] == item['ordinal']]
+                ),
                 'review_events': [event for event in reviews if event['ordinal'] == item['ordinal']],
             })
         return {
