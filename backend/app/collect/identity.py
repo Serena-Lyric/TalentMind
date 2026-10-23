@@ -35,7 +35,7 @@ def content_rejection(spec: SiteSpec, job: dict, detail: dict | None) -> str | N
         return 'truncated_description'
     raw = normalize_job(
         spec,
-        {'url': job.get('url'), 'title': job.get('title')},
+        {'url': job.get('url'), 'title': job.get('title') or detail.get('title')},
         {'description': detail.get('description')},
     )
     if not raw or not is_valid_jd(clean(raw)):
@@ -51,6 +51,8 @@ def identity_decision(
     observed_at: str,
 ) -> tuple[str, dict, str | None]:
     """Return identity status, traceable evidence, and rejection reason."""
+    if not _text(job.get('title')):
+        return 'unknown', {}, 'missing_list_title'
     if job.get('_dom'):
         if not isinstance(binding, dict):
             return 'unknown', {}, 'binding_evidence_missing'

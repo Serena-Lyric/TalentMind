@@ -13,6 +13,32 @@ def runtime():
     return importlib.import_module('app.collect.browser')
 
 
+@pytest.mark.parametrize('collectable', [True, False])
+def test_worker_rechecks_only_bound_target_without_preparing_another_page(monkeypatch, collectable):
+    b = runtime()
+    target = 'https://www.zhaopin.com/jobs?jl=530&kw=Java&page=1'
+    calls = []
+    def status(endpoint, profile, **kwargs):
+        calls.append((endpoint, profile, kwargs))
+        return {'endpoint': endpoint, 'platform_access': {'zhaopin': {
+            'can_collect': collectable, 'target_id': 'chosen' if collectable else None,
+            'access_state': 'public_accessible' if collectable else 'page_missing',
+            'reason': 'visible_job_content' if collectable else 'target_page_missing',
+        }}}
+    monkeypatch.setattr(b, 'status', status)
+    monkeypatch.setattr(b, 'prepare', lambda *a, **kw: pytest.fail('bound worker must not prepare or choose another page'))
+    kwargs = dict(target_id='chosen', target_url=target)
+    if collectable:
+        result = b.ensure_ready('zhaopin', 'http://127.0.0.1:9333', 'synthetic-profile', **kwargs)
+        assert result['target_id'] == 'chosen'
+    else:
+        with pytest.raises(b.CdpError, match='target_page_missing'):
+            b.ensure_ready('zhaopin', 'http://127.0.0.1:9333', 'synthetic-profile', **kwargs)
+    assert calls == [('http://127.0.0.1:9333', 'synthetic-profile', {
+        'platform': 'zhaopin', 'target_id': 'chosen', 'target_url': target,
+    })]
+
+
 def snapshot(**kw):
     return {**dict(url='https://www.liepin.com/zhaopin/', ready_state='complete',
                    cards=0, details=0, text='', gate_text='', authenticated=False), **kw}

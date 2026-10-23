@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from datetime import datetime, timezone
 from typing import Iterable
@@ -53,9 +54,16 @@ def parse_cities(value: str) -> list[tuple[str, str]]:
 
 
 def extract_current_page(client: CdpClient, spec: SiteSpec) -> list[dict]:
-    browser.wait_access(client, spec.source)
-    result = client.evaluate(build_search_extract_js(spec))
-    return result if isinstance(result, list) else []
+    access = browser.wait_access(client, spec.source)
+    deadline = time.monotonic() + 6.0
+    while True:
+        result = client.evaluate(build_search_extract_js(spec))
+        jobs = result if isinstance(result, list) else []
+        if (spec.source != 'zhaopin' or access.get('access_state') == 'empty_results'
+                or (jobs and all(clean_text(job.get('title')) for job in jobs))
+                or time.monotonic() >= deadline):
+            return jobs
+        time.sleep(.5)
 
 
 def fetch_search_page(client: CdpClient, spec: SiteSpec, url: str, settle: float) -> list[dict]:
@@ -86,18 +94,25 @@ def await_stable_panel(
 ) -> dict:
     """Poll the detail panel until one update becomes stable twice in a row."""
     deadline = time.monotonic() + timeout
+    before_signature = _panel_content_signature(before)
     previous = None
     stable_samples = 0
     last = {}
     while time.monotonic() < deadline:
         probe = client.evaluate(build_panel_probe_js(spec, card_index))
         if isinstance(probe, dict):
-            signature = _panel_stability_signature(probe)
-            stable_samples = stable_samples + 1 if signature == previous else 1
-            previous = signature
             last = probe
-            if stable_samples >= 2:
-                break
+            if (_panel_content_signature(probe) != before_signature
+                    and probe.get('target_active') and probe.get('panel_visible')
+                    and clean_text(probe.get('panel_title')) and clean_text(probe.get('description'))):
+                signature = _panel_stability_signature(probe)
+                stable_samples = stable_samples + 1 if signature == previous else 1
+                previous = signature
+                if stable_samples >= 2:
+                    break
+            else:
+                previous = None
+                stable_samples = 0
         time.sleep(interval)
     return {
         'target_card_found': bool(last.get('target_card_found')),
@@ -155,8 +170,14 @@ def run_fetch(
     if search_url_template:
         spec = SiteSpec(**{**spec.__dict__, "search_template": search_url_template})
 
+    target_binding = {}
+    if os.environ.get('TALENTMIND_COLLECTION_TARGET_ID') or os.environ.get('TALENTMIND_COLLECTION_TARGET_URL'):
+        target_binding = {
+            'target_id': os.environ.get('TALENTMIND_COLLECTION_TARGET_ID'),
+            'target_url': os.environ.get('TALENTMIND_COLLECTION_TARGET_URL'),
+        }
     prepared = browser.ensure_ready(platform, cdp_endpoint, user_data_dir,
-                                   timeout=browser_timeout, wait_for_login=login_timeout)
+                                   timeout=browser_timeout, wait_for_login=login_timeout, **target_binding)
     cdp_endpoint = prepared['endpoint']
 
     client = CdpClient.connect_first_page(
@@ -194,15 +215,60 @@ def run_fetch(
                  identity_verified=0, complete=0, inserted=0, updated=0, new=0,
                  skipped=0, rejected=0, failed=0, unattempted=len(jobs),
                  rejection_reasons={}, stop_reason=None)
-    accepted = list(jobs) if no_details else []
+    def persist(accepted, job=None):
+        raws = [raw for item in accepted if (raw := normalize_job(spec, item))]
+        if not raws:
+            return
+        provider = db = None
+        try:
+            from app.db.mysql import get_db
+            provider = get_db()
+            db = next(provider)
+            row_by_detail = {row.source_detail: row for row in raws}
+            def saved_event(item):
+                if item['outcome'] == 'skipped':
+                    stats['skipped'] += 1
+                row = row_by_detail.get(item.get('source_detail'))
+                evidence = row.identity_evidence if row else None
+                if evidence:
+                    try:
+                        evidence = json.loads(evidence)
+                    except (TypeError, ValueError):
+                        evidence = None
+                emit('persisted', items=[{
+                    **item,
+                    'identity_status': row.identity_status if row else 'unknown',
+                    'content_eligible': row.content_eligible if row else None,
+                    'identity_evidence': evidence,
+                    'observation_key': row.observation_key if row else None,
+                }])
+            def saver(session, rows):
+                return save_incremental_jd_rows(session, rows, created_ids=set(), on_saved=saved_event)
+            saved = run_pipeline(db, raws, jd_saver=saver)['jd_saved']
+            stats['inserted'] += int(saved)
+            stats['new'] = stats['inserted']
+        except Exception as exc:
+            if db is not None:
+                db.rollback()
+            stats['failed'] += 1
+            stats['stop_reason'] = str(exc)
+            emit('failure', job=job, reason=str(exc), phase='persistence')
+            emit('finished', stats=stats)
+            raise
+        finally:
+            if provider is not None:
+                provider.close()
+
     if no_details:
         stats['content_eligible'] = None
+        persist(jobs)
     if not no_details and detail_limit and jobs:
         detail_client = CdpClient.connect_first_page(
             cdp_endpoint, target_url_contains=spec.host_hint, target_id=prepared.get('target_id')
         )
         try:
             for index, job in enumerate(jobs[:detail_limit], 1):
+                accepted_job = None
                 stats['detail_attempted'] += 1
                 stats['details'] += 1
                 stats['unattempted'] -= 1
@@ -256,9 +322,9 @@ def run_fetch(
                             '_content_eligible': True,
                             '_identity_evidence': json.dumps(evidence, ensure_ascii=False, sort_keys=True),
                         }
-                        accepted.append({**enriched_job, **{
+                        accepted_job = {**enriched_job, **{
                             key: value for key, value in detail.items() if value and key != 'url'
-                        }})
+                        }}
                     emit('detail', index=index, job=job, detail=detail, access=access,
                          rejection=reason, identity_status=status, content_eligible=content_ok,
                          identity_evidence=evidence, observed_at=observed_at)
@@ -267,52 +333,13 @@ def run_fetch(
                     stats['stop_reason'] = str(exc)
                     emit('failure', index=index, job=job, reason=str(exc))
                     break
+                if accepted_job is not None:
+                    persist([accepted_job], job)
                 if index < min(detail_limit, len(jobs)):
                     time.sleep(delay)
         finally:
             detail_client.close()
 
-    raws = [raw for job in accepted if (raw := normalize_job(spec, job))]
-    if raws:
-        from app.db.mysql import get_db
-        provider = get_db()
-        db = next(provider)
-        try:
-            row_by_detail = {
-                row.source_detail: {
-                    'identity_status': row.identity_status,
-                    'content_eligible': row.content_eligible,
-                    'identity_evidence': row.identity_evidence,
-                    'observation_key': row.observation_key,
-                }
-                for row in raws
-            }
-            def saved_event(item):
-                if item['outcome'] == 'skipped':
-                    stats['skipped'] += 1
-                identity = row_by_detail.get(item.get('source_detail'), {})
-                evidence = identity.get('identity_evidence')
-                if evidence:
-                    try:
-                        evidence = json.loads(evidence)
-                    except (TypeError, ValueError):
-                        evidence = None
-                emit('persisted', items=[{
-                    **item,
-                    'identity_status': identity.get('identity_status', 'unknown'),
-                    'content_eligible': identity.get('content_eligible'),
-                    'identity_evidence': evidence,
-                    'observation_key': identity.get('observation_key') or item.get('observation_key'),
-                }])
-            def saver(session, rows):
-                return save_incremental_jd_rows(session, rows, created_ids=set(), on_saved=saved_event)
-            saved = run_pipeline(db, raws, jd_saver=saver)['jd_saved']
-            stats['new'] = stats['inserted'] = int(saved)
-        except Exception:
-            db.rollback()
-            raise
-        finally:
-            provider.close()
     emit('finished', stats=stats)
     return stats
 
