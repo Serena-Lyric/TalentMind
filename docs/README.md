@@ -1,5 +1,13 @@
 # TalentMind 文档地图（docs/ 导航）
 
+## 2026-10-26 当前维护入口
+
+- [最终整理记录](superpowers/archive/2026-10-26-repository-retirement.md)：当前分支、工作树、P05及受阻物理残留。
+- [M1真实验证与数据恢复历史](superpowers/archive/2026-10-22-M1-collection-validation-and-recovery.md)：已关闭PR #49的重要事实及来源，不合并旧代码。
+- [竞赛V1 Release](https://github.com/Serena-Lyric/TalentMind/releases/tag/competition-v1-2026-09-05)：标签固定4a473c2，替代旧归档分支。
+
+下表与后续记录中的旧候选、PR状态和阶段测试数按其日期理解；当前状态先读上述入口。
+
 > 更新：2026-10-22。本文负责导航；产品方案、实际实现、历史记录和 Agent 规则分别维护，按下表及明确替代关系读取。历史材料仅供溯源，不自动授权执行。
 
 ## 主文档（按任务选择）

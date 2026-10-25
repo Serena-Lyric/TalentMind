@@ -1,5 +1,7 @@
 # TalentMind 当前产品决策
 
+**2026-10-26 仓库维护处置（负责人明确授权）：** V1通过固定标签与Release保留；旧图谱、P1/A3/R0、传输分支及相关工作树终止清理，不为废弃实验新建备份或标签。M1必要历史进入[主线归档](superpowers/archive/2026-10-22-M1-collection-validation-and-recovery.md)，PR #49关闭但不合并旧代码。维护范围及受阻项见[整理记录](superpowers/archive/2026-10-26-repository-retirement.md)。此项只覆盖历史保全方式和仓库清理未决范围，不改变正式图谱、业务数据或DDL授权。
+
 **2026-10-21晚本轮授权增量：** 负责人要求在既有#44集成分支安全统一到本地主仓，优先功能可操作；复用指定M2保存run报告显式生成/查看版本匹配的候选图。不得换输入版本冒充同一次分析、提升未审技能为正式要求或改写Neo4j；不扩展B1/B2规则或B3门槛，精度/美术/性能留待23日后。前端成员提交 `8478541` 已核验并按主线业务基线完成视觉整合。本轮实现与未完成边界见[统一报告](review/Unified-product-2026-10-21.md)。
 
 **2026-10-21 M1岗位身份待审（负责人确认）：** 内容质量与岗位身份可信度独立。身份仅为 `verified / pending / unknown`；采集拒绝和失败不是身份。历史数据默认 `unknown`，不得批量推断为 `verified`。智联允许 DOM 身份待审记录进入 M2 单条分析和 M3 候选观察图，但必须同时具备动态面板更新、目标卡片选中、连续稳定采样、标题一致和正文合格证据；仅卡片 active、标题相同或固定等待不能证明绑定。待审观察不能计入已确认独立岗位数或已确认技能需求，不修改正式 `job_definition/job_skill/job_change_log/Neo4j`，不提升 B3。`detail_obtained`、`content_eligible`、`identity_pending`、`identity_verified` 与既有 `complete` 分开统计。`jd_pool` 三列迁移须先完成兼容方案、冷备和隔离恢复验证，随后另行授权 DDL；本次确认不授权执行迁移。实现/限制见[报告](review/Zhaopin-identity-pending-2026-10-21.md)。
@@ -251,10 +253,10 @@ B2 第一轮只允许免费离线、单 JD 分析与持久化/恢复验证，规
 
 ### 7.4 开发和记录边界
 
-- 当前 `master` 仍保留原正式 Canvas 页面；[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 为未合并的实验交互/布局版本，是否合并由 ChatGPT 审核和用户授权决定。旧 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 无约束 A/B 原型方案已按用户要求终止，并非项目视觉方向取消；上一轮原型已安全归档至 [`archive/career-nebula-prototype-pre-redesign-20261017`](https://github.com/Serena-Lyric/TalentMind/tree/archive/career-nebula-prototype-pre-redesign-20261017)（HEAD `4caa2550`），仅留待后续按清单审计清理原 worktree/依赖；归档不是新实现基线。
+- 2026-10-17旧阶段的分支/工作树处置已由2026-10-26维护决定覆盖：PR #23关闭未合并，旧R0/P1实验及原归档引用终止清理，不再承诺从旧工作树恢复。正式主线图谱的后续实现与授权见第8–11节；[整理记录](superpowers/archive/2026-10-26-repository-retirement.md)不代表改变事实、算法或视觉验收结论。
 - 后续先做图谱页面外壳的可回退小修改及《诗云》视觉原型，**本次记录不代表批准直接替换正式渲染器、修改 Neo4j 或删除旧分支/worktree**。源项目许可独立核实，不能直接复用有非商业限制的资产/代码。
 - 新创新点、重要功能或技术方案**经用户确认即可写入 README**，不必等待开发完成；每项标记“已确认设计 / 原型中 / 已实现 / 已验证”，由成员据此准备竞赛资料。未经用户授意不自动修改 README/GitHub；本次更新因用户明确要求而获授权。此后继续按 AGENTS 的 PR 审核/授权合并流程。
-- **仍未确定**：最终 2D/2.5D/3D/WebGL/WebGPU 技术路线、图社区/路径算法、正式色彩与尺寸参数、业务关系迁移、三模式精细页面设计、设置页实现、PR #23 的最终处置以及仓库遗留清理范围。
+- **仍未确定**：最终 2D/2.5D/3D/WebGL/WebGPU 技术路线、图社区/路径算法、正式色彩与尺寸参数、业务关系迁移、三模式精细页面设计、设置页实现；PR #23及遗留实验清理已由2026-10-26维护决定明确。
 
 ## 8. M3/M5-P2.3 版本化增量（2026-10-19）
 

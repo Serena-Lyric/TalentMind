@@ -1,5 +1,7 @@
 # A 角色开发路线与交接文档（给下一个接手 A 工作的 Agent）
 
+> **2026-10-26 当前维护入口：** 正式开发仅master；V1使用标签 `competition-v1-2026-09-05` 和[Release](https://github.com/Serena-Lyric/TalentMind/releases/tag/competition-v1-2026-09-05)。M1旧阶段事实与恢复见[正式历史](docs/superpowers/archive/2026-10-22-M1-collection-validation-and-recovery.md)，本文件下方冻结交接按当时时点理解。
+
 > **2026-10-15 入口更新（D61/D62）**：当前产品方案见 [PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md)，通用规则与 GitHub 流程见 [AGENTS.md](AGENTS.md)，阅读范围按 [AGENT_START_HERE.md](AGENT_START_HERE.md) 选择。本文件是 A 角色相关任务的补充交接，历史操作步骤不自动授权采集、迁移或清理；核心阅读不再要求逐文件复述。M1 第二阶段已合并，证据见 [PR #1](https://github.com/Serena-Lyric/TalentMind/pull/1)。
 
 

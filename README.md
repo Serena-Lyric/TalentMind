@@ -1,5 +1,11 @@
 # TalentMind
 
+## 当前仓库状态（2026-10-26）
+
+正式开发仅使用 `master` 和D盘主工作区；头像PR #53已合并。旧图谱/P1/A3/R0实验体系按负责人决定终止清理，相关PR均关闭，不再从旧分支或工作树恢复。主线已经合入的正式图谱代码及回退能力保持不变。
+
+竞赛V1改由 [Release与固定标签](https://github.com/Serena-Lyric/TalentMind/releases/tag/competition-v1-2026-09-05) 定位。M1旧阶段真实结果、数据事故及授权恢复见 [正式历史记录](docs/superpowers/archive/2026-10-22-M1-collection-validation-and-recovery.md)；本轮范围、P05独立化和物理删除受阻项见 [最终整理记录](docs/superpowers/archive/2026-10-26-repository-retirement.md)。下列带日期的阶段叙述均为历史，不代表当前PR/分支或运行状态。
+
 > **2026-10-21晚主仓统一**：现有集成分支已在D盘主仓运行；M2完成任务可显式“生成 / 查看本次候选图谱”，绑定该run的冻结输入、分析版本及保存报告。主仓保全、启动与真实浏览器结果见[统一验收](docs/review/Unified-product-2026-10-21.md)。前端成员当晚美化来源尚未取得、未合入；M1站点门禁仍阻塞，不宣称新采成功。
 
 > **2026-10-21 新版 M2 产品工作台**：统一入口启动后访问 `http://127.0.0.1:18080/#/m2`。选择真实历史 JD → 冻结输入 → 显式开始新版 B1/B2/B2.2/B3 候选分析 → 逐条查看证据/限制；支持停止、恢复和版本重放。仅只读 MySQL，结果隔离于本地 SQLite，M1 新采门禁不阻塞。真实运行与覆盖口径见[交付报告](docs/review/M2-product-2026-10-21.md)。
@@ -36,7 +42,7 @@
 **团队竞赛材料取用规则**：已确认设计可以先写入并供成员准备文案、PPT 和演示规划；请明确区分“已确认设计、原型中、已实现、已验证”。页面效果图、源码与数据指标必须标明真实来源，不得把规划或概念图当成已完成成果。
 
 
-> **2026-10-14 第二轮保全**：V1 归档仍为 `archive/competition-v1`（`4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`）；master 已补充 [审查资料](docs/archive/competition-v1/README.md)。私有备份 `D:\backup\TalentMind-2026-10-14` 精简为 9 文件约 0.967 GB（两版 SQL、Neo4j dump、去重私有资料与清单），实际释放约 27.207 GB；不再保存整机盘、冷卷、镜像及依赖副本。JD=2984 与 2988 两版均保留，业务逻辑和当前 Docker 数据未改动。见 [第二轮报告](docs/GitHub资产补全与备份精简报告-2026-10-14.md) 和 [恢复手册](docs/V1恢复手册.md)。
+> **2026-10-14 第二轮保全**：V1 当前由标签 `competition-v1-2026-09-05` 与 Release 定位（原归档分支已删除）（`4a473c2f8ee6b814acd6ed97a670563ece0f3ae0`）；master 已补充 [审查资料](docs/archive/competition-v1/README.md)。私有备份 `D:\backup\TalentMind-2026-10-14` 精简为 9 文件约 0.967 GB（两版 SQL、Neo4j dump、去重私有资料与清单），实际释放约 27.207 GB；不再保存整机盘、冷卷、镜像及依赖副本。JD=2984 与 2988 两版均保留，业务逻辑和当前 Docker 数据未改动。见 [第二轮报告](docs/GitHub资产补全与备份精简报告-2026-10-14.md) 和 [恢复手册](docs/V1恢复手册.md)。
 
 TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前仓库承担两个角色：
 
@@ -51,7 +57,7 @@ TalentMind 是一个契约式单体的人才数据与岗位智能系统。当前
 
 2026-10-19：M3/M5-P2.1 在独立分支形成正式Vue图谱集成候选，保留原演示登录/导航与旧Canvas参数回退；仅使用已核验历史7845节点/11412关系，候选相似/社区绑定输入摘要。属于**已实现并定向验证、待独立审核及视觉验收**，不表示新版标准岗位、五态语义或生产迁移已完成。见 [集成报告](docs/review/M3-M5-P2-1.md) 与 [10月21日能力/证据索引](docs/演示能力与证据索引-2026-10-21.md)。
 
-**2026-10-17 M3/M5 图谱改造状态**：当前 `master` 已合并 [PR #21](https://github.com/Serena-Lyric/TalentMind/pull/21) 的**离线图谱构建正确性与安全入口修复**，但新 ID/冲突审计尚未进行正式消费者迁移；现有 `graph.json` / Neo4j 未因此重建。[PR #23](https://github.com/Serena-Lyric/TalentMind/pull/23) 的关系驱动布局、原位选中、全览/标签等仍为**未合并实验实现**；原双路线星云原型 [Issue #24](https://github.com/Serena-Lyric/TalentMind/issues/24) 已按用户决定终止（Not planned），旧原型已保存在 [独立归档分支](https://github.com/Serena-Lyric/TalentMind/tree/archive/career-nebula-prototype-pre-redesign-20261017)（35 项成果，HEAD `4caa2550`），旧本地工作树尚未清理。**新的 Career Nebula 视觉与页面改造**当前只形成已确认设计与实施任务书，尚未启动正式页面改造或将 Three.js 接入主分支。
+**2026-10-17 旧图谱阶段（后续处置已明确）**：PR #21 的离线构建修复已进入主线；旧 PR #23 未合并但已关闭，原 R0/P1 研究不是当前正式实现。负责人已于本次最终整理中终止并清理其分支与工作树，原归档分支不再保留；见[处置记录](docs/superpowers/archive/2026-10-26-repository-retirement.md)。正式图谱后续实现与数据边界按现行代码及产品决策理解，不将旧阶段候选状态当作现在的实现状态。
 
 
 2026-10-17 M2 B3-5（Issue #18）：独立八大类标准岗位目录**19 条未确认草案**与逐项人工审核/准入契约；正式 release **0 条**，非合成仅形成待现实批准的提案，synthetic_only 仅模拟准入。见 [M2 README](backend/app/job_analysis/README.md) 和 [归档实施及独立复审报告](docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)（[PR #19](https://github.com/Serena-Lyric/TalentMind/pull/19)）。Codex 报告阻网完整非集成 1132 passed / 2 skipped / 23 deselected，外部连接尝试 0；ChatGPT 独立静态复审通过，用户已授权归档/合并，状态以 GitHub 为准。不启动 B4。
