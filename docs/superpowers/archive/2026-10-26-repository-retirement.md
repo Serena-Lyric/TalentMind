@@ -15,7 +15,9 @@
 
 四个额外工作树 `career-nebula-p1-a3`、`issue-24-r0`、`issue-26-p1-visual`、`m3-m5-issue-22` 已从Git登记移除。旧stash `pre-unify-20261021-main-10-protected` 已丢弃，其必要端口配置、说明与陷阱此前已在主线保存。
 
-物理目录存在受阻项：R0和issue-22的删除遇到Windows长路径错误，后续限定路径删除被自动审批以 `blocked by policy` 拒绝；另两处空外层目录的删除也被拒绝。本轮保留这些受阻残留，不视为活动工作树，不绕过拦截。没有为它们建立新恢复包。
+物理目录存在受阻项：R0和issue-22的删除遇到Windows长路径错误，后续限定路径删除被自动审批以 `blocked by policy` 拒绝；另两处外层目录仅剩 `.codex-worktree-name` 名称文件，删除也被拒绝。本轮保留这四处受阻残留，不视为活动工作树，不绕过拦截。没有为它们建立新恢复包。
+
+最终主仓Git对象回收完成，`git count-objects -vH` 显示单个对象包104.12 MiB、松散对象0、垃圾文件0；主仓及解除借用后的P05均通过 `git fsck --full`。P05原HEAD、引用、索引及11张未跟踪截图哈希与清理前一致。
 
 ## P05 保留与独立化
 
