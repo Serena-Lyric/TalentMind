@@ -1,5 +1,7 @@
 # frontend — TalentMind 前端（M5）
 
+Issue #24 的 A/B 视觉研究原型独立位于 [prototypes/nebula-r0](prototypes/nebula-r0/README.md)，端口18082，使用可核验固定快照与隔离依赖，不进入下面的正式应用路由或生产API。原型报告见 [R0 对照研究](../docs/review/M3-M5-issue-24-R0.md)；最终路线待用户选择。
+
 TalentMind 的唯一正式前端，采用 Vue 3 + TypeScript + Vite + Element Plus + ECharts + Pinia。
 
 ## 页面

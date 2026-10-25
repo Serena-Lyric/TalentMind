@@ -1,0 +1,2964 @@
+{
+  "metadata": {
+    "layoutSha256": "01b87cf3437ad200676f4e4d232170e321e2b7e3f28d223a81c0e9b70924d787",
+    "networkx": "3.7",
+    "numpy": "2.5.4",
+    "protocolVersion": "r0-1",
+    "python": "3.14.5",
+    "seed": 24,
+    "source": "exchange/m3/graph.json",
+    "sourceSha256": "6565d56dbc5a267eb90144f078c54f3d0c761c9a98ca29a18b4dc9c6cdde38e2",
+    "sourceVersion": {
+      "edge_count": 11412,
+      "exported_at": "2026-09-04T17:03:44.633296+00:00",
+      "node_count": 7845,
+      "source": "M2 full return package",
+      "version": "m2-full-2026-09-02"
+    }
+  },
+  "view": {
+    "k": 1.3067470235701257,
+    "x": 581.8164135490609,
+    "y": 452.73113448503,
+    "yaw": 0,
+    "pitch": 0
+  },
+  "selected": {
+    "communityId": "C03",
+    "communityMembership": {
+      "C01": 4,
+      "C02": 38,
+      "C03": 83,
+      "C04": 60,
+      "C05": 37
+    },
+    "importance": 5.40717,
+    "label": "python",
+    "nodeId": "skill:python",
+    "properties": {
+      "display_name": "python",
+      "id": "skill:python",
+      "job_count": 225,
+      "kind": "skill",
+      "name": "python",
+      "type": "skill"
+    },
+    "type": "skill",
+    "visibleLevel": 1,
+    "xyz": [
+      -96.66478,
+      -47.24031,
+      -219.18631
+    ]
+  },
+  "directEdges": [
+    {
+      "edgeId": "snapshot:00034",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-015b24ee3b25a360",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-015b24ee3b25a360",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00081",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-02834464b4342f61",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-02834464b4342f61",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00119",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-02d09ffe7550f57b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-02d09ffe7550f57b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00154",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-02dad37297fad79a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-02dad37297fad79a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00183",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-03b1c9c39ae6b20c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-03b1c9c39ae6b20c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00217",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-042f46581a9e7f0c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-042f46581a9e7f0c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00238",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-055ad1e1309eab3a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-055ad1e1309eab3a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00263",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-05d5714f538a855b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-05d5714f538a855b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00371",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-0674b43c33b2ac73",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-0674b43c33b2ac73",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00462",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-0847d22d624d7a26",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-0847d22d624d7a26",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00523",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-099dc18900eb3746",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-099dc18900eb3746",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00609",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-0ae94d03ba289c1a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-0ae94d03ba289c1a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00692",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-0b19c04132ab8e99",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-0b19c04132ab8e99",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00806",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-0ddbc8681e550f59",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-0ddbc8681e550f59",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00867",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-0fbd4a3885fdb4bb",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-0fbd4a3885fdb4bb",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00892",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-1003fbc0c77522fe",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-1003fbc0c77522fe",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00913",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-103740ddd56a9779",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-103740ddd56a9779",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00949",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-10c9e1f8cc91609a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-10c9e1f8cc91609a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:00966",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-10e5e5458b71e5fc",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-10e5e5458b71e5fc",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01034",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-125db9c6a7fc57b6",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-125db9c6a7fc57b6",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01073",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-12e11131ba9bbe7d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-12e11131ba9bbe7d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01095",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-1339762bc25cd2c5",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-1339762bc25cd2c5",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01158",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-15276b01229523ea",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-15276b01229523ea",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01193",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-15cdb55c0c8a9d5b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-15cdb55c0c8a9d5b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01277",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-19a33f6480c854ba",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-19a33f6480c854ba",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01290",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-1b011c52208ee110",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-1b011c52208ee110",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01300",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-1b3e3b4496032c2a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-1b3e3b4496032c2a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01328",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-1ba843be6e47f69e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-1ba843be6e47f69e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01376",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-1c4b91928b5e1eb1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-1c4b91928b5e1eb1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01391",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-1c6c79d966ebe3df",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-1c6c79d966ebe3df",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01398",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-1ca0cc79a7f39631",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-1ca0cc79a7f39631",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01625",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-2206a8a29f30cbb7",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-2206a8a29f30cbb7",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01746",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-25d10006834fe4dc",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-25d10006834fe4dc",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01784",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-2658c392527ddfdd",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-2658c392527ddfdd",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01815",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-266505feceda0af5",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-266505feceda0af5",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:01844",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-272071ed465fa7d3",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-272071ed465fa7d3",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02001",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-295f59667345afbe",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-295f59667345afbe",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02030",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-2a193bad27cc48f9",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-2a193bad27cc48f9",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02039",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-2ad0e9c7db850cb3",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-2ad0e9c7db850cb3",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02081",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-2c938a8f00f0ec48",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-2c938a8f00f0ec48",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02092",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-2cbeb20f66feb6db",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-2cbeb20f66feb6db",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02197",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-2ea1bad508e21f40",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-2ea1bad508e21f40",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02255",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-30c31091861ca6f9",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-30c31091861ca6f9",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02307",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3291a4227ee2b2bd",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3291a4227ee2b2bd",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02353",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3385247c57db9b45",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3385247c57db9b45",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02414",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-33c0b3466e8a9400",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-33c0b3466e8a9400",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02446",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3447bd3fa3c7adbc",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3447bd3fa3c7adbc",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02454",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-34d056d239e37355",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-34d056d239e37355",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02470",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-34dc7d7ba7768c9c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-34dc7d7ba7768c9c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02504",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-350db2666e253df8",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-350db2666e253df8",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02619",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-3861903034929f86",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-3861903034929f86",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02647",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3887068cd74b8513",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3887068cd74b8513",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02715",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3a18589f8c4fde85",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3a18589f8c4fde85",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02730",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3a196817477108e4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3a196817477108e4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02804",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3e99fdafa163a352",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3e99fdafa163a352",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02862",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-3fd47063f43bb024",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-3fd47063f43bb024",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02945",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-421963c58d459192",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-421963c58d459192",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:02970",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-433c91347a138d52",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-433c91347a138d52",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03014",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-43a9c914b609b90e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-43a9c914b609b90e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03020",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-44def791ae8ed19f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-44def791ae8ed19f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03032",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-4535960f585ceec2",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-4535960f585ceec2",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03103",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-45a56f1e0a55f89a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-45a56f1e0a55f89a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03145",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-461314638dbea490",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-461314638dbea490",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03159",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-461722b1a5b989a2",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-461722b1a5b989a2",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03205",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-469959d5f976f5d5",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-469959d5f976f5d5",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03293",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-4b3f913e085e52c1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-4b3f913e085e52c1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03411",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-4c6b7e671d150530",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-4c6b7e671d150530",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03434",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-4d3d2b7bc0c64139",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-4d3d2b7bc0c64139",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03498",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-4e7388f9ea53d0b1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-4e7388f9ea53d0b1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03542",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-4edbecadef4a647a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-4edbecadef4a647a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03560",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-4ef7be7a6445677c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-4ef7be7a6445677c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03588",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-4f6166cafc132245",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-4f6166cafc132245",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03632",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-505a19ebf54342ab",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-505a19ebf54342ab",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03644",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-507277fd4e0079c6",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-507277fd4e0079c6",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03654",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-5081549ad8dc6c75",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-5081549ad8dc6c75",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03683",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-512bc8bf81a285b9",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-512bc8bf81a285b9",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03708",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-51444cc8ee1e69f7",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-51444cc8ee1e69f7",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03728",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-518238dcb171cd10",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-518238dcb171cd10",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:03995",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-550b3db8c88fa7f0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-550b3db8c88fa7f0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04026",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-552764cf2b6870e1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-552764cf2b6870e1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04039",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-55c9b3629c2bd714",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-55c9b3629c2bd714",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04049",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-55cae5cc01b563e4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-55cae5cc01b563e4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04080",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-56185a847029275d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-56185a847029275d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04155",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-57b5ef75670cc366",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-57b5ef75670cc366",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04241",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-5ad4c9f2f9efb90f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-5ad4c9f2f9efb90f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04312",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-5d5dd50f61446541",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-5d5dd50f61446541",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04376",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-600d1acb17fbefca",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-600d1acb17fbefca",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04442",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-62121a33045806d8",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-62121a33045806d8",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04472",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-6295b7312d1d897a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-6295b7312d1d897a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04506",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-629f66ece98aef75",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-629f66ece98aef75",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04556",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-62b670454f01605d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-62b670454f01605d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04599",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-63bc3af45d4cd93c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-63bc3af45d4cd93c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04629",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-64dee5c5137736f9",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-64dee5c5137736f9",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04642",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-65363a9d4c39af32",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-65363a9d4c39af32",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04710",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-660f43a073b51d2f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-660f43a073b51d2f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04767",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-6747ee6a5802d2c5",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-6747ee6a5802d2c5",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04822",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-68475a176bd7adb4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-68475a176bd7adb4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04861",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-691a4b237fc4b589",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-691a4b237fc4b589",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04912",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-69f2e4ce570bc10f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-69f2e4ce570bc10f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04936",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-6a4529fd51248103",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-6a4529fd51248103",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04954",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-6a45d14886d0e1b0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-6a45d14886d0e1b0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:04967",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-6a7e60d3888967cf",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-6a7e60d3888967cf",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05032",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-6d4cef4daacb28e2",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-6d4cef4daacb28e2",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05042",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-6d522c926fb3c5af",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-6d522c926fb3c5af",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05070",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-6e40c3604c3d71cf",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-6e40c3604c3d71cf",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05208",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-7265f54784df5a26",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-7265f54784df5a26",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05244",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-74b64f2bcdadaa4c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-74b64f2bcdadaa4c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05407",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-77ad79f60aff1889",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-77ad79f60aff1889",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05445",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-781c85d4b47d592c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-781c85d4b47d592c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05490",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7853d3926a9975f7",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7853d3926a9975f7",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05501",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-7929e40edc7b219e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-7929e40edc7b219e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05654",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7b0b99515920fa9a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7b0b99515920fa9a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05680",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7bbb6b5ce0b22790",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7bbb6b5ce0b22790",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05724",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7c1bca9165ff5ff0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7c1bca9165ff5ff0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05891",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7e6a3591fcef827a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7e6a3591fcef827a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05908",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-7e71b77d8541880f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-7e71b77d8541880f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05925",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7f3b6e500bcc2f1c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7f3b6e500bcc2f1c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05950",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-7f953868cc9b298f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-7f953868cc9b298f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:05992",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-8063027553420fc1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-8063027553420fc1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06026",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-8290d77e3b56ed96",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-8290d77e3b56ed96",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06102",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-8495eb1913f2eb7d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-8495eb1913f2eb7d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06167",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-86a68084e07736b3",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-86a68084e07736b3",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06212",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-8764f2672bbaaa34",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-8764f2672bbaaa34",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06273",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-88326e01c75149b2",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-88326e01c75149b2",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06298",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-885d1a639437ff87",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-885d1a639437ff87",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06312",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-886ef5ea29a2d06a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-886ef5ea29a2d06a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06346",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-896a5cd3662e17cb",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-896a5cd3662e17cb",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06378",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-89f90dc9fc971bce",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-89f90dc9fc971bce",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06396",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-8b0e7e1b647c7770",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-8b0e7e1b647c7770",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06491",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-8ddee43e49da1387",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-8ddee43e49da1387",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06513",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-8deffdf8edd1168e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-8deffdf8edd1168e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06542",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-8e8c7e4890222374",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-8e8c7e4890222374",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06578",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-8f2bf54b9da84d15",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-8f2bf54b9da84d15",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06608",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-8f3832ac4b8d7b42",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-8f3832ac4b8d7b42",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06679",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-90d9c0480bd631af",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-90d9c0480bd631af",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06750",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-9226a1ef77238ab9",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-9226a1ef77238ab9",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06769",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-929635926bb399ac",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-929635926bb399ac",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06793",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-92c6dfc232ff1e21",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-92c6dfc232ff1e21",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06810",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-92d54aded8f68c57",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-92d54aded8f68c57",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06912",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-961b6e6a82ebe85d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-961b6e6a82ebe85d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:06930",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-97a8e5a32133e9f0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-97a8e5a32133e9f0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07007",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-9acb6b8cab3718e1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-9acb6b8cab3718e1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07068",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-9c3ccd0f74b73b0b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-9c3ccd0f74b73b0b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07164",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-9de8a18b42993529",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-9de8a18b42993529",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07244",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-9f6bfc2fadf4ce81",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-9f6bfc2fadf4ce81",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07257",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a02c669e6b5b8717",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a02c669e6b5b8717",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07266",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-a09da9487b6b615b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-a09da9487b6b615b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07301",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a19f3bd74bbc67ad",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a19f3bd74bbc67ad",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07310",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a1b04c057e327688",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a1b04c057e327688",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07339",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a220681d5cd4f1f0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a220681d5cd4f1f0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07430",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a38f7b74cc5f5920",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a38f7b74cc5f5920",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07499",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a4565110c41ae5da",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a4565110c41ae5da",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07513",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a4a4729fc2e3118b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a4a4729fc2e3118b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07543",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-a59e310b3c5152a6",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-a59e310b3c5152a6",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07569",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a5c873f8f8158244",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a5c873f8f8158244",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07690",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a85f15ebc807e1fa",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a85f15ebc807e1fa",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07718",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a8d37a9a33682387",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a8d37a9a33682387",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07740",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-a92df5d6593c8d9e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-a92df5d6593c8d9e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07833",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-aa9634b011e90594",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-aa9634b011e90594",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07848",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-aac82c75d8648f52",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-aac82c75d8648f52",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:07962",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-ac57b6a3bbf66e80",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-ac57b6a3bbf66e80",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08027",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-adc2b42c05aab31a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-adc2b42c05aab31a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08120",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-af70d414a46fe650",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-af70d414a46fe650",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08279",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-b2d85bf84b2860d7",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-b2d85bf84b2860d7",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08300",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-b3461880137496c7",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-b3461880137496c7",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08324",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-b3fe51eea7d4018c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-b3fe51eea7d4018c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08406",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-b770abc7d9a84779",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-b770abc7d9a84779",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08451",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-b80b193730dd7c79",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-b80b193730dd7c79",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08495",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-b874b5f5bfb1e424",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-b874b5f5bfb1e424",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08520",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-b8f93d32d47a1f0b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-b8f93d32d47a1f0b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08567",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-b992b9322573d86d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-b992b9322573d86d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08624",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-bad42107403e0a4c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-bad42107403e0a4c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08651",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-baf0f1cb05021cad",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-baf0f1cb05021cad",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08675",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-bc1c461d52fe5d28",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-bc1c461d52fe5d28",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08689",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-bc8ab1b77212957e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-bc8ab1b77212957e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08760",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-be4fdeb96089e5f1",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-be4fdeb96089e5f1",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08843",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c02dc0bd668d518c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c02dc0bd668d518c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08878",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c1f6a0296b2d12f4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c1f6a0296b2d12f4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08901",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c32abb85209da75d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c32abb85209da75d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08925",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c3f2dfd1aec11b50",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c3f2dfd1aec11b50",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:08949",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-c4bc9583b7b931e3",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-c4bc9583b7b931e3",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09015",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c621f74b5d720371",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c621f74b5d720371",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09043",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c66a190c8b54650a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c66a190c8b54650a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09131",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c84e6952ec1795c5",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c84e6952ec1795c5",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09188",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-c906fef75168433d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-c906fef75168433d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09222",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-ca14a1506e025d68",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-ca14a1506e025d68",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09267",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-cb0d3b8c396bc89b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-cb0d3b8c396bc89b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09286",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-cb17be07233b12d5",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-cb17be07233b12d5",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09359",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-cd9d77dbc25ac8b0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-cd9d77dbc25ac8b0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09378",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-ce6aaef13227809e",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-ce6aaef13227809e",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09409",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-ced387c750001296",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-ced387c750001296",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09537",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-d0c40940aa3ba056",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-d0c40940aa3ba056",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09645",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-d4cef282421de819",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-d4cef282421de819",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09684",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-d58bfada7d17ec04",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-d58bfada7d17ec04",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09701",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-d637cdec27eb7dae",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-d637cdec27eb7dae",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09823",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-d88242877c1a71a0",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-d88242877c1a71a0",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09873",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-d9bffb51525b2bd8",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-d9bffb51525b2bd8",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09892",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-dc020053f3faec0d",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-dc020053f3faec0d",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:09962",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-de035e6e594d6955",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-de035e6e594d6955",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10061",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-dfc375894eea399a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-dfc375894eea399a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10277",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-e4e3879a6fda9b20",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-e4e3879a6fda9b20",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10302",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-e64a9ed4ac3bbe64",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-e64a9ed4ac3bbe64",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10385",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-e87d2c36853290ad",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-e87d2c36853290ad",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10406",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-e8a03488dfaabe99",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-e8a03488dfaabe99",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10420",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-e95a9a43e754bdd3",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-e95a9a43e754bdd3",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10430",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-ea96a3dd25f7529b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-ea96a3dd25f7529b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10508",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-eb298976eeaf8ff6",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-eb298976eeaf8ff6",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10728",
+      "properties": {
+        "is_required": false,
+        "source": "job:j-eea00a9b2c60903a",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 0.6
+      },
+      "source": "job:j-eea00a9b2c60903a",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10832",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f01e40005d521a93",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f01e40005d521a93",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:10912",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f30b3b8187043922",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f30b3b8187043922",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11012",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f5b3ca6cebf53073",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f5b3ca6cebf53073",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11026",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f6dd5eb6f9c5c2e4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f6dd5eb6f9c5c2e4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11112",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f7f998d6bf2cae00",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f7f998d6bf2cae00",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11140",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f8a4ece84de1513c",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f8a4ece84de1513c",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11164",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f8c008d68b929d6b",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f8c008d68b929d6b",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11185",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f93cdc8d5db5a13f",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f93cdc8d5db5a13f",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11198",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-f9a2b4fb61bc6ca4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-f9a2b4fb61bc6ca4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11230",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-fa6e0c0245fcd359",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-fa6e0c0245fcd359",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11280",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-fb6097b2e35384f2",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-fb6097b2e35384f2",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11321",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-fbfdc00e32a70f00",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-fbfdc00e32a70f00",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11350",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-fd5987d18a0319b3",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-fd5987d18a0319b3",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    },
+    {
+      "edgeId": "snapshot:11396",
+      "properties": {
+        "is_required": true,
+        "source": "job:j-feb7f70c0e0033d4",
+        "target": "skill:python",
+        "type": "REQUIRES",
+        "weight": 1
+      },
+      "source": "job:j-feb7f70c0e0033d4",
+      "target": "skill:python",
+      "type": "REQUIRES"
+    }
+  ],
+  "stats": {
+    "visible": 7845,
+    "drawn": 134,
+    "direct": 222,
+    "submitted": 222,
+    "outside": 222,
+    "labels": 60,
+    "load": 220,
+    "render": 48.6,
+    "p95": 48.6,
+    "engine": "Three.js 186 / WebGL2",
+    "dust": 17997,
+    "fallback": false
+  },
+  "viewport": {
+    "width": 911,
+    "height": 782,
+    "dpr": 1.0000000298023224
+  },
+  "drawTimesMs": [
+    48.6
+  ]
+}
