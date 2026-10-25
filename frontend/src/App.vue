@@ -50,7 +50,7 @@
           <el-tooltip content="当前版本的统一前端入口" placement="bottom">
             <el-icon class="topbar-info"><InfoFilled /></el-icon>
           </el-tooltip>
-          <div class="user-chip"><img src="/guangzhou-school.jpg" alt="" /><b>{{ currentUser ? currentUser.username + ' · ' + currentUser.label : '未登录' }}</b></div>
+          <div class="user-chip"><img src="/brand-nebula-girl.png" alt="" /><b>{{ currentUser ? currentUser.username + ' · ' + currentUser.label : '未登录' }}</b></div>
           <el-button v-if="currentUser" class="btn-soft" size="small" @click="logout">退出登录</el-button>
         </div>
       </header>
