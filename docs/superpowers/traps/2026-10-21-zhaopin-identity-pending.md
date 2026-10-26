@@ -20,7 +20,7 @@
 
 不能把卡片 active、标题相同、固定等待或详情 URL 仍是搜索页当成稳定绑定；也不能因正文看起来正确就跳过异步残留检查。旧事件没有点击前面板快照时，离线回放只能验证决策逻辑和内容资格，不能认证历史绑定。
 
-相关设计见 [身份待审设计](../specs/2026-10-21-zhaopin-identity-pending-design.md)，完整验证与回放见 [报告](../../review/Zhaopin-identity-pending-2026-10-21.md)。
+相关设计见 [身份待审设计](../specs/2026-10-21-zhaopin-identity-pending-design.md)，完整验证与回放见 [报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Zhaopin-identity-pending-2026-10-21.md)。
 
 ## 2026-10-21 审查收口
 
