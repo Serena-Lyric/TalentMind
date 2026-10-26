@@ -28,4 +28,4 @@ BOSS 站点在搜索 URL 上追加递增的 `_security_check` 参数，并在 `/
 
 回归：`test_browser_runtime.py`、`collectionConsole.test.ts`。
 
-后续稳定采集方案见 [BOSS 普通浏览器桥接执行方案](../plans/2026-10-21-boss-browser-bridge.md)。
+后续稳定采集方案见 [BOSS 普通浏览器桥接执行方案](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/plans/2026-10-21-boss-browser-bridge.md)。
