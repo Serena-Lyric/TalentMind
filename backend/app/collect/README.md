@@ -20,19 +20,19 @@ PR #52实现已合入主线；旧PR #49已关闭，重要真实结果、限制�
 
 详情采样前的临时 DOM URL 包含列表页、卡片位置和展示摘要哈希，展示字段完全相同的两张卡片也会分别保留。DOM fingerprint 使用列表页、卡片位置、标题、公司、薪资/地点、正文 SHA-256、观察时间和绑定策略版本生成 SHA-256，仅定位观察，不证明唯一招聘岗位。`source_detail` 保存最终 `dom://zhaopin/<hash>`，事件另用 `_observation_key` 关联 listed/detail/persisted。`detail_obtained` 不代表正文合格；`content_eligible`、`identity_pending`、`identity_verified` 独立统计，既有 `complete` 只增加 `verified` 且内容合格记录。
 
-`jd_pool` 已声明追加字段 `identity_status`（历史默认 `unknown`）、`content_eligible`（历史 NULL）和 `identity_evidence`。迁移脚本只提交、未执行；旧 schema 若收到 pending/内容证据会在 INSERT 前明确报 `identity_schema_migration_required`，不静默丢字段。M2/M3 可读取 pending 作候选分析和候选观察，但不能计正式独立岗位或已确认需求。迁移、备份与回退见[设计](../superpowers/specs/2026-10-21-zhaopin-identity-pending-design.md)，实测/回放见[报告](../../../docs/review/Zhaopin-identity-pending-2026-10-21.md)。
+`jd_pool` 已声明追加字段 `identity_status`（历史默认 `unknown`）、`content_eligible`（历史 NULL）和 `identity_evidence`。迁移脚本只提交、未执行；旧 schema 若收到 pending/内容证据会在 INSERT 前明确报 `identity_schema_migration_required`，不静默丢字段。M2/M3 可读取 pending 作候选分析和候选观察，但不能计正式独立岗位或已确认需求。迁移、备份与回退见[设计](../superpowers/specs/2026-10-21-zhaopin-identity-pending-design.md)，实测/回放见[报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Zhaopin-identity-pending-2026-10-21.md)。
 
 ## 多关键词×多城市批次（2026-10-21）
 
-控制台“批量任务”先创建笛卡尔组合草稿，不调用浏览器或采集器；显式开始后串行复用原单轮controller。每项保留1页/5条门禁，默认组合间隔沿配置6–12分钟，停止可中断等待；登录/安全验证/正文限制阻断后续项，不自动重试。批次与单项/显式准备共享互斥，重启只归档中断，不自动恢复。所有批次JSON/日志在忽略的data/local/collection中，无DDL迁移或重复招聘库。接口、停止/日志生命周期与本轮仅草稿验收见[批次报告](../../../docs/review/Collection-batches-2026-10-21.md)。
+控制台“批量任务”先创建笛卡尔组合草稿，不调用浏览器或采集器；显式开始后串行复用原单轮controller。每项保留1页/5条门禁，默认组合间隔沿配置6–12分钟，停止可中断等待；登录/安全验证/正文限制阻断后续项，不自动重试。批次与单项/显式准备共享互斥，重启只归档中断，不自动恢复。所有批次JSON/日志在忽略的data/local/collection中，无DDL迁移或重复招聘库。接口、停止/日志生命周期与本轮仅草稿验收见[批次报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Collection-batches-2026-10-21.md)。
 
 ## 2026-10-21 统一产品操作入口
 
-在仓库根目录运行 `pwsh -File scripts/start-local.ps1`（PowerShell 7），或双击 `start_system.bat`。打开18080采集页，选择平台/城市/关键词，显式准备Edge，再显式启动单轮；不填写CDP参数。`stop_system.bat` / `scripts/stop-local.ps1` 等待采集整树停止及历史归档，保留原数据库容器/数据和Edge。完整验收见[集成报告](../../../docs/review/Product-integration-2026-10-21.md)。
+在仓库根目录运行 `pwsh -File scripts/start-local.ps1`（PowerShell 7），或双击 `start_system.bat`。打开18080采集页，选择平台/城市/关键词，显式准备Edge，再显式启动单轮；不填写CDP参数。`stop_system.bat` / `scripts/stop-local.ps1` 等待采集整树停止及历史归档，保留原数据库容器/数据和Edge。完整验收见[集成报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Product-integration-2026-10-21.md)。
 
 新API：`GET platforms`给平台城市，`GET results?run_id=…`读取该轮事件，`GET raw/{id}`读取当前jd_pool。正文端点须 `TALENTMIND_LOCAL_RAW=1`（统一入口仅为本地后端进程设置）及回环/本地Host/Origin；普通构建不携带正文。事件/日志/原像仍在忽略的data/local。职责/要求的明确标题分段只供原文核验，不代表M2技能或岗位分析已完成。
 
-> **2026-10-20 最新授权与运行状态**：[#43当日更新](https://github.com/Serena-Lyric/TalentMind/issues/43#issuecomment-6282375204)允许单平台×单关键词×单城市×一页、max-jobs5/detail-limit5的真实试采直接写已确认的现有MySQL jd_pool，无需每次新建DB。须核对运行时host/port/database、私有采前原像和采后精确INSERT/UPDATE；BOSS详情可补全旧列表行，不能仅删除新增ID回退。M2正式表、Neo4j和历史图不自动更新，集成测试仍隔离。当前preflight因CDP不可用未执行采集器；不是成功采集或零结果试采。详见[当前门禁](../../../docs/superpowers/plans/2026-10-20-staged-m1-m3-real-validation.md)及[证据口径](../../../docs/review/TalentMind-semantics-and-evidence-2026-10-20.md)。下方旧命令/循环示例是入口参考，不扩展本轮有界授权。
+> **2026-10-20 最新授权与运行状态**：[#43当日更新](https://github.com/Serena-Lyric/TalentMind/issues/43#issuecomment-6282375204)允许单平台×单关键词×单城市×一页、max-jobs5/detail-limit5的真实试采直接写已确认的现有MySQL jd_pool，无需每次新建DB。须核对运行时host/port/database、私有采前原像和采后精确INSERT/UPDATE；BOSS详情可补全旧列表行，不能仅删除新增ID回退。M2正式表、Neo4j和历史图不自动更新，集成测试仍隔离。当前preflight因CDP不可用未执行采集器；不是成功采集或零结果试采。详见[当前门禁](../../../docs/superpowers/plans/2026-10-20-staged-m1-m3-real-validation.md)及[证据口径](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/TalentMind-semantics-and-evidence-2026-10-20.md)。下方旧命令/循环示例是入口参考，不扩展本轮有界授权。
 
 > 多源数据采集（D39/D40）：岗位 JD + 信号数据 → MySQL 原始层（jd_pool / signal / talent_raw）。
 > 合规红线：只读取公开数据或用户人工登录后页面可见内容；不绕过登录/验证码/反爬，不伪造 source（D17/D38）。
@@ -43,7 +43,7 @@ PR #52实现已合入主线；旧PR #49已关闭，重要真实结果、限制�
 
 worker接收父进程实际解析的Settings并固定UTF-8输出，与watcher编码一致；父进程须先具备有效配置，不猜主仓.env或默认库。新增质量计数和stop_reason进入任务/历史，`quality_metrics_available=false` 时不能把旧details当作详情成功数，新任务未取得质量计数时为None。单轮业务异常非0，CDP传输中断在原循环停止，BOSS不再吞掉此类断线；旧普通单条页面故障的有限容错保留。
 
-已用真实子进程运行原CN `--once`、原fetch/SQL和watcher/history的离线临时SQLite回归；合成浏览器/服务边界替换，不是实采。用户确认猎聘验证未处理，本轮未调用真实采集入口、未读写真实MySQL，不能恢复日常或continuous。历史成功日志、与run_live差异、前端可选字段说明及恢复准入见[历史链路报告](../../../docs/review/M1-historical-chain.md)。
+已用真实子进程运行原CN `--once`、原fetch/SQL和watcher/history的离线临时SQLite回归；合成浏览器/服务边界替换，不是实采。用户确认猎聘验证未处理，本轮未调用真实采集入口、未读写真实MySQL，不能恢复日常或continuous。历史成功日志、与run_live差异、前端可选字段说明及恢复准入见[历史链路报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-historical-chain.md)。
 
 ## 2026-10-20 Gate 1：CN详情与入库分账
 
@@ -51,7 +51,7 @@ worker接收父进程实际解析的Settings并固定UTF-8输出，与watcher编
 
 返回新增 `detail_attempted/detail_obtained/complete/inserted/updated/rejected/failed/unattempted/rejection_reasons/stop_reason`；`details` 保留尝试口径、`new`为INSERT别名，`skipped`仅为合格详情的既有身份去重跳过，不能把质量拒绝混入跳过。CN历史去重规则仍跳过既有身份、无自动UPDATE。限制发生在搜索之前时会抛出访问异常，尚无记录级统计，验收应另记搜索级失败。循环收到stop_reason即停，CLI退出码为2。
 
-程序调用可用 `on_event` 保存候选/详情/失败/持久化证据；回调内容含原文及身份，仅允许保存本地私有路径，不入Git。2026-10-20真实单次猎聘搜索被安全验证阻断，实际候选/详情/写入均0；不是修复已通过真实入库验收。新备份、命令、测试、回退和N/H下一阶段入口见[Gate1报告](../../../docs/review/M1-gate1-live.md)。
+程序调用可用 `on_event` 保存候选/详情/失败/持久化证据；回调内容含原文及身份，仅允许保存本地私有路径，不入Git。2026-10-20真实单次猎聘搜索被安全验证阻断，实际候选/详情/写入均0；不是修复已通过真实入库验收。新备份、命令、测试、回退和N/H下一阶段入口见[Gate1报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-gate1-live.md)。
 
 ## 2026-10-20 浏览器准备接口（#40 待外部审查）
 
@@ -70,9 +70,9 @@ python -m app.collect.browser --platform boss --browser-timeout 20 --login-timeo
 
 准备成功退出码 0，需要人工处理/超时/错误退出码 2。单次采集 CLI 的 `--browser-timeout` 默认 20 秒，`--login-timeout` 默认 120 秒；等待人工登录只轮询准备状态，**不会自行启动采集**。显式采集入口在准备成功后才进入原采集流程；循环通过同一个 run_fetch 复用该能力。验证码/安全验证/访问限制立即返回并停止该平台，不轮询穿过验证；人工完成后须重新发起准备。`--cdp` 只接受本机回环或 `auto`，实际端口以返回值为准；默认启动采用动态端口，因此不要求原示例中的 9333 可用。
 
-访问状态和前端兼容字段见 [接口说明](../../../docs/review/M1-browser-runtime.md#接口与前端同步)。没有内容证据的页面不会被判为已登录；登录入口与正文同时可见不等于整页被阻断。猎聘/智联按实际公开访问能力判断，不强制登录；公开内容也可能截断，`content_limited=true` 不能当作完整详情成功。
+访问状态和前端兼容字段见 [接口说明](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-browser-runtime.md#接口与前端同步)。没有内容证据的页面不会被判为已登录；登录入口与正文同时可见不等于整页被阻断。猎聘/智联按实际公开访问能力判断，不强制登录；公开内容也可能截断，`content_limited=true` 不能当作完整详情成功。
 
-2026-10-20 只浏览器烟测：BOSS 搜索触发人工验证并停止；猎聘匿名搜索及单个详情可访问；智联匿名列表可访问、分栏详情有游客限制。全部未连接数据库、未运行实采。DOM 容器计数不等于独立职位数量或采集成功数；详见 [阶段报告](../../../docs/review/M1-browser-runtime.md)。下方旧登录要求、端口和运行数量均保留历史语境。
+2026-10-20 只浏览器烟测：BOSS 搜索触发人工验证并停止；猎聘匿名搜索及单个详情可访问；智联匿名列表可访问、分栏详情有游客限制。全部未连接数据库、未运行实采。DOM 容器计数不等于独立职位数量或采集成功数；详见 [阶段报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-browser-runtime.md)。下方旧登录要求、端口和运行数量均保留历史语境。
 
 > **2026-10-15 核查**：本轮只做离线开发和测试。下表数量、PID、登录/注销状态均为带日期的历史记录，不代表当前机器实时状态。每日脚本的 `data/local/PAUSE_COLLECT` 只约束该脚本，直接 CLI 不检查它。控制台进入页不自动准备 Edge 或启动采集；手动启动可选 BOSS/智联/猎聘，LinkedIn/HN 仅展示。
 

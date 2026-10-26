@@ -97,7 +97,7 @@ python -m app.job_analysis.canonical_catalog replay --artifact <artifact_id> --s
 
 c35_artifacts 保存不可变快照/事件/导出及依赖图，c35_revisions 绑定命名目录/发布版本与摘要；AnalysisStore(recover=false) 只复用锁和基础 schema，不恢复上游 running。整轮事务提交前异常/硬退出回滚，提交后输出故障可以 `SELECT id,kind FROM c35_artifacts ORDER BY rowid` 找到 artifact_id 再 replay；不用重审当前输入。输出先校验与所有输入/来源/状态文件隔离，再用暂存、fsync 和原子发布；已有不同内容拒绝覆盖，遗留暂存只清理同 artifact。
 
-验证：`python -m pytest tests/test_job_analysis/test_canonical_catalog.py tests/test_job_analysis/test_canonical_catalog_storage.py -q`。全部合成临时目录 finally 清理；包含真实子进程硬退出、输出故障、CLI 和旧混合历史共库。完整阻网回归与内部独立审查见 [归档实施与 ChatGPT 独立复审报告](../../../docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)，合成通过不能证明真实语义准确率。
+验证：`python -m pytest tests/test_job_analysis/test_canonical_catalog.py tests/test_job_analysis/test_canonical_catalog_storage.py -q`。全部合成临时目录 finally 清理；包含真实子进程硬退出、输出故障、CLI 和旧混合历史共库。完整阻网回归与内部独立审查见 [归档实施与 ChatGPT 独立复审报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-17-M2-stage-B3-5-implementation.md)，合成通过不能证明真实语义准确率。
 
 ## 阶段 B3-4：工程范围与独立材料证据层
 
@@ -140,7 +140,7 @@ review 格式沿 B32：target_kind（candidate/family_assertion/technology_track
 
 全轮单事务，错误或提交前硬退出回滚；提交后输出失败可查询 `SELECT run_id FROM b34_reports` 后 replay，不重载当前目录/源文件或重判语义。输入/配置/提交须位于输出目录外，沿用状态锁、硬链接与原子发布保护。新表不改变 user_version=1，无正式数据库迁移；不承诺断电、损坏或多机网络盘恢复。
 
-所有结果 classification_complete/formal_statistics_eligible/formal_admitted 恒 false，正式目录恒空。完整阻网回归、历史保全与独立内部审查证据见 [实施报告](../../../docs/superpowers/archive/2026-10-17-M2-stage-B3-4-implementation.md)，已完成 GitHub 独立静态复审，不代替本地全部回归重跑；不启动 B4/M3/M4、不使用生产数据或真实模型。
+所有结果 classification_complete/formal_statistics_eligible/formal_admitted 恒 false，正式目录恒空。完整阻网回归、历史保全与独立内部审查证据见 [实施报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-17-M2-stage-B3-4-implementation.md)，已完成 GitHub 独立静态复审，不代替本地全部回归重跑；不启动 B4/M3/M4、不使用生产数据或真实模型。
 
 ## 阶段 B3-3：八类目录版本与候选兼容
 
@@ -164,7 +164,7 @@ v2 的硬件提示仅支持三条完整动作/对象/成果句式：「设计硬
 
 两版可在同一临时 SQLite 混合运行，继续使用原 B31/B32 表和不可变历史保护，无数据库迁移。共享验证/规则源码变化会使**后续新运行**的 B31/B32 manifest 摘要变化，即使使用 v1 也保守追加新结果；v1 职责输出保持兼容，不伪装成旧源码版本复用。旧版本条目、报告/审核/导出截面逐字段保留，replay 只读已保存报告与原输入字节，不加载新目录、不重新解释规则。历史夹具来自 master `bbe5309` 上升级前的合成实际执行，覆盖旧清单/结果/审核/导出重放。A/B1/B2/B22/B30 源码未改、既有表不写。
 
-所有自动建议始终 pending_review、classification_complete=false、formal_statistics_eligible=false，候选与关系 formal_admitted=false；没有正式发布、vacancy 数、需求率、真实 JD/模型评测或 B4。验证和独立内部审查见 [B3-3 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-3-implementation.md)；内部审查不替代交付后 ChatGPT 集中复审。
+所有自动建议始终 pending_review、classification_complete=false、formal_statistics_eligible=false，候选与关系 formal_admitted=false；没有正式发布、vacancy 数、需求率、真实 JD/模型评测或 B4。验证和独立内部审查见 [B3-3 实施报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-16-M2-stage-B3-3-implementation.md)；内部审查不替代交付后 ChatGPT 集中复审。
 
 ## 阶段 B3-2：标准岗位候选与关系治理（离线）
 
@@ -198,7 +198,7 @@ python -m pytest tests/test_job_analysis/test_role_governance.py tests/test_job_
 
 整轮单事务：提交前错误/硬退出无本轮结果，重跑原命令；提交后发布失败可 replay，不重读当前目录或重新解释主张。历史 UPDATE/DELETE/REPLACE 拒绝。所有输入必须在输出目录外；状态可以与输出共目录，沿用硬链接保护。CLI 退出 0 只表示本轮保存/发布成功，不等于分类完成或真实准确率。仅验证本机临时 SQLite 的进程中断，不承诺断电/损坏/网络盘恢复。未读取或改写 B3-0/1 建议报告；如需用作候选来源，调用者须另行显式提交原文证据，不能提升 primary_family_hint。
 
-验证证据、内部审查与边界见 [B3-2 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-2-implementation.md)。未接生产服务/真实模型/真实 JD，未启动 B4/M3/M4，不替代用户与 ChatGPT 的产品裁决及集中复审。
+验证证据、内部审查与边界见 [B3-2 实施报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-16-M2-stage-B3-2-implementation.md)。未接生产服务/真实模型/真实 JD，未启动 B4/M3/M4，不替代用户与 ChatGPT 的产品裁决及集中复审。
 
 ## 阶段 B3-1：七类目录与有限职责建议
 
@@ -238,7 +238,7 @@ python -m pytest tests/test_job_analysis/test_role_proposals.py tests/test_job_a
 
 复用键为完整 snapshot + version。版本包含目录全文/修订、显式 --rules-version、本子包及所调用公共源码 SHA-256；内容/身份/目录/源码/规则变化追加，纯观察时间变化可复用提取，但每轮观察独立留存。UPDATE/DELETE/REPLACE 被拒绝；整轮单事务，无隐式 resume。提交前失败重跑；提交后发布失败可 SELECT run_id FROM b31_reports 找回，replay 不加载当前目录或重新解释规则，核对报告与输入字节摘要后原样发布。输入和目录不能位于输出目录内；路径/锁/硬链接/原子发布沿用 A 的保护，状态库可以与输出共目录。
 
-分类始终 incomplete，正式统计资格恒 false；不输出岗位占比、需求率、匹配评分或 vacancy 数。只验证合成材料/临时 SQLite，真实 JD/模型效果未评测，生产迁移、B4/M3/M4 未执行；完整标准岗位目录、技术方向、级别、混合岗位细则与审核流程仍待确认。开发验证与遗留见 [B3-1 实施报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-1-implementation.md)。
+分类始终 incomplete，正式统计资格恒 false；不输出岗位占比、需求率、匹配评分或 vacancy 数。只验证合成材料/临时 SQLite，真实 JD/模型效果未评测，生产迁移、B4/M3/M4 未执行；完整标准岗位目录、技术方向、级别、混合岗位细则与审核流程仍待确认。开发验证与遗留见 [B3-1 实施报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-16-M2-stage-B3-1-implementation.md)。
 
 
 ## 阶段 B3-0：岗位四维证据与版本基础
@@ -274,7 +274,7 @@ python -m pytest tests/test_job_analysis/test_role_classification.py -q
 
 完整输入源文件字节保存在 b30_inputs，标注与 taxonomy 保存的是经严格解析的完整结构，字段顺序/空白不作为分类依赖。报告保存原输入文件路径供发布保护，重放仍保护这些路径。单进程串行本地 SQLite 与原子文件发布沿用 A；本轮未验证断电/损坏/网络盘恢复能力。
 
-职业大类目录、标准岗位目录、技术方向/级别映射、主辅判定算法、成熟复合职业边界、多职位拆分与统计计数仍待用户和产品团队确认。本轮不修改 PRODUCT_DECISIONS 的已确认规则，不启动 B4/M3/M4、真实标注/模型评测或正式需求率。执行证据与内部审查见 [归档实施及复审报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B3-0-implementation.md)，报告已完成归档；本阶段仅为离线保存与验证基础层，分类规则与七类目录在后续独立阶段落实。
+职业大类目录、标准岗位目录、技术方向/级别映射、主辅判定算法、成熟复合职业边界、多职位拆分与统计计数仍待用户和产品团队确认。本轮不修改 PRODUCT_DECISIONS 的已确认规则，不启动 B4/M3/M4、真实标注/模型评测或正式需求率。执行证据与内部审查见 [归档实施及复审报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-16-M2-stage-B3-0-implementation.md)，报告已完成归档；本阶段仅为离线保存与验证基础层，分类规则与七类目录在后续独立阶段落实。
 
 ## 阶段 B2 第二轮：离线名称、类别与候选治理
 
@@ -327,7 +327,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_governance.py tests/test_job_analysis/test_governance_evaluation.py -q --tb=short
 ```
 
-实际回归、样例差异与遗留见 [本轮阶段报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B2-2-implementation.md)。不开发正式词典自动准入、审核前端、生产迁移、市场统计、B3/B4、M3 图谱或 M4 匹配。
+实际回归、样例差异与遗留见 [本轮阶段报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-16-M2-stage-B2-2-implementation.md)。不开发正式词典自动准入、审核前端、生产迁移、市场统计、B3/B4、M3 图谱或 M4 匹配。
 
 ## 阶段 B2 第一轮：离线技能要求语义
 
@@ -378,7 +378,7 @@ PR #6 审查修复后当前结构为 `b2-2`、规则为 `bounded-skill-clauses-v
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py tests/test_job_analysis/test_semantics.py -q --tb=short
 ```
 
-新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](../../../docs/superpowers/archive/2026-10-16-M2-stage-B2-1-implementation.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；该句描述第一轮边界；第二轮治理与评测基础见上节，B3/B4、真实标注评测和市场统计仍未启动。
+新增 fixture 在 finally 关闭并删除临时目录、断言目录不存在；仅合成 JD/临时 SQLite，无真实服务集成。全套回归用合成环境与 socket 阻断，具体命令/实际结果/内部检查及局限见 [阶段报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-16-M2-stage-B2-1-implementation.md)。合成预期由人工逐例指定，不能作为独立准确率证明。复杂修辞、英文完整要求语法、跨句指代、任意编号/格式和开放技能覆盖尚未支持；该句描述第一轮边界；第二轮治理与评测基础见上节，B3/B4、真实标注评测和市场统计仍未启动。
 
 ## 阶段 B1：JD 有效性与分析范围的离线筛选
 
@@ -426,7 +426,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest tests/test_job_analysis/test_foundation_inputs.py tests/test_job_analysis/test_foundation_validation.py tests/test_job_analysis/test_foundation_runner.py tests/test_job_analysis/test_foundation_cli.py tests/test_job_analysis/test_screening.py -q
 ```
 
-只用合成 JD、临时 SQLite 和 finally 清理的临时目录；包含真实子进程硬退出、输出失败恢复和 A/B1 共库重放。本轮实际计数与完整非集成回归的合成环境/网络阻断命令见 [B1 实施报告](../../../docs/superpowers/archive/2026-10-15-M2-stage-B1-implementation.md)。合成回归不能证明真实岗位分类准确率；复杂否定、转述、跨句指代、多职位拆分和最终范围目录仍需后续人工/语义验证，B1 不承担 B2/B3/B4。
+只用合成 JD、临时 SQLite 和 finally 清理的临时目录；包含真实子进程硬退出、输出失败恢复和 A/B1 共库重放。本轮实际计数与完整非集成回归的合成环境/网络阻断命令见 [B1 实施报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-15-M2-stage-B1-implementation.md)。合成回归不能证明真实岗位分类准确率；复杂否定、转述、跨句指代、多职位拆分和最终范围目录仍需后续人工/语义验证，B1 不承担 B2/B3/B4。
 
 ## 第一阶段 A：独立离线事实基础层
 
@@ -489,7 +489,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest -m "not integration" -q
 ```
 
-新增测试全部使用合成数据、可注入分析器、临时 SQLite 与临时文件；fixture finally 自动关闭/删除并断言目录不存在。包含真正子进程 `os._exit` 中断、事务回滚及发布失败恢复。不得去掉 integration 排除条件后指向演示库；真实数据库与模型效果验证需另获许可。详细本轮通过数、干净检出时的合成配置及网络阻断回归命令见 [历史实施报告](../../../docs/superpowers/archive/2026-10-15-M2-stage-A-implementation.md)（PR #4 审查存档）；原因与教训见 [恢复陷阱](../../../docs/superpowers/traps/2026-10-15-m2-facts-and-recovery.md)。
+新增测试全部使用合成数据、可注入分析器、临时 SQLite 与临时文件；fixture finally 自动关闭/删除并断言目录不存在。包含真正子进程 `os._exit` 中断、事务回滚及发布失败恢复。不得去掉 integration 排除条件后指向演示库；真实数据库与模型效果验证需另获许可。详细本轮通过数、干净检出时的合成配置及网络阻断回归命令见 [历史实施报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-15-M2-stage-A-implementation.md)（PR #4 审查存档）；原因与教训见 [恢复陷阱](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-15-m2-facts-and-recovery.md)。
 
 ## 旧管道与既有交接
 

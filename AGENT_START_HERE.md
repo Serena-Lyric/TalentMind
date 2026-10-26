@@ -24,4 +24,4 @@
 | 测试/导入/恢复 | [README 测试入口](README.md#测试)、[部署与导入说明](docs/部署与导入说明.md)；恢复另读 [V1 恢复手册](docs/V1恢复手册.md)。先核对隔离环境与破坏性行为。 |
 | 历史设计与协作溯源 | [决策跟踪](docs/superpowers/决策跟踪.md)、[团队设计](docs/superpowers/specs/2026-08-03-team-plan-design.md)、[目录设计](docs/superpowers/specs/2026-08-11-repository-organization-design.md)；旧计划/回发包按任务选读，不自动执行。 |
 
-`input/`、`output/`、`笔记.md` 等仅本地使用；正式竞赛提交成品在仓库外私有目录。文档分类与最新五份阶段报告见 [文档导航](docs/README.md)，可公开的旧 V1 背景见 [竞赛 V1 归档](docs/archive/competition-v1/README.md)。私有文件保护及文档更新规则遵守 AGENTS。
+`input/`、`output/`、`笔记.md` 等仅本地使用；正式竞赛提交成品在仓库外私有目录。文档分类与最新五份阶段报告见 [文档导航](docs/README.md)，可公开的旧 V1 背景见 [竞赛 V1 归档](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/archive/competition-v1/README.md)。私有文件保护及文档更新规则遵守 AGENTS。

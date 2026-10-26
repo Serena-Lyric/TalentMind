@@ -4,13 +4,13 @@
 
 `real_pipeline.py` 复用已合并 M2 B1/B2/B22，显式文件输入生成独立的原文陈述事实图、来源索引、派生相似/社区与布局；`verify` 核对冻结 M1/M2 并重算产物。所有完整数据放 `data/local/`，不调用被禁用的生产重建。离线算法固定依赖见 `requirements-offline.txt`；正式 Vue 通过显式预览开关加载，默认历史图不变。
 
-真实 120 条首轮得到 22 条进入分析、71 节点/417 条规则陈述，416 uncertain/1 mentioned，相似边为零；不是开放域完成或可信需求图。输入、命令、版本/哈希、浏览器截图与既有测试失败见[完整交付](../../../docs/review/M1-M5-real-jd-e2e.md)。
+真实 120 条首轮得到 22 条进入分析、71 节点/417 条规则陈述，416 uncertain/1 mentioned，相似边为零；不是开放域完成或可信需求图。输入、命令、版本/哈希、浏览器截图与既有测试失败见[完整交付](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-M5-real-jd-e2e.md)。
 
 ## M3/M5-P2.1 原 ID 历史快照布局候选（2026-10-19）
 
 `candidate_layout.py` 在完全不连接服务的独立进程中复用 PR32 的只读算法，消费显式历史 `graph.json`，输出 `exchange/m3/overlays/` 内的新文件。岗位相似/社区驱动展示坐标，共享技能保留全部相邻岗位和社区，无相似边孤点不强制分类。原始历史身份/语义不自动修复；结果不等同PR32修复投影的研究运行，也不作为正式职业分类。
 
-复现、依赖与输入/源码摘要见 [候选产物说明](../../../exchange/m3/overlays/README.md)；正式Vue接入与实际验证见 [集成报告](../../../docs/review/M3-M5-P2-1.md)，相关问题记录见 [图层与密集命中陷阱](../../../docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)。未加入生产requirements、未依赖GDS、未恢复重建入口、未覆盖正式graph.json。
+复现、依赖与输入/源码摘要见 [候选产物说明](../../../exchange/m3/overlays/README.md)；正式Vue接入与实际验证见 [集成报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M3-M5-P2-1.md)，相关问题记录见 [图层与密集命中陷阱](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)。未加入生产requirements、未依赖GDS、未恢复重建入口、未覆盖正式graph.json。
 
 M3 图谱正式目录。`builder.py` 从 M2 交接产出构建 Job/Skill 节点和 `REQUIRES`/`RELATED_TO` 边，输出 `exchange/m3/graph.json`；A 通过 `integration/import_graph.py` 导入 Neo4j。
 
@@ -49,7 +49,7 @@ python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnos
 
 用户报告的技能节点散乱及大部分连线缺失，按 2026-10-17 指示集中留到下一轮前端算法修复；本轮不修改布局、连线呈现或 API，也不把本次离线修复宣称为已解决前端表现。统一跟踪于 [未决问题清单](../../../docs/superpowers/未决问题清单.md)。
 
-测试结果、快照数字、限制和后续复审见 [阶段报告](../../../docs/review/M3-issue-20.md)；根因见 [陷阱记录](../../../docs/superpowers/traps/2026-10-17-m3-identity-and-relations.md)。
+测试结果、快照数字、限制和后续复审见 [阶段报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M3-issue-20.md)；根因见 [陷阱记录](../../../docs/superpowers/traps/2026-10-17-m3-identity-and-relations.md)。
 
 ## 历史验证（保留当时数字）
 

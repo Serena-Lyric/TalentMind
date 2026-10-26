@@ -1,6 +1,6 @@
 # integration
 
-`python -m app.integration.real_jd_export --sql <已有备份> --output <新私有目录> --per-platform 40` 仅解析 jd_pool，不执行 SQL；也提供显式 `--env` 的 READ ONLY 导出。用于[真实链路隔离验证](../../../docs/review/M1-M5-real-jd-e2e.md)，不连接旧导入器或恢复生产重建。
+`python -m app.integration.real_jd_export --sql <已有备份> --output <新私有目录> --per-platform 40` 仅解析 jd_pool，不执行 SQL；也提供显式 `--env` 的 READ ONLY 导出。用于[真实链路隔离验证](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-M5-real-jd-e2e.md)，不连接旧导入器或恢复生产重建。
 
 A 负责的交接导入、模块编排和完整系统组装入口。
 

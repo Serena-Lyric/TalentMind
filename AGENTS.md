@@ -41,21 +41,21 @@
   M2候选图：[运行版本、历史读取与迟到导航](docs/superpowers/traps/2026-10-21-m2-graph-run-binding.md)（2026-10-21）。
   M2 产品编排：[缓存成员、跨模块依赖、报告发布与迟到响应](docs/superpowers/traps/2026-10-21-m2-product-recovery.md)（2026-10-21）。
   M2 真实语义：[职责、章节与作用域](docs/superpowers/traps/2026-10-22-m2-real-evidence-scope.md)（2026-10-22）。
-  M1 浏览器记录：[准备/采集分离、端点归属与访问状态](docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)（2026-10-20）。
+  M1 浏览器记录：[准备/采集分离、端点归属与访问状态](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-20-m1-browser-access-state.md)（2026-10-20）。
   BOSS 安全循环：[目标页锁定、验证暂停与首页回退](docs/superpowers/traps/2026-10-21-boss-security-check-loop.md)（2026-10-21）。
   M1 详情记录：[列表回落、换行及推荐字段污染](docs/superpowers/traps/2026-10-20-cn-detail-gate.md)（2026-10-20）。
-  M1 控制记录：[历史循环接口、子进程配置/编码与停止状态](docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)（2026-10-20）。
-  产品集成记录：[启动归属、任务停止与原文边界](docs/superpowers/traps/2026-10-21-product-integration.md)（2026-10-21）。
-  准备目标记录：[重新检查未就绪与异步旧状态覆盖](docs/superpowers/traps/2026-10-21-collection-prepare-target.md)（2026-10-21）。
+  M1 控制记录：[历史循环接口、子进程配置/编码与停止状态](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-20-m1-controller-loop-compat.md)（2026-10-20）。
+  产品集成记录：[启动归属、任务停止与原文边界](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-21-product-integration.md)（2026-10-21）。
+  准备目标记录：[重新检查未就绪与异步旧状态覆盖](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-21-collection-prepare-target.md)（2026-10-21）。
   批次生命周期：[停止、异常释放与长期单项日志](docs/superpowers/traps/2026-10-21-collection-batch-lifecycle.md)（2026-10-21）。
-  图谱集成新增记录：[画布矩形错位、密集命中与错误回退](docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)（2026-10-19）。
-  可读性修订记录：[关系显示分账、隐藏类型跳转与曲线相交](docs/superpowers/traps/2026-10-19-graph-visibility-and-hidden-neighbor.md)（2026-10-19）。
-  三维改造记录：[相机过渡、最终姿态同步与派生端点](docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)（2026-10-19）。
-  恒星与交互记录：[选择与可见集合耦合](docs/superpowers/traps/2026-10-19-stellar-selection-and-visibility.md)（2026-10-19）。
-  P2.5视觉记录：[主体类型、密度和端点渐变](docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)（2026-10-19）。
+  图谱集成新增记录：[画布矩形错位、密集命中与错误回退](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)（2026-10-19）。
+  可读性修订记录：[关系显示分账、隐藏类型跳转与曲线相交](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-graph-visibility-and-hidden-neighbor.md)（2026-10-19）。
+  三维改造记录：[相机过渡、最终姿态同步与派生端点](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-galaxy-camera-transition.md)（2026-10-19）。
+  恒星与交互记录：[选择与可见集合耦合](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-stellar-selection-and-visibility.md)（2026-10-19）。
+  P2.5视觉记录：[主体类型、密度和端点渐变](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-knowledge-body-density-and-gradient.md)（2026-10-19）。
   真实链路记录：[来源绑定、组合冲突和 Unicode 偏移](docs/superpowers/traps/2026-10-20-real-graph-source-binding.md)（2026-10-20）。
-  真实质量记录：[结构分割、共享范围与标注上下文](docs/superpowers/traps/2026-10-20-real-jd-structure-and-scope.md)（2026-10-20）。
-  空间场记录：[银河空间分离与空图残留](docs/superpowers/traps/2026-10-20-galaxy-spatial-field-and-empty-layer.md)（2026-10-20）。
+  真实质量记录：[结构分割、共享范围与标注上下文](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-20-real-jd-structure-and-scope.md)（2026-10-20）。
+  空间场记录：[银河空间分离与空图残留](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-20-galaxy-spatial-field-and-empty-layer.md)（2026-10-20）。
 - 跨轮保留已确认的任务与未完成子项；不把不确定事项写成完成，切换大方向前说明遗留。
 
 ## 5. Windows 与编码
