@@ -170,13 +170,13 @@ cd D:\Application\ClaudeCode\repository\TalentMind\backend
 
 覆盖 4 条 B1 产品边界、9 条 B2 选择/组合、12 条 B3 大类竞争、12 条重复 JD、5 条机器正例和 6 条“可能漏判”探查项；同一记录可同时属于多类。机器预测中保留 426 个 B2 statement 审核单位，其中 56 个没有 B2.2 规范化 Skill；B3 共 22 个候选判断单位，含 1 个人工漏判探查项。队列中机器预测与 `human_truth` 分开，33 条人工字段全部为空，`reviewed=0`，SHA-256 为 `603ebb5db38472cab51073dafb5f6625462e209272693d842f32038f46334ffd`。
 
-逐项规范见 [人工语义审核规范](M2-M3-Gate-3-human-review-protocol.md)。只有真实审核人可填写；Codex/Agent/大模型不代签。
+逐项规范见 [人工语义审核规范](../superpowers/specs/M2-M3-human-review-protocol.md)。只有真实审核人可填写；Codex/Agent/大模型不代签。
 
 B2 当前审核对象仅是机器已生成的 statement；没有独立“机器漏判 statement”记录，因此本轮不能声称完整抽取 recall。该范围已写入规范，不建设新的完整标注系统。
 
 ### 4.3 PR #51 最终收口：B3 人工漏判补充持久展示
 
-从 `e12f363d8c72191083e889dde5098e8498581913` 继续，工作区初始干净，远端 HEAD 一致。本次仅修改前端 `b3ReviewRows`：合并机器候选、`human_effective.b3_categories` 与本轮补充选择，按 `family_id` 去重；保留机器职责证据。历史有效标签不回填草稿，后端契约与机器报告未改。根因见[持久展示陷阱](../superpowers/traps/2026-10-22-m2-b3-supplement-visibility.md)。
+从 `e12f363d8c72191083e889dde5098e8498581913` 继续，工作区初始干净，远端 HEAD 一致。本次仅修改前端 `b3ReviewRows`：合并机器候选、`human_effective.b3_categories` 与本轮补充选择，按 `family_id` 去重；保留机器职责证据。历史有效标签不回填草稿，后端契约与机器报告未改。根因见[持久展示陷阱](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-22-m2-b3-supplement-visibility.md)。
 
 新增两项组件回归先在旧实现失败（保存后实际为空行、混合集合缺少 `data_ai`），再以最小修复转绿。覆盖无机器候选的保存/重开、备注及来源、机器同类去重、机器/历史/本轮选择并集、空草稿不重发旧标签，以及直接更正历史补充行的请求内容。日志位于私有 `data/local/m2-m3-gate3-20261022/b3-closeout/`。
 

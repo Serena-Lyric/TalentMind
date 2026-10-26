@@ -40,4 +40,4 @@
 
 长期边界及陷阱见[BOSS桥接记录](../superpowers/traps/2026-10-22-boss-bridge-scope-and-stop.md)。
 
-长期记录见[修复陷阱](../superpowers/traps/2026-10-22-zhaopin-panel-persistence-target.md)；实施计划见[分平台计划](../superpowers/plans/2026-10-22-m1-platform-repair.md)。
+长期记录见[修复陷阱](../superpowers/traps/2026-10-22-zhaopin-panel-persistence-target.md)；实施计划见[分平台计划](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/plans/2026-10-22-m1-platform-repair.md)。
