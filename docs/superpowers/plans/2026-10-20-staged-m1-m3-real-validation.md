@@ -99,7 +99,7 @@
 
 ### 2026-10-20 已产生的 M1 preflight 报告
 
-本机私有 `m1-m2-quality-replay/TalentMind/data/local/m1-live-boss-20261020/REPORT.md`（代码 `284bb62`）报告：实际目标 `localhost:23306 / talentmind`，2,988 条原始 JD 已私有备份并核验；BOSS/智联/猎聘为 1,137/1,088/763。Edge CDP 不可用，采集器未执行，未取得新列表/详情。八表采前采后摘要一致是该轮只读核查结果，不是本 C 轮重新查询。**Gate 0 仍阻塞，Gate 1 未执行，M1 新数据质量及 Gate 2 新数据组均未验收。** 恢复前需重查运行态并重新保存采前快照；本页不预测试采结果。公开口径见[语义与证据交付](../../review/TalentMind-semantics-and-evidence-2026-10-20.md)。
+本机私有 `m1-m2-quality-replay/TalentMind/data/local/m1-live-boss-20261020/REPORT.md`（代码 `284bb62`）报告：实际目标 `localhost:23306 / talentmind`，2,988 条原始 JD 已私有备份并核验；BOSS/智联/猎聘为 1,137/1,088/763。Edge CDP 不可用，采集器未执行，未取得新列表/详情。八表采前采后摘要一致是该轮只读核查结果，不是本 C 轮重新查询。**Gate 0 仍阻塞，Gate 1 未执行，M1 新数据质量及 Gate 2 新数据组均未验收。** 恢复前需重查运行态并重新保存采前快照；本页不预测试采结果。公开口径见[语义与证据交付](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/TalentMind-semantics-and-evidence-2026-10-20.md)。
 
 ### 2026-10-23 材料截止的现实边界
 
