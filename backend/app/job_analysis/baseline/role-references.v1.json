@@ -1,0 +1,50 @@
+{
+  "version": "p0-role-references-1",
+  "nature": "来源支持的AI整理候选，非TalentMind正式职业目录；职业编码只作来源身份，不是市场岗位一一对应映射",
+  "items": [
+    {
+      "id": "p0-ref-programming",
+      "name": "程序设计工作参照",
+      "definition_version": "p0-role-1",
+      "status": "candidate",
+      "drafted_by": "agent_source_summary",
+      "source_occupation_code": "4-04-05-01",
+      "goals": ["交付满足功能需求的计算机或移动终端应用程序"],
+      "core_duties": ["理解开发需求及模块设计内容", "形成模块设计文档", "编写与修改程序", "调试代码并核验模块功能"],
+      "known_scope": ["仅作为应用程序设计与编制工作的粗粒度参照", "语言和框架不是本参照划分职责的依据"],
+      "unresolved_boundaries": ["尚未界定后端、前端、平台、嵌入式及算法工程之间的市场岗位边界", "不将一般程序设计责任推导为所有系统运维或教学职责均被覆盖", "来源的技能等级考核要求不自动成为企业招聘条件"],
+      "use": "P2小规模职责覆盖与目录缺口测试；待逐项人工确认",
+      "sources": [{
+        "title": "计算机程序设计员（三级）职业技能等级认定指导手册，上海市职业技能鉴定中心指导编写，上海市软件行业协会发布",
+        "url": "https://www.softline.org.cn/Attachment/Files?n=%E9%99%84%E4%BB%B61%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E5%91%98-%E6%8C%87%E5%AF%BC%E6%89%8B%E5%86%8C-3%E7%BA%A7.pdf&p=2024%2F09%2F09%2F453fec04-c0ae-49ee-8e16-d80df9e473a1.pdf",
+        "document_version": "2024-09-09发布路径，来源正文未标独立版号；固定下载字节而非声称最新标准",
+        "locator": "PDF第3页（印刷第1页）职业简介；第4–5页认定方案",
+        "retrieved_on": "2026-10-28",
+        "sha256": "8223e1c0952f6db9f483ff3d0ec21dcbb5c4ca2d0d3058c446ddea7893a50220"
+      }],
+      "approval_source": null
+    },
+    {
+      "id": "p0-ref-network-operations",
+      "name": "信息通信网络运行工作参照",
+      "definition_version": "p0-role-1",
+      "status": "candidate",
+      "drafted_by": "agent_source_summary",
+      "source_occupation_code": "4-04-04-01",
+      "goals": ["保持信息通信网络运行并改善网络性能"],
+      "core_duties": ["管理网络运行配置", "监测和管理网络性能", "优化网络运行", "定位并排除网络故障"],
+      "known_scope": ["来源是人社部与工信部制定的信息通信网络运行管理员国家职业技能标准", "用于比较网络运行责任，不能凭Linux或网络工具名直接归类"],
+      "unresolved_boundaries": ["尚未确认与SRE、DevOps、应用运维及信息安全岗位的精确职责边界", "定义未覆盖数据库或业务主数据维护，不代表有明确排除证据", "仅有网络相关经验不证明当前承担网络交付责任"],
+      "use": "P2职责覆盖、相邻边界与不足证据测试；非正式准入",
+      "sources": [{
+        "title": "信息通信网络运行管理员国家职业技能标准，人力资源社会保障部、工业和信息化部制定",
+        "url": "https://chinajob.mohrss.gov.cn/upload/resources/jnbzpdf/4ccc6a76ab6420078cc004.pdf",
+        "document_version": "2019年公布版；中国就业网2019-01-29发布入口，固定2026-10-28下载字节",
+        "locator": "PDF第5页（印刷第1页）§1.3职业定义；后续§3分等级工作要求",
+        "retrieved_on": "2026-10-28",
+        "sha256": "c27243f9630d1e485b69f3ff0b3e95957d08b01e4dd8f72d7a3b74c910716b61"
+      }],
+      "approval_source": null
+    }
+  ]
+}

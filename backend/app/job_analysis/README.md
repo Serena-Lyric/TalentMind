@@ -1,5 +1,7 @@
 # job_analysis
 
+新底座 P0 的离线材料与新增契约入口：[baseline](baseline/README.md)。阶段状态只看[总计划 §3](../../../docs/superpowers/plans/2026-10-28-m2-core-delivery-plan.md#3-分段地图与当前进度)，不代表已接入本页旧管道。
+
 ## 真实历史语料改进与人工复核（2026-10-22）
 
 独立分支 `codex/m2-real-analysis-20261022` 保留既有 A/B1/B2/B2.2/B3 编排，在相同主集 120、留出集 60 冻结输入上完成 `v9` 功能主运行和 `v10`～`v12` 审查复核，最终审查收口版本为 `v12`。旧 run 与 `v3`～`v12` 均保留，不覆盖冻结输入或历史报告。
@@ -32,7 +34,7 @@
 
 API：`GET sources/runs`、`POST runs`、`GET runs/{id}`、`GET runs/{id}/items/{ordinal}`、`POST runs/{id}/start|stop|replay`（重放体 `{"revision":"v2"}`）、`GET runs/{id}/report`，统一 `/api/m2/` 前缀及 code=0 响应。列表/进度无正文，详情/完整报告带私有原文，全部禁缓存；不自动开始或采集网站。
 
-工程四阶段走完与语义完整/人工确认分开。B22 语义冲突只统计原有 effective.conflict，目录治理冲突未评估；片段数不是 JD 分母。真实运行、逐类数量、测试、截图和已知限制见[交付报告](../../../docs/review/M2-product-2026-10-21.md)。
+工程四阶段走完与语义完整/人工确认分开。B22 语义冲突只统计原有 effective.conflict，目录治理冲突未评估；片段数不是 JD 分母。真实运行、逐类数量、测试、截图和已知限制见[交付报告](https://github.com/Serena-Lyric/TalentMind/blob/36655eef617db1c80f007f4a9bb7423c58c6fc75/docs/review/M2-product-2026-10-21.md)。
 
 ## 阶段 B3-5：八类候选目录与逐项人工准入
 

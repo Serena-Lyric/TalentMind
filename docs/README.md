@@ -31,7 +31,7 @@
 
 | 范围 | 计划与审核依据 |
 |---|---|
-| M2 新底座（计划已编制，尚未实施） | [P0～P6 总计划及各段入口](superpowers/plans/2026-10-28-m2-core-delivery-plan.md)；[ChatGPT 交付审核标准](superpowers/specs/2026-10-28-m2-delivery-review-standard.md) |
+| M2 新底座（按总表维护阶段状态） | [P0～P6 总计划及各段入口](superpowers/plans/2026-10-28-m2-core-delivery-plan.md)；[ChatGPT 交付审核标准](superpowers/specs/2026-10-28-m2-delivery-review-standard.md) |
 
 ## 近期阶段验收（最多五份）
 
@@ -41,7 +41,7 @@
 | 2026-10-22 | [M2 真实分析与复核](review/M2-real-analysis-2026-10-22.md) |
 | 2026-10-22 | [M2→M3 Gate 3](review/M2-M3-Gate-3-acceptance-2026-10-22.md) |
 | 2026-10-21 | [主仓统一与功能验收](review/Unified-product-2026-10-21.md) |
-| 2026-10-21 | [M2 工作台](review/M2-product-2026-10-21.md) |
+| 2026-10-28 | [M2 P0 基准与契约交付](review/M2-P0-baseline-2026-10-28.md) |
 
 这是全仓库的阶段性测试/验证/验收报告上限，不是每个模块五份。以后有新报告时，优先将长期有用的结论更新到模块 README、规范、陷阱或当前状态，再淘汰最旧报告及其独有附件。**不将旧报告移动到 archive 变相规避上限。**
 

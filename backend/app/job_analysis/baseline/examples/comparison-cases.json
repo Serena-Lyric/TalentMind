@@ -1,0 +1,175 @@
+{
+  "version": "p0-synthetic-cases-1",
+  "purpose": "手写的工程/后续评价设计断言，未运行P1-P4算法，不是真实语义验收",
+  "cases": [
+    {
+      "id": "S01",
+      "phenomenon": "同职责不同技术栈",
+      "inputs": {
+        "A": "负责订单服务接口开发，使用Java。",
+        "B": "负责订单服务接口开发，使用Python。"
+      },
+      "expected": "核心交付相同可作为同组合候选；语言差异不单独否决，仍检查上下文",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S02",
+      "phenomenon": "同技能不同职责",
+      "inputs": {
+        "A": "使用Java开发订单服务。",
+        "B": "熟悉Java，负责课程设计和线上授课。"
+      },
+      "expected": "不能因Java共现确认同组合；教学交付不是接口开发",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S03",
+      "phenomenon": "程度否定",
+      "inputs": {
+        "A": "不要求精通Python，但需了解Python基础。"
+      },
+      "expected": "expert程度被否定与basic要求分别保留，不能推完全不要求或虚假冲突",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S04",
+      "phenomenon": "条件和开放任选",
+      "inputs": {
+        "A": "参与模型部署的人员需掌握Python、Go等语言中的至少一种；其他人员不作此要求。"
+      },
+      "expected": "条件仅约束部署人员；组合required、开放任选；成员不自动各自required",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S05",
+      "phenomenon": "三态关系",
+      "inputs": {
+        "A": "使用Redis实现任务恢复。",
+        "B": "负责任务恢复；要求了解Redis。",
+        "C": "负责多个平台的恢复，技能另议。"
+      },
+      "expected": "A有明确使用联系但不证明必备；B不能仅凭共现明确配对；C保留未知，不造完整矩阵",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S06",
+      "phenomenon": "空目录和定义未覆盖",
+      "inputs": {
+        "A": "负责医疗工具注册与权限边界设计。"
+      },
+      "expected": "没有参照或定义未覆盖时未决，不构成已排除岗位或发现新岗位",
+      "knowledge_versions": [
+        "empty-v1",
+        "p0-role-references-1"
+      ],
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S07",
+      "phenomenon": "相似链不传递",
+      "inputs": {
+        "A": "负责接口工具封装。",
+        "B": "负责接口工具封装与任务恢复。",
+        "C": "负责设备故障恢复。"
+      },
+      "batches": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "C"
+        ]
+      ],
+      "expected": "A-B、B-C局部类似不证明A-B-C同组；保留边界与原成员解释",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S08",
+      "phenomenon": "同批版本及自证",
+      "inputs": {
+        "A": "负责工具封装。",
+        "B": "负责数据审核。"
+      },
+      "batches": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "candidate_baseline": "wc-v1:工具封装",
+      "expected": "两条均对wc-v1比较；批后新摘要不可反向证明B属于原组合；不为容纳B泛化成技术工作",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S09",
+      "phenomenon": "反证与纠正",
+      "inputs": {
+        "A": "负责系统监控开发。",
+        "B": "只负责培训，不承担开发；先前开发描述有误。"
+      },
+      "batches": [
+        [
+          "A"
+        ],
+        [
+          "B"
+        ]
+      ],
+      "expected": "记录反证并纠正误关联，保留旧判断；必要拆分是待人工确认建议，日常有证据修订可自动生效",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S10",
+      "phenomenon": "重复、顺序和身份",
+      "inputs": {
+        "A": "负责接口工具封装。",
+        "A-copy": "负责接口工具封装。",
+        "B": "负责接口工具封装与版本维护。"
+      },
+      "batches": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "A-copy"
+        ]
+      ],
+      "alternative_orders": [
+        [
+          "B",
+          "A",
+          "A-copy"
+        ]
+      ],
+      "expected": "重复来源不增加已确认独立证据；改变顺序仍需核对同一人工职责参照，结果相同本身不证明正确",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S11",
+      "phenomenon": "版本变化原因",
+      "inputs": {
+        "A-v1": "负责系统开发。",
+        "A-v2": "负责系统开发和故障恢复。"
+      },
+      "changes": [
+        "input-v1→input-v2",
+        "knowledge-v1→knowledge-v2",
+        "analyzer-v1→analyzer-v2"
+      ],
+      "expected": "分别记录真实输入、知识与分析器变化；重放固定旧依赖，重评追加记录；不得都称招聘变化",
+      "review_status": "synthetic_not_human_truth"
+    },
+    {
+      "id": "S12",
+      "phenomenon": "短JD、未知词、多个招聘目标和失败",
+      "inputs": {
+        "A": "招工程师，负责XQ引擎。",
+        "B": "招两人：一人负责内核开发；一人负责产品销售。"
+      },
+      "expected": "未知词保留，少信息允许未决；多目标不自动产生多个独立职位；截断/超时是部分或失败而非uncertain",
+      "review_status": "synthetic_not_human_truth"
+    }
+  ]
+}

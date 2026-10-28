@@ -1,0 +1,192 @@
+{
+  "contract_version": "m2-semantic-0.1",
+  "namespace": "p0-synthetic",
+  "jd_id": "synthetic-1",
+  "input_row": {
+    "id": "synthetic-1",
+    "source": "synthetic",
+    "job_title": "合成接口开发样例",
+    "raw_text": "🧪职责：使用 Redis 实现任务状态存储与恢复。要求：Java、Python 或其他语言至少掌握一种。"
+  },
+  "input_sha256": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+  "input_version": "synthetic-v1",
+  "analyzer": {
+    "id": "synthetic-no-model",
+    "revision": "1",
+    "sha256": "aa061597a8694c20ad369d4f884144200e1c58938ae7028731854639712a8b0b"
+  },
+  "prompt": {
+    "id": "synthetic-no-model",
+    "revision": "1",
+    "sha256": "aa061597a8694c20ad369d4f884144200e1c58938ae7028731854639712a8b0b"
+  },
+  "configuration": {
+    "id": "synthetic-no-model",
+    "revision": "1",
+    "sha256": "aa061597a8694c20ad369d4f884144200e1c58938ae7028731854639712a8b0b"
+  },
+  "knowledge": [],
+  "outcome": "complete",
+  "coverage": {
+    "goals": {
+      "status": "complete",
+      "reason": "合成夹具显式填写，未执行语义分析"
+    },
+    "objects": {
+      "status": "complete",
+      "reason": "合成夹具显式填写，未执行语义分析"
+    },
+    "duties": {
+      "status": "complete",
+      "reason": "合成夹具显式填写，未执行语义分析"
+    },
+    "requirements": {
+      "status": "complete",
+      "reason": "合成夹具显式填写，未执行语义分析"
+    },
+    "relations": {
+      "status": "complete",
+      "reason": "合成夹具显式填写，未执行语义分析"
+    },
+    "classification": {
+      "status": "complete",
+      "reason": "合成夹具显式填写，未执行语义分析"
+    }
+  },
+  "claims": [
+    {
+      "id": "d1",
+      "kind": "duty",
+      "text": "实现任务状态存储与恢复",
+      "evidence": [
+        {
+          "namespace": "p0-synthetic",
+          "jd_id": "synthetic-1",
+          "fingerprint": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+          "field": "raw_text",
+          "start": 4,
+          "end": 24,
+          "quote": "使用 Redis 实现任务状态存储与恢复"
+        }
+      ],
+      "requirement": null,
+      "core": null,
+      "reason": "未声明核心工作占比"
+    },
+    {
+      "id": "r1",
+      "kind": "requirement",
+      "text": "任选语言要求",
+      "evidence": [
+        {
+          "namespace": "p0-synthetic",
+          "jd_id": "synthetic-1",
+          "fingerprint": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+          "field": "raw_text",
+          "start": 28,
+          "end": 51,
+          "quote": "Java、Python 或其他语言至少掌握一种"
+        }
+      ],
+      "requirement": {
+        "state": "required",
+        "target": "capability",
+        "category": "technical_skill",
+        "members": [
+          "Java",
+          "Python",
+          "其他语言"
+        ],
+        "combination": "any_of",
+        "open_set": true,
+        "degree": null,
+        "degree_polarity": null,
+        "condition": null,
+        "reason": "手工编写的合成契约断言",
+        "scope_evidence": [
+          {
+            "namespace": "p0-synthetic",
+            "jd_id": "synthetic-1",
+            "fingerprint": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+            "field": "raw_text",
+            "start": 28,
+            "end": 51,
+            "quote": "Java、Python 或其他语言至少掌握一种"
+          }
+        ]
+      },
+      "core": null,
+      "reason": "组合要求不赋予每个成员独立必备态"
+    },
+    {
+      "id": "r2",
+      "kind": "requirement",
+      "text": "工作中使用 Redis",
+      "evidence": [
+        {
+          "namespace": "p0-synthetic",
+          "jd_id": "synthetic-1",
+          "fingerprint": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+          "field": "raw_text",
+          "start": 4,
+          "end": 24,
+          "quote": "使用 Redis 实现任务状态存储与恢复"
+        }
+      ],
+      "requirement": {
+        "state": "mentioned",
+        "target": "capability",
+        "category": "technical_skill",
+        "members": [
+          "Redis"
+        ],
+        "combination": "single",
+        "open_set": false,
+        "degree": null,
+        "degree_polarity": null,
+        "condition": null,
+        "reason": "手工编写的合成契约断言",
+        "scope_evidence": [
+          {
+            "namespace": "p0-synthetic",
+            "jd_id": "synthetic-1",
+            "fingerprint": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+            "field": "raw_text",
+            "start": 4,
+            "end": 24,
+            "quote": "使用 Redis 实现任务状态存储与恢复"
+          }
+        ]
+      },
+      "core": null,
+      "reason": "使用联系不证明必备或程度"
+    }
+  ],
+  "relations": [
+    {
+      "duty_id": "d1",
+      "requirement_id": "r2",
+      "basis": "explicit",
+      "evidence": [
+        {
+          "namespace": "p0-synthetic",
+          "jd_id": "synthetic-1",
+          "fingerprint": "04a846d19fb97f3af2dfc5ff5082ee7936e3b7be033f18920e9de58dd65265ed",
+          "field": "raw_text",
+          "start": 4,
+          "end": 24,
+          "quote": "使用 Redis 实现任务状态存储与恢复"
+        }
+      ],
+      "reason": "原文明示工具用于该工作"
+    }
+  ],
+  "role_judgments": [],
+  "semantic_review": "machine_unreviewed",
+  "alignments": [],
+  "model": {
+    "id": "synthetic-no-model",
+    "revision": "1",
+    "sha256": "aa061597a8694c20ad369d4f884144200e1c58938ae7028731854639712a8b0b"
+  }
+}

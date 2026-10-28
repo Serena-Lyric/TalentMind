@@ -59,7 +59,7 @@
 ## 最终验证与数据
 
 - 本轮安全门禁最终相关后端199 passed，完整前端151 passed；类型检查/build通过。既有大chunk及重复动态/静态导入提示保留。后端最终全量为1463 passed / 2 failed / 23 deselected，两项仍为此前已知的B3 canonical来源hash/quote问题。
-- 独立审查两项边界均先复现后修复，并定向复审；不替代负责人集中验收。未重复全后端大套件；此前全量中的两项B3来源hash/quote失败仍未解决，未重签或声称全套通过，见[M2报告](M2-product-2026-10-21.md)。
+- 独立审查两项边界均先复现后修复，并定向复审；不替代负责人集中验收。未重复全后端大套件；此前全量中的两项B3来源hash/quote失败仍未解决，未重签或声称全套通过，见[M2报告](https://github.com/Serena-Lyric/TalentMind/blob/36655eef617db1c80f007f4a9bb7423c58c6fc75/docs/review/M2-product-2026-10-21.md)。
 - 业务测试仅临时SQLite/文件，finally/teardown清理；精确无执行批次验收文件已不存在，无正式库写入测试或宽泛DELETE。
 - 浏览器验收前后MySQL八表全字段有序SHA及计数完全相同：JD2988、signal1540、skill_dict285、定义/技能/日志717/717/275、resume/talent_raw0，无测试数据写入或误删。Neo4j只读查询7845/11412。
 - 真实数据、SQLite、截图、日志及完整审计保留于忽略的data/local/unified-acceptance与m2-product，不提交原文或密钥。
