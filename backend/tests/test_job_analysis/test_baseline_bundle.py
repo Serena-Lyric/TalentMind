@@ -180,6 +180,27 @@ def test_cli_reports_safe_actionable_bundle_diagnostics(tmp_path, monkeypatch, c
     assert json.loads(result)["reason"] == reason
 
 
+@pytest.mark.parametrize("damage", ["annotation_root", "null_labels", "labels_container", "label_item", "evidence_container", "evidence_item"])
+def test_cli_rejects_malformed_human_label_shapes_without_echoing_private_data(tmp_path, monkeypatch, capsys, damage):
+    from app.job_analysis.baseline.__main__ import main
+    manifest = bundle(tmp_path)
+    name = "a-annotation.json"
+    ann = json.loads((tmp_path / name).read_text())
+    if damage == "annotation_root":
+        ann = ["NEVER-ECHO-PRIVATE"]
+    else:
+        ann["human_labels"] = {"null_labels": None, "labels_container": {}, "label_item": ["NEVER-ECHO-PRIVATE"], "evidence_container": [{"evidence": {}}], "evidence_item": [{"evidence": ["NEVER-ECHO-PRIVATE"]}]}[damage]
+    raw = json.dumps(ann).encode()
+    (tmp_path / name).write_bytes(raw)
+    manifest["files"][name] = hashlib.sha256(raw).hexdigest()
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["baseline", "bundle", str(tmp_path / "manifest.json"), "--samples", "a"])
+    assert main() == 1
+    captured = capsys.readouterr()
+    assert "NEVER-ECHO-PRIVATE" not in captured.out + captured.err
+    assert json.loads(captured.out)["reason"] == ("annotation_structure_invalid" if damage == "annotation_root" else "annotation_label_structure_invalid")
+
+
 @pytest.mark.parametrize("damage", ["missing", "changed_bytes", "path_escape", "duplicate_body", "duplicate_identity", "fake_review"])
 def test_broken_or_leaking_bundle_fails_closed(tmp_path, damage):
     manifest = bundle(tmp_path)

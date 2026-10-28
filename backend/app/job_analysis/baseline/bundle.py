@@ -82,10 +82,19 @@ def audit_bundle(manifest_path, archive=None, *, sample_ids=None):
                 raise BundleError("snapshot_does_not_match_archived_source")
         ann = parse_json(verified[sample["annotation"]].decode("utf-8-sig"))
         check_public(ann)
+        if not isinstance(ann, dict):
+            raise BundleError("annotation_structure_invalid")
         if ann.get("input_sha256") != record.fingerprint:
             raise BundleError("annotation_input_version_mismatch")
-        for label in ann.get("human_labels", []):
+        labels = ann.get("human_labels", [])
+        if not isinstance(labels, list):
+            raise BundleError("annotation_label_structure_invalid")
+        for label in labels:
+            if not isinstance(label, dict) or not isinstance(label.get("evidence", []), list):
+                raise BundleError("annotation_label_structure_invalid")
             for ev in label.get("evidence", []):
+                if not isinstance(ev, dict):
+                    raise BundleError("annotation_label_structure_invalid")
                 field, start, end = ev.get("field"), ev.get("start"), ev.get("end")
                 if (field not in {"job_title", "raw_text", "duties", "experience", "requirements"}
                         or type(start) is not int or type(end) is not int
