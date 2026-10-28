@@ -20,7 +20,7 @@
 | 模块 | 权威说明 |
 |---|---|
 | M1 数据采集 | [采集 README](../backend/app/collect/README.md) |
-| M2 岗位分析 | [现行分析 README](../backend/app/job_analysis/README.md)；[新底座设计草案（待整体审阅）](superpowers/specs/2026-10-28-m2-analysis-candidate-design.md)；[设计输入](superpowers/specs/2026-10-27-m2-core-foundation-design.md) |
+| M2 岗位分析 | [现行分析 README](../backend/app/job_analysis/README.md)；[新底座设计演进、取舍与草案](superpowers/specs/2026-10-28-m2-analysis-candidate-design.md#0-为什么形成当前设计设计演进与取舍)；[设计输入](superpowers/specs/2026-10-27-m2-core-foundation-design.md)；[P0 逐例评价规范](superpowers/specs/M2-P0-baseline.md#31-已确认方案-a逐例定性验收2026-10-29) |
 | M3 图谱 | [图谱 README](../backend/app/graph/README.md) |
 | M4 简历与人岗匹配 | [匹配 README](../backend/app/matching/README.md) |
 | M5 前端 | [前端 README](../frontend/README.md) |
