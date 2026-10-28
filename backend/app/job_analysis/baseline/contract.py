@@ -1,4 +1,4 @@
-"""Additive M2 semantic boundary v0.1; does not project into legacy contracts."""
+"""Additive M2 semantic boundary v0.2; does not project into legacy contracts."""
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
