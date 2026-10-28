@@ -19,6 +19,8 @@ def body_key(text):
 
 
 def audit_bundle(manifest_path, archive=None, *, sample_ids=None):
+    if sample_ids is not None and archive is not None:
+        raise BundleError("selected_audit_cannot_read_archive")
     manifest_path = Path(manifest_path).resolve()
     root = manifest_path.parent
     manifest = parse_json(manifest_path.read_text(encoding="utf-8-sig"))

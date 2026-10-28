@@ -65,6 +65,19 @@ def test_invalid_selected_scope_does_not_fall_back_to_full_bundle(tmp_path, sele
         audit_bundle(tmp_path / "manifest.json", sample_ids=selection)
 
 
+def test_selected_audit_rejects_archive_before_reading_any_material(tmp_path, monkeypatch):
+    from pathlib import Path
+    from app.job_analysis.baseline.bundle import BundleError, audit_bundle
+
+    def forbidden_read(*args, **kwargs):
+        pytest.fail("conflicting scope must be rejected before reading files")
+
+    monkeypatch.setattr(Path, "read_bytes", forbidden_read)
+    monkeypatch.setattr(Path, "read_text", forbidden_read)
+    with pytest.raises(BundleError, match="selected_audit_cannot_read_archive"):
+        audit_bundle(tmp_path / "manifest.json", archive=tmp_path / "archive.zip", sample_ids=["a"])
+
+
 def test_wrong_human_label_quote_is_not_hidden_by_a_valid_annotation_hash(tmp_path):
     from app.job_analysis.baseline.bundle import audit_bundle
     manifest = bundle(tmp_path)
