@@ -39,6 +39,60 @@ def test_pending_human_annotations_have_no_truth_denominator(tmp_path):
     assert audit(tmp_path) == {"samples": 2, "development": 1, "holdout": 1, "human_reviewed": 0, "semantic_metrics": "not_computable"}
 
 
+def test_selected_audit_never_opens_unselected_material(tmp_path, monkeypatch):
+    from pathlib import Path
+    from app.job_analysis.baseline.bundle import audit_bundle
+    bundle(tmp_path)
+    original_read = Path.read_bytes
+
+    def guarded_read(path):
+        assert path.name not in {"b.json", "b-annotation.json"}, "unselected sample was opened"
+        return original_read(path)
+
+    monkeypatch.setattr(Path, "read_bytes", guarded_read)
+    result = audit_bundle(tmp_path / "manifest.json", sample_ids=["a"])
+    assert result["samples"] == 1
+    assert result["holdout"] == 0
+    assert result["audit_scope"] == ["a"]
+    assert result["integrity_scope"] == "selected_snapshot_and_annotation_files_only"
+
+
+@pytest.mark.parametrize("selection", [[], ["missing"], ["a", "a"]])
+def test_invalid_selected_scope_does_not_fall_back_to_full_bundle(tmp_path, selection):
+    from app.job_analysis.baseline.bundle import audit_bundle
+    bundle(tmp_path)
+    with pytest.raises(ValueError):
+        audit_bundle(tmp_path / "manifest.json", sample_ids=selection)
+
+
+def test_selected_audit_rejects_archive_before_reading_any_material(tmp_path, monkeypatch):
+    from pathlib import Path
+    from app.job_analysis.baseline.bundle import BundleError, audit_bundle
+
+    def forbidden_read(*args, **kwargs):
+        pytest.fail("conflicting scope must be rejected before reading files")
+
+    monkeypatch.setattr(Path, "read_bytes", forbidden_read)
+    monkeypatch.setattr(Path, "read_text", forbidden_read)
+    with pytest.raises(BundleError, match="selected_audit_cannot_read_archive"):
+        audit_bundle(tmp_path / "manifest.json", archive=tmp_path / "archive.zip", sample_ids=["a"])
+
+
+def test_wrong_human_label_quote_is_not_hidden_by_a_valid_annotation_hash(tmp_path):
+    from app.job_analysis.baseline.bundle import audit_bundle
+    manifest = bundle(tmp_path)
+    name = "a-annotation.json"
+    ann = json.loads((tmp_path / name).read_text())
+    ann.update(status="human_reviewed", reviewer="Synthetic human", reviewed_at="2026-10-28T08:00:00+08:00", confirmation_source="synthetic-test-event", scope="full_input")
+    ann["human_labels"] = [{"unit_id": "D01", "evidence": [{"field": "raw_text", "start": 3, "end": 5, "quote": "错误", "input_sha256": ann["input_sha256"]}]}]
+    raw = json.dumps(ann, ensure_ascii=False).encode()
+    (tmp_path / name).write_bytes(raw)
+    manifest["files"][name] = hashlib.sha256(raw).hexdigest()
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError):
+        audit_bundle(tmp_path / "manifest.json")
+
+
 def test_partial_review_labels_are_preserved_without_full_recall_claim(tmp_path):
     manifest = bundle(tmp_path)
     name = "a-annotation.json"
@@ -124,6 +178,27 @@ def test_cli_reports_safe_actionable_bundle_diagnostics(tmp_path, monkeypatch, c
     result = capsys.readouterr().out
     assert "PRIVATE-CONTENT" not in result
     assert json.loads(result)["reason"] == reason
+
+
+@pytest.mark.parametrize("damage", ["annotation_root", "null_labels", "labels_container", "label_item", "evidence_container", "evidence_item"])
+def test_cli_rejects_malformed_human_label_shapes_without_echoing_private_data(tmp_path, monkeypatch, capsys, damage):
+    from app.job_analysis.baseline.__main__ import main
+    manifest = bundle(tmp_path)
+    name = "a-annotation.json"
+    ann = json.loads((tmp_path / name).read_text())
+    if damage == "annotation_root":
+        ann = ["NEVER-ECHO-PRIVATE"]
+    else:
+        ann["human_labels"] = {"null_labels": None, "labels_container": {}, "label_item": ["NEVER-ECHO-PRIVATE"], "evidence_container": [{"evidence": {}}], "evidence_item": [{"evidence": ["NEVER-ECHO-PRIVATE"]}]}[damage]
+    raw = json.dumps(ann).encode()
+    (tmp_path / name).write_bytes(raw)
+    manifest["files"][name] = hashlib.sha256(raw).hexdigest()
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["baseline", "bundle", str(tmp_path / "manifest.json"), "--samples", "a"])
+    assert main() == 1
+    captured = capsys.readouterr()
+    assert "NEVER-ECHO-PRIVATE" not in captured.out + captured.err
+    assert json.loads(captured.out)["reason"] == ("annotation_structure_invalid" if damage == "annotation_root" else "annotation_label_structure_invalid")
 
 
 @pytest.mark.parametrize("damage", ["missing", "changed_bytes", "path_escape", "duplicate_body", "duplicate_identity", "fake_review"])
