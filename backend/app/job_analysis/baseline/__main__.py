@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from ..foundation.inputs import parse_json
-from .bundle import audit_bundle
+from .bundle import BundleError, audit_bundle
 from .contract import validate_analysis
 
 
@@ -20,6 +20,12 @@ def main():
             summary = {"contract_version": result.contract_version, "claims": len(result.claims), "semantic_review": result.semantic_review}
         else:
             summary = audit_bundle(args.path, args.archive)
+    except BundleError as exc:
+        print(json.dumps({"status": "rejected", "reason": str(exc)}))
+        return 1
+    except FileNotFoundError:
+        print(json.dumps({"status": "rejected", "reason": "local_file_missing"}))
+        return 1
     except (ValueError, OSError, KeyError, TypeError):
         # ValidationError can contain private input; do not echo its message to stdout.
         print(json.dumps({"status": "rejected", "reason": "invalid_or_unavailable_local_evidence"}))

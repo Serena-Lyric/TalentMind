@@ -12,7 +12,7 @@ python -m pytest tests/test_job_analysis/test_baseline_contract.py tests/test_jo
 
 `analysis` 调用 `validate_analysis(data)`，检查结构、输入摘要、原文偏移、局部引用和知识性质一致性；`bundle` 调用 `audit_bundle(path, archive=None)`，检查列入清单的文件摘要、材料可用性及跨开发/留出集合的身份/规范化正文重复。加 `--archive` 再比对历史来源字节与选中 payload。不传 archive 时不宣称已核对原始存档。
 
-成功输出不含原文，`structurally_valid` 只表示结构检查；失败退出 1、输出安全原因，不回显可能含私有输入的 Pydantic 异常。CLI 只读，不修补文件、不寻找替代数据、不回写清单。私有包中列入 `files` 的文件受摘要保护，额外未列入文件不属于该冻结版本。
+成功输出不含原文，`structurally_valid` 只表示结构检查；失败退出 1、输出固定安全错误码（如 bundle_artifact_missing、bundle_artifact_digest_mismatch），不回显可能含私有输入的 Pydantic 异常。CLI 只读，不修补文件、不寻找替代数据、不回写清单。私有包中列入 `files` 的文件受摘要保护，额外未列入文件不属于该冻结版本。
 
 `Analysis.model_json_schema()` 可导出结构；模型只描述最低契约，不能自动验证自然语言语义、外部知识中概念确实存在、审批真实性或所有历史数据暴露。声明中的版本摘要须由实际输入/知识和分析器配置提供，不能用模型自述替代依赖校验。
 
