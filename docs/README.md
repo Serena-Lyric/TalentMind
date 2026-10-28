@@ -27,6 +27,12 @@
 | 跨模块 API/数据结构 | [契约目录](../backend/app/contracts/ddl.sql)、[集成说明](../backend/app/integration/README.md) |
 | 人工语义审核标准 | [M2→M3 审核规范](superpowers/specs/M2-M3-human-review-protocol.md) |
 
+## 当前分段交付计划
+
+| 范围 | 计划与审核依据 |
+|---|---|
+| M2 新底座（计划已编制，尚未实施） | [P0～P6 总计划及各段入口](superpowers/plans/2026-10-28-m2-core-delivery-plan.md)；[ChatGPT 交付审核标准](superpowers/specs/2026-10-28-m2-delivery-review-standard.md) |
+
 ## 近期阶段验收（最多五份）
 
 | 日期 | 验收报告 |
