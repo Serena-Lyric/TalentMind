@@ -16,7 +16,7 @@
 |---|---|
 | 纯文档/链接/产品归档 | 目标文件及直接引用来源；[文档地图](docs/README.md)。不因文档修改运行采集、导入或业务测试。 |
 | M1 数据采集与清洗 | [M1 README](backend/app/collect/README.md)、[M1 交接](exchange/m1/README.md)；涉及 A 的采集/集成工作再读 [A 交接](A_AGENT_HANDOVER.md)相关章节；有效 JD/中断边界查对应陷阱。 |
-| M2 岗位分析 | 产品主文档 M2 全节、[M2 README](backend/app/job_analysis/README.md)、[M2 交接](exchange/m2/README.md)；涉及技能规范化再读 `backend/app/skills/` 的实现和词典。 |
+| M2 岗位分析 | 先读产品主文档 M2 适用章节；**要知道设计缘由，读 [M2 设计演进与取舍](docs/superpowers/specs/2026-10-28-m2-analysis-candidate-design.md#0-为什么形成当前设计设计演进与取舍)**；再读 [M2 README](backend/app/job_analysis/README.md) 和 [M2 交接](exchange/m2/README.md)，执行 P0/P1 等分段任务还须读[现行总计划](docs/superpowers/plans/2026-10-28-m2-core-delivery-plan.md)与 [P0 评价规范](docs/superpowers/specs/M2-P0-baseline.md)；技能归一化再查 `backend/app/skills/`。 |
 | M3 图谱 | [M3 README](backend/app/graph/README.md)、[M3 交接](exchange/m3/README.md)；旧 builder 不能直接复现当前含行业的交接图，不覆盖已核验 graph.json。 |
 | M4 简历与匹配 | [M4 README](backend/app/matching/README.md)、[M4 交接](exchange/m4/README.md)；遵守软技能推断与真实简历保护边界，原型迁移仍暂缓。 |
 | M5 前端 | [前端 README](frontend/README.md)、实际 API 与关联模块文档；演示展示分与平台回退数值不当作准确率/实时统计。 |
