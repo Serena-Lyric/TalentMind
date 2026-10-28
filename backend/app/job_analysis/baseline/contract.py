@@ -36,6 +36,7 @@ class ReferenceSource(Strict):
 
 
 class RoleReference(Strict):
+    """P0 external occupation-source fixture, not the schema for all future role candidates."""
     id: Text
     name: Text
     definition_version: Text
@@ -129,6 +130,14 @@ class Alignment(Strict):
     reason: Text
 
 
+class RoleConflict(Strict):
+    """Explicit boundary in the parent judgment's versioned reference versus a source JD duty."""
+    duty_id: Text
+    boundary_locator: Text
+    boundary_quote: Text
+    reason: Text
+
+
 class RoleJudgment(Strict):
     reference_id: Text
     reference_revision: Text
@@ -136,12 +145,18 @@ class RoleJudgment(Strict):
     judgment: Literal["supported", "unresolved", "not_supported"]
     covered_duty_ids: list[Text]
     uncovered_duty_ids: list[Text]
-    conflicts: list[Text]
+    conflicts: list[RoleConflict]
     reason: Text
+
+    @model_validator(mode="after")
+    def exclusion_needs_boundary_conflict(self):
+        if self.judgment == "not_supported" and not self.conflicts:
+            raise ValueError("not_supported requires an explicit boundary conflict; a coverage gap remains unresolved")
+        return self
 
 
 class Analysis(Strict):
-    contract_version: Literal["m2-semantic-0.1"]
+    contract_version: Literal["m2-semantic-0.2"]
     namespace: Text
     jd_id: Text
     input_row: dict
@@ -224,6 +239,9 @@ class Analysis(Strict):
                 raise ValueError("duty coverage must not overlap or repeat")
             if any(i not in claims or claims[i].kind != "duty" for i in covered + uncovered):
                 raise ValueError("role explanation must reference local duties")
+            for conflict in judgment.conflicts:
+                if conflict.duty_id not in claims or claims[conflict.duty_id].kind != "duty":
+                    raise ValueError("role boundary conflict must reference an evidenced local duty")
         if self.role_judgments and self.coverage["classification"].status in {"failed", "not_run"}:
             raise ValueError("role judgments require usable classification coverage")
         return self
