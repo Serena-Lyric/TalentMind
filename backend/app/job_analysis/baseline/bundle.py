@@ -18,15 +18,26 @@ def body_key(text):
     return re.sub(r"\s+", "", unicodedata.normalize("NFKC", text)).casefold()
 
 
-def audit_bundle(manifest_path, archive=None):
+def audit_bundle(manifest_path, archive=None, *, sample_ids=None):
     manifest_path = Path(manifest_path).resolve()
     root = manifest_path.parent
     manifest = parse_json(manifest_path.read_text(encoding="utf-8-sig"))
     check_public(manifest)
     if manifest["schema_version"] != "m2-p0-bundle-0.1" or not manifest["version"].strip():
         raise BundleError("unsupported_bundle_version")
+    samples = manifest["samples"]
+    selected_files = None
+    if sample_ids is not None:
+        if not sample_ids or len(set(sample_ids)) != len(sample_ids):
+            raise BundleError("invalid_sample_selection")
+        samples = [s for s in samples if s["id"] in sample_ids]
+        if len(samples) != len(sample_ids) or {s["id"] for s in samples} != set(sample_ids):
+            raise BundleError("unknown_or_duplicate_selected_sample")
+        selected_files = {s[key] for s in samples for key in ("snapshot", "annotation")}
     verified = {}
     for name, sha in manifest["files"].items():
+        if selected_files is not None and name not in selected_files:
+            continue
         path = (root / name).resolve()
         if not path.is_relative_to(root) or path == root or Path(name).is_absolute():
             raise BundleError("bundle_path_escapes_private_root")
@@ -45,13 +56,13 @@ def audit_bundle(manifest_path, archive=None):
             raise BundleError("source_archive_digest_mismatch")
         with zipfile.ZipFile(archive) as z:
             records = {r["sha256"]: r for r in map(parse_json, z.read("records.jsonl").decode("utf-8").splitlines())}
-    identities, bodies, sample_ids = {}, {}, set()
+    identities, bodies, visited_ids = {}, {}, set()
     counts = dict(samples=0, development=0, holdout=0, human_reviewed=0, semantic_metrics="not_computable")
-    for sample in manifest["samples"]:
+    for sample in samples:
         sid, split = sample["id"], sample["split"]
-        if sid in sample_ids or split not in {"development", "holdout"}:
+        if sid in visited_ids or split not in {"development", "holdout"}:
             raise BundleError("duplicate_sample_or_invalid_split")
-        sample_ids.add(sid)
+        visited_ids.add(sid)
         if sample["snapshot"] not in verified or sample["annotation"] not in verified:
             raise BundleError("sample_artifacts_must_be_hash_bound")
         row = parse_json(verified[sample["snapshot"]].decode("utf-8-sig"))
@@ -71,6 +82,15 @@ def audit_bundle(manifest_path, archive=None):
         check_public(ann)
         if ann.get("input_sha256") != record.fingerprint:
             raise BundleError("annotation_input_version_mismatch")
+        for label in ann.get("human_labels", []):
+            for ev in label.get("evidence", []):
+                field, start, end = ev.get("field"), ev.get("start"), ev.get("end")
+                if (field not in {"job_title", "raw_text", "duties", "experience", "requirements"}
+                        or type(start) is not int or type(end) is not int
+                        or ev.get("input_sha256") != record.fingerprint
+                        or not 0 <= start < end <= len(row.get(field, ""))
+                        or row.get(field, "")[start:end] != ev.get("quote")):
+                    raise BundleError("annotation_evidence_mismatch")
         if ann["sample_id"] != sid or ann["status"] not in {"pending", "partial", "disputed", "human_reviewed"}:
             raise BundleError("annotation_identity_status_mismatch")
         if ann["status"] == "human_reviewed":
@@ -85,4 +105,6 @@ def audit_bundle(manifest_path, archive=None):
         counts[split] += 1
     if not counts["samples"]:
         raise BundleError("empty_evaluation_bundle")
+    if sample_ids is not None:
+        counts.update(audit_scope=sorted(sample_ids), integrity_scope="selected_snapshot_and_annotation_files_only")
     return counts

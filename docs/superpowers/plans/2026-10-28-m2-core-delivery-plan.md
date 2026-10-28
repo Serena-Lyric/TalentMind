@@ -36,7 +36,7 @@
 
 | 阶段及结果入口 | 当前状态 | PR | 提审/审核 head SHA | 审核结论与出处 | 合并后 master SHA | 阻塞项/直接依赖 |
 |---|---|---|---|---|---|---|
-| [P0 基准与契约](2026-10-28-m2-core-delivery/P0-baseline.md) | 工程准备交付，语义冻结未完成；待 ChatGPT 审查 | [#55](https://github.com/Serena-Lyric/TalentMind/pull/55)（draft） | [固定提审 SHA 见 PR 描述](https://github.com/Serena-Lyric/TalentMind/pull/55) | 未审核；[实际证据](../../review/M2-P0-baseline-2026-10-28.md) | 未合并 | 已指派负责人本人复核；实际完整人工参照0、通过条件待确认、真实覆盖缺口；外部/付费模型未授权 |
+| [P0 基准与契约](2026-10-28-m2-core-delivery/P0-baseline.md) | DEV八条签审已转录为候选参照；完整语义冻结未完成，待ChatGPT审查 | [#55](https://github.com/Serena-Lyric/TalentMind/pull/55)基础＋本轮依赖增量PR待创建 | [固定提审 SHA 见 PR 描述](https://github.com/Serena-Lyric/TalentMind/pull/55) | 未审核；[实际证据](../../review/M2-P0-baseline-2026-10-28.md) | 未合并 | 负责人已确认DEV八条逐项签审；候选参照、通过条件待确认、真实覆盖缺口；增量PR依赖#55，外部/付费模型未授权 |
 | [P1 单条理解](2026-10-28-m2-core-delivery/P1-jd-analysis.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P0 可用口径；上段未交付 |
 | [P2 知识与岗位](2026-10-28-m2-core-delivery/P2-knowledge-role.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P1、P0 岗位参照；依赖未交付 |
 | [P3 持续候选](2026-10-28-m2-core-delivery/P3-candidate.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P1、P2；依赖未交付 |
