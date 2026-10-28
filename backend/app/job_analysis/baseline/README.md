@@ -22,3 +22,5 @@ python -m pytest tests/test_job_analysis/test_baseline_contract.py tests/test_jo
 `Analysis.model_json_schema()` 可导出结构；模型只描述最低契约，不能自动验证自然语言语义、外部知识中概念确实存在、审批真实性或所有历史数据暴露。声明中的版本摘要须由实际输入/知识和分析器配置提供，不能用模型自述替代依赖校验。
 
 `role-references.v1.json` 是两条有来源的 AI 整理候选，不是完整岗位目录。`examples/comparison-cases.json` 是供后续阶段实现使用的手工合成断言，本段不执行候选关联或演化算法；不得把它们当中文真实验收。
+
+岗位判断当前契约为 `m2-semantic-0.2`：仅有未覆盖职责时保持 `unresolved`；`not_supported` 必须给出非空结构化冲突（`duty_id/boundary_locator/boundary_quote/reason`），绑定父判断的参照ID/版本和已校验的本地职责证据。程序不证明外部引文真实性或语义冲突成立。旧0.1自由文本冲突不自动升级。`RoleReference` 仅是本轮P0外部职业来源参照格式，不约束未来全部岗位候选必须有来源职业编码或AI起草标识。
