@@ -23,7 +23,7 @@
 3. 外发仅含分析所需 JD 文本与有限上下文，不附带人工标签、签审凭据、历史完整数据库、私人联系方式等无关信息。若必要脱敏会改变字符位置，外发文本与本地冻结原文的 offset 映射应明确可审查；不能把脱敏文本的偏移直接冒充原文偏移。中文条件、否定和章节上下文不能为了脱敏被无意删掉。
 4. **付费仍未获金额授权**：不得主动充值、开通有额外账单的付费资源或无额度上限跑批。真实收费推理前须由负责人明确批准供应商/模型、预算上限和超限停止方式；免费额度只有在可证实不会产生额外费用的前提下才可用于本次授权的 DEV 试验。否则先完成离线工程、合成验证与真实请求计划，并将费用/访问阻塞如实登记，不以模拟结果声称 P1 语义通过。
 5. 调用使用本地受控密钥，禁止提交或打印；输出原始响应和真实请求明细仅进合规私有目录。实际请求次数、Token、供应商账单/估算、失败重试、数据外发范围可供负责人及 ChatGPT 在授权方式下审阅。版本、超时和中止后不得让迟到响应覆盖新 run。
-6. **供应商选择参考（不是指定模型）**：官方条款/数据政策与价格以调用当日再次核实为准，可比较 [DeepSeek API](https://api-docs.deepseek.com/quick_start/first_request)、[DeepSeek 开放平台条款](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html)、[阿里云百炼数据保留政策](https://www.alibabacloud.com/help/en/model-studio/data-retention-policy) 与 [阿里云百炼价格](https://www.alibabacloud.com/help/en/model-studio/model-pricing)。注意 DeepSeek 官方 2026-09 公告指出旧 `deepseek-v4-pro` 曾临时路由到 Flash，不能只凭两个 API 名称当作独立模型对照。
+6. **供应商选择参考（不是指定模型）**：官方条款/数据政策与价格以调用当日再次核实为准，可比较 [DeepSeek API](https://api-docs.deepseek.com/quick_start/pricing)、[DeepSeek 开放平台条款](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html)、[阿里云百炼数据保留政策](https://www.alibabacloud.com/help/en/model-studio/data-retention-policy) 与 [阿里云百炼价格](https://www.alibabacloud.com/help/en/model-studio/model-pricing)。注意 DeepSeek 官方 2026-09 公告指出旧 `deepseek-v4-pro` 曾临时路由到 Flash，不能只凭两个 API 名称当作独立模型对照。
 
 ### Codex 开发及验收交接（方法开放、结果必须真实）
 
