@@ -23,4 +23,14 @@ python -m pytest tests/test_job_analysis/test_baseline_contract.py tests/test_jo
 
 `role-references.v1.json` 是两条有来源的 AI 整理候选，不是完整岗位目录。`examples/comparison-cases.json` 是供后续阶段实现使用的手工合成断言，本段不执行候选关联或演化算法；不得把它们当中文真实验收。
 
+## 逐例断言草案校验
+
+```powershell
+python -m app.job_analysis.baseline assertions <私有根>/case-assertions/v1-draft/cases/DEV-01.json --manifest <私有根>/manifest.json
+```
+
+`case_assertions.validate_case_assertions` 校验单条提案与既有人工记录的绑定，`audit_case_assertions` 先通过已登记DEV的限定审计再调用它。只允许DEV-01～08，不读取HOLD或ZIP，不生成预测、不评语义通过。记录绑定原清单/标注原字节SHA、输入指纹、unit_id和原标注证据；A/D互斥分配全部适用D/R单位，B/C可引用它们但不重复增加分母。目标/关系/边界备注单独保留，不当作技能或关系边总数。
+
+所有新逐例条件为 `pending_review`，校验器拒绝自述已批准。等价拆并改写和作用域仍须业务审核，位置匹配不能批准核心性或新真值。源标注、输入、清单变化时拒绝旧提案，不能只改摘要冒充重审。派生目录的 `index.json` 另登记草案文件哈希，不改原清单或annotations，不是第二套真值。三组跨JD比较、覆盖矩阵、待裁决问题与最小补样建议同目录私有保存，安全摘要见既有P0交付报告。
+
 岗位判断当前契约为 `m2-semantic-0.2`：仅有未覆盖职责时保持 `unresolved`；`not_supported` 必须给出非空结构化冲突（`duty_id/boundary_locator/boundary_quote/reason`），绑定父判断的参照ID/版本和已校验的本地职责证据。程序不证明外部引文真实性或语义冲突成立。旧0.1自由文本冲突不自动升级。`RoleReference` 仅是本轮P0外部职业来源参照格式，不约束未来全部岗位候选必须有来源职业编码或AI起草标识。
