@@ -59,9 +59,14 @@ def validate_case_assertions(case, row, annotation_raw):
     return dict(sample_id=case["sample_id"], assertions=counts, applicable_units=len(applicable), business_status="pending_review", semantic_result="not_run")
 
 
-def audit_case_assertions(case_path, manifest_path):
-    case = parse_json(Path(case_path).read_text(encoding="utf-8-sig"))
-    require(isinstance(case, dict) and case.get("sample_id") in {f"DEV-{i:02d}" for i in range(1, 9)}, "case_scope_must_be_existing_DEV")
+def audit_case_assertions(case_path, manifest_path, *, expected_case_raw=None, allowed_sample_ids=None):
+    # Approved packages supply the exact bytes already checked against the signed index.
+    # Reopening that file here could validate a different version during a concurrent edit.
+    text = (Path(case_path).read_text(encoding="utf-8-sig") if expected_case_raw is None
+            else expected_case_raw.decode("utf-8-sig"))
+    case = parse_json(text)
+    allowed = {f"DEV-{i:02d}" for i in range(1, 9)} if allowed_sample_ids is None else set(allowed_sample_ids)
+    require(isinstance(case, dict) and case.get("sample_id") in allowed, "case_scope_must_be_existing_DEV")
     manifest_path = Path(manifest_path).resolve()
     raw = manifest_path.read_bytes()
     manifest = parse_json(raw.decode("utf-8-sig"))
