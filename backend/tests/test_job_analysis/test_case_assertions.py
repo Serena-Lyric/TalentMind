@@ -115,3 +115,31 @@ def test_source_scope_is_checked_before_any_selected_sample_file_is_opened(tmp_p
     monkeypatch.setattr(Path, "is_file", lambda p: True)
     with pytest.raises(ValueError, match="case_source_not_existing_DEV"):
         audit_case_assertions(path, source)
+
+
+def test_one_core_group_can_cover_two_reference_units_without_collapsing_denominator():
+    case, row, raw = fixture()
+    ann = json.loads(raw)
+    ann["human_labels"][1].update(unit_id="D02", dimension="duty")
+    raw = json.dumps(ann).encode()
+    case["annotation_sha256"] = hashlib.sha256(raw).hexdigest()
+    case["coverage"] = {"D01": "A", "D02": "A"}
+    group = case["assertions"][0]
+    group.update(unit_ids=["D01", "D02"], evidence_unit_ids=["D01", "D02"])
+    case["assertions"] = [group]
+    result = validate(case, row, raw)
+    assert result["assertions"]["A"] == 1
+    assert result["applicable_units"] == 2
+
+
+def test_goal_check_does_not_add_an_extraction_reference_unit():
+    case, row, raw = fixture()
+    ann = json.loads(raw)
+    ann["human_labels"].append({"unit_id": "NOTE-02", "dimension": "goal_and_deliverable_summary", "text": "整体目标", "evidence": []})
+    raw = json.dumps(ann).encode()
+    case["annotation_sha256"] = hashlib.sha256(raw).hexdigest()
+    goal = dict(case["assertions"][0], id="DEV-01-A02", unit_ids=["NOTE-02"], support_unit_ids=["D01"], metric_role="case_goal_check_only_not_extra_TP")
+    case["assertions"].append(goal)
+    result = validate(case, row, raw)
+    assert result["assertions"]["A"] == 2
+    assert result["applicable_units"] == 2
