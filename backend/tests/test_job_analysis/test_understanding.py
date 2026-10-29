@@ -33,7 +33,7 @@ def draft():
                 relations=[])
 
 
-def run(data, *, row=None, finish="stop", status="ok"):
+def run(data, *, row=None, finish="stop", status="ok", prior=None):
     from app.job_analysis.understanding import analyze
     from app.job_analysis.understanding.processor import Completion
 
@@ -51,7 +51,8 @@ def run(data, *, row=None, finish="stop", status="ok"):
             return Completion(content=data if isinstance(data, str) else json.dumps(data, ensure_ascii=False),
                               finish_reason=finish, status=status, metadata={})
 
-    return asyncio.run(analyze("synthetic", row or deepcopy(ROW), "v1", Processor()))
+    options = {"prior": prior} if prior is not None else {}
+    return asyncio.run(analyze("synthetic", row or deepcopy(ROW), "v1", Processor(), **options))
 
 
 def test_actual_entry_binds_codepoint_evidence_and_keeps_classification_not_run():
@@ -230,3 +231,23 @@ def test_long_lived_processor_records_loaded_code_version_not_later_disk_edits(m
     monkeypatch.setattr(core.Path, "read_bytes", lambda self: b"later on-disk edit, not loaded code")
     after = run(draft())["analysis"]["analyzer"]
     assert before == after
+
+
+def test_explicit_refinement_binds_prior_and_sends_machine_draft_without_source_identity():
+    from app.job_analysis.foundation.inputs import digest
+    first = run(draft())
+    refined = run(draft(), prior=first)
+    assert refined["lineage"]["previous_analysis_sha256"] == digest(first["analysis"])
+    assert len(refined["request"]) == 4
+    assert refined["request"][2]["role"] == "assistant"
+    assert "fingerprint" not in refined["request"][2]["content"]
+    assert first["analysis"]["configuration"] != refined["analysis"]["configuration"]
+    assert len(first["analysis"]["claims"]) == 2
+
+
+def test_refinement_rejects_different_input_before_request():
+    first = run(draft())
+    row = deepcopy(ROW)
+    row["raw_text"] += "新版本内容"
+    with pytest.raises(ValueError):
+        run(draft(), row=row, prior=first)

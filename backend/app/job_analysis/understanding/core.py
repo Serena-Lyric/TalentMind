@@ -19,6 +19,14 @@ from .processor import Completion, Processor
 DIMENSIONS = ("goals", "objects", "duties", "requirements", "relations")
 KIND_DIMENSION = dict(goal="goals", object="objects", duty="duties", requirement="requirements")
 PROMPT_PATH = Path(__file__).with_name("prompt.txt")
+REFINE_INSTRUCTION = """上一条 assistant 消息是同一输入的待审核机器草稿，不是人工标签或事实标准。
+请针对其潜在错误做一次定向复核，并输出同格式的完整修订JSON；正确项保留，不为改写而改写。
+重点检查：职责/任职/背景边界、漏提、资格排除与不要求、优先/程度/经验对象、并列全部与任选/开放举例。
+明确的“熟悉A、B、C”等非开放并列要求不能无理由退为组合未知；只有含“或/任选”才选一，含“如/等”不擅定全要。
+重点复核每条explicit：引用的文字是否直接说该能力用于该项工作，而非同名工作、共同对象或行业常识。
+只有同名/同JD或能帮助的联系不可升explicit；根据具体上下文最多inferred，无充分理由就不输出该边。
+同时别删掉真实“使用/利用/基于/运用X完成Y”的直接用途。证据存在不证明关系等级或门槛正确。
+只根据输入重审，保留可解释的真实未知；不要以一律未知回避明确的事实。不要自报通过分数。"""
 
 
 class Locator(Strict):
@@ -131,7 +139,7 @@ def _merge_claim(claims, item):
     return item["id"]
 
 
-async def analyze(namespace: str, row: dict, input_version: str, processor: Processor) -> dict:
+async def analyze(namespace: str, row: dict, input_version: str, processor: Processor, *, prior=None) -> dict:
     record = InputRecord.from_row(namespace, row)
     if not namespace.strip() or not input_version.strip():
         raise ValueError("explicit_input_version_and_namespace_required")
@@ -141,6 +149,17 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
     prompt = (PROMPT_PATH.read_text(encoding="utf-8") +
               "\n严格遵守以下实际 JSON Schema，所有 required 字段不可省略：\n" + canonical(schema))
     descriptor = deepcopy(processor.descriptor)
+    lineage = None
+    if prior is not None:
+        previous = validate_analysis(prior["analysis"])
+        if ((previous.namespace, previous.jd_id, previous.input_sha256, previous.input_version) !=
+                (namespace, record.jd_id, record.fingerprint, input_version)):
+            raise ValueError("refinement_requires_same_input_identity_and_version")
+        if not isinstance(prior.get("completion"), str) or not prior["completion"].strip():
+            raise ValueError("refinement_requires_existing_machine_draft")
+        lineage = dict(previous_analysis_sha256=digest(previous.model_dump()),
+                       previous_completion_sha256=digest(prior["completion"]), policy="semantic-postflight-1")
+        descriptor["refinement"] = lineage
     check_public(descriptor)
     deps = deepcopy(LOADED_DEPENDENCIES)
     coverage = {d: dict(status="failed", reason="analysis_not_available") for d in DIMENSIONS}
@@ -149,7 +168,8 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
                     input_row=deepcopy(row), input_sha256=record.fingerprint, input_version=input_version,
                     analyzer=version("p1-understanding", "1", deps),
                     model=version(descriptor["model"], descriptor["model_revision"], descriptor),
-                    prompt=version("p1-chinese-jd", "1", prompt),
+                    prompt=version("p1-chinese-jd", "1", dict(system=prompt, refinement=REFINE_INSTRUCTION)
+                                   if prior is not None else prompt),
                     configuration=version("p1-processor", "1", descriptor), knowledge=[],
                     outcome="failed", coverage=coverage, claims=[], relations=[], alignments=[],
                     role_judgments=[], semantic_review="machine_unreviewed")
@@ -157,6 +177,9 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
     fields = {k: record.payload[k] for k in ("job_title", "raw_text", "duties", "requirements", "experience")
               if k in record.payload}
     messages = [dict(role="system", content=prompt), dict(role="user", content=canonical(fields))]
+    if prior is not None:
+        messages += [dict(role="assistant", content=prior["completion"]),
+                     dict(role="user", content=REFINE_INSTRUCTION)]
     started = time.monotonic()
     started_at = datetime.now(timezone.utc).isoformat()
     try:
@@ -171,6 +194,8 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
                      finished_at=datetime.now(timezone.utc).isoformat())
     result = dict(schema_version="m2-p1-run-1", analysis=analysis, execution=execution,
                   dependencies=deps, processor=descriptor, request=messages, completion=completion.content)
+    if lineage is not None:
+        result["lineage"] = lineage
     status = completion.status
     truncated = completion.finish_reason == "length"
     if status == "ok":

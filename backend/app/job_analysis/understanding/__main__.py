@@ -32,6 +32,11 @@ def main():
     run.add_argument("--config", required=True, type=Path)
     run.add_argument("--key-file", required=True, type=Path)
     run.add_argument("--output", required=True, type=Path)
+    refine = commands.add_parser("refine", help="One explicit semantic postflight; never an automatic retry")
+    refine.add_argument("previous", type=Path)
+    refine.add_argument("--config", required=True, type=Path)
+    refine.add_argument("--key-file", required=True, type=Path)
+    refine.add_argument("--output", required=True, type=Path)
     read = commands.add_parser("read")
     read.add_argument("path", type=Path)
     args = parser.parse_args()
@@ -40,13 +45,16 @@ def main():
             value = read_run(args.path)
         else:
             args.output = safe_destination(args.output)
-            row = parse_json(args.snapshot.read_text(encoding="utf-8-sig"))
+            prior = read_run(args.previous) if args.command == "refine" else None
+            row = prior["analysis"]["input_row"] if prior else parse_json(args.snapshot.read_text(encoding="utf-8-sig"))
             config = CloudConfig.model_validate(parse_json(args.config.read_text(encoding="utf-8-sig")))
             processor = CloudProcessor(config, args.key_file.read_text(encoding="utf-8-sig"))
             # Reserve before any paid request. A crash leaves a diagnosable pending directory.
             args.output.mkdir(parents=True, exist_ok=False)
             (args.output / "pending.json").write_text(canonical(dict(status="started")), encoding="utf-8")
-            value = asyncio.run(analyze(args.namespace, row, args.input_version, processor))
+            namespace = prior["analysis"]["namespace"] if prior else args.namespace
+            input_version = prior["analysis"]["input_version"] if prior else args.input_version
+            value = asyncio.run(analyze(namespace, row, input_version, processor, prior=prior))
             _write_run(args.output, value)
         print(json.dumps(summary(value), ensure_ascii=True))
         return 0 if value["execution"]["status"] in {"ok", "partial", "no_recognized_results"} else 2
