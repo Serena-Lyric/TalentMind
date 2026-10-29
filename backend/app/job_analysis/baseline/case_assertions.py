@@ -40,6 +40,7 @@ def validate_case_assertions(case, row, annotation_raw):
         if "source_summaries" in assertion:
             require(assertion["source_summaries"] == {uid: units[uid].get("text", units[uid].get("judgment", "")) for uid in ids}, "copied_human_source_summary_mismatch")
         require(evidence_ids and set(evidence_ids) <= set(ids + support), "unbound_assertion_evidence_units")
+        require({uid for uid in ids if units[uid].get("evidence")} <= set(evidence_ids), "primary_unit_evidence_omitted")
         require(all(isinstance(assertion.get(k), str) and assertion[k].strip() for k in ("criterion", "equivalence_rule")), "missing_assertion_criterion_or_alignment_rule")
         expected = []
         for uid in evidence_ids:
@@ -66,9 +67,18 @@ def audit_case_assertions(case_path, manifest_path):
     manifest = parse_json(raw.decode("utf-8-sig"))
     require(case.get("source_manifest_sha256") == hashlib.sha256(raw).hexdigest(), "case_manifest_version_mismatch")
     sid = case["sample_id"]
-    audit_bundle(manifest_path, sample_ids=[sid])
-    sample = next(s for s in manifest["samples"] if s["id"] == sid)
+    require(isinstance(manifest, dict) and isinstance(manifest.get("samples"), list)
+            and all(isinstance(s, dict) for s in manifest["samples"]), "case_source_not_existing_DEV")
+    selected = [s for s in manifest["samples"] if s.get("id") == sid]
+    require(len(selected) == 1, "case_source_not_existing_DEV")
+    sample = selected[0]
+    require(sample.get("split") == "development" and sample.get("snapshot") == f"snapshots/{sid}.json"
+            and sample.get("annotation") == f"annotations/{sid}.json", "case_source_not_existing_DEV")
+    for key in ("snapshot", "annotation"):
+        path = manifest_path.parent / sample[key]
+        require(path.resolve() == path, "case_source_not_existing_DEV")
     require(case["input_version"] == sample["content_version"], "case_content_version_mismatch")
     require(case["namespace"] == manifest["namespace"], "case_namespace_mismatch")
+    audit_bundle(manifest_path, sample_ids=[sid])
     row = parse_json((manifest_path.parent / sample["snapshot"]).read_text(encoding="utf-8-sig"))
     return validate_case_assertions(case, row, (manifest_path.parent / sample["annotation"]).read_bytes())

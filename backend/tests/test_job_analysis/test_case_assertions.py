@@ -66,9 +66,11 @@ def test_file_reader_binds_declared_content_version_as_well_as_digest(tmp_path, 
     raw = json.dumps(ann).encode()
     case["annotation_sha256"] = hashlib.sha256(raw).hexdigest()
     row_raw = json.dumps(row).encode()
-    (tmp_path / "snapshot.json").write_bytes(row_raw)
-    (tmp_path / "annotation.json").write_bytes(raw)
-    manifest = {"schema_version": "m2-p0-bundle-0.1", "version": "synthetic", "namespace": "synthetic", "files": {"snapshot.json": hashlib.sha256(row_raw).hexdigest(), "annotation.json": hashlib.sha256(raw).hexdigest()}, "samples": [{"id": "DEV-01", "split": "development", "content_version": "snapshot-v1", "snapshot": "snapshot.json", "annotation": "annotation.json", "input_sha256": case["input_sha256"]}]}
+    (tmp_path / "snapshots").mkdir()
+    (tmp_path / "annotations").mkdir()
+    (tmp_path / "snapshots/DEV-01.json").write_bytes(row_raw)
+    (tmp_path / "annotations/DEV-01.json").write_bytes(raw)
+    manifest = {"schema_version": "m2-p0-bundle-0.1", "version": "synthetic", "namespace": "synthetic", "files": {"snapshots/DEV-01.json": hashlib.sha256(row_raw).hexdigest(), "annotations/DEV-01.json": hashlib.sha256(raw).hexdigest()}, "samples": [{"id": "DEV-01", "split": "development", "content_version": "snapshot-v1", "snapshot": "snapshots/DEV-01.json", "annotation": "annotations/DEV-01.json", "input_sha256": case["input_sha256"]}]}
     mraw = json.dumps(manifest).encode()
     (tmp_path / "manifest.json").write_bytes(mraw)
     case["source_manifest_sha256"] = hashlib.sha256(mraw).hexdigest()
@@ -79,3 +81,37 @@ def test_file_reader_binds_declared_content_version_as_well_as_digest(tmp_path, 
             audit_case_assertions(tmp_path / "case.json", tmp_path / "manifest.json")
     else:
         assert audit_case_assertions(tmp_path / "case.json", tmp_path / "manifest.json")["business_status"] == "pending_review"
+
+
+def test_primary_unit_cannot_replace_its_own_direct_evidence_with_support():
+    case, row, annotation = fixture()
+    case["assertions"][0].update(support_unit_ids=["R01"], evidence_unit_ids=["R01"])
+    with pytest.raises(ValueError, match="primary_unit_evidence_omitted"):
+        validate(case, row, annotation)
+
+
+@pytest.mark.parametrize("damage", ["split", "path"])
+def test_source_scope_is_checked_before_any_selected_sample_file_is_opened(tmp_path, monkeypatch, damage):
+    from pathlib import Path
+    from app.job_analysis.baseline.case_assertions import audit_case_assertions
+    case, _, _ = fixture()
+    snapshot = "snapshots/HOLD-01.json" if damage == "path" else "snapshots/DEV-01.json"
+    annotation = "annotations/DEV-01.json"
+    manifest = {"schema_version": "m2-p0-bundle-0.1", "version": "synthetic", "namespace": "synthetic", "files": {snapshot: "0" * 64, annotation: "0" * 64}, "samples": [{"id": "DEV-01", "split": "holdout" if damage == "split" else "development", "content_version": "snapshot-v1", "snapshot": snapshot, "annotation": annotation, "input_sha256": case["input_sha256"]}]}
+    raw = json.dumps(manifest).encode()
+    source = tmp_path / "manifest.json"
+    source.write_bytes(raw)
+    case["source_manifest_sha256"] = hashlib.sha256(raw).hexdigest()
+    path = tmp_path / "case.json"
+    path.write_text(json.dumps(case), encoding="utf-8")
+    original_read = Path.read_bytes
+
+    def guard(p):
+        if p != source:
+            pytest.fail("selected sample file must not be opened")
+        return original_read(p)
+
+    monkeypatch.setattr(Path, "read_bytes", guard)
+    monkeypatch.setattr(Path, "is_file", lambda p: True)
+    with pytest.raises(ValueError, match="case_source_not_existing_DEV"):
+        audit_case_assertions(path, source)

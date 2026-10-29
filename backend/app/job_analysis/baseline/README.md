@@ -29,7 +29,7 @@ python -m pytest tests/test_job_analysis/test_baseline_contract.py tests/test_jo
 python -m app.job_analysis.baseline assertions <私有根>/case-assertions/v1-draft/cases/DEV-01.json --manifest <私有根>/manifest.json
 ```
 
-`case_assertions.validate_case_assertions` 校验单条提案与既有人工记录的绑定，`audit_case_assertions` 先通过已登记DEV的限定审计再调用它。只允许DEV-01～08，不读取HOLD或ZIP，不生成预测、不评语义通过。记录绑定原清单/标注原字节SHA、输入指纹、unit_id和原标注证据；A/D互斥分配全部适用D/R单位，B/C可引用它们但不重复增加分母。目标/关系/边界备注单独保留，不当作技能或关系边总数。
+`case_assertions.validate_case_assertions` 校验单条提案与既有人工记录的绑定，`audit_case_assertions` 先通过已登记DEV的限定审计再调用它。只允许清单中development且路径对应既有DEV-01～08的源；在打开样本前核实路径无重定向，不读取HOLD或ZIP，不生成预测、不评语义通过。记录绑定原清单/标注原字节SHA、输入指纹/内容版本、unit_id和原标注证据；主单位自带的引文不能被支持单位替换；A/D互斥分配全部适用D/R单位，B/C可引用它们但不重复增加分母。目标/关系/边界备注单独保留，不当作技能或关系边总数。
 
 所有新逐例条件为 `pending_review`，校验器拒绝自述已批准。等价拆并改写和作用域仍须业务审核，位置匹配不能批准核心性或新真值。源标注、输入、清单变化时拒绝旧提案，不能只改摘要冒充重审。派生目录的 `index.json` 另登记草案文件哈希，不改原清单或annotations，不是第二套真值。三组跨JD比较、覆盖矩阵、待裁决问题与最小补样建议同目录私有保存，安全摘要见既有P0交付报告。
 
