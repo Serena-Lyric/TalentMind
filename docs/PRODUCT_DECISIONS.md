@@ -2,7 +2,7 @@
 
 **2026-10-26 仓库维护处置（负责人明确授权）：** V1通过固定标签与Release保留；旧图谱、P1/A3/R0、传输分支及相关工作树终止清理，不为废弃实验新建备份或标签。M1必要历史进入[主线归档](superpowers/archive/2026-10-22-M1-collection-validation-and-recovery.md)，PR #49关闭但不合并旧代码。维护范围及受阻项见[整理记录](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/archive/2026-10-26-repository-retirement.md)。此项只覆盖历史保全方式和仓库清理未决范围，不改变正式图谱、业务数据或DDL授权。
 
-**2026-10-21晚本轮授权增量：** 负责人要求在既有#44集成分支安全统一到本地主仓，优先功能可操作；复用指定M2保存run报告显式生成/查看版本匹配的候选图。不得换输入版本冒充同一次分析、提升未审技能为正式要求或改写Neo4j；不扩展B1/B2规则或B3门槛，精度/美术/性能留待23日后。前端成员提交 `8478541` 已核验并按主线业务基线完成视觉整合。本轮实现与未完成边界见[统一报告](review/Unified-product-2026-10-21.md)。
+**2026-10-21晚本轮授权增量：** 负责人要求在既有#44集成分支安全统一到本地主仓，优先功能可操作；复用指定M2保存run报告显式生成/查看版本匹配的候选图。不得换输入版本冒充同一次分析、提升未审技能为正式要求或改写Neo4j；不扩展B1/B2规则或B3门槛，精度/美术/性能留待23日后。前端成员提交 `8478541` 已核验并按主线业务基线完成视觉整合。本轮实现与未完成边界见[统一报告](https://github.com/Serena-Lyric/TalentMind/blob/cacf00f138a0512c4ef6c643fc90c0232159e1bb/docs/review/Unified-product-2026-10-21.md)。
 
 **2026-10-21 M1岗位身份待审（负责人确认）：** 内容质量与岗位身份可信度独立。身份仅为 `verified / pending / unknown`；采集拒绝和失败不是身份。历史数据默认 `unknown`，不得批量推断为 `verified`。智联允许 DOM 身份待审记录进入 M2 单条分析和 M3 候选观察图，但必须同时具备动态面板更新、目标卡片选中、连续稳定采样、标题一致和正文合格证据；仅卡片 active、标题相同或固定等待不能证明绑定。待审观察不能计入已确认独立岗位数或已确认技能需求，不修改正式 `job_definition/job_skill/job_change_log/Neo4j`，不提升 B3。`detail_obtained`、`content_eligible`、`identity_pending`、`identity_verified` 与既有 `complete` 分开统计。`jd_pool` 三列迁移须先完成兼容方案、冷备和隔离恢复验证，随后另行授权 DDL；本次确认不授权执行迁移。实现/限制见[报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Zhaopin-identity-pending-2026-10-21.md)。
 
