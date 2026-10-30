@@ -6,4 +6,4 @@
 - 审查修复：历史读取验证保存版本，不强制等于当前源码，避免升级锁死旧图；异步导航绑定请求代次，创建/重放/切换后旧响应失效。两项均补充红绿回归并定向复审。
 - 教训：输入、报告、阶段版本和图谱产物共同证明关联；源码升级不破坏历史。待审范围和uncertain陈述仍只作候选观察，不提升为正式要求或职业目录。
 
-回归：test_m2_graph.py、test_m2_product_api.py、m2Product.test.ts、realSnapshot.test.ts。见[统一验收](../../review/Unified-product-2026-10-21.md)。
+回归：test_m2_graph.py、test_m2_product_api.py、m2Product.test.ts、realSnapshot.test.ts。见[统一验收](https://github.com/Serena-Lyric/TalentMind/blob/cacf00f138a0512c4ef6c643fc90c0232159e1bb/docs/review/Unified-product-2026-10-21.md)。

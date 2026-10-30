@@ -1,0 +1,13 @@
+{
+  "provider": "DeepSeek official",
+  "endpoint": "https://api.deepseek.com/chat/completions",
+  "model": "deepseek-v4-pro",
+  "model_revision": "fill from official model documentation on the actual call date; alias is not pinned weights",
+  "account_region": "fill actual account and known region; mark unavailable details explicitly",
+  "policy_checked_on": "fill actual check date",
+  "policy_note": "check terms, retention/training and prices before authorized private-data calls",
+  "timeout_seconds": 600.0,
+  "max_tokens": 49152,
+  "thinking": "enabled",
+  "reasoning_effort": "high"
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "SYN-CHOICE",
+    "source": "synthetic",
+    "job_title": "合成语言选择案例",
+    "raw_text": "岗位职责：编写数据处理程序。任职要求：Python 或 Java 至少一种。熟悉 Rust、内部表达式语言等工具中的任意一种者优先。",
+    "expected": "两组均保留任选，第二组开放且preferred；不得把Python、Java分别设独立required，不丢词典外内部语言。"
+  },
+  {
+    "id": "SYN-NEGATION",
+    "source": "synthetic",
+    "job_title": "合成程度与经验案例",
+    "raw_text": "岗位职责：维护内部脚本。任职要求：不要求精通 Python，但需了解 Python。Python 项目经验优先。不接受只会复制代码而无法说明含义的申请者。",
+    "expected": "精通被否定与了解被要求分开；经验优先不改成技能熟练优先；排除申请资格不编码成不要求该能力。"
+  },
+  {
+    "id": "SYN-RELATION",
+    "source": "synthetic",
+    "job_title": "合成职责与背景案例",
+    "raw_text": "🧪岗位职责：使用 Redis 实现任务状态存储与恢复。开发智能体工作流。\r\n任职要求：摄影兴趣者优先。\r\n公司简介：本公司还经营甜品门店。",
+    "expected": "Redis仅技术使用，不自动成为必备、熟练或不可替代；直接用途只连状态存储恢复；摄影不明确关联智能体；甜品门店背景不生成当前职责。"
+  }
+]

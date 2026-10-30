@@ -40,7 +40,7 @@
 | 2026-10-22 | [M1 分平台修复](review/M1-platform-repair-2026-10-22.md) |
 | 2026-10-22 | [M2 真实分析与复核](review/M2-real-analysis-2026-10-22.md) |
 | 2026-10-22 | [M2→M3 Gate 3](review/M2-M3-Gate-3-acceptance-2026-10-22.md) |
-| 2026-10-21 | [主仓统一与功能验收](review/Unified-product-2026-10-21.md) |
+| 2026-10-30 | [M2 P1 单条理解与真实 DEV 验证](review/M2-P1-understanding-2026-10-30.md) |
 | 2026-10-28 | [M2 P0 基准与契约交付](review/M2-P0-baseline-2026-10-28.md) |
 
 这是全仓库的阶段性测试/验证/验收报告上限，不是每个模块五份。以后有新报告时，优先将长期有用的结论更新到模块 README、规范、陷阱或当前状态，再淘汰最旧报告及其独有附件。**不将旧报告移动到 archive 变相规避上限。**
