@@ -251,3 +251,53 @@ def test_refinement_rejects_different_input_before_request():
     row["raw_text"] += "新版本内容"
     with pytest.raises(ValueError):
         run(draft(), row=row, prior=first)
+
+
+def test_literal_degree_can_use_already_grounded_claim_context():
+    row = deepcopy(ROW)
+    row["raw_text"] = "熟悉 Python 和相关内部工具"
+    req = requirement(["Python"])
+    req.update(combination="single", degree="熟悉", degree_polarity="affirmed",
+               scope_evidence=[quote("Python")])
+    data = draft()
+    data["claims"] = [claim("r1", "requirement", row["raw_text"], req)]
+    result = run(data, row=row)
+    assert len(result["analysis"]["claims"]) == 1
+    assert result["analysis"]["claims"][0]["requirement"]["degree"] == "熟悉"
+    assert result["execution"]["grounding_adjustments"]
+
+
+def test_nonliteral_positive_degree_preserves_statement_as_partial_not_whole_claim_loss():
+    row = deepcopy(ROW)
+    row["raw_text"] = "Python 能读代码，并能修改代码"
+    req = requirement(["Python"])
+    req.update(combination="single", degree="能读代码、能修改代码", degree_polarity="affirmed",
+               scope_evidence=[quote(row["raw_text"])])
+    data = draft()
+    data["claims"] = [claim("r1", "requirement", row["raw_text"], req)]
+    result = run(data, row=row)
+    kept = result["analysis"]["claims"][0]
+    assert kept["text"] == "Python 能读代码，并能修改代码"
+    assert kept["requirement"]["state"] == "required"
+    assert kept["requirement"]["degree"] is None
+    assert result["execution"]["status"] == "partial"
+    assert result["analysis"]["coverage"]["requirements"]["status"] == "partial"
+
+
+@pytest.mark.parametrize("negative,condition", [(True, None), (False, "不存在的条件")])
+def test_partial_preservation_never_erases_negated_degree_or_unproven_condition(negative, condition):
+    data = draft()
+    req = data["claims"][1]["requirement"]
+    req.update(state="not_required" if negative else "required", degree="非原文程度",
+               degree_polarity="negated" if negative else "affirmed", condition=condition)
+    result = run(data)
+    assert [c["id"] for c in result["analysis"]["claims"]] == ["d1"]
+
+
+def test_experience_drops_inapplicable_skill_category_with_audit():
+    data = draft()
+    data["claims"][1]["requirement"].update(target="experience", category="technical_skill")
+    result = run(data)
+    req = result["analysis"]["claims"][1]["requirement"]
+    assert (req["target"], req["category"]) == ("experience", None)
+    assert result["execution"]["grounding_adjustments"]

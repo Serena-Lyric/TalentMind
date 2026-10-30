@@ -139,6 +139,38 @@ def _merge_claim(claims, item):
     return item["id"]
 
 
+def _preserve_requirement_parts(item, adjustments):
+    """Retain grounded statements without turning lost qualifications into broad negatives."""
+    req = item.get("requirement")
+    if item.get("kind") != "requirement" or not isinstance(req, dict):
+        return False
+    if req.get("target") in {"experience", "domain", "education", "tenure", "certificate", "unresolved"} and req.get("category") in {
+            "technical_skill", "professional_skill", "engineering_practice", "soft_skill"}:
+        req["category"] = None
+        adjustments.append(dict(claim_id=item["id"], reason="discarded_inapplicable_skill_category"))
+    for name in ("degree", "condition"):
+        value = req.get(name)
+        context = "\n".join(e["quote"] for e in req["scope_evidence"])
+        if value is not None and value not in context:
+            for evidence in item["evidence"]:
+                if value in evidence["quote"] and evidence not in req["scope_evidence"]:
+                    req["scope_evidence"].append(evidence)
+                    adjustments.append(dict(claim_id=item["id"], component=name,
+                                            reason="scope_extended_from_existing_claim_evidence"))
+    context = "\n".join(e["quote"] for e in req["scope_evidence"])
+    degree = req.get("degree")
+    if (degree is not None and degree not in context and req.get("degree_polarity") == "affirmed"
+            and req.get("state") in {"required", "preferred"}):
+        # Never erase a condition or negated degree: that could invert/widen the requirement.
+        if req.get("condition") is not None and req["condition"] not in context:
+            return False
+        req.update(degree=None, degree_polarity=None)
+        req["reason"] += "；结构化程度不是连续原文，暂未解析，完整能力陈述和证据仍保留。"
+        adjustments.append(dict(claim_id=item["id"], reason="nonliteral_positive_degree_unresolved"))
+        return True
+    return False
+
+
 async def analyze(namespace: str, row: dict, input_version: str, processor: Processor, *, prior=None) -> dict:
     record = InputRecord.from_row(namespace, row)
     if not namespace.strip() or not input_version.strip():
@@ -232,12 +264,18 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
                             if item.get("requirement"):
                                 item["requirement"]["scope_evidence"] = [locate(e, record, execution["grounding_adjustments"]) for e in
                                                                          item["requirement"]["scope_evidence"]]
+                            partially_preserved = _preserve_requirement_parts(item, execution["grounding_adjustments"])
                             item = Claim.model_validate(item).model_dump()
                             trial = deepcopy(analysis)
                             trial["claims"] = [item]
                             trial["outcome"] = _outcome(coverage)
                             validate_analysis(trial)
                             remap[item["id"]] = _merge_claim(analysis["claims"], item)
+                            if partially_preserved:
+                                execution["issues"].append(dict(kind="claim_partially_preserved", index=index,
+                                                                dimension=dimension, reason="positive_degree_unresolved"))
+                                if coverage[dimension]["status"] == "complete":
+                                    coverage[dimension] = dict(status="partial", reason="structured_positive_degree_unresolved")
                         except (ValueError, KeyError, TypeError):
                             execution["issues"].append(dict(kind="claim_rejected", index=index, dimension=dimension))
                             for d in ([dimension] if dimension else DIMENSIONS[:4]):
