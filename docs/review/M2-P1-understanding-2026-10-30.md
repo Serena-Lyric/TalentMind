@@ -1,8 +1,8 @@
 # M2 P1 单条理解：实现与真实 DEV 验证
 
-日期：2026-10-30，Asia/Singapore；真实调用跨 10-29～10-30。基线 `master@cacf00f138a0512c4ef6c643fc90c0232159e1bb`，开发分支 `codex/m2-p1-jd-analysis`。主入口 `1ef25b8`、显式补充 `f2683e8`、字段级保留 `963c676`；最终提审 head 以本 PR 描述中的固定 SHA 为准。
+日期：2026-10-30，Asia/Singapore；首轮 Review 定向修复及复审准备完成于 2026-11-02。真实调用跨 10-29～10-30。基线 `master@cacf00f138a0512c4ef6c643fc90c0232159e1bb`，开发分支 `codex/m2-p1-jd-analysis`。主入口 `1ef25b8`、显式补充 `f2683e8`、字段级保留 `963c676`；最新复审 head 以 PR 描述中的固定 SHA 为准。
 
-**结论：独立入口、证据/版本校验、失败与部分保存已经实现，并实际运行九例 DEV；当前仍存在与冻结人审参照不一致的关系等级及部分组合、程度、类别和未知边界，不能记为 P1 业务通过。** 本报告提供可复核结果，交 ChatGPT 独立审查；不自行合并，不启动 P2。工程通过、合法 JSON、模型自报覆盖及本次 Agent 对照均不能代替这一审查。
+**结论：独立入口、证据/版本校验、失败与部分保存已经实现，并实际运行九例 DEV。首轮 Review 对固定 head `6f1575b1629075499893d6eedc543233ad2ad361` 指出的五条错误 explicit、六项要求语义偏差和字段级作用域风险已完成定向修复；九例当前缓存重编译结果按冻结参照逐项对照为 199/199 个单位、184/184 条条件通过，四条已审直接用途 explicit 保留。** 该结论仍是 Agent 对照，不能记为 P1 业务通过；关系等级仍有 7 条保守 unknown 与冻结 inferred 精确不一致，5 条具体新增/原组边保持未决。本报告交 ChatGPT 独立复审；不自行合并，不启动 P2。
 
 ## 1. 范围与实际执行路径
 
@@ -12,7 +12,7 @@
 |---|---|
 | 单条 JD 独立理解 | `understanding.analyze(namespace, row, input_version, processor)` 接受 P0 InputRecord；云端完整理解目标/对象/职责/要求，无岗位目录或旧 B1/B2 前置 |
 | 五态、程度、条件、否定、组合及对象 | 保持 `m2-semantic-0.2`；原成员/未知映射不丢；能力类别与行业/学历/经验/其他条件分开。结构能保存不等于语义已全部正确，误判见逐例对照 |
-| 稀疏关系 | explicit/inferred/unknown 保留证据及理由，不生成矩阵；真实合成 Redis 使用正确，但真实 DEV 仍有同名工作被误升明确的问题 |
+| 稀疏关系 | explicit/inferred/unknown 保留证据及理由，不生成矩阵；定向修复撤销五条同名动作/共同对象/共现误升，保留四条已审真实直接用途，并以正反例约束同句/明确承接与局部工作对齐 |
 | 证据与输入身份 | 程序决定 Unicode 代码点半开区间；引文重复须 occurrence；实际字段 Schema、缺失字段逐字唯一全文重定位有审计记录；已有字段不符及歧义拒收 |
 | 失败与有效部分 | 单项坏结构/引文不抹除其他有效项；区分空、坏 JSON、截断、超时、拒绝、全部失败、未执行、无识别、部分完成；不补 JSON 括号 |
 | 替换、版本和读取 | Processor 协议、显式端点/模型/推理配置；源码载入摘要、契约/提示/依赖版本、实际返回模型/用量；独占私有 run、manifest 最后写、只读校验历史 |
@@ -29,14 +29,16 @@
 
 正式实现位于 [understanding](../../backend/app/job_analysis/understanding/README.md)，无新增依赖、GPU/本地模型权重或正式数据库迁移。知识对齐保留 unknown、分类 not_run；P1 五维完成时 aggregate outcome 仍为 partial，是 P0 契约的真实语义。未接入旧产品页面、M3/M4、候选维护或岗位发布。
 
-首次完整链路使用 DEV-09 实际 CLI：单条冻结快照 → 官方 API → 引文/契约验证 → 私有保存 → `read`。开发发现语义问题后新增显式 `refine`：绑定旧输入四元身份及内容版本，仅再发送原文、旧机器草稿和固定通用复核指令；新旧结果与费用分别保留。它不是默认双调用、自动风险检测或自动重试。
+首次完整链路使用 DEV-09 实际 CLI：单条冻结快照 → 官方 API → 引文/契约验证 → 私有保存 → `read`。首轮 Review 后，默认 `analyze` 会在明确风险时最多执行一次限定编辑审计；主阶段先持久化，审计只改既有要求/关系，不改职责、目标或对象。`--raw` 保留单阶段诊断入口。显式 `refine` 仍是绑定旧输入身份及内容版本的一次完整补充，不是自动重试。
 
 从 `backend/` 运行（私有配置与 Key 只传路径）：
 
 ```powershell
 python -X utf8 -m app.job_analysis.understanding analyze <单条冻结快照.json> --namespace <manifest namespace> --input-version <content_version> --config <私有配置.json> --key-file <私有凭据.txt> --output <全新私有run目录>
+python -X utf8 -m app.job_analysis.understanding analyze <单条冻结快照.json> --namespace <manifest namespace> --input-version <content_version> --config <私有配置.json> --key-file <私有凭据.txt> --output <全新私有run目录> --raw
 python -X utf8 -m app.job_analysis.understanding read <私有run目录>
 python -X utf8 -m app.job_analysis.understanding refine <旧私有run目录> --config <私有配置.json> --key-file <私有凭据.txt> --output <全新私有run目录>
+python -X utf8 -m app.job_analysis.understanding audit <旧私有run目录> --config <私有配置.json> --key-file <私有凭据.txt> --output <全新私有run目录>
 ```
 
 退出码 0 表示可读执行结果，包括部分或无识别；2 表示已保存的执行失败/截断等；1 表示本地拒绝。所有 stdout 是安全汇总，正文/模型回包及异常原文不进入公开日志。中断仅 pending 的目录不伪称完成；已有目录在收费请求前拒绝。固定原文与 P0 标签未改。
@@ -49,13 +51,28 @@ python -X utf8 -m app.job_analysis.understanding refine <旧私有run目录> --c
 - 调用前核对官方 [模型/价格](https://api-docs.deepseek.com/quick_start/pricing/)、[开放平台条款](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html)、[隐私政策](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html)，核对日期 10-29，继续调用时 10-30 再核模型/价格/错误码。所查来源未提供明确适用于本 API 输入的固定保留期限/不训练承诺，不宣称零保留；通用隐私政策也不能直接替代下游 API 数据协议。
 - 文档宣称映射：`deepseek-v4-pro` → DeepSeek-V4-Pro-0813，`deepseek-flash` → DeepSeek-V4.1-Flash-1017；实际返回名/系统指纹逐 run 记录，别名不是固定权重证明。Pro 高推理、Flash 非思考、Pro max 的尝试分开保存；本地模型仍是“暂未尝试”。
 
-私有根 `data/local/m2-p1-20261029/` 保存所有请求、机器内容、源依赖、阶段配置、调用费用审计和逐例对照，Key 文件不进入任何提交/证据清单。P0 根仍为 `data/local/m2-p0-20261028/`。可按输入/分析/原字节 SHA 受控复核；公共报告只提供安全汇总，不公开真实全文或回包。
+私有根 `data/local/m2-p1-20261029/` 保存原交付请求、机器内容、源依赖、阶段配置、调用费用审计和逐例对照；Review 修复证据另在 `data/local/m2-p1-review-20261030/`，保留 12 次实际请求、当前九例缓存重编译、逐项评价、费用和 SHA 绑定。Key 文件不进入任何提交/证据清单。P0 根仍为 `data/local/m2-p0-20261028/`。可按输入/分析/原字节 SHA 受控复核；公共报告只提供安全汇总，不公开真实全文或回包。
 
 ## 3. 真实 DEV 对照方法及结果
 
 人工参照只来自冻结 annotations；两名独立 Agent 分别检查 01～04 与 05～09，对全部 D/R、全部 A/B/C/D 以及每条实际预测关系做配对，保留拆并理由和未决。它们是 **Agent 对已有人工真值的对照**，不是新增负责人签审或模型自评。主 Agent 另校验 analysis/run/annotation/case 摘要、单位与预测/条件/关系全集。
 
 单位分母始终是 72职责+127要求=199，9个目标通过条件单独检查，不另增 TP。失败及部分项不从分母移除。配对允许语义等价拆并，不按字符串或引文覆盖机械计 TP。`supported_extra` 是有原文支持但未在冻结人工单位内的新预测，仍列未独立人审，不直接当已确认 TP。
+
+### 3.1 首轮 Review 定向修复结果
+
+Review 固定 head 为 `6f1575b1629075499893d6eedc543233ad2ad361`。修复轮新增 **12 次真实请求**：默认入口 DEV-01 主理解/审计 2 次、第一轮审计 DEV-01 成功与 DEV-05 网络失败 2 次、第二轮审计 DEV-05 重试及其余 7 例 8 次。11 次返回用量，1 次网络错误无用量；没有使用 HOLD。当前 `review-final-20261102-final` 是在这些真实回包上做零网络请求的确定性重编译，逐例校验完整请求及 origin run SHA，并逐键确认相对已完整对照结果仅 analyzer 摘要变化。
+
+| Review 项 | 定向修复与当前证据 |
+|---|---|
+| P1-01 五条 explicit 误报 | DEV-01 `d6→r13/r14/r17`、DEV-02 `d4→r13`、DEV-03 `d2→r10` 均改为限定范围的 `inferred`；四条已审真实直接用途仍为 explicit。合成回归同时要求同名动作/共同对象/共现不升级，以及“使用/利用/基于/运用 X 完成 Y”不丢失。 |
+| P1-02 六项要求偏差 | DEV-01 `R08/category`、DEV-05 `R12/combination`、`R13/degree`、`R15/state`、DEV-07 `R02/combination`、DEV-09 `R07/combination` 已逐项复测；当前 127 个要求单位和全部 184 条件通过 Agent 对照，未删除原分母或扩大未知。 |
+| P1-03 限定词与关系作用域 | 删除“引文任意位置包含限定词即扩大 scope”的路径。审计必须给 target、qualifier 和局部谓词/共享修饰/明确承接证明；全部成员、否定极性、ASCII 实体边界、兼容字形实际代码点与同局部子句工作对象均校验。跨分句、后置否定用途、新增 unknown、`same_activity` 完整笛卡尔矩阵、竞争修饰、反向极性、重复编辑、擦除既有 degree/condition、逗号后独立谓语及遗漏既有关系端点均有公开正反例；量词只在覆盖全部成员的同一局部句取证，否定式“全部/每项”不算正向 all_of；完整职责×要求矩阵整体拒收，遗漏关系至少降 coverage partial，不能静默报 complete。 |
+| P1-04 证据边界 | 9 份冻结 prompt/回包、12 次实际请求、缓存重编译、199 单位、184 条件和逐项关系对照分别保存；人工标签、HOLD、Key、原文与完整回包只在私有目录。 |
+
+当前关系精确对照为：explicit 4/4 正确；冻结 inferred 范围中 16 条正确、4 条未决；7 条实际保守 unknown 与冻结 inferred 不一致，另有 1 条 unknown 未决、1 条冻结 unknown 正确。七条保守 unknown 集中在 DEV-02 的同标题技术背景（2）和 DEV-05 的标题/自驱/团队上下文（5），没有升级 explicit，也不冒充 inferred TP；四条未决是 DEV-04 一条组外具体边和 DEV-09 三条未单独人审的具体推断。这是当前仍保留的关系误差，不能写成关系全对。
+
+### 3.2 原提审基线结果
 
 主轮 `pro-v5` 是同一固定源码/提示与 max 配置的一次完整理解。随后只对已发现问题的 01/02/03/05/06/07/09 各显式补充一次，04/08 保留主轮。交付对照统一采用这些补充结果，即使比主轮差也不择优退回；同时完整报告主轮结果及全部费用。这是开发复核流程，不宣称已实现自动触发或 HOLD 泛化。
 
@@ -108,8 +125,8 @@ P下界仅计冻结配对，P上界加尚未独立人审的有据新增；R下�
 
 | 命令（backend下） | 结果 |
 |---|---|
-| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py -q --tb=short` | **43 passed，退出0** |
-| `python -m pytest -q --tb=short` | **1753 passed、26 skipped、2 failed、1017 warnings，退出1** |
+| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **147 passed，退出0** |
+| `python -m pytest -m "not integration" -q --tb=short` | **1857 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
 | `python -m app.job_analysis.baseline approved-assertions <受控release> --manifest <冻结manifest> --approval <签审凭据>` | structurally_valid，9例/184条件/199单位，退出0；不代表本轮模型语义通过 |
 
 两项全量失败均在本次修改前的基线已复现，路径未改，原因是旧 canonical catalog 对产品决策文档的固定来源SHA已过期：
@@ -134,14 +151,17 @@ P下界仅计冻结配对，P上界加尚未独立人审的有据新增；R下�
 
 10-29 有一次真实 HTTP402，按官方[错误码](https://api-docs.deepseek.com/quick_start/error_codes/)保留失败。10-30 只读余额确认可用后才单独新 run 重试；没有自动重试、充值或覆盖失败。未取得可核销供应商账单，费用仅以实际 Token 和当日官方缓存/峰谷价格给估算区间；缺用量响应的费用保持未知，不能填 0。API 原始推理内容未用于人工真值。
 
+Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次网络错误无用量：实际输入 83,809 tokens（缓存命中 28,416、未命中 55,393），输出 188,784 tokens，总计 272,593。按 10-30 官方峰谷价估算新增 **USD 0.4110～0.8220**。当前 9 例 `review-final-20261102-final` 和默认入口 REPL 都是缓存重编译，0 网络请求、0 新增Token；单独保存原 API 时长/用量和本地编译耗时。加上原试通/主轮/补充，本阶段至今累计 52 次请求尝试、50 次返回用量、2 次无用量尝试，总计 1,203,247 tokens；这只是试通与修复成本，不作为每 JD 稳定成本。
+
 少量 DEV 的时长不能证明 3,000条/12小时、稳定吞吐或真实服务器资源能力；当前实现轻量但没有完整批处理/服务性能验收。
 
 ## 6. 私有证据、维护及审核交接
 
 - `runs/pro-v1`、`flash-v2`、`pro-v3`、`pro-v4`、`pro-v4-retry` 保留原始试验，`pro-v5` 为最后主轮，`pro-v5-refined` 为显式补充。早期 v3 在开发编辑期间曾按磁盘字节重算 worker 版本，是原型记录限制；最后主轮和补充已在载入时固定实际代码摘要，不借后续源码改标旧结果。
 - `evaluation/pro-v4`、`pro-v4-retry`、`pro-v5`、`pro-v5-refined`、`final-compiled` 是有摘要绑定的逐项 Agent 对照，不改变 annotations。`evaluation-summary.json` 汇总完整配对；`delivery-manifest.json` 绑定最终证据及选择方案（187文件，清单SHA `07fdcf7006591ab91eb7f6781102b2b0826aa28e1a18a3c45179e51af67961b2`）；费用清单记录所有真实请求，排除重编译的重复 Token，而非只计成功或最好结果。
+- Review 修复私有根 `data/local/m2-p1-review-20261030/` 保存 `runs/audit-v1`、`runs/audit-v2` 原请求/回包，`runs/review-final-20261102-final` 最终确定性重编译，`evaluation/review-final-20261102-final` 逐项对照，`review-final-20261102-final-verification.json` 的 199/184 完整性断言、费用审计及待推送 head 的证据清单。目录内 `api-key.txt` 仅本地存在，绝不进入公开清单。
 - 本次全量业务测试沿仓库安全默认跳过需隔离实例的 integration；没有启动正式 DB/Neo4j、迁移、真实采集或导入。文件夹具用唯一名并 finally/临时目录精确清理，残留核对为 0；不虚报正式库计数/未查询的健康状态。
 - 阶段报告保持全仓五份：移除最旧 2026-10-21 统一报告，相关引用固定到原 Git 提交；长期使用入口与限制更新到模块 README/资产状态/陷阱。未移动、删除真实数据、P0 原件或私有旧回包。
 - P2/P3 可以审阅 P1 接口/覆盖/部分结果，但不能将当前仍有关键问题的机器语义当已审依赖或自动开工；无正式知识归一化/岗位判断、无真实市场/HOLD 独立验收，B/C 仍未裁决。
 
-审核请求：请以 PR 描述固定 head 的真实代码、P0 受控评价和本报告为依据，优先核对已列关键错误、完整分母及多版本/补充边界，给出需定向修复或证据不足等实际结论；不要以本次自检或测试数替代独立审查。作者不合并、不启用自动合并。
+审核请求：请以 PR 描述固定 head 的真实代码、P0 受控评价和本报告为依据，优先核对首轮 Review 四项是否关闭、剩余关系 unknown/未决是否仍构成阻断，以及真实请求与缓存重编译是否严格分账；不要以本次 Agent 对照或测试数替代独立审查。作者不合并、不启用自动合并，不启动 P2。

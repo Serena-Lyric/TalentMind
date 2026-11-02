@@ -148,15 +148,8 @@ def _preserve_requirement_parts(item, adjustments):
             "technical_skill", "professional_skill", "engineering_practice", "soft_skill"}:
         req["category"] = None
         adjustments.append(dict(claim_id=item["id"], reason="discarded_inapplicable_skill_category"))
-    for name in ("degree", "condition"):
-        value = req.get(name)
-        context = "\n".join(e["quote"] for e in req["scope_evidence"])
-        if value is not None and value not in context:
-            for evidence in item["evidence"]:
-                if value in evidence["quote"] and evidence not in req["scope_evidence"]:
-                    req["scope_evidence"].append(evidence)
-                    adjustments.append(dict(claim_id=item["id"], component=name,
-                                            reason="scope_extended_from_existing_claim_evidence"))
+    # Broader claim citations may mention another subject's qualifier. Never widen
+    # the declared requirement scope just to satisfy the contract's literal check.
     context = "\n".join(e["quote"] for e in req["scope_evidence"])
     degree = req.get("degree")
     if (degree is not None and degree not in context and req.get("degree_polarity") == "affirmed"
@@ -225,7 +218,13 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
                      grounding_adjustments=[], started_at=started_at,
                      finished_at=datetime.now(timezone.utc).isoformat())
     result = dict(schema_version="m2-p1-run-1", analysis=analysis, execution=execution,
-                  dependencies=deps, processor=descriptor, request=messages, completion=completion.content)
+                  dependencies=deps, processor=descriptor, request=completion.request or messages,
+                  completion=completion.content)
+    if completion.request is not None:
+        analysis["prompt"] = version("p1-processor-context", "1",
+                                     [m for m in completion.request if m["role"] == "system"])
+    if completion.draft is not None:
+        result["compiled_draft"] = deepcopy(completion.draft)
     if lineage is not None:
         result["lineage"] = lineage
     status = completion.status
@@ -236,7 +235,7 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
             status = "truncated" if truncated else "empty"
         else:
             try:
-                raw = parse_json(completion.content)
+                raw = completion.draft if completion.draft is not None else parse_json(completion.content)
             except (ValueError, TypeError):
                 status = "truncated" if truncated else "invalid_json"
             else:
@@ -299,6 +298,16 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
                             execution["issues"].append(dict(kind="relation_rejected", index=index, dimension="relations"))
                             if coverage["relations"]["status"] == "complete":
                                 coverage["relations"] = dict(status="partial", reason="one_or_more_relations_rejected")
+                    duty_ids = {c["id"] for c in analysis["claims"] if c["kind"] == "duty"}
+                    requirement_ids = {c["id"] for c in analysis["claims"] if c["kind"] == "requirement"}
+                    relation_pairs = {(r["duty_id"], r["requirement_id"]) for r in analysis["relations"]}
+                    if (len(duty_ids) > 1 and len(requirement_ids) > 1
+                            and relation_pairs == {(duty_id, requirement_id) for duty_id in duty_ids
+                                                   for requirement_id in requirement_ids}):
+                        analysis["relations"] = []
+                        execution["issues"].append(dict(kind="relation_matrix_rejected",
+                                                        dimension="relations"))
+                        coverage["relations"] = dict(status="partial", reason="dense_relation_matrix")
                     if truncated:
                         for d in DIMENSIONS:
                             if coverage[d]["status"] == "complete":

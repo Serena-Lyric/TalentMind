@@ -9,6 +9,8 @@ class Completion:
     finish_reason: str | None = None
     status: str = "ok"
     metadata: dict = field(default_factory=dict)
+    request: list[dict] | None = None
+    draft: dict | None = None
 
 
 class Processor(Protocol):

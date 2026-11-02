@@ -34,7 +34,7 @@ def draft():
 
 
 def run(data, *, row=None, finish="stop", status="ok", prior=None):
-    from app.job_analysis.understanding import analyze
+    from app.job_analysis.understanding.core import analyze
     from app.job_analysis.understanding.processor import Completion
 
     class Processor:
@@ -67,6 +67,29 @@ def test_actual_entry_binds_codepoint_evidence_and_keeps_classification_not_run(
     assert analysis["claims"][1]["requirement"]["members"] == ["Python", "Java"]
     assert analysis["claims"][1]["requirement"]["combination"] == "any_of"
     assert analysis["role_judgments"] == []
+
+
+def test_complete_relationship_matrix_is_rejected_as_partial():
+    row=dict(id="matrix",source="synthetic",job_title="测试",
+             raw_text="维护缓存。开发接口。熟悉 Redis。掌握 Python。")
+    data=draft();data["claims"]=[]
+    for claim_id,kind,value in (
+        ("d1","duty","维护缓存"),("d2","duty","开发接口"),
+        ("r1","requirement","Redis"),("r2","requirement","Python"),
+    ):
+        req=requirement([value]) if kind=="requirement" else None
+        if req:
+            req.update(combination="single",scope_evidence=[quote(row["raw_text"])])
+        data["claims"].append(claim(claim_id,kind,value,req))
+    data["relations"]=[]
+    for duty_id,work in (("d1","维护缓存"),("d2","开发接口")):
+        for requirement_id in ("r1","r2"):
+            data["relations"].append(dict(duty_id=duty_id,requirement_id=requirement_id,
+                reason="同 JD 上下文",evidence=[quote(work)],basis="inferred"))
+    result=run(data,row=row)
+    assert result["analysis"]["relations"]==[]
+    assert result["analysis"]["coverage"]["relations"]["status"]=="partial"
+    assert any(issue["kind"]=="relation_matrix_rejected" for issue in result["execution"]["issues"])
 
 
 def test_bad_evidence_does_not_discard_other_valid_claims():
@@ -175,7 +198,7 @@ def test_unrecognized_item_keys_and_coverage_claims_are_not_silently_accepted():
 
 
 def test_processor_exception_is_saved_as_failure_without_exception_text():
-    from app.job_analysis.understanding import analyze
+    from app.job_analysis.understanding.core import analyze
 
     class Broken:
         descriptor = dict(provider="synthetic", model="fixture", model_revision="1")
@@ -253,7 +276,7 @@ def test_refinement_rejects_different_input_before_request():
         run(draft(), row=row, prior=first)
 
 
-def test_literal_degree_can_use_already_grounded_claim_context():
+def test_degree_cannot_borrow_broader_claim_evidence_as_its_scope():
     row = deepcopy(ROW)
     row["raw_text"] = "熟悉 Python 和相关内部工具"
     req = requirement(["Python"])
@@ -263,8 +286,9 @@ def test_literal_degree_can_use_already_grounded_claim_context():
     data["claims"] = [claim("r1", "requirement", row["raw_text"], req)]
     result = run(data, row=row)
     assert len(result["analysis"]["claims"]) == 1
-    assert result["analysis"]["claims"][0]["requirement"]["degree"] == "熟悉"
-    assert result["execution"]["grounding_adjustments"]
+    assert result["analysis"]["claims"][0]["requirement"]["degree"] is None
+    assert result["execution"]["status"] == "partial"
+    assert result["analysis"]["claims"][0]["requirement"]["scope_evidence"][0]["quote"] == "Python"
 
 
 def test_nonliteral_positive_degree_preserves_statement_as_partial_not_whole_claim_loss():
@@ -301,3 +325,36 @@ def test_experience_drops_inapplicable_skill_category_with_audit():
     req = result["analysis"]["claims"][1]["requirement"]
     assert (req["target"], req["category"]) == ("experience", None)
     assert result["execution"]["grounding_adjustments"]
+
+
+@pytest.mark.parametrize("component,value", [("degree", "熟悉"), ("condition", "仅限后端")])
+def test_foreign_clause_qualifier_does_not_become_complete_python_requirement(component, value):
+    row = deepcopy(ROW)
+    row["raw_text"] = "仅限后端：熟悉 Java；Python 不要求精通"
+    req = requirement(["Python"])
+    req.update(combination="single", degree=None, degree_polarity=None,
+               scope_evidence=[quote("Python 不要求精通")])
+    req[component] = value
+    if component == "degree":
+        req["degree_polarity"] = "affirmed"
+    data = draft()
+    data["claims"] = [claim("r1", "requirement", row["raw_text"], req)]
+    result = run(data, row=row)
+    assert result["analysis"]["coverage"]["requirements"]["status"] != "complete"
+    assert not any(c["requirement"][component] == value for c in result["analysis"]["claims"])
+
+
+def test_explicit_subject_continuation_keeps_its_own_positive_and_negative_scopes():
+    row = deepcopy(ROW)
+    row["raw_text"] = "Python 能独立编写脚本。\n要求能调试，不要求精通。"
+    positive = requirement(["Python"])
+    positive.update(combination="single", degree="能调试", degree_polarity="affirmed",
+                    scope_evidence=[quote("Python 能独立编写脚本"), quote("要求能调试，不要求精通")])
+    negative = deepcopy(positive)
+    negative.update(state="not_required", degree="精通", degree_polarity="negated")
+    data = draft()
+    data["claims"] = [claim("r1", "requirement", "要求能调试，不要求精通", positive),
+                      claim("r2", "requirement", "要求能调试，不要求精通", negative)]
+    result = run(data, row=row)
+    assert [(c["requirement"]["degree"], c["requirement"]["degree_polarity"])
+            for c in result["analysis"]["claims"]] == [("能调试", "affirmed"), ("精通", "negated")]

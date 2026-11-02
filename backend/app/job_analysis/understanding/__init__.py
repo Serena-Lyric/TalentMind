@@ -1,4 +1,6 @@
 """Independent P1 single-JD understanding, without legacy stages or services."""
-from .core import analyze
+from .runtime import understand
 
-__all__ = ["analyze"]
+analyze = understand
+
+__all__ = ["analyze", "understand"]
