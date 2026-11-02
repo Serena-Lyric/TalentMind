@@ -275,6 +275,16 @@ def test_duplicate_edits_are_all_rejected_instead_of_arbitrarily_accepting_first
     assert result["analysis"]["claims"][1]["requirement"] == value["analysis"]["claims"][1]["requirement"]
 
 
+def test_requirement_edit_uses_outer_reason_when_nested_reason_is_omitted():
+    value=prior("维护缓存。熟悉 Redis","维护缓存","Redis")
+    patch=patch_for(value)
+    patch["requirements"][0]["requirement"].pop("reason")
+    patch["requirements"][0]["reason"]="外层修订理由"
+    result=audit(value,patch)
+    assert result["analysis"]["claims"][1]["requirement"]["reason"]=="外层修订理由"
+    assert result["analysis"]["coverage"]["requirements"]["status"]=="complete"
+
+
 @pytest.mark.parametrize("text,kind,degree,target", [
     ("熟悉 Java 并了解 Python","predicate","熟悉","Python"),
     ("强烈的技术热情和较弱的钻研精神","shared_modifier","强烈","钻研精神"),
@@ -488,16 +498,42 @@ def test_partial_spelling_cannot_borrow_degree_from_another_named_subject(text,m
     assert result['analysis']['coverage']['requirements']['status']=='partial'
 
 
-def test_contextual_partial_proof_can_keep_a_sourced_hypothesis_but_never_become_explicit():
+def test_unanchored_context_proof_cannot_create_a_new_inferred_relation():
     value=prior('维护缓存。熟悉 Redis 架构','维护缓存','Redis 架构')
     patch=patch_for(value);rel=relation('shared_context','Redis 架构','维护缓存')
     rel['proof'].update(means=None,work=None)
     patch['relations']=[rel]
     result=audit(value,patch)
-    assert result['analysis']['relations'][0]['basis']=='inferred'
+    assert result['analysis']['relations']==[]
     assert result['analysis']['coverage']['relations']['status']=='partial'
-    assert '未细化' in result['analysis']['relations'][0]['reason']
-    assert all(e['quote'] in value['analysis']['input_row']['raw_text'] for e in result['analysis']['relations'][0]['evidence'])
+    assert any(i['kind']=='relation_proof_rejected' for i in result['execution']['metadata']['audit_issues'])
+
+
+def test_existing_unanchored_context_relation_is_kept_only_as_bounded_unknown():
+    value=prior('维护缓存。熟悉 Redis 架构','维护缓存','Redis 架构')
+    value['analysis']['relations']=[dict(duty_id='d1',requirement_id='r1',basis='inferred',
+        evidence=[deepcopy(value['analysis']['claims'][0]['evidence'][0]),
+                  deepcopy(value['analysis']['claims'][1]['evidence'][0])],
+        reason='既有上下文假设')]
+    patch=patch_for(value);rel=relation('shared_context','Redis 架构','维护缓存')
+    rel['proof'].update(means=None,work=None)
+    patch['relations']=[rel]
+    result=audit(value,patch)
+    assert result['analysis']['relations'][0]['basis']=='unknown'
+    assert result['analysis']['coverage']['relations']['status']=='partial'
+    assert '关系锚点缺失' in result['analysis']['relations'][0]['reason']
+    assert all(e['quote'] in value['analysis']['input_row']['raw_text']
+               for e in result['analysis']['relations'][0]['evidence'])
+
+
+def test_cross_sentence_context_with_anchored_activity_keeps_a_bounded_inference():
+    text='排查系统问题。要求掌握根因分析方法'
+    value=prior(text,'排查系统问题','根因分析方法')
+    patch=patch_for(value)
+    patch['relations']=[relation('shared_context','根因分析方法','排查系统问题')]
+    result=audit(value,patch)
+    assert result['analysis']['relations'][0]['basis']=='inferred'
+    assert '有限推测' in result['analysis']['relations'][0]['reason']
 
 
 def test_missing_instrumental_anchors_are_not_treated_as_a_successful_explicit_proof():

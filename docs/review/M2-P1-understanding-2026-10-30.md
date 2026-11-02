@@ -4,6 +4,8 @@
 
 **结论：独立入口、证据/版本校验、失败与部分保存已经实现，并实际运行九例 DEV。首轮 Review 对固定 head `6f1575b1629075499893d6eedc543233ad2ad361` 指出的五条错误 explicit、六项要求语义偏差和字段级作用域风险已完成定向修复；九例当前缓存重编译结果按冻结参照逐项对照为 199/199 个单位、184/184 条条件通过，四条已审直接用途 explicit 保留。** 该结论仍是 Agent 对照，不能记为 P1 业务通过；关系等级仍有 7 条保守 unknown 与冻结 inferred 精确不一致，5 条具体新增/原组边保持未决。本报告交 ChatGPT 独立复审；不自行合并，不启动 P2。
 
+第二轮 Review（固定 head `d638e73`）要求的 R1/R2/R3 已完成有限补证：无锚点关系不再生成新 inferred，DEV-05/DEV-09 已在最终源码上完成真实默认入口各两次请求，7 条 unknown 差异与 5 条未决关系已逐条归因。两例真实结果合计 40/43 单位完整匹配、3 部分、0 漏答，37/39 条件通过；R13 程度和 R04/R07 组合/共同条件仍有真实模型偏差，因此本轮仍不申请由 Codex 自行判定业务通过。
+
 ## 1. 范围与实际执行路径
 
 依据：[P1 方案](../superpowers/plans/2026-10-28-m2-core-delivery/P1-jd-analysis.md)、[总计划](../superpowers/plans/2026-10-28-m2-core-delivery-plan.md)、[产品决策 §3.11～3.13](../PRODUCT_DECISIONS.md#311-新底座最小职责组织与候选管理2026-10-28)、[P0 评价规范](../superpowers/specs/M2-P0-baseline.md)及[交付审核标准](../superpowers/specs/2026-10-28-m2-delivery-review-standard.md)。
@@ -109,6 +111,49 @@ P下界仅计冻结配对，P上界加尚未独立人审的有据新增；R下�
 
 有无已知阻断错误需同时看全部条件、D 项系统性缺口及关系；A/B 都通过不能掩盖误报明确关系。D 的单个错误不机械一票否决，交业务复核范围和系统性。真实关系缺口按稀疏人工记录逐项复核，不将组备注展开成全矩阵来制造召回分母。
 
+### 3.3 第二轮 Review：R1、R2、R3 有限修复
+
+Review 固定 head 为 `d638e7317bce34253714c9e3c6f656a81308768d`。本轮只处理该评论的 R1～R3，未修改 P0 标签、184 条件或 199 单位分母，也未读取或调用 HOLD。
+
+**R1 已解决。** [audit.py](../../backend/app/job_analysis/understanding/audit.py) 不再把缺少 `means/work` 的 `same_activity/shared_context` 直接发布为 `inferred`：新关系端点被拒收；原先已存在的稀疏端点若仍没有局部锚点，只保留有界 `unknown` 并将 relations 降为 partial。具备明确 `means/work` 和局部活动对应的跨句推断仍可为 `inferred`，原文直接表达“运用方法完成工作”的 explicit 仍保留。对应公开回归包括无实际工作关联、同名活动/共同对象/普通共现、带锚点跨句 inferred、直接 explicit、缺锚点补丁和新增 dense matrix 拒绝。真实 DEV-09 还暴露并修复了模型将嵌套 `requirement.reason` 省略、只提供外层 `reason` 的结构兼容问题；外层理由会确定性写入修订项，不改变模型语义。
+
+**R2 已完成两例最终源码真实默认入口。** 使用 DeepSeek 官方 `deepseek-v4-pro`、`reasoning_effort=max`、同一冻结 P0 输入，当前 `understanding.analyze` 默认入口真实执行主分析并在风险命中时执行一次审计；两次均为真实请求，不是缓存回放。
+
+最终两例 run 的 `analyzer_sha256` 均为 `2bb19b28bec2837922331d75106a0934d50490b507892c720b8bf7245563b508`；输入 SHA 分别为 DEV-05 `de95cc71bd3ef16cdebe237e647247c35db1c542f31c6500db705f8f99ea817f`、DEV-09 `7eaf74d95302cfa94e389fe1ca3b6ab31aa768765e568737694fabc2a03db174`，冻结 manifest SHA 为 `ff53b82ce3b5f42e764f9abe70768866a8d822e7edb4e25717200147a089dda7`。
+
+| DEV | 调用/阶段 | 最终 claims/relations | 单位匹配/部分/漏 | A/B/C/D | 真实新请求 Token；本地 pipeline 秒 | 发现 |
+|---|---:|---|---:|---|---:|---|
+| DEV-05 | 2（primary ok + audit partial） | 33 / 3 | 22 / 1 / 0 | 9/9、5/5、2/2、0/1 | 49,103；331.824 | R13 自驱/热情/钻研全保留，但“强烈”只结构化在技术热情，钻研精神 degree 丢失；D01 因此不通过 |
+| DEV-09 | 2（primary ok + audit partial） | 34 / 0 | 18 / 2 / 0 | 9/9、9/9、3/3、0/1 | 57,983；416.581 | R04 任一框架和可运行产出被拆成两个独立 preferred，AND/共同条件丢失；R07 工具开放清单被压成一个成员且为 single；D01 因此不通过 |
+
+两例合计 43 个人工 D/R 单位：40 完整匹配、3 部分、0 遗漏；37/39 条冻结条件通过。DEV-05 的三条最终关系为：问题排查方法→根因定位修复为正确 explicit；快速代码实现→平台开发为未独立人审的同句自关联；Java 经验→平台开发为有理由 unknown。DEV-09 最终没有发布关系；三条未冻结的具体推断只记为关系召回限制，不作为 TP 或负例。
+
+为了保留首轮九例证据的可复算性，本轮还用当前编译器对历史九例回包做了一次零网络重编译；除 analyzer 摘要外，九例分析逐字节语义相等，因此既有 199/199 与 184/184 Agent 对照仍按缓存口径保留。但这与上面的 DEV-05/09 fresh default 运行分账，不能用缓存结果声称九例默认流程全通过。
+
+所有第二轮真实请求逐组记录如下；“首次”只用于说明发现问题的真实失败，不作为最终效果。
+
+| 运行 | primary 秒 / tokens | audit 秒 / tokens | 总 pipeline 秒 / tokens | 结果 |
+|---|---:|---:|---:|---|
+| DEV-05 首次 | 194.910 / 26,160 | 130.667 / 23,429 | 325.797 / 49,589 | 31 claims、1 relation |
+| DEV-09 首次 | 180.307 / 26,061 | 150.323 / 26,338 | 330.863 / 52,399 | 29 claims、1 relation；14 条审计编辑结构拒收 |
+| DEV-05 最终 | 190.107 / 24,429 | 141.333 / 24,674 | 331.824 / 49,103 | 33 claims、3 relations |
+| DEV-09 最终 | 306.180 / 35,518 | 110.045 / 22,465 | 416.581 / 57,983 | 34 claims、0 relations |
+
+首次真实执行还额外暴露 DEV-09 审计编辑因缺少嵌套 reason 被整批拒收；该结构问题已先以失败测试复现、修复后重跑两例。DEV-05 首次结果 31 claims/1 relation，最终 33/3；DEV-09 首次 29/1 且 14 条要求编辑全部结构拒收，最终 34/0，只保留 3 条由 scope 证明不足导致的要求编辑拒绝。两次首次尝试和两次最终源码尝试共 8 次真实请求，均返回用量：209,074 tokens（命中 25,344、未命中 24,966），按 11-02 官方峰谷价估算 USD 0.3314～0.6628。最终两例的模型响应名均为 `deepseek-v4-pro`，系统指纹均为 `a307abda487cd1b463329ccb945ce396`；请求已核对仅含白名单 JD 字段和必要机器草稿，不含人工标签、Key、HOLD 或指纹。
+
+**R3 已逐条归因，未修改人工真值。** 原 7 条 `unknown`/冻结 `inferred` 差异中：DEV-02 编码/调试及可维护代码→开发维护 2 条，以及 DEV-05 书面表达→交付文档 1 条属于“错误保守”，来源有具体活动/对象联系但当前模型仍记为 unknown 或未输出；DEV-05 另外 4 条 Java 经验/基础/JVM→平台开发只由岗位标题和正文共同背景支撑，按 R1 判定为“合理未知”。原 5 条未决中：DEV-04 的单一 Java 技术→授课是未冻结的具体边，不得从组级参照展开；DEV-05 快速代码实现→平台开发是同一职责句的自关联，不增加 TP；DEV-09 的 RAG→知识库治理、数据敏感→评分口径、文字表达→对比报告均可作为带局部锚点的有限 inferred，但无具体人审边，本次默认运行未覆盖，只计关系召回限制。逐项 ID、原文上下文和裁决保存在私有 `r3-relation-adjudication.json`，公开报告不复制真实 JD。
+
+| 私有裁决 ID | 受控索引 | 裁决 |
+|---|---|---|
+| R3-01 / R3-02 | DEV-02：编码调试、可维护代码 → 开发维护 | 错误保守；需要局部锚点后恢复有限 inferred，本轮不计 TP |
+| R3-03～R3-06 | DEV-05：Java 经验、基础、框架、JVM → 平台开发 | 合理 unknown；标题/同岗位背景不足，不制造用途边 |
+| R3-07 | DEV-05：书面表达 → 交付文档 | 错误保守；具体文档输出有有限联系，模型未覆盖 |
+| R3-08 | DEV-04：单一 Java 基础 → 线上授课 | 未独立人审；冻结仅确认技术栈组级关系，不展开 |
+| R3-09 | DEV-05：快速代码实现 → 平台开发 | 同一职责句自关联；不增加关系 TP |
+| R3-10～R3-12 | DEV-09：RAG→知识库治理；数据敏感→评分；文字表达→对比报告 | 未独立人审的有界推断，本次未输出，只计召回限制 |
+
+本轮建议：R1 工程风险已关闭，R2 真实默认入口验证已完成，R3 的 12 条关系均有明确归因；P1 仍不应由 Codex 宣告业务通过。DEV-05 R13、DEV-09 R04/R07 是真实模型在当前固定配置下的局部语义偏差，且两例 D01 均未通过，是否构成阶段阻断由 ChatGPT 与负责人决定。
+
 ## 4. 合成实际模型检查与工程回归
 
 公开 [三例合成输入](../../backend/tests/fixtures/understanding/semantic-cases.json) 实际调用同一 Pro max：
@@ -125,8 +170,8 @@ P下界仅计冻结配对，P上界加尚未独立人审的有据新增；R下�
 
 | 命令（backend下） | 结果 |
 |---|---|
-| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **147 passed，退出0** |
-| `python -m pytest -m "not integration" -q --tb=short` | **1857 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
+| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **150 passed，退出0** |
+| `python -m pytest -m "not integration" -q --tb=short` | **1860 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
 | `python -m app.job_analysis.baseline approved-assertions <受控release> --manifest <冻结manifest> --approval <签审凭据>` | structurally_valid，9例/184条件/199单位，退出0；不代表本轮模型语义通过 |
 
 两项全量失败均在本次修改前的基线已复现，路径未改，原因是旧 canonical catalog 对产品决策文档的固定来源SHA已过期：
@@ -152,6 +197,8 @@ P下界仅计冻结配对，P上界加尚未独立人审的有据新增；R下�
 10-29 有一次真实 HTTP402，按官方[错误码](https://api-docs.deepseek.com/quick_start/error_codes/)保留失败。10-30 只读余额确认可用后才单独新 run 重试；没有自动重试、充值或覆盖失败。未取得可核销供应商账单，费用仅以实际 Token 和当日官方缓存/峰谷价格给估算区间；缺用量响应的费用保持未知，不能填 0。API 原始推理内容未用于人工真值。
 
 Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次网络错误无用量：实际输入 83,809 tokens（缓存命中 28,416、未命中 55,393），输出 188,784 tokens，总计 272,593。按 10-30 官方峰谷价估算新增 **USD 0.4110～0.8220**。当前 9 例 `review-final-20261102-final` 和默认入口 REPL 都是缓存重编译，0 网络请求、0 新增Token；单独保存原 API 时长/用量和本地编译耗时。加上原试通/主轮/补充，本阶段至今累计 52 次请求尝试、50 次返回用量、2 次无用量尝试，总计 1,203,247 tokens；这只是试通与修复成本，不作为每 JD 稳定成本。
+
+第二轮 Review 又执行 **8 次真实默认入口请求**（两轮 DEV-05/DEV-09，各 primary+audit），全部返回用量：209,074 tokens（缓存命中 25,344、未命中 24,966），按 11-02 官方峰谷价估算 **USD 0.3314～0.6628**。其中前一轮 DEV-09 的结构兼容失败已保留，最终两例另起新 run 重跑；没有用缓存结果冒充默认入口。当前阶段累计 60 次请求尝试、58 次返回用量、2 次无用量尝试，总计 1,412,321 tokens；累计估算 USD 2.2451～4.4901，仍不是供应商账单。
 
 少量 DEV 的时长不能证明 3,000条/12小时、稳定吞吐或真实服务器资源能力；当前实现轻量但没有完整批处理/服务性能验收。
 

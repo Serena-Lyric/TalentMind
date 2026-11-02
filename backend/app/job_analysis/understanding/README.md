@@ -40,8 +40,9 @@ python -m app.job_analysis.understanding audit <已保存私有run目录> --conf
 - 模型草稿使用逐字 `field/quote/occurrence`；程序决定 Python Unicode 代码点 `[start,end)`、namespace、JD身份和输入指纹。重复引文无 occurrence 时拒绝该项，不默选第一处；换行、空白和兼容字形不自动规范化。模型误把内容章节名当作缺失/空字段时，仅在引文于 `raw_text` 逐字唯一出现才改绑实际字段，记录 `grounding_adjustments`；已有字段不符、多处出现、非首 occurrence 不能这样修正。动态 Schema 只列真实非空字段。JS 消费端须另转 UTF-16。正文/字段副本只在语义结构完全相同时合并，保留全部来源并重映射关系；近义重复仍需语义审核。
 - 每个 claim/relation 单独校验，坏项不抹除其他有效项，被影响维度降为 partial；同 ID 多次出现一并拒绝，防止关系端点歧义。程序验证引文存在和结构，不证明自然语言语义正确。所有输出保持 `machine_unreviewed`，不得写回人工参照。
 - 定向审计不能扩大既有引文来“证明”限定词归属。`degree/condition` 必须给出 target、qualifier 和局部谓词/共享修饰/明确承接证明；要求组合的每个成员都必须落入可核验的限定范围。字段不同仅允许唯一完整字段副本映射；兼容字形查找须能映射回实际代码点，不能接受半个兼容展开或部分 ASCII 实体。
+- 审计修订项的嵌套 `requirement.reason` 可省略；程序只在缺少该字段时把同一修订项的外层 `reason` 写入，拒绝不同理由被静默混用。该兼容不放松 claim、引文、组合或限定词证明。
 - 字段级保留只在既有准确引文内扩充 scope；这不证明限定词语义上属于当前能力。非能力对象移除不适用的已知技能类别并审计。正向 required/preferred 的程度改写若不是连续原文，保留完整 text/evidence/state，将 degree/polarity 设 null 并记录未解析、降覆盖；不能把它读成“无程度要求”。审计不得静默擦除已有有效 degree。否定程度与无证据条件不做删除式救回，仍拒收，避免抹掉限定或扩大否定。
-- 关系强度由程序核验的源角色决定：同一活动或共享上下文最多 `inferred`；只有同句/有明确承接的“使用/利用/基于/借助某手段完成某项局部工作”且有正向前提、局部谓词和工作对象对齐时才可 `explicit`。同名动作、共同对象、简单共现和跨逗号的新增谓语不得升级；真实直接用途也不得被一律降为 unknown。审计必须处置全部既有关系端点；遗漏任一端点会把 relations 降为 partial，不能把“模型未返回”当成确认删除。
+- 关系强度由程序核验的源角色决定：同一活动或共享上下文只有同时给出可核查的 `means/work` 局部活动锚点时才可为 `inferred`；缺少锚点时，新端点不生成关系，既有端点最多保留有界 `unknown`。只有同句/有明确承接的“使用/利用/基于/借助某手段完成某项局部工作”且有正向前提、局部谓词和工作对象对齐时才可 `explicit`。同名动作、共同对象、简单共现和跨逗号的新增谓语不得升级；真实直接用途也不得被一律降为 unknown。审计必须处置全部既有关系端点；遗漏任一端点会把 relations 降为 partial，不能把“模型未返回”当成确认删除。
 - `analysis` 原样遵守 `m2-semantic-0.2`。P1 五维 coverage 可以 complete，但 `classification=not_run`，因此 aggregate `outcome=partial` 正常；`execution.status=ok` 也不表示人工验收通过。知识对齐留原成员、unknown 映射；正式岗位知识、P2/P3 尚未执行。
 - `execution.status` 单独区分 ok、partial、failed、not_run、no_recognized_results、empty、truncated、invalid_json、invalid_structure、timeout、http_error、network_error、invalid_response、refused、processor_error。没有完整识别结果与未提及、关系未知、未执行/失败不是同一概念。
 - 截断不补 JSON 括号。`length` 返回即使恰好有完整 JSON，也仅保留可校验事实并降覆盖；坏 JSON 只存原始内容供私有诊断，不声称从中完成分析。根结构不合法也不以局部键绕过检查。

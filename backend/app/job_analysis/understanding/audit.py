@@ -479,6 +479,11 @@ async def audit(prior, processor):
                              and isinstance(e.get("claim_id"), str))
             for index, raw in enumerate(patch.requirements):
                 try:
+                    raw=deepcopy(raw)
+                    if (isinstance(raw,dict) and isinstance(raw.get('requirement'),dict)
+                            and 'reason' not in raw['requirement']
+                            and isinstance(raw.get('reason'),str)):
+                        raw['requirement']['reason']=raw['reason']
                     edit = RequirementEdit.model_validate(raw)
                     if edit.claim_id not in required_ids or counts[edit.claim_id] != 1 or edit.claim_id in seen:
                         raise ValueError("foreign_or_duplicate_requirement_edit")
@@ -531,14 +536,13 @@ async def audit(prior, processor):
                         weak=PartialContextEdit.model_validate(raw)
                         if weak.duty_id not in origin or origin[weak.duty_id]['kind']!='duty' or weak.requirement_id not in required_ids:
                             raise ValueError('foreign_relation_endpoint')
-                        if (weak.proof.kind in {'cooccurrence','unknown'}
-                                and (weak.duty_id,weak.requirement_id) not in prior_relation_endpoints):
-                            raise ValueError('new_unknown_relation_endpoint')
-                        basis='inferred' if weak.proof.kind in {'same_activity','shared_context'} else 'unknown'
+                        if (weak.duty_id,weak.requirement_id) not in prior_relation_endpoints:
+                            raise ValueError('new_unanchored_relation_endpoint')
+                        basis='unknown'
                         references=origin[weak.duty_id]['evidence']+origin[weak.requirement_id]['evidence']
                         base['relations'].append(dict(duty_id=weak.duty_id,requirement_id=weak.requirement_id,basis=basis,
-                            evidence=[_locator(e,record) for e in references],reason='有限上下文假设，非雇主明示用途；模型解释：'+weak.reason+
-                            '；未细化到原聚合事实的子动作，不能据此确认所有子动作均有用途。'))
+                            evidence=[_locator(e,record) for e in references],reason='关系锚点缺失，仅保留有界未知；模型解释：'+weak.reason+
+                            '；两端引文存在不能证明具体工作联系。'))
                         issues.append(dict(kind='context_relation_partially_preserved',index=index,reason='role_anchors_not_supplied'))
                         continue
                     edit = RelationEdit.model_validate(raw)
