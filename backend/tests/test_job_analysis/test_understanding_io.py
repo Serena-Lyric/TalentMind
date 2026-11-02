@@ -57,6 +57,47 @@ def test_transport_uses_explicit_endpoint_and_retains_finish_and_usage():
     assert result.metadata["returned_model"] == "fixture-reply"
 
 
+def test_flash_protocol_uses_thinking_json_output_and_cache_usage_fields():
+    from app.job_analysis.understanding.cloud import CloudProcessor, CloudConfig
+
+    def handle(request):
+        body=json.loads(request.content)
+        assert body["model"]=="deepseek-flash"
+        assert body["thinking"]=={"type":"enabled"}
+        assert body["reasoning_effort"]=="max"
+        assert body["response_format"]=={"type":"json_object"}
+        assert "prompt_cache_key" not in body
+        return httpx.Response(200, json=dict(
+            id="flash-synthetic",
+            model="deepseek-flash",
+            system_fingerprint="flash-fingerprint",
+            choices=[dict(finish_reason="stop",message=dict(content='{"claims":[]}'))],
+            usage=dict(prompt_tokens=10,completion_tokens=2,total_tokens=12,
+                       prompt_cache_hit_tokens=4,prompt_cache_miss_tokens=6),
+        ))
+
+    settings={**config(),"provider":"DeepSeek official","model":"deepseek-flash",
+              "thinking":"enabled","reasoning_effort":"max"}
+    async def call():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as client:
+            return await CloudProcessor(
+                CloudConfig.model_validate(settings),"synthetic-test-value",client
+            ).complete([dict(role="user",content="synthetic")])
+    result=asyncio.run(call())
+    assert result.metadata["returned_model"]=="deepseek-flash"
+    assert result.metadata["usage"]["prompt_cache_hit_tokens"]==4
+    assert result.metadata["usage"]["prompt_cache_miss_tokens"]==6
+
+
+def test_shipped_config_example_selects_current_flash_alias_without_legacy_names():
+    example=json.loads((Path(__file__).parents[2]/"app/job_analysis/understanding/config.example.json")
+                       .read_text(encoding="utf-8"))
+    assert example["model"]=="deepseek-flash"
+    assert "V4.1-Flash-1017" in example["model_revision"]
+    assert example["thinking"] in {"enabled","disabled"}
+    assert example["reasoning_effort"] in {"low","high","max"}
+
+
 @pytest.mark.parametrize("kind,want", [("timeout", "timeout"), ("http", "http_error"),
                                           ("bad", "invalid_response"), ("refusal", "refused")])
 def test_provider_errors_are_safe_and_do_not_retry(kind, want):

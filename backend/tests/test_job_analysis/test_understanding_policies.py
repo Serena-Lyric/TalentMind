@@ -26,6 +26,32 @@ def test_open_tool_examples_without_a_quantifier_are_not_implicitly_any_of():
     assert (req['combination'],req['open_set'],req['state'])==('unresolved',True,'preferred')
 
 
+def test_open_example_suffix_is_not_counted_as_an_extra_member():
+    text='要求：日常使用 Atlas、Orion 等编辑工具者优先'
+    value=prior(text,text,'Atlas');patch=patch_for(value)
+    patch['requirements'][0]['requirement'].update(
+        state='preferred',members=['Atlas','Orion','等编辑工具'],
+        combination='unresolved',open_set=True,scope_evidence=[quote(text)]
+    )
+    result=audit(value,patch)
+    req=result['analysis']['claims'][1]['requirement']
+    assert req['members']==['Atlas','Orion']
+    assert req['open_set'] is True
+    assert any(change['rule']=='open_example_suffix_not_member'
+               for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+def test_open_example_normalization_keeps_named_term_starting_with_deng():
+    text='要求：熟悉等保认证'
+    value=prior(text,text,'等保认证');patch=patch_for(value)
+    patch['requirements'][0]['requirement'].update(
+        state='required',members=['等保认证'],
+        combination='single',open_set=False,scope_evidence=[quote(text)]
+    )
+    result=audit(value,patch)
+    assert result['analysis']['claims'][1]['requirement']['members']==['等保认证']
+
+
 @pytest.mark.parametrize('separator',['。','；','，'])
 def test_choice_quantifier_in_an_unrelated_clause_does_not_override_open_examples(separator):
     text=f'日常使用 Atlas、Orion 等工具{separator}英语或中文流利'
@@ -158,3 +184,78 @@ def test_explicitly_separate_or_all_required_competencies_are_not_downgraded():
         value=prior(text,text,'调度框架');patch=patch_for(value)
         patch['requirements'][0]['requirement'].update(state='required',scope_evidence=[quote(text)])
         assert audit(value,patch)['analysis']['claims'][1]['requirement']['state']=='required'
+
+
+def test_ordinary_word_expectation_does_not_look_like_soft_section():
+    text='公司期望扩展业务。候选人必须掌握 Redis'
+    value=prior(text,'扩展业务','Redis');patch=patch_for(value)
+    patch['requirements'][0]['requirement'].update(
+        state='required',scope_evidence=[quote('候选人必须掌握 Redis')]
+    )
+    result=audit(value,patch)
+    assert result['analysis']['claims'][1]['requirement']['state']=='required'
+    assert not any(change['rule']=='soft_section_not_required'
+                   for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+@pytest.mark.parametrize('header',['期望（不全满足也可以投）','我们更看重的东西'])
+def test_soft_section_cannot_be_upgraded_to_required(header):
+    text=f'开发系统。{header} 能独立解决问题'
+    value=prior(text,'开发系统','独立解决问题');patch=patch_for(value)
+    patch['requirements'][0]['requirement'].update(state='required',scope_evidence=[quote(text)])
+    result=audit(value,patch)
+    assert result['analysis']['claims'][1]['requirement']['state']=='preferred'
+    assert any(change['rule']=='soft_section_not_required'
+               for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+@pytest.mark.parametrize('later_section',['招聘流程','申请流程','联系方式','其他信息'])
+def test_later_hard_or_procedural_section_ends_the_soft_scope(later_section):
+    later=f'{later_section} 能独立解决问题并必须在现场完成'
+    text=f'开发系统。我们更看重的东西 软性参考项。{later}'
+    value=prior(text,'开发系统','独立解决问题');patch=patch_for(value)
+    patch['requirements'][0]['requirement'].update(
+        state='required',scope_evidence=[quote(later)]
+    )
+    result=audit(value,patch)
+    assert result['analysis']['claims'][1]['requirement']['state']=='required'
+    assert not any(change['rule']=='soft_section_not_required'
+                   for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+@pytest.mark.parametrize('later_section',['招聘流程','申请流程'])
+def test_flattened_procedural_heading_ends_the_soft_scope(later_section):
+    later=f'{later_section} 1. 简历初筛 2. 视频面试'
+    text=f'开发系统。期望（不全满足也可以投） 能独立解决问题 {later}'
+    value=prior(text,'开发系统','独立解决问题');patch=patch_for(value)
+    patch['requirements'][0]['requirement'].update(
+        state='required',scope_evidence=[quote(later)]
+    )
+    result=audit(value,patch)
+    assert result['analysis']['claims'][1]['requirement']['state']=='required'
+    assert not any(change['rule']=='soft_section_not_required'
+                   for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+def test_preferred_choice_keeps_shared_runnable_output_as_condition():
+    sentence='期望（不全满足也可以投） 用过 Atlas 或 Orion 框架，做出过能跑起来的东西'
+    text=f'开发系统。{sentence}'
+    row=dict(id='soft-condition',source='synthetic',job_title='测试',raw_text=text)
+    data=draft();data['claims']=[claim('d1','duty','开发系统')]
+    choice=requirement(['Atlas','Orion'])
+    choice.update(state='preferred',target='capability',combination='any_of',open_set=True,
+                  scope_evidence=[quote(sentence)])
+    output=requirement(['做出过能跑起来的东西'])
+    output.update(state='preferred',target='experience',category=None,combination='single',
+                  scope_evidence=[quote(sentence)])
+    data['claims'] += [claim('r1','requirement','用过 Atlas 或 Orion 框架',choice),
+                       claim('r2','requirement','做出过能跑起来的东西',output)]
+    value=run(data,row=row);patch=patch_for(value)
+    result=audit(value,patch)
+    req=next(c['requirement'] for c in result['analysis']['claims'] if c['id']=='r1')
+    assert req['state']=='preferred'
+    assert req['condition']=='做出过能跑起来的东西'
+    evidence=req['scope_evidence'][0]
+    assert text[evidence['start']:evidence['end']]==evidence['quote']
+    assert any(change['rule']=='soft_choice_shared_output_condition'
+               for change in result['execution']['metadata']['semantic_policy_adjustments'])

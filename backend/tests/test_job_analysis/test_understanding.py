@@ -33,7 +33,7 @@ def draft():
                 relations=[])
 
 
-def run(data, *, row=None, finish="stop", status="ok", prior=None):
+def run(data, *, row=None, finish="stop", status="ok", prior=None, requests=None):
     from app.job_analysis.understanding.core import analyze
     from app.job_analysis.understanding.processor import Completion
 
@@ -41,18 +41,36 @@ def run(data, *, row=None, finish="stop", status="ok", prior=None):
         descriptor = {"provider": "synthetic", "model": "fixture", "model_revision": "handwritten-1"}
 
         async def complete(self, messages):
+            if requests is not None:
+                requests.append(deepcopy(messages))
             assert "human_labels" not in messages[-1]["content"]
             assert '"scope_evidence"' in messages[0]["content"]
             assert '"$defs"' in messages[0]["content"]
             schema = json.loads(messages[0]["content"].rsplit("\n", 1)[1])
             allowed = schema["$defs"]["Locator"]["properties"]["field"]["enum"]
-            assert set(allowed) == {k for k, v in (row or ROW).items()
-                                    if k in {"job_title", "raw_text", "duties", "requirements", "experience"} and v}
+            assert set(allowed) == {
+                "job_title", "raw_text", "duties", "requirements", "experience"
+            }
+            assert set(json.loads(messages[1]["content"])) == {
+                k for k, v in (row or ROW).items()
+                if k in allowed and v
+            }
             return Completion(content=data if isinstance(data, str) else json.dumps(data, ensure_ascii=False),
                               finish_reason=finish, status=status, metadata={})
 
     options = {"prior": prior} if prior is not None else {}
     return asyncio.run(analyze("synthetic", row or deepcopy(ROW), "v1", Processor(), **options))
+
+
+def test_system_prompt_prefix_is_stable_across_available_field_shapes():
+    first=deepcopy(ROW)
+    second=deepcopy(first)
+    second["duties"]="合成职责"
+    requests=[]
+    run(draft(),row=first,requests=requests)
+    run(draft(),row=second,requests=requests)
+    assert requests[0][0]["content"]==requests[1][0]["content"]
+    assert requests[0][1]["content"]!=requests[1][1]["content"]
 
 
 def test_actual_entry_binds_codepoint_evidence_and_keeps_classification_not_run():

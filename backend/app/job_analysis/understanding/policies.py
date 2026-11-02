@@ -5,7 +5,7 @@ import unicodedata
 
 from .core import locate
 
-POLICY_VERSION = "p1-source-constraints-1"
+POLICY_VERSION = "p1-source-constraints-3"
 
 
 def _normal(value):
@@ -60,11 +60,68 @@ def _local_quantifier_context(req,record):
     return '\n'.join(dict.fromkeys(clauses))
 
 
+def _section_positions(text,labels,*,whitespace_delimited=False):
+    boundary=r'(?:^|[\r\n。；;！？!?])'
+    positions=[match.start() for match in re.finditer(
+        rf'{boundary}[ \t]*(?:{labels})',text,flags=re.MULTILINE)]
+    if whitespace_delimited:
+        positions.extend(match.start() for match in re.finditer(
+            rf'(?<!\S)(?:{labels})(?=\s|[:：]|$)',text,flags=re.MULTILINE))
+    return sorted(set(positions))
+
+
+def _soft_section(text,start):
+    prefix=text[:start]
+    hard=_section_positions(
+        prefix,
+        r'硬性|任职要求|任职资格|职位要求|岗位要求|岗位职责|工作职责|'
+        r'职位描述|招聘流程|申请|投递|联系方式|其他信息|工作地点')
+    hard.extend(_section_positions(
+        prefix,
+        r'硬性|任职要求|任职资格|职位要求|岗位要求|岗位职责|工作职责|'
+        r'职位描述|招聘流程|申请流程|投递方式|联系方式|其他信息|工作地点',
+        whitespace_delimited=True))
+    hard=sorted(set(hard))
+    soft=_section_positions(
+        prefix,r'期望(?:（[^）]*）|\([^)]*\))?|我们更看重')
+    return bool(soft and (not hard or soft[-1]>hard[-1]))
+
+
+def _scope_positions(req,record):
+    return [locate(evidence,record) for evidence in req['scope_evidence']]
+
+
+def _is_open_example_marker(member):
+    value=_normal(member)
+    return value=='等' or bool(re.fullmatch(
+        r'等.{0,16}(?:工具|框架|语言|技术|协议|方法|产品|实践|能力|选项|方案|平台|系统)',
+        value))
+
+
 def apply_constraints(claims,record,inside):
     claims=deepcopy(claims);changes=[]
     for claim in claims:
         req=claim['requirement']
         if not req:continue
+        scopes=_scope_positions(req,record)
+        if req['state']=='required' and any(
+                _soft_section(record.payload[e['field']],e['end']) for e in scopes):
+            req['state']='preferred'
+            req['reason']='来源位于“期望”或“更看重”软性章节，状态降为 preferred，不升级硬性门槛；原对象、组合、程度及证据保留。'
+            claim['reason']=req['reason']
+            changes.append(dict(rule='soft_section_not_required',claim_ids=[claim['id']],
+                                before='required',after='preferred'))
+        if req['open_set']:
+            markers=[member for member in req['members'] if _is_open_example_marker(member)]
+            if markers and len(markers)<len(req['members']):
+                before=list(req['members'])
+                req['members']=[member for member in req['members']
+                                if not _is_open_example_marker(member)]
+                req['reason']='开放集合标记由 open_set 表达，不把“等…”计作具名成员；保留全部原示例与未知范围。'
+                claim['reason']=req['reason']
+                changes.append(dict(rule='open_example_suffix_not_member',
+                                    claim_ids=[claim['id']],before=before,
+                                    after=list(req['members'])))
         # Normalize for semantic cue recognition only; locators retain original bytes/offsets.
         context=_local_quantifier_context(req,record)
         if req['target']=='capability' and req['combination']=='single' and all(re.search(r'(?:习惯|态度)$',m) for m in req['members']):
@@ -156,4 +213,37 @@ def apply_constraints(claims,record,inside):
                 handled.add(c['id'])
             changes.append(dict(rule='mixed_nominal_capability_not_independent_mandates',claim_ids=[c['id'] for c in chosen],source=source,
                                 after=dict(state=state,target=target,degree=degree,combination='unresolved')))
+    groups={}
+    for claim in claims:
+        req=claim['requirement']
+        if not req or req['state']!='preferred':continue
+        scopes=_scope_positions(req,record)
+        if len(scopes)==1:
+            e=scopes[0]
+            groups.setdefault((e['field'],e['start'],e['end']),[]).append((claim,e))
+    for group in groups.values():
+        if len(group)<2:continue
+        choices=[item for item in group if item[0]['requirement']['target']=='capability'
+                 and item[0]['requirement']['combination'] in {'any_of','unresolved'}]
+        outputs=[item for item in group if item[0]['requirement']['target']=='experience']
+        for claim,scope in choices:
+            req=claim['requirement']
+            if req['condition'] is not None:continue
+            source=record.payload[scope['field']][scope['start']:scope['end']]
+            if not re.search(r'或|任选|任一|任意|至少',source):continue
+            candidates=[]
+            for output,_ in outputs:
+                for member in output['requirement']['members']:
+                    if len(_normal(member))>=2 and member in source:
+                        candidates.append((len(member),member))
+            if not candidates:continue
+            _,condition=max(candidates)
+            locator=_loc(scope['field'],scope['start']+source.index(condition),
+                         scope['start']+source.index(condition)+len(condition),record)
+            if locator not in req['scope_evidence']:req['scope_evidence'].append(locator)
+            req['condition']=condition
+            req['reason']='软性选择项与同一句的产出共同构成条件；任一框架选择保留，同时不丢失可运行产出要求。'
+            claim['reason']=req['reason']
+            changes.append(dict(rule='soft_choice_shared_output_condition',
+                                claim_ids=[claim['id']],condition=condition))
     return claims,changes

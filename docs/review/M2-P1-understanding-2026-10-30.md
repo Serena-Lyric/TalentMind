@@ -6,6 +6,8 @@
 
 第二轮 Review（固定 head `d638e73`）要求的 R1/R2/R3 已完成有限补证：无锚点关系不再生成新 inferred，DEV-05/DEV-09 已在最终源码上完成真实默认入口各两次请求，7 条 unknown 差异与 5 条未决关系已逐条归因。两例真实结果合计 40/43 单位完整匹配、3 部分、0 漏答，37/39 条件通过；R13 程度和 R04/R07 组合/共同条件仍有真实模型偏差，因此本轮仍不申请由 Codex 自行判定业务通过。
 
+第三次 Review 指定的 Flash-1017 迁移已完成：新调用只使用 `deepseek-flash`，稳定主理解/审计前缀和协议 Mock 已落地。真实 DEV-05/DEV-09 Flash 回包经最终策略编译后为 42/43 单位完整、1 部分、0 漏答，39/39 条件通过；R13、R04 AND 条件和 R07 开放组合已修复，剩余 R01 的 target/condition 结构误配仍如实保留，因此仍不自行宣告完整业务通过。
+
 ## 1. 范围与实际执行路径
 
 依据：[P1 方案](../superpowers/plans/2026-10-28-m2-core-delivery/P1-jd-analysis.md)、[总计划](../superpowers/plans/2026-10-28-m2-core-delivery-plan.md)、[产品决策 §3.11～3.13](../PRODUCT_DECISIONS.md#311-新底座最小职责组织与候选管理2026-10-28)、[P0 评价规范](../superpowers/specs/M2-P0-baseline.md)及[交付审核标准](../superpowers/specs/2026-10-28-m2-delivery-review-standard.md)。
@@ -51,7 +53,7 @@ python -X utf8 -m app.job_analysis.understanding audit <旧私有run目录> --co
 - 外发白名单为 job_title/raw_text/duties/requirements/experience；不发送来源身份/URL、人工标签、签审或完整库。九例发送字段的手机号/邮箱筛查匹配均为 0，无文本变换、偏移映射变化或 HOLD/历史 ZIP 内容读取。
 - 负责人选择 DeepSeek 官方账户并本地配置 Key。端点固定 `https://api.deepseek.com/chat/completions`，不继承旧代理网关、环境代理、重定向或自动收费降级。账户账单区域接口未提供，不补造；不能把中国通用存储说明当账户区域实测。
 - 调用前核对官方 [模型/价格](https://api-docs.deepseek.com/quick_start/pricing/)、[开放平台条款](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html)、[隐私政策](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html)，核对日期 10-29，继续调用时 10-30 再核模型/价格/错误码。所查来源未提供明确适用于本 API 输入的固定保留期限/不训练承诺，不宣称零保留；通用隐私政策也不能直接替代下游 API 数据协议。
-- 文档宣称映射：`deepseek-v4-pro` → DeepSeek-V4-Pro-0813，`deepseek-flash` → DeepSeek-V4.1-Flash-1017；实际返回名/系统指纹逐 run 记录，别名不是固定权重证明。Pro 高推理、Flash 非思考、Pro max 的尝试分开保存；本地模型仍是“暂未尝试”。
+- 文档宣称映射：`deepseek-v4-pro` → DeepSeek-V4-Pro-0813，`deepseek-flash` → DeepSeek-V4.1-Flash-1017；实际返回名/系统指纹逐 run 记录，别名不是固定权重证明。Pro 高推理、早期 Flash 非思考试探、Pro max 与当前 Flash-1017 thinking+max 分开保存；本地模型仍是“暂未尝试”。
 
 私有根 `data/local/m2-p1-20261029/` 保存原交付请求、机器内容、源依赖、阶段配置、调用费用审计和逐例对照；Review 修复证据另在 `data/local/m2-p1-review-20261030/`，保留 12 次实际请求、当前九例缓存重编译、逐项评价、费用和 SHA 绑定。Key 文件不进入任何提交/证据清单。P0 根仍为 `data/local/m2-p0-20261028/`。可按输入/分析/原字节 SHA 受控复核；公共报告只提供安全汇总，不公开真实全文或回包。
 
@@ -154,6 +156,42 @@ Review 固定 head 为 `d638e7317bce34253714c9e3c6f656a81308768d`。本轮只处
 
 本轮建议：R1 工程风险已关闭，R2 真实默认入口验证已完成，R3 的 12 条关系均有明确归因；P1 仍不应由 Codex 宣告业务通过。DEV-05 R13、DEV-09 R04/R07 是真实模型在当前固定配置下的局部语义偏差，且两例 D01 均未通过，是否构成阶段阻断由 ChatGPT 与负责人决定。
 
+### 3.4 第三次 Review：Flash-1017 迁移与有限质量验证
+
+ChatGPT 第三次 Review（head `9bf52753d308d5a6b5f4bba134716a6ea3178b5f`，review `5731294245`）接受 R1/R2/R3 的工程修复，但要求后续新调用仅使用 `deepseek-flash`、优化自动上下文缓存，并针对 DEV-05/DEV-09 的核心语义边界给出真实结果或明确不可修复边界。
+
+2026-11-02 直接核对 DeepSeek [更新记录](https://api-docs.deepseek.com/updates/)、[模型与价格](https://api-docs.deepseek.com/quick_start/pricing/)、[Chat API](https://api-docs.deepseek.com/api/create-chat-completion/)、[thinking](https://api-docs.deepseek.com/guides/thinking_mode/)、[JSON output](https://api-docs.deepseek.com/guides/json_mode/)与 [KV cache](https://api-docs.deepseek.com/guides/kv_cache/) 官方文档：2026-10-17 更新页明确 `deepseek-flash` 对应 `DeepSeek-V4.1-Flash-1017`；Flash 支持 thinking/非 thinking、`reasoning_effort=low/high/max` 和 `response_format={"type":"json_object"}`。磁盘缓存自动启用，按完整 cache prefix unit best-effort 命中，响应提供 `prompt_cache_hit_tokens`/`prompt_cache_miss_tokens`。本轮未发送 `prompt_cache_key`，未将历史 Pro 结果改标为 Flash。
+
+协议与缓存改动：
+
+- [config.example.json](../../backend/app/job_analysis/understanding/config.example.json) 改用 `model="deepseek-flash"`，MockTransport 覆盖 thinking、max effort、JSON object、cache hit/miss、禁止 `prompt_cache_key` 和实际返回模型校验。
+- 主理解/审计的 Locator Schema 固定列五个公开文本字段，不再把“当前字段是否存在”嵌入 system Schema；真实非空字段仍只在后续 user 内容发送，定位器引用缺失字段仍会被程序拒收。主理解和审计各自拥有一个跨样本稳定的 system 前缀，公共提示与可共享 Schema SHA 写入 run 与私有缓存报告。
+- 主理解提示版本从 `1` 升为 `2`；历史 Pro run 保留原版本。固定前缀分别为主理解 `be7dd686a157f9892304cda9363d065d9e6c914cf0a1caabdc2da1bd297c7b91`（14,000 bytes）和审计 `69f089a0bd6064bc431f6e898c1bbc4cec3835734439a3d0091718e231ccc88a`（7,056 bytes）；canonical Schema SHA 分别为 `f3821b5832d8d15925b89b4874bc5333b1146ada1b9689c3790e066edaba1f0a` 与 `96a52dc43ead330cca5727c0bd6227d30ecdc432a0f3b2ffe99913a83a3bdd48`。没有为缓存删除原文、职责作用域或 JSON 语义。
+- [policies.py](../../backend/app/job_analysis/understanding/policies.py) 增加来源章节约束：“期望/更看重”下的 required 降为 preferred，并在后续招聘/申请/联系方式等明确标题处结束软性范围；同一软性任选能力与可运行产出共享同句时，将产出作为能力 requirement 的精确 condition，避免两个 preferred 拆分丢失 AND。
+
+Flash 真实默认入口共执行 5 次请求：DEV-05 primary+audit；DEV-09 首次 primary；DEV-09 同配置/同输入一次重试的 primary+audit。首次 DEV-09 返回 HTTP 200、`finish_reason=stop`、39,393 completion tokens，但缺少一个右花括号，程序保留 `invalid_json`，未补括号。因该失败不是长度截断，执行一次不修改提示词/模型/输入的诊断重试；若再次失败会停止。
+
+| 运行 | primary 秒 / tokens（hit/miss） | audit 秒 / tokens（hit/miss） | pipeline 秒 / tokens | 缓存命中率 |
+|---|---:|---:|---:|---:|
+| DEV-05 Flash | 170.340 / 36,583（0/3,934） | 272.455 / 58,956（0/7,746） | 443.113 / 95,539 | 0% / 0% |
+| DEV-09 首次 invalid | 216.613 / 44,322（3,200/1,729） | — | 216.628 / 44,322 | 64.9% |
+| DEV-09 retry1 | 181.835 / 37,766（4,736/193） | 135.497 / 34,504（1,664/7,197） | 317.553 / 72,270 | 96.1% / 18.8% |
+
+5 次请求均有用量：总计 212,131 tokens（cache hit 9,600、miss 20,799、completion 181,732），按 Flash 官方峰谷价估算 **USD 0.1122～0.2244**。实际返回模型均为 `deepseek-flash`，系统指纹均为 `bc19ba97cbe016479903222bb1578db6`。DEV-09 重试输入和请求 SHA 与首次 primary 相同，命中率变化来自服务端缓存状态，不宣称固定命中保证。
+
+真实 Flash 原始运行的 `analyzer_sha256` 为 `dff81c819902b2963a4fc7b36a8d547fc02ab8435f09a0b40770769c72ded961`；加入最终软性章节、开放示例尾词和共享产出约束（`p1-source-constraints-3`）后，当前确定性与零网络重编译的 `analyzer_sha256` 为 `a825df31ffaba77d5baa42531cec37bc430e1f0c50e507038efc008440aee853`。重编译目录为私有 `runs-compiled-20261102-final-head/`；源码固定 commit 以 PR 描述中的完整 head 为准。
+
+最终策略对真实 Flash 回包作 0 网络请求重编译，结果如下：
+
+| DEV | 单位匹配/部分/漏 | A/B/C/D | 关键结果 |
+|---|---:|---|---|
+| DEV-05 | 23 / 0 / 0 | 9/9、5/5、2/2、1/1 | R13 技术热情与钻研精神均保留“强烈”；17/17 条件通过 |
+| DEV-09 | 19 / 1 / 0 | 9/9、9/9、3/3、1/1 | R04 任一框架保留且“可运行产出”成为 condition；R07 恢复四项成员、open_set 与 unresolved；R08-R10 恢复 preferred；22/22 条件通过 |
+
+两例合计 **42/43 单位完整、1 partial、0 missing，39/39 条件通过**。唯一 partial 是 DEV-09 R01：可验证产出的四项材料、any_of 和总括文本均保留，但 target 被模型写成 experience、condition 写成“投递时”，没有准确保存“有可验证产出是申请人条件”的字段语义。该偏差没有通过硬编码 DEV 文本或追满分掩盖。
+
+最终建议：Flash-1017 路径在指定两例上将核心 R13/R04/R07 边界修正到冻结合格，工程与缓存协议可用；P1 仍不应自我批准为完整业务通过，需 ChatGPT 判断单条 R01 结构误配和既有 sparse-relation 召回限制是否构成验收阻断。
+
 ## 4. 合成实际模型检查与工程回归
 
 公开 [三例合成输入](../../backend/tests/fixtures/understanding/semantic-cases.json) 实际调用同一 Pro max：
@@ -170,9 +208,11 @@ Review 固定 head 为 `d638e7317bce34253714c9e3c6f656a81308768d`。本轮只处
 
 | 命令（backend下） | 结果 |
 |---|---|
-| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **150 passed，退出0** |
-| `python -m pytest -m "not integration" -q --tb=short` | **1860 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
+| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **167 passed，退出0** |
+| `python -m pytest -m "not integration" -q --tb=short` | **1877 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
 | `python -m app.job_analysis.baseline approved-assertions <受控release> --manifest <冻结manifest> --approval <签审凭据>` | structurally_valid，9例/184条件/199单位，退出0；不代表本轮模型语义通过 |
+| `python -m compileall -q app/job_analysis/understanding` | 退出0 |
+| 修改 Markdown 相对链接只读检查 | 5个文件、48个相对链接、0 broken，退出0 |
 
 两项全量失败均在本次修改前的基线已复现，路径未改，原因是旧 canonical catalog 对产品决策文档的固定来源SHA已过期：
 
@@ -200,6 +240,8 @@ Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次�
 
 第二轮 Review 又执行 **8 次真实默认入口请求**（两轮 DEV-05/DEV-09，各 primary+audit），全部返回用量：209,074 tokens（缓存命中 25,344、未命中 24,966），按 11-02 官方峰谷价估算 **USD 0.3314～0.6628**。其中前一轮 DEV-09 的结构兼容失败已保留，最终两例另起新 run 重跑；没有用缓存结果冒充默认入口。当前阶段累计 60 次请求尝试、58 次返回用量、2 次无用量尝试，总计 1,412,321 tokens；累计估算 USD 2.2451～4.4901，仍不是供应商账单。
 
+第三轮 Flash-1017 真实调用共 5 次（含一次 malformed JSON 失败和一次同输入诊断重试），均返回用量：212,131 tokens（缓存命中 9,600、未命中 20,799、输出 181,732），按 Flash 官方峰谷价估算 **USD 0.1122～0.2244**。阶段累计 65 次请求尝试、63 次返回用量、2 次无用量尝试，共 1,624,452 tokens；累计估算 USD 2.3573～4.7145，仍不是供应商账单。
+
 少量 DEV 的时长不能证明 3,000条/12小时、稳定吞吐或真实服务器资源能力；当前实现轻量但没有完整批处理/服务性能验收。
 
 ## 6. 私有证据、维护及审核交接
@@ -207,6 +249,7 @@ Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次�
 - `runs/pro-v1`、`flash-v2`、`pro-v3`、`pro-v4`、`pro-v4-retry` 保留原始试验，`pro-v5` 为最后主轮，`pro-v5-refined` 为显式补充。早期 v3 在开发编辑期间曾按磁盘字节重算 worker 版本，是原型记录限制；最后主轮和补充已在载入时固定实际代码摘要，不借后续源码改标旧结果。
 - `evaluation/pro-v4`、`pro-v4-retry`、`pro-v5`、`pro-v5-refined`、`final-compiled` 是有摘要绑定的逐项 Agent 对照，不改变 annotations。`evaluation-summary.json` 汇总完整配对；`delivery-manifest.json` 绑定最终证据及选择方案（187文件，清单SHA `07fdcf7006591ab91eb7f6781102b2b0826aa28e1a18a3c45179e51af67961b2`）；费用清单记录所有真实请求，排除重编译的重复 Token，而非只计成功或最好结果。
 - Review 修复私有根 `data/local/m2-p1-review-20261030/` 保存 `runs/audit-v1`、`runs/audit-v2` 原请求/回包，`runs/review-final-20261102-final` 最终确定性重编译，`evaluation/review-final-20261102-final` 逐项对照，`review-final-20261102-final-verification.json` 的 199/184 完整性断言、费用审计及待推送 head 的证据清单。目录内 `api-key.txt` 仅本地存在，绝不进入公开清单。
+- 第三轮 Flash 私有根 `data/local/m2-p1-review3-20261102/` 保存 5 次真实请求/用量/系统指纹、首次 malformed JSON、同输入诊断重试、主理解与审计缓存前缀摘要、最终目录 `runs-compiled-20261102-final-head/` 的零网络重编译、DEV-05/09 逐单位对照、策略前后差异、请求安全检查和费用审计。私有证据清单为 `evidence-manifest-20261102.json`（64 个文件），SHA-256 `2a0db8c6eac0191e698c8ec99431afcf95b51e4fab44f908f22e122994d04dba`；清单排除 API Key、HOLD、未批准数据、self-referential 阶段报告和过时测试日志，最终代码 head 以 PR 描述为准。
 - 本次全量业务测试沿仓库安全默认跳过需隔离实例的 integration；没有启动正式 DB/Neo4j、迁移、真实采集或导入。文件夹具用唯一名并 finally/临时目录精确清理，残留核对为 0；不虚报正式库计数/未查询的健康状态。
 - 阶段报告保持全仓五份：移除最旧 2026-10-21 统一报告，相关引用固定到原 Git 提交；长期使用入口与限制更新到模块 README/资产状态/陷阱。未移动、删除真实数据、P0 原件或私有旧回包。
 - P2/P3 可以审阅 P1 接口/覆盖/部分结果，但不能将当前仍有关键问题的机器语义当已审依赖或自动开工；无正式知识归一化/岗位判断、无真实市场/HOLD 独立验收，B/C 仍未裁决。

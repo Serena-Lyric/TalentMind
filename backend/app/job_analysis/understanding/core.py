@@ -169,8 +169,6 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
     if not namespace.strip() or not input_version.strip():
         raise ValueError("explicit_input_version_and_namespace_required")
     schema = DraftSchema.model_json_schema()
-    schema["$defs"]["Locator"]["properties"]["field"]["enum"] = [
-        k for k in ("raw_text", "job_title", "duties", "requirements", "experience") if record.payload.get(k)]
     prompt = (PROMPT_PATH.read_text(encoding="utf-8") +
               "\n严格遵守以下实际 JSON Schema，所有 required 字段不可省略：\n" + canonical(schema))
     descriptor = deepcopy(processor.descriptor)
@@ -193,7 +191,7 @@ async def analyze(namespace: str, row: dict, input_version: str, processor: Proc
                     input_row=deepcopy(row), input_sha256=record.fingerprint, input_version=input_version,
                     analyzer=version("p1-understanding", "1", deps),
                     model=version(descriptor["model"], descriptor["model_revision"], descriptor),
-                    prompt=version("p1-chinese-jd", "1", dict(system=prompt, refinement=REFINE_INSTRUCTION)
+                    prompt=version("p1-chinese-jd", "2", dict(system=prompt, refinement=REFINE_INSTRUCTION)
                                    if prior is not None else prompt),
                     configuration=version("p1-processor", "1", descriptor), knowledge=[],
                     outcome="failed", coverage=coverage, claims=[], relations=[], alignments=[],

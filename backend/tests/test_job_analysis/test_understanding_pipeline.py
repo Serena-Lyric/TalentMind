@@ -62,3 +62,22 @@ def test_audit_transport_failure_keeps_primary_facts_but_does_not_publish_unveri
     assert result['primary_run']['analysis']['relations'][0]['basis']=='explicit'
     assert result['pipeline']['usage_status']=='partial'
     assert result['pipeline']['total_usage']['total_tokens']==12
+
+
+def test_soft_section_constraint_triggers_audit_without_other_semantic_risks():
+    from app.job_analysis.understanding import understand
+    old=prior("开发系统。期望（不全满足也可以投） 能独立解决问题","开发系统","独立解决问题")
+    raw=json.loads(old["completion"])
+    raw["claims"][1]["requirement"]["state"]="required"
+    patch=patch_for(old)
+    patch["requirements"][0]["requirement"]["state"]="required"
+    p=Fixture([response(raw),response(patch)])
+    result=asyncio.run(understand(
+        "synthetic",old["analysis"]["input_row"],"v1",p
+    ))
+    assert len(p.requests)==2
+    assert result["pipeline"]["processor_calls"]==2
+    assert result["pipeline"]["risks"]==["source_constraint_conflict"]
+    req=next(c["requirement"] for c in result["analysis"]["claims"]
+             if c["kind"]=="requirement")
+    assert req["state"]=="preferred"

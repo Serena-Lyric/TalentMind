@@ -72,6 +72,18 @@ def test_same_named_activity_is_inferred_not_employer_explicit_usage():
     assert result["request"][0]["content"].startswith("你是中文JD的定向语义复核器")
 
 
+def test_audit_system_prefix_is_stable_across_available_field_shapes():
+    from test_understanding import run
+    first=prior("维护缓存。熟悉 Redis","维护缓存","Redis")
+    second_row=deepcopy(first["analysis"]["input_row"])
+    second_row["duties"]="额外合成职责字段"
+    second=run(json.loads(first["completion"]),row=second_row)
+    one=audit(first,patch_for(first))
+    two=audit(second,patch_for(second))
+    assert one["request"][0]["content"]==two["request"][0]["content"]
+    assert one["request"][1]["content"]!=two["request"][1]["content"]
+
+
 @pytest.mark.parametrize("text,cue,bridge", [
     ("使用 Redis 完成任务存储", "使用", None),
     ("使用 Redis。该工具用于任务存储", "使用", "用于"),

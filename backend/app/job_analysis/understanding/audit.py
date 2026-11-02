@@ -448,8 +448,6 @@ async def audit(prior, processor):
     seen_relation_endpoints = set()
     subjects = [m for c in previous["claims"] if c["requirement"] for m in c["requirement"]["members"]]
     schema = PatchSchema.model_json_schema()
-    schema["$defs"]["Locator"]["properties"]["field"]["enum"] = [k for k in
-        ("raw_text", "job_title", "duties", "requirements", "experience") if record.payload.get(k)]
     messages = [dict(role="system", content=INSTRUCTION + "\n" + canonical(schema)),
                 dict(role="user", content=canonical(dict(
                     input={k: record.payload[k] for k in ("job_title", "raw_text", "duties", "requirements", "experience") if k in record.payload},
