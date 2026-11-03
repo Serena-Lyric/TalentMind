@@ -5,7 +5,7 @@ import unicodedata
 
 from .core import locate
 
-POLICY_VERSION = "p1-source-constraints-3"
+POLICY_VERSION = "p1-source-constraints-4"
 
 
 def _normal(value):
@@ -124,6 +124,19 @@ def apply_constraints(claims,record,inside):
                                     after=list(req['members'])))
         # Normalize for semantic cue recognition only; locators retain original bytes/offsets.
         context=_local_quantifier_context(req,record)
+        if (req['target']=='experience' and req['condition'] is not None
+                and re.search(r'(?:投递|申请|提交)(?:时|阶段|前)',req['condition'])
+                and re.search(r'(?:附上?|提供|提交|上传)',context)
+                and re.search(r'作品集|项目链接|技术文章|GitHub|证明|材料',context,re.IGNORECASE)
+                and not re.search(r'\d+\s*年|工作经历|实习经历|项目经验|从业经验|年限',context)):
+            before=dict(target=req['target'],condition=req['condition'])
+            req['target']='unresolved'
+            req['condition']=None
+            req['reason']='来源要求申请材料中的可验证产物，但现有目标枚举不能无歧义地归为能力或经验；目标有界保留为 unresolved，不把申请阶段误作资格条件。'
+            claim['reason']=req['reason']
+            changes.append(dict(rule='application_artifact_target_unresolved',
+                                claim_ids=[claim['id']],before=before,
+                                after=dict(target=req['target'],condition=req['condition'])))
         if req['target']=='capability' and req['combination']=='single' and all(re.search(r'(?:习惯|态度)$',m) for m in req['members']):
             if req['category']!='soft_skill':
                 changes.append(dict(rule='disposition_not_execution_method',claim_ids=[claim['id']],before=req['category'],after='soft_skill'))
@@ -230,16 +243,30 @@ def apply_constraints(claims,record,inside):
             req=claim['requirement']
             if req['condition'] is not None:continue
             source=record.payload[scope['field']][scope['start']:scope['end']]
-            if not re.search(r'或|任选|任一|任意|至少',source):continue
             candidates=[]
-            for output,_ in outputs:
-                for member in output['requirement']['members']:
-                    if len(_normal(member))>=2 and member in source:
-                        candidates.append((len(member),member))
+            for sentence in re.finditer(r'[^。；;\n]+',source):
+                local=sentence.group()
+                if not re.search(r'或|任选|任一|任意|至少',local):continue
+                if not any(_normal(member) in _normal(local)
+                           for member in req['members']):continue
+                for output,_ in outputs:
+                    for member in output['requirement']['members']:
+                        if len(_normal(member))>=2 and member in local:
+                            condition_start=local.index(member)
+                            before=re.split(r'[，,]',local[:condition_start])[-1]
+                            after=re.split(r'[，,]',local[condition_start+len(member):])[0]
+                            independent_priority=(
+                                r'\s*(?:也|另|另外|此外|还|再)'
+                                r'(?:\s*(?:优先|加分|更佳|最佳|最好))?\s*')
+                            if (re.fullmatch(independent_priority,before)
+                                    or re.fullmatch(independent_priority,after)):
+                                continue
+                            candidates.append((len(member),member,sentence.start()))
             if not candidates:continue
-            _,condition=max(candidates)
-            locator=_loc(scope['field'],scope['start']+source.index(condition),
-                         scope['start']+source.index(condition)+len(condition),record)
+            _,condition,sentence_start=max(candidates)
+            condition_start=source.index(condition,sentence_start)
+            locator=_loc(scope['field'],scope['start']+condition_start,
+                         scope['start']+condition_start+len(condition),record)
             if locator not in req['scope_evidence']:req['scope_evidence'].append(locator)
             req['condition']=condition
             req['reason']='软性选择项与同一句的产出共同构成条件；任一框架选择保留，同时不丢失可运行产出要求。'

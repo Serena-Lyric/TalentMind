@@ -1,12 +1,14 @@
 # M2 P1 单条理解：实现与真实 DEV 验证
 
-日期：2026-10-30，Asia/Singapore；首轮 Review 定向修复及复审准备完成于 2026-11-02。真实调用跨 10-29～10-30。基线 `master@cacf00f138a0512c4ef6c643fc90c0232159e1bb`，开发分支 `codex/m2-p1-jd-analysis`。主入口 `1ef25b8`、显式补充 `f2683e8`、字段级保留 `963c676`；最新复审 head 以 PR 描述中的固定 SHA 为准。
+日期：2026-10-30，Asia/Singapore；首轮至第四次 Review 定向修复及复审准备分别完成于 2026-11-02、2026-11-03。真实调用跨 10-29～11-03。基线 `master@cacf00f138a0512c4ef6c643fc90c0232159e1bb`，开发分支 `codex/m2-p1-jd-analysis`。主入口 `1ef25b8`、显式补充 `f2683e8`、字段级保留 `963c676`；最新复审 head 以 PR 描述中的固定 SHA 为准。
 
 **结论：独立入口、证据/版本校验、失败与部分保存已经实现，并实际运行九例 DEV。首轮 Review 对固定 head `6f1575b1629075499893d6eedc543233ad2ad361` 指出的五条错误 explicit、六项要求语义偏差和字段级作用域风险已完成定向修复；九例当前缓存重编译结果按冻结参照逐项对照为 199/199 个单位、184/184 条条件通过，四条已审直接用途 explicit 保留。** 该结论仍是 Agent 对照，不能记为 P1 业务通过；关系等级仍有 7 条保守 unknown 与冻结 inferred 精确不一致，5 条具体新增/原组边保持未决。本报告交 ChatGPT 独立复审；不自行合并，不启动 P2。
 
 第二轮 Review（固定 head `d638e73`）要求的 R1/R2/R3 已完成有限补证：无锚点关系不再生成新 inferred，DEV-05/DEV-09 已在最终源码上完成真实默认入口各两次请求，7 条 unknown 差异与 5 条未决关系已逐条归因。两例真实结果合计 40/43 单位完整匹配、3 部分、0 漏答，37/39 条件通过；R13 程度和 R04/R07 组合/共同条件仍有真实模型偏差，因此本轮仍不申请由 Codex 自行判定业务通过。
 
 第三次 Review 指定的 Flash-1017 迁移已完成：新调用只使用 `deepseek-flash`，稳定主理解/审计前缀和协议 Mock 已落地。真实 DEV-05/DEV-09 Flash 回包经最终策略编译后为 42/43 单位完整、1 部分、0 漏答，39/39 条件通过；R13、R04 AND 条件和 R07 开放组合已修复，剩余 R01 的 target/condition 结构误配仍如实保留，因此仍不自行宣告完整业务通过。
+
+第四次 Review 的 F1/F2/F3 已完成限定收尾：不再因共享长证据或独立优先分句自动制造 AND condition；申请材料/证明在现有 target 枚举无法精确表达时改为有界 `unresolved` 并移除“投递时”伪 condition；最终代码另以受控 DEV-09 完成一次真实 Flash 默认 full flow。fresh 结果仍为 19/20 单位匹配、1 个明确有界 partial、39/39 条件；审计 coverage 保持 partial，不把单项数值当作完整业务通过。
 
 ## 1. 范围与实际执行路径
 
@@ -192,6 +194,42 @@ Flash 真实默认入口共执行 5 次请求：DEV-05 primary+audit；DEV-09 �
 
 最终建议：Flash-1017 路径在指定两例上将核心 R13/R04/R07 边界修正到冻结合格，工程与缓存协议可用；P1 仍不应自我批准为完整业务通过，需 ChatGPT 判断单条 R01 结构误配和既有 sparse-relation 召回限制是否构成验收阻断。
 
+### 3.5 第四次 Review：shared condition 收紧、R01 有界化与 fresh 验证
+
+ChatGPT 第四次 Review（fixed head `2093688ae52d08f4956d595a201cceb579ae7fc2`，review `5744995084`）接受 Flash-1017 迁移、缓存协议、失败/用量记录及真实请求与重编译分账，要求处理 F1 shared-output 误绑、F2 DEV-09 R01 的 target/condition 错配，并用最终固定代码对至少一条相关受控 DEV 再走 Flash 默认 full flow。
+
+**F1 已修复。** 旧策略只要两项 preferred claim 共用同一 `scope_evidence` 跨度，且跨度任一处出现选择量词和另一 experience 成员，就会自动写 condition。新策略要求：
+
+- 选择项与产出同时落入同一个以 `。；;\n` 分隔的局部句，且该局部句本身包含选择量词；
+- 产出前后由逗号分开的局部分句不得只剩“也/另外/此外/还/再（优先/加分…）”等独立偏好标记；
+- 不满足时保留两条独立事实，不把长引文共享或普通共现当作共同约束。
+
+公开回归先复现“两个独立句”和“同一句但明确也优先”两个错误 condition，再转为通过；原先同句、无独立标记的正面共享产出案例继续保留。真实旧回包重编译中 DEV-09 R04 condition 仍被保留。
+
+**F2 已按契约边界处理。** 申请阶段要求提交项目链接、GitHub、作品集或技术文章等材料证明时，不把材料类型强行归为 candidate experience，也不把“投递时”扩张为资格 condition。最终保留 `required`、`any_of`、四个成员及原文证据，`target` 有界设为 `unresolved`，`condition=null`；带明确年限或工作经历的合成反例仍保留 `experience`。因此 DEV-09 R01 是契约表达能力不足的有界 partial，不是 43/43 完整匹配。
+
+**F3 fresh 验证。** 先用最终 `p1-source-constraints-4` 和合成正反例验证；再对两组成功保存的旧 Flash run 共 4 个 primary/audit 回包做 0 网络重编译（DEV-05 0 个 claim 变化，DEV-09 retry1 6 个预期变化；首次 malformed primary 不作审计输入），随后在 2026-11-03 重新核对官方文档、余额及联系人扫描（DEV-05/09 手机号/邮箱均为 0）后，对受控 DEV-09 执行一次最终代码的真实 Flash 默认入口。程序 primary 后因 `qualification_requires_subject_binding` 与 `source_constraint_conflict` 触发一次审计，共 2 次请求，无自动/人工重试。
+
+| 阶段 | 模型/指纹 | 秒 | prompt（hit/miss） | completion | total |
+|---|---|---:|---:|---:|---:|
+| DEV-09 round4 primary | `deepseek-flash` / `bc19ba97cbe016479903222bb1578db6` | 265.483 | 4,929（4,736/193） | 53,112 | 58,041 |
+| DEV-09 round4 audit | `deepseek-flash` / `bc19ba97cbe016479903222bb1578db6` | 188.551 | 9,093（1,664/7,429） | 37,437 | 46,530 |
+
+本次 fresh 请求合计 **104,571 tokens**，缓存命中 6,400、未命中 7,622、输出 90,549；按官方 Flash 峰谷价估算 **USD 0.05549～0.11098**。pipeline 耗时 454.349 秒，analyzer SHA 为 `24661f50587341f737081585777fc0b40e5db35d04fb59c2b8f56f93b584b4fb`。
+
+fresh primary 到 audit 的关键变化：
+
+| 单元 | primary | final |
+|---|---|---|
+| R01 | `experience`，condition=`投递时` | `unresolved`、condition=null，四项材料与 `any_of` 保留 |
+| R04 | 框架选择被压为 `any_of`，可运行产出丢失 | `all_of` 同时保留框架选择和可运行产出 |
+| R07 | `unresolved`，尾词被当成成员 | 单个开放 experience 成员串、`open_set=true`，工具名与 `等 AI 工具` 保留 |
+| R08～R10 | required | 正确降为 preferred |
+
+audit 仍为 partial：5 个 requirement 编辑（R01、R03 的两项、R05、R13）因 `qualification_scope_not_uniquely_bound` 被拒收，1 个 `d2→R10` relation 因 `context_roles_not_uniquely_bound` 被拒收；relations 从 primary 的 4 条变为 final 3 条，coverage 为 partial。程序保留可用 primary 事实并显式降覆盖，没有把拒收编辑伪造成成功。
+
+对冻结 DEV-09 人审单位的 Agent 对照为 **19 matched / 1 partial / 0 missing，39/39 A/B/C/D 条件通过**；R01 的 `target=unresolved` 是唯一 partial。加上前一轮同一最终策略下 DEV-05 的 23/23，两例合计仍是 **42/43 完整、1 partial、39/39 条件**，不能表述为 43/43 或完整业务验收。
+
 ## 4. 合成实际模型检查与工程回归
 
 公开 [三例合成输入](../../backend/tests/fixtures/understanding/semantic-cases.json) 实际调用同一 Pro max：
@@ -208,8 +246,8 @@ Flash 真实默认入口共执行 5 次请求：DEV-05 primary+audit；DEV-09 �
 
 | 命令（backend下） | 结果 |
 |---|---|
-| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **167 passed，退出0** |
-| `python -m pytest -m "not integration" -q --tb=short` | **1877 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
+| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **171 passed，退出0** |
+| `python -m pytest -m "not integration" -q --tb=short` | **1881 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
 | `python -m app.job_analysis.baseline approved-assertions <受控release> --manifest <冻结manifest> --approval <签审凭据>` | structurally_valid，9例/184条件/199单位，退出0；不代表本轮模型语义通过 |
 | `python -m compileall -q app/job_analysis/understanding` | 退出0 |
 | 修改 Markdown 相对链接只读检查 | 5个文件、48个相对链接、0 broken，退出0 |
@@ -242,6 +280,8 @@ Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次�
 
 第三轮 Flash-1017 真实调用共 5 次（含一次 malformed JSON 失败和一次同输入诊断重试），均返回用量：212,131 tokens（缓存命中 9,600、未命中 20,799、输出 181,732），按 Flash 官方峰谷价估算 **USD 0.1122～0.2244**。阶段累计 65 次请求尝试、63 次返回用量、2 次无用量尝试，共 1,624,452 tokens；累计估算 USD 2.3573～4.7145，仍不是供应商账单。
 
+第四轮在最终代码上新增 **2 次真实默认入口请求**（primary+audit，无重试）：104,571 tokens（cache hit 6,400、miss 7,622、output 90,549），估算 **USD 0.05549～0.11098**。第三、四轮正式证据合计 7 次真实尝试、全部返回用量，316,702 tokens，估算 USD 0.16768～0.33536。阶段累计 67 次请求尝试、65 次返回用量、2 次无用量尝试，共 1,729,023 tokens；累计估算约 USD 2.4128～4.8255，仍不是供应商账单。
+
 少量 DEV 的时长不能证明 3,000条/12小时、稳定吞吐或真实服务器资源能力；当前实现轻量但没有完整批处理/服务性能验收。
 
 ## 6. 私有证据、维护及审核交接
@@ -249,9 +289,9 @@ Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次�
 - `runs/pro-v1`、`flash-v2`、`pro-v3`、`pro-v4`、`pro-v4-retry` 保留原始试验，`pro-v5` 为最后主轮，`pro-v5-refined` 为显式补充。早期 v3 在开发编辑期间曾按磁盘字节重算 worker 版本，是原型记录限制；最后主轮和补充已在载入时固定实际代码摘要，不借后续源码改标旧结果。
 - `evaluation/pro-v4`、`pro-v4-retry`、`pro-v5`、`pro-v5-refined`、`final-compiled` 是有摘要绑定的逐项 Agent 对照，不改变 annotations。`evaluation-summary.json` 汇总完整配对；`delivery-manifest.json` 绑定最终证据及选择方案（187文件，清单SHA `07fdcf7006591ab91eb7f6781102b2b0826aa28e1a18a3c45179e51af67961b2`）；费用清单记录所有真实请求，排除重编译的重复 Token，而非只计成功或最好结果。
 - Review 修复私有根 `data/local/m2-p1-review-20261030/` 保存 `runs/audit-v1`、`runs/audit-v2` 原请求/回包，`runs/review-final-20261102-final` 最终确定性重编译，`evaluation/review-final-20261102-final` 逐项对照，`review-final-20261102-final-verification.json` 的 199/184 完整性断言、费用审计及待推送 head 的证据清单。目录内 `api-key.txt` 仅本地存在，绝不进入公开清单。
-- 第三轮 Flash 私有根 `data/local/m2-p1-review3-20261102/` 保存 5 次真实请求/用量/系统指纹、首次 malformed JSON、同输入诊断重试、主理解与审计缓存前缀摘要、最终目录 `runs-compiled-20261102-final-head/` 的零网络重编译、DEV-05/09 逐单位对照、策略前后差异、请求安全检查和费用审计。私有证据清单为 `evidence-manifest-20261102.json`（64 个文件），SHA-256 `2a0db8c6eac0191e698c8ec99431afcf95b51e4fab44f908f22e122994d04dba`；清单排除 API Key、HOLD、未批准数据、self-referential 阶段报告和过时测试日志，最终代码 head 以 PR 描述为准。
+- Flash 私有根 `data/local/m2-p1-review3-20261102/` 继续保存前轮 5 次回包及重编译，并新增 `runs-round4/DEV-09-final-code/` 的最终代码 fresh primary/audit、`runs-compiled-20261103-round4/` 的源回包重编译、第四轮逐单位对照、缓存/费用/请求安全复算。第四轮私有证据清单为 `evidence-manifest-round4-20261103.json`（72 个文件），SHA-256 `8c4ab1abb662766c81b70a9cb0f37db68c7b35a75abb331c380568f08c3da799`；清单排除 API Key、HOLD、未批准数据、self-referential 阶段报告和过时测试日志，最终代码 head 以 PR 描述为准。
 - 本次全量业务测试沿仓库安全默认跳过需隔离实例的 integration；没有启动正式 DB/Neo4j、迁移、真实采集或导入。文件夹具用唯一名并 finally/临时目录精确清理，残留核对为 0；不虚报正式库计数/未查询的健康状态。
 - 阶段报告保持全仓五份：移除最旧 2026-10-21 统一报告，相关引用固定到原 Git 提交；长期使用入口与限制更新到模块 README/资产状态/陷阱。未移动、删除真实数据、P0 原件或私有旧回包。
 - P2/P3 可以审阅 P1 接口/覆盖/部分结果，但不能将当前仍有关键问题的机器语义当已审依赖或自动开工；无正式知识归一化/岗位判断、无真实市场/HOLD 独立验收，B/C 仍未裁决。
 
-审核请求：请以 PR 描述固定 head 的真实代码、P0 受控评价和本报告为依据，优先核对首轮 Review 四项是否关闭、剩余关系 unknown/未决是否仍构成阻断，以及真实请求与缓存重编译是否严格分账；不要以本次 Agent 对照或测试数替代独立审查。作者不合并、不启用自动合并，不启动 P2。
+审核请求：请以 PR 描述固定 head 的真实代码、P0 受控评价和本报告为依据，优先核对第四次 Review 的 F1 shared-output 边界、F2 R01 有界表达、F3 最终代码 fresh Flash 运行，以及审计拒收后 partial/关系的保守处置；不要以 Developer Agent 对照或单个 42/43、39/39 数值替代独立审查。作者不合并、不启用自动合并，不启动 P2。

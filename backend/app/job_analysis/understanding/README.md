@@ -42,7 +42,8 @@ python -m app.job_analysis.understanding audit <已保存私有run目录> --conf
 - 定向审计不能扩大既有引文来“证明”限定词归属。`degree/condition` 必须给出 target、qualifier 和局部谓词/共享修饰/明确承接证明；要求组合的每个成员都必须落入可核验的限定范围。字段不同仅允许唯一完整字段副本映射；兼容字形查找须能映射回实际代码点，不能接受半个兼容展开或部分 ASCII 实体。
 - 审计修订项的嵌套 `requirement.reason` 可省略；程序只在缺少该字段时把同一修订项的外层 `reason` 写入，拒绝不同理由被静默混用。该兼容不放松 claim、引文、组合或限定词证明。
 - 字段级保留只在既有准确引文内扩充 scope；这不证明限定词语义上属于当前能力。非能力对象移除不适用的已知技能类别并审计。正向 required/preferred 的程度改写若不是连续原文，保留完整 text/evidence/state，将 degree/polarity 设 null 并记录未解析、降覆盖；不能把它读成“无程度要求”。审计不得静默擦除已有有效 degree。否定程度与无证据条件不做删除式救回，仍拒收，避免抹掉限定或扩大否定。
-- “期望/更看重”软性章节中的 required 会按来源位置降为 preferred，范围在下一招聘/申请/联系方式等程序标题处结束。同一软性任选能力与可运行产出共享同句时，产出会成为能力 requirement 的精确 condition，避免拆成两个看似独立的 preferred。
+- “期望/更看重”软性章节中的 required 会按来源位置降为 preferred，范围在下一招聘/申请/联系方式等程序标题处结束。只有选择项与可运行产出位于同一局部句、且中途没有“也优先/另外/此外”等独立偏好标记时，才把产出作为选择能力的 condition；分句或独立优先项保留两条事实，不凭共享长引文制造 AND。
+- 申请阶段要求提交作品链接、代码托管、作品集或文章等证明时，现有 target 枚举不能无歧义归入能力或经验；条件式“投递时”不扩张为资格 condition，target 有界设为 unresolved。带明确年限/工作经历的经验要求仍保留 experience。
 - 关系强度由程序核验的源角色决定：同一活动或共享上下文只有同时给出可核查的 `means/work` 局部活动锚点时才可为 `inferred`；缺少锚点时，新端点不生成关系，既有端点最多保留有界 `unknown`。只有同句/有明确承接的“使用/利用/基于/借助某手段完成某项局部工作”且有正向前提、局部谓词和工作对象对齐时才可 `explicit`。同名动作、共同对象、简单共现和跨逗号的新增谓语不得升级；真实直接用途也不得被一律降为 unknown。审计必须处置全部既有关系端点；遗漏任一端点会把 relations 降为 partial，不能把“模型未返回”当成确认删除。
 - `analysis` 原样遵守 `m2-semantic-0.2`。P1 五维 coverage 可以 complete，但 `classification=not_run`，因此 aggregate `outcome=partial` 正常；`execution.status=ok` 也不表示人工验收通过。知识对齐留原成员、unknown 映射；正式岗位知识、P2/P3 尚未执行。
 - `execution.status` 单独区分 ok、partial、failed、not_run、no_recognized_results、empty、truncated、invalid_json、invalid_structure、timeout、http_error、network_error、invalid_response、refused、processor_error。没有完整识别结果与未提及、关系未知、未执行/失败不是同一概念。

@@ -259,3 +259,82 @@ def test_preferred_choice_keeps_shared_runnable_output_as_condition():
     assert text[evidence['start']:evidence['end']]==evidence['quote']
     assert any(change['rule']=='soft_choice_shared_output_condition'
                for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+def test_preferred_output_in_a_separate_sentence_does_not_become_choice_condition():
+    scope='期望（不全满足也可以投）：熟悉 Atlas 或 Orion 框架。做出过能跑起来的东西也优先。'
+    text=f'开发系统。{scope}'
+    row=dict(id='independent-soft-preferences',source='synthetic',job_title='测试',raw_text=text)
+    data=draft();data['claims']=[claim('d1','duty','开发系统')]
+    choice=requirement(['Atlas','Orion'])
+    choice.update(state='preferred',target='capability',combination='any_of',open_set=True,
+                  scope_evidence=[quote(scope)])
+    output=requirement(['做出过能跑起来的东西'])
+    output.update(state='preferred',target='experience',category=None,combination='single',
+                  scope_evidence=[quote(scope)])
+    data['claims'] += [claim('r1','requirement','熟悉 Atlas 或 Orion 框架',choice),
+                       claim('r2','requirement','做出过能跑起来的东西',output)]
+    value=run(data,row=row);patch=patch_for(value)
+    result=audit(value,patch)
+    req=next(c['requirement'] for c in result['analysis']['claims'] if c['id']=='r1')
+    assert req['condition'] is None
+    assert not any(change['rule']=='soft_choice_shared_output_condition'
+                   for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+def test_same_sentence_independent_priority_does_not_become_choice_condition():
+    scope='期望（不全满足也可以投）：熟悉 Atlas 或 Orion 框架，也优先做出过能跑起来的东西。'
+    text=f'开发系统。{scope}'
+    row=dict(id='independent-priorities',source='synthetic',job_title='测试',raw_text=text)
+    data=draft();data['claims']=[claim('d1','duty','开发系统')]
+    choice=requirement(['Atlas','Orion'])
+    choice.update(state='preferred',target='capability',combination='any_of',open_set=True,
+                  scope_evidence=[quote(scope)])
+    output=requirement(['做出过能跑起来的东西'])
+    output.update(state='preferred',target='experience',category=None,combination='single',
+                  scope_evidence=[quote(scope)])
+    data['claims'] += [claim('r1','requirement','熟悉 Atlas 或 Orion 框架',choice),
+                       claim('r2','requirement','做出过能跑起来的东西',output)]
+    value=run(data,row=row);patch=patch_for(value)
+    result=audit(value,patch)
+    req=next(c['requirement'] for c in result['analysis']['claims'] if c['id']=='r1')
+    assert req['condition'] is None
+    assert not any(change['rule']=='soft_choice_shared_output_condition'
+                   for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+def test_application_artifacts_are_bounded_as_unresolved_target_not_experience():
+    text='申请时请附任意一种证明：GitHub、作品集或技术文章。'
+    row=dict(id='application-artifacts',source='synthetic',job_title='测试',raw_text=text)
+    data=draft();data['claims']=[claim('d1','duty',text)]
+    artifacts=requirement(['GitHub','作品集','技术文章'])
+    artifacts.update(
+        state='required',target='experience',combination='any_of',
+        condition='申请时',scope_evidence=[quote(text)]
+    )
+    data['claims'].append(claim('r1','requirement',text,artifacts))
+    value=run(data,row=row);patch=patch_for(value)
+    result=audit(value,patch)
+    req=result['analysis']['claims'][1]['requirement']
+    assert req['target']=='unresolved'
+    assert req['condition'] is None
+    assert req['members']==['GitHub','作品集','技术文章']
+    assert any(change['rule']=='application_artifact_target_unresolved'
+               for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
+def test_application_experience_with_duration_keeps_experience_target():
+    text='申请时须有两年开发经验。'
+    row=dict(id='application-experience',source='synthetic',job_title='测试',raw_text=text)
+    data=draft();data['claims']=[claim('d1','duty',text)]
+    experience=requirement(['两年开发经验'])
+    experience.update(
+        state='required',target='experience',combination='single',
+        condition='申请时',scope_evidence=[quote(text)]
+    )
+    data['claims'].append(claim('r1','requirement',text,experience))
+    value=run(data,row=row);patch=patch_for(value)
+    result=audit(value,patch)
+    req=result['analysis']['claims'][1]['requirement']
+    assert req['target']=='experience'
+    assert req['condition']=='申请时'
