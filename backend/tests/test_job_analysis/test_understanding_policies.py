@@ -303,6 +303,33 @@ def test_same_sentence_independent_priority_does_not_become_choice_condition():
                    for change in result['execution']['metadata']['semantic_policy_adjustments'])
 
 
+@pytest.mark.parametrize(
+    'scope',
+    [
+        '期望：熟悉 Atlas 或 Orion 框架优先，做出过能运行的项目优先。',
+        '期望：熟悉 Atlas 或 Orion 框架可加分，做出过能运行的项目亦可加分。',
+    ],
+)
+def test_each_clause_having_its_own_priority_does_not_create_choice_condition(scope):
+    text=f'开发系统。{scope}'
+    row=dict(id='clause-local-priorities',source='synthetic',job_title='测试',raw_text=text)
+    data=draft();data['claims']=[claim('d1','duty','开发系统')]
+    choice=requirement(['Atlas','Orion'])
+    choice.update(state='preferred',target='capability',combination='any_of',open_set=True,
+                  scope_evidence=[quote(scope)])
+    output=requirement(['做出过能运行的项目'])
+    output.update(state='preferred',target='experience',category=None,combination='single',
+                  scope_evidence=[quote(scope)])
+    data['claims'] += [claim('r1','requirement','熟悉 Atlas 或 Orion 框架',choice),
+                       claim('r2','requirement','做出过能运行的项目',output)]
+    value=run(data,row=row);patch=patch_for(value)
+    result=audit(value,patch)
+    req=next(c['requirement'] for c in result['analysis']['claims'] if c['id']=='r1')
+    assert req['condition'] is None
+    assert not any(change['rule']=='soft_choice_shared_output_condition'
+                   for change in result['execution']['metadata']['semantic_policy_adjustments'])
+
+
 def test_application_artifacts_are_bounded_as_unresolved_target_not_experience():
     text='申请时请附任意一种证明：GitHub、作品集或技术文章。'
     row=dict(id='application-artifacts',source='synthetic',job_title='测试',raw_text=text)

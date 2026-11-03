@@ -24,7 +24,7 @@
 - 最终反例又发现四类组合/关系绕过：`未用于/不会用于/并非用于/不是用来` 等后置否定仍可被当正向用途；`cooccurrence/unknown` 可被新增成任意矩阵；`same_activity` 自报加两个端点引用也能铺满职责×要求矩阵；量词从同一 scope 的无关句子取证。修复要求后置否定进入局部用途守卫，新 unknown 仅允许既有端点，完整笛卡尔积无论关系强度均拒收并降 partial；组合量词只在同时覆盖全部成员的局部句生效，否定式“全部/每项”不能证明 all_of。
 - 第二轮 Review 证明“两端各有引文”仍不足以建立 inferred：没有 `means/work` 的 same_activity/shared_context 只是模型标签加共现。修复后新端点不生成关系，既有端点最多降为有界 unknown；只有完整局部工作锚点才可 retained inferred。真实模型还省略了嵌套 requirement.reason，外层 reason 可确定性回填，但其他结构、引文和限定词证明不得随之放宽。
 - Flash-1017 迁移反例表明：动态 Locator 字段列表会破坏 system prefix，缓存命中必须使用固定 Schema 并在后续 user 内容放 JD；JSON mode 仍可能在 HTTP 200/`finish_reason=stop` 下返回缺括号内容，不能补写或伪装成功。只允许在保留原失败后做一次同配置、同输入诊断重试，再次失败即停止，无 Pro 回退。软性章节状态必须在下一明确程序标题处截止，共享产出不能因拆分 preferred claim 而丢失 AND condition。
-- 第四次 Review 再次证明“共享同一个长 scope_evidence”不等于共同约束：independent preference 即使被同一条证据包住，也不能自动成为另一个要求的 condition。只有选择项与产出同处一个局部句、且没有被“也优先/另外/此外”等独立偏好标记分开时才允许连接；申请材料证明也不是天然 experience，现有枚举表达不了时应保留 unresolved，避免把申请阶段误当资格条件。
+- 第四次 Review 再次证明“共享同一个长 scope_evidence”不等于共同约束：independent preference 即使被同一条证据包住，也不能自动成为另一个要求的 condition。第五次 Review 又补了同句边界：`框架优先，项目优先` 虽没有“也”仍是两个独立优先作用域，不能合并；只有同一局部句、无独立偏好词且两个逗号分句不同时携带“优先/加分/更佳”等标记时才允许连接。申请材料证明也不是天然 experience，现有枚举表达不了时应保留 unresolved，避免把申请阶段误当资格条件。
 
 ## 教训
 

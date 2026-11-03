@@ -1,6 +1,6 @@
 # M2 P1 单条理解：实现与真实 DEV 验证
 
-日期：2026-10-30，Asia/Singapore；首轮至第四次 Review 定向修复及复审准备分别完成于 2026-11-02、2026-11-03。真实调用跨 10-29～11-03。基线 `master@cacf00f138a0512c4ef6c643fc90c0232159e1bb`，开发分支 `codex/m2-p1-jd-analysis`。主入口 `1ef25b8`、显式补充 `f2683e8`、字段级保留 `963c676`；最新复审 head 以 PR 描述中的固定 SHA 为准。
+日期：2026-10-30，Asia/Singapore；首轮至第五次 Review 定向修复及复审准备完成于 2026-11-02、2026-11-03。真实调用跨 10-29～11-03。基线 `master@cacf00f138a0512c4ef6c643fc90c0232159e1bb`，开发分支 `codex/m2-p1-jd-analysis`。主入口 `1ef25b8`、显式补充 `f2683e8`、字段级保留 `963c676`；最新复审 head 以 PR 描述中的固定 SHA 为准。
 
 **结论：独立入口、证据/版本校验、失败与部分保存已经实现，并实际运行九例 DEV。首轮 Review 对固定 head `6f1575b1629075499893d6eedc543233ad2ad361` 指出的五条错误 explicit、六项要求语义偏差和字段级作用域风险已完成定向修复；九例当前缓存重编译结果按冻结参照逐项对照为 199/199 个单位、184/184 条条件通过，四条已审直接用途 explicit 保留。** 该结论仍是 Agent 对照，不能记为 P1 业务通过；关系等级仍有 7 条保守 unknown 与冻结 inferred 精确不一致，5 条具体新增/原组边保持未决。本报告交 ChatGPT 独立复审；不自行合并，不启动 P2。
 
@@ -8,7 +8,7 @@
 
 第三次 Review 指定的 Flash-1017 迁移已完成：新调用只使用 `deepseek-flash`，稳定主理解/审计前缀和协议 Mock 已落地。真实 DEV-05/DEV-09 Flash 回包经最终策略编译后为 42/43 单位完整、1 部分、0 漏答，39/39 条件通过；R13、R04 AND 条件和 R07 开放组合已修复，剩余 R01 的 target/condition 结构误配仍如实保留，因此仍不自行宣告完整业务通过。
 
-第四次 Review 的 F1/F2/F3 已完成限定收尾：不再因共享长证据或独立优先分句自动制造 AND condition；申请材料/证明在现有 target 枚举无法精确表达时改为有界 `unresolved` 并移除“投递时”伪 condition；最终代码另以受控 DEV-09 完成一次真实 Flash 默认 full flow。fresh 结果仍为 19/20 单位匹配、1 个明确有界 partial、39/39 条件；审计 coverage 保持 partial，不把单项数值当作完整业务通过。
+第四次 Review 的 F1/F2/F3 已完成限定收尾；第五次 Review 进一步补上“同一句但两个分句各自带优先作用域”的反例。申请材料/证明在现有 target 枚举无法精确表达时改为有界 `unresolved` 并移除“投递时”伪 condition；受控 DEV-09 fresh Flash full flow 为 19/20 单位匹配、1 个明确有界 partial、22/22 条件。两例合计才是 42/43 单位、39/39 条件；审计 coverage 保持 partial，不把单项数值当作完整业务通过。
 
 ## 1. 范围与实际执行路径
 
@@ -228,7 +228,20 @@ fresh primary 到 audit 的关键变化：
 
 audit 仍为 partial：5 个 requirement 编辑（R01、R03 的两项、R05、R13）因 `qualification_scope_not_uniquely_bound` 被拒收，1 个 `d2→R10` relation 因 `context_roles_not_uniquely_bound` 被拒收；relations 从 primary 的 4 条变为 final 3 条，coverage 为 partial。程序保留可用 primary 事实并显式降覆盖，没有把拒收编辑伪造成成功。
 
-对冻结 DEV-09 人审单位的 Agent 对照为 **19 matched / 1 partial / 0 missing，39/39 A/B/C/D 条件通过**；R01 的 `target=unresolved` 是唯一 partial。加上前一轮同一最终策略下 DEV-05 的 23/23，两例合计仍是 **42/43 完整、1 partial、39/39 条件**，不能表述为 43/43 或完整业务验收。
+对冻结 DEV-09 人审单位的 Agent 对照为 **19 matched / 1 partial / 0 missing，22/22 A/B/C/D 条件通过**；R01 的 `target=unresolved` 是唯一 partial。加上前一轮同一策略下 DEV-05 源回包的零网络重编译 23/23、17/17，两例合计才是 **42/43 单位、1 partial、39/39 条件**；后者不是两例都在最终头 fresh API 运行。不能表述为 43/43 或完整业务验收。
+
+### 3.6 第五次 Review：同句独立优先作用域与统计口径
+
+ChatGPT 第五次 Review（fixed head `11ec9903f84527c97645f042dc2c437837ecaa5e`，review `5745257628`）接受 F2 与 F3 执行证据，仅要求修正 F1 的一个确定性边界并校正统计口径；明确不需要新模型请求、Prompt 扩写或九例重跑。
+
+新增两个同句负例，均先 RED 后 GREEN：
+
+- `熟悉 Atlas 或 Orion 框架优先，做出过能运行的项目优先。`
+- 无“也”的同义变体：`熟悉 Atlas 或 Orion 框架可加分，做出过能运行的项目亦可加分。`
+
+新规则把局部句继续拆成逗号分句：若包含选择项的局部分句与包含产出的局部分句各自带有“优先/加分/更佳/最佳/最好/受青睐”作用域，则拒绝建立 condition。原有“用过 Atlas 或 Orion 框架，做出过能运行的项目”无独立优先标记正例继续成立；单一共同优先谓词仍可表达共同约束。策略版本升为 `p1-source-constraints-5`。
+
+最终策略对两组旧 Flash run 再次执行 0 网络重编译：DEV-05 仍为 23/23 单位、17/17 条件且 0 claim 变化；DEV-09 仍为 19/20 单位、22/22 条件，6 个既有预期变化保留，R04 condition 未被新规则误删。最终重编译 analyzer SHA 为 `dee2937f84534efb349f6e10fb240fc4faa85f360faa89b72443319e7fbca4f1`。本轮没有新增 API 请求或 Token。
 
 ## 4. 合成实际模型检查与工程回归
 
@@ -246,8 +259,8 @@ audit 仍为 partial：5 个 requirement 编辑（R01、R03 的两项、R05、R1
 
 | 命令（backend下） | 结果 |
 |---|---|
-| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **171 passed，退出0** |
-| `python -m pytest -m "not integration" -q --tb=short` | **1881 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1** |
+| `python -m pytest tests/test_job_analysis/test_understanding.py tests/test_job_analysis/test_understanding_io.py tests/test_job_analysis/test_understanding_audit.py tests/test_job_analysis/test_understanding_pipeline.py tests/test_job_analysis/test_understanding_policies.py -q --tb=short` | **173 passed，退出0（最终 `p1-source-constraints-5`）** |
+| `python -m pytest -m "not integration" -q --tb=short` | 上一提交 `11ec990` 基线为 **1881 passed、2 skipped、2 failed、24 deselected、1017 warnings，退出1**；第五次 Review 仅要求局部回归，该全量未在最后两项测试后重跑 |
 | `python -m app.job_analysis.baseline approved-assertions <受控release> --manifest <冻结manifest> --approval <签审凭据>` | structurally_valid，9例/184条件/199单位，退出0；不代表本轮模型语义通过 |
 | `python -m compileall -q app/job_analysis/understanding` | 退出0 |
 | 修改 Markdown 相对链接只读检查 | 5个文件、48个相对链接、0 broken，退出0 |
@@ -289,9 +302,9 @@ Review 修复轮另执行 **12 次真实请求**，11 次有Token用量、1 次�
 - `runs/pro-v1`、`flash-v2`、`pro-v3`、`pro-v4`、`pro-v4-retry` 保留原始试验，`pro-v5` 为最后主轮，`pro-v5-refined` 为显式补充。早期 v3 在开发编辑期间曾按磁盘字节重算 worker 版本，是原型记录限制；最后主轮和补充已在载入时固定实际代码摘要，不借后续源码改标旧结果。
 - `evaluation/pro-v4`、`pro-v4-retry`、`pro-v5`、`pro-v5-refined`、`final-compiled` 是有摘要绑定的逐项 Agent 对照，不改变 annotations。`evaluation-summary.json` 汇总完整配对；`delivery-manifest.json` 绑定最终证据及选择方案（187文件，清单SHA `07fdcf7006591ab91eb7f6781102b2b0826aa28e1a18a3c45179e51af67961b2`）；费用清单记录所有真实请求，排除重编译的重复 Token，而非只计成功或最好结果。
 - Review 修复私有根 `data/local/m2-p1-review-20261030/` 保存 `runs/audit-v1`、`runs/audit-v2` 原请求/回包，`runs/review-final-20261102-final` 最终确定性重编译，`evaluation/review-final-20261102-final` 逐项对照，`review-final-20261102-final-verification.json` 的 199/184 完整性断言、费用审计及待推送 head 的证据清单。目录内 `api-key.txt` 仅本地存在，绝不进入公开清单。
-- Flash 私有根 `data/local/m2-p1-review3-20261102/` 继续保存前轮 5 次回包及重编译，并新增 `runs-round4/DEV-09-final-code/` 的最终代码 fresh primary/audit、`runs-compiled-20261103-round4/` 的源回包重编译、第四轮逐单位对照、缓存/费用/请求安全复算。第四轮私有证据清单为 `evidence-manifest-round4-20261103.json`（72 个文件），SHA-256 `8c4ab1abb662766c81b70a9cb0f37db68c7b35a75abb331c380568f08c3da799`；清单排除 API Key、HOLD、未批准数据、self-referential 阶段报告和过时测试日志，最终代码 head 以 PR 描述为准。
+- Flash 私有根 `data/local/m2-p1-review3-20261102/` 继续保存前轮 5 次回包、`runs-round4/DEV-09-final-code/` 的 fresh primary/audit，以及 `runs-compiled-20261103-review5/` 对两组源 run 的最终策略零网络重编译、逐单位对照、缓存/费用/请求安全复算。第五轮私有证据清单为 `evidence-manifest-round5-20261103.json`（72 个文件），SHA-256 `a93743af8d3eb6580fc36a10f5f79bde31884fbc3723ded87ae58c2bab8316b0`；清单排除 API Key、HOLD、未批准数据、self-referential 阶段报告和过时测试日志，最终代码 head 以 PR 描述为准。
 - 本次全量业务测试沿仓库安全默认跳过需隔离实例的 integration；没有启动正式 DB/Neo4j、迁移、真实采集或导入。文件夹具用唯一名并 finally/临时目录精确清理，残留核对为 0；不虚报正式库计数/未查询的健康状态。
 - 阶段报告保持全仓五份：移除最旧 2026-10-21 统一报告，相关引用固定到原 Git 提交；长期使用入口与限制更新到模块 README/资产状态/陷阱。未移动、删除真实数据、P0 原件或私有旧回包。
 - P2/P3 可以审阅 P1 接口/覆盖/部分结果，但不能将当前仍有关键问题的机器语义当已审依赖或自动开工；无正式知识归一化/岗位判断、无真实市场/HOLD 独立验收，B/C 仍未裁决。
 
-审核请求：请以 PR 描述固定 head 的真实代码、P0 受控评价和本报告为依据，优先核对第四次 Review 的 F1 shared-output 边界、F2 R01 有界表达、F3 最终代码 fresh Flash 运行，以及审计拒收后 partial/关系的保守处置；不要以 Developer Agent 对照或单个 42/43、39/39 数值替代独立审查。作者不合并、不启用自动合并，不启动 P2。
+审核请求：请以 PR 描述固定 head 的真实代码、P0 受控评价和本报告为依据，优先核对第五次 Review 新增的同句独立优先反例、单例/合计统计更正，以及 F2/F3 既有边界保持；不要以 Developer Agent 对照或单个 42/43、39/39 数值替代独立审查。作者不合并、不启用自动合并，不启动 P2。

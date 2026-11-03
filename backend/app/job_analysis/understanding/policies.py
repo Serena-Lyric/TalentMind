@@ -5,7 +5,7 @@ import unicodedata
 
 from .core import locate
 
-POLICY_VERSION = "p1-source-constraints-4"
+POLICY_VERSION = "p1-source-constraints-5"
 
 
 def _normal(value):
@@ -244,11 +244,16 @@ def apply_constraints(claims,record,inside):
             if req['condition'] is not None:continue
             source=record.payload[scope['field']][scope['start']:scope['end']]
             candidates=[]
+            preference_scope=re.compile(r'优先|加分|更佳|最佳|最好|受青睐')
             for sentence in re.finditer(r'[^。；;\n]+',source):
                 local=sentence.group()
                 if not re.search(r'或|任选|任一|任意|至少',local):continue
                 if not any(_normal(member) in _normal(local)
                            for member in req['members']):continue
+                local_clauses=list(re.finditer(r'[^，,]+',local))
+                choice_clauses=[clause for clause in local_clauses
+                                if any(_normal(member) in _normal(clause.group())
+                                       for member in req['members'])]
                 for output,_ in outputs:
                     for member in output['requirement']['members']:
                         if len(_normal(member))>=2 and member in local:
@@ -260,6 +265,12 @@ def apply_constraints(claims,record,inside):
                                 r'(?:\s*(?:优先|加分|更佳|最佳|最好))?\s*')
                             if (re.fullmatch(independent_priority,before)
                                     or re.fullmatch(independent_priority,after)):
+                                continue
+                            output_clause=next((clause for clause in local_clauses
+                                                if clause.start()<=condition_start<clause.end()),None)
+                            if (output_clause and any(preference_scope.search(clause.group())
+                                                      for clause in choice_clauses)
+                                    and preference_scope.search(output_clause.group())):
                                 continue
                             candidates.append((len(member),member,sentence.start()))
             if not candidates:continue
