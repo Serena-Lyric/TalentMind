@@ -1,0 +1,13 @@
+{
+  "provider": "DeepSeek official",
+  "endpoint": "https://api.deepseek.com/chat/completions",
+  "model": "deepseek-flash",
+  "model_revision": "DeepSeek-V4.1-Flash-1017 per official API documentation checked 2026-11-02; deepseek-flash is the required API alias",
+  "account_region": "fill actual account and known region; mark unavailable details explicitly",
+  "policy_checked_on": "2026-11-02",
+  "policy_note": "Official update, pricing, Chat API, thinking, JSON and context-cache docs checked 2026-11-02; no prompt_cache_key and no fixed retention/no-training guarantee is assumed",
+  "timeout_seconds": 600.0,
+  "max_tokens": 49152,
+  "thinking": "enabled",
+  "reasoning_effort": "high"
+}
