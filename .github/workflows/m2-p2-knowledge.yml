@@ -2,16 +2,6 @@ name: M2 P2-1 Knowledge
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/m2-p2-knowledge.yml"
-      - "backend/app/job_analysis/knowledge/**"
-      - "backend/app/job_analysis/baseline/contract.py"
-      - "backend/app/job_analysis/semantics/models.py"
-      - "backend/app/job_analysis/foundation/inputs.py"
-      - "backend/tests/test_job_analysis/test_knowledge_*.py"
-      - "backend/tests/test_job_analysis/test_baseline_contract.py"
-      - "backend/tests/test_job_analysis/test_understanding.py"
-      - "backend/tests/test_job_analysis/test_governance.py"
   push:
     branches:
       - master
