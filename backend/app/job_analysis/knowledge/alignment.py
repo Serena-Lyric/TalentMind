@@ -123,15 +123,17 @@ def align_analysis(analysis: dict, knowledge: LoadedSnapshot) -> AlignmentResult
         if claim.kind != "requirement" or claim.requirement is None:
             continue
         requirement = claim.requirement.model_dump()
-        alignments = [
-            _decision(claim.id, member, requirement, knowledge, index).model_copy(
-                update={"source_evidence": [
-                    *[item.model_dump() for item in claim.evidence],
-                    *requirement["scope_evidence"],
-                ]}
-            )
-            for member in requirement["members"]
+        source_evidence = [
+            *[item.model_dump() for item in claim.evidence],
+            *requirement["scope_evidence"],
         ]
+        alignments = []
+        for member in requirement["members"]:
+            decision = _decision(claim.id, member, requirement, knowledge, index)
+            alignments.append(MemberAlignment.model_validate({
+                **decision.model_dump(),
+                "source_evidence": source_evidence,
+            }))
         requirements.append(RequirementAlignment(
             claim_id=claim.id,
             source_requirement=deepcopy(requirement),
