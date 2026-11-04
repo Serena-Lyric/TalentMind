@@ -271,3 +271,123 @@ class AlignmentResult(Strict):
     @property
     def alignments(self) -> list[MemberAlignment]:
         return [item for requirement in self.requirements for item in requirement.alignments]
+
+
+class DutySnapshot(Strict):
+    id: StableId
+    text: Text
+    core: bool | None
+    evidence: list[Evidence] = Field(min_length=1)
+
+
+class RoleBoundaryConflict(Strict):
+    duty_id: StableId
+    boundary_id: StableId
+    boundary_text: Text
+    duty_evidence: list[Evidence] = Field(min_length=1)
+    boundary_evidence: list[SourceEvidence] = Field(min_length=1)
+    reason: Text
+
+
+class RoleComparison(Strict):
+    role_id: StableId
+    role_revision: Text
+    role_maturity: Maturity
+    judgment: Literal["supported", "unresolved", "not_supported"]
+    covered_duty_ids: list[StableId]
+    uncovered_duty_ids: list[StableId]
+    conflicts: list[RoleBoundaryConflict]
+    reason: Text
+
+    @model_validator(mode="after")
+    def exclusion_requires_explicit_boundary(self):
+        if len(set(self.covered_duty_ids + self.uncovered_duty_ids)) != (
+                len(self.covered_duty_ids) + len(self.uncovered_duty_ids)):
+            raise ValueError("role duty coverage must not overlap or repeat")
+        if self.judgment == "not_supported" and not self.conflicts:
+            raise ValueError("not_supported requires an explicit boundary conflict")
+        return self
+
+
+class RoleComparisonSet(Strict):
+    schema_version: Literal["m2-role-comparison-1"]
+    namespace: Text
+    jd_id: Text
+    input_sha256: Sha256
+    source_analysis_sha256: Sha256
+    knowledge_id: StableId
+    knowledge_revision: Text
+    knowledge_sha256: Sha256
+    retrieval_scope: Literal["all_roles_in_bound_snapshot"]
+    scope_limitation: Text
+    checked_role_ids: list[StableId] = Field(min_length=1)
+    duties: list[DutySnapshot]
+    comparisons: list[RoleComparison] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def exact_checked_scope(self):
+        if self.checked_role_ids != sorted(self.checked_role_ids):
+            raise ValueError("checked role IDs must be sorted")
+        if [item.role_id for item in self.comparisons] != self.checked_role_ids:
+            raise ValueError("comparison list must match checked scope")
+        duty_ids = {duty.id for duty in self.duties}
+        if any(set(item.covered_duty_ids + item.uncovered_duty_ids) != duty_ids
+               for item in self.comparisons):
+            raise ValueError("every comparison must classify every local duty")
+        return self
+
+    def for_role(self, role_id: str) -> RoleComparison:
+        for item in self.comparisons:
+            if item.role_id == role_id:
+                return item
+        raise ValueError("role not present in comparison scope")
+
+
+class ProfileMemberAlignment(Strict):
+    member: Text
+    state: Literal["exact_synonym", "ambiguous", "unknown"]
+    concept_id: StableId | None
+    knowledge_status: Literal["test", "candidate", "formal", "ambiguous", "unknown"]
+
+
+class ProfileRequirement(Strict):
+    claim_id: StableId
+    members: list[Text] = Field(min_length=1)
+    alignments: list[ProfileMemberAlignment] = Field(min_length=1)
+    state: Literal["required", "preferred", "mentioned", "not_required", "uncertain"]
+    target: Text
+    category: Text | None
+    combination: Text
+    open_set: bool
+    degree: Text | None
+    degree_polarity: Literal["affirmed", "negated", "unresolved"] | None
+    condition: Text | None
+    semantic_review: Literal["machine_unreviewed"]
+
+    @model_validator(mode="after")
+    def one_alignment_per_member(self):
+        if [item.member for item in self.alignments] != self.members:
+            raise ValueError("profile requirement must preserve original members")
+        return self
+
+
+class ProfileMember(Strict):
+    analysis_key: Text
+    namespace: Text
+    jd_id: Text
+    role_judgment: Literal["supported"]
+    duties: list[DutySnapshot] = Field(min_length=1)
+    requirements: list[ProfileRequirement]
+
+
+class RoleProfile(Strict):
+    schema_version: Literal["m2-role-profile-1"]
+    role_id: StableId
+    role_revision: Text
+    role_maturity: Maturity
+    mode: Literal["candidate_profile"]
+    claim_scope: Literal["linked_members_only"]
+    not_market_statistics: Literal[True]
+    not_formal_role: Literal[True]
+    source_analysis_sha256s: list[Sha256]
+    members: list[ProfileMember]
