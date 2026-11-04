@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from ..foundation.inputs import check_public
+from ..semantics.models import Evidence
 
 Text = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
 StableId = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9._-]{0,95}$")]
@@ -199,3 +200,74 @@ class KnowledgeSnapshot(Strict):
 def validate_snapshot(value: dict) -> KnowledgeSnapshot:
     check_public(value)
     return KnowledgeSnapshot.model_validate(value)
+
+
+class RelatedConcept(Strict):
+    concept_id: StableId
+    name: Text
+    maturity: Maturity
+    kind: RelationKind
+    basis: Text
+
+
+class MemberAlignment(Strict):
+    claim_id: StableId
+    member: Text
+    state: Literal["exact_synonym", "ambiguous", "unknown"]
+    concept_id: StableId | None
+    concept_name: Text | None
+    knowledge_status: Literal["test", "candidate", "formal", "ambiguous", "unknown"]
+    candidate_concept_ids: list[StableId]
+    related_concepts: list[RelatedConcept]
+    source_evidence: list[Evidence] = Field(min_length=1)
+    reason: Text
+
+    @model_validator(mode="after")
+    def decision_shape(self):
+        if self.state == "exact_synonym":
+            if (self.concept_id is None or self.concept_name is None
+                    or self.knowledge_status not in {"test", "candidate", "formal"}
+                    or self.candidate_concept_ids):
+                raise ValueError("exact alignment requires exactly one selected concept")
+        elif self.state == "ambiguous":
+            if (self.concept_id is not None or self.concept_name is not None
+                    or self.knowledge_status != "ambiguous" or len(self.candidate_concept_ids) < 2):
+                raise ValueError("ambiguous alignment cannot select one concept")
+        elif (self.concept_id is not None or self.concept_name is not None
+              or self.knowledge_status != "unknown" or self.candidate_concept_ids):
+            raise ValueError("unknown alignment cannot claim knowledge")
+        return self
+
+
+class RequirementAlignment(Strict):
+    claim_id: StableId
+    source_requirement: dict
+    alignments: list[MemberAlignment] = Field(min_length=1)
+    semantic_review: Literal["machine_unreviewed"]
+
+    @model_validator(mode="after")
+    def one_decision_per_original_member(self):
+        members = self.source_requirement.get("members")
+        if not isinstance(members, list) or [item.member for item in self.alignments] != members:
+            raise ValueError("alignment must preserve original member order and multiplicity")
+        if any(item.claim_id != self.claim_id for item in self.alignments):
+            raise ValueError("alignment claim identity mismatch")
+        return self
+
+
+class AlignmentResult(Strict):
+    schema_version: Literal["m2-knowledge-alignment-1"]
+    namespace: Text
+    jd_id: Text
+    input_sha256: Sha256
+    input_version: Text
+    source_analysis_sha256: Sha256
+    knowledge_id: StableId
+    knowledge_revision: Text
+    knowledge_sha256: Sha256
+    semantic_review: Literal["machine_unreviewed"]
+    requirements: list[RequirementAlignment]
+
+    @property
+    def alignments(self) -> list[MemberAlignment]:
+        return [item for requirement in self.requirements for item in requirement.alignments]
