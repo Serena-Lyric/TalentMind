@@ -101,3 +101,24 @@ def test_ambiguous_alignment_is_not_converted_to_candidate(tmp_path):
     alignment = align_analysis(analysis, shipped())
     registry = CandidateRegistry(tmp_path / "registry")
     assert not registry.observe(analysis, alignment)
+
+
+def test_dispute_then_withdrawal_preserves_the_original_observation(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    analysis, alignment = unknown_case()
+    registry = CandidateRegistry(tmp_path / "registry")
+    original = registry.observe(analysis, alignment)[0]
+    disputed = registry.mark_disputed(
+        original.candidate_id,
+        "新证据显示该表达可能指代两个不同对象",
+        competing_hypotheses=["能力A", "能力B"],
+    )
+    withdrawn = registry.withdraw(
+        original.candidate_id,
+        "后续反证表明该表达不是能力名称",
+    )
+    assert disputed.status == "disputed"
+    assert withdrawn.status == "withdrawn"
+    assert registry.read(original.candidate_id, 1) == original
+    assert registry.read(original.candidate_id, 2) == disputed

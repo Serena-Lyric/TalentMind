@@ -8,7 +8,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-from ..baseline.contract import Coverage, Requirement
+from ..baseline.contract import DIMENSIONS, Coverage, Requirement
 from ..foundation.inputs import check_public
 from ..semantics.models import Evidence
 
@@ -272,6 +272,12 @@ class AlignmentResult(Strict):
     semantic_review: Literal["machine_unreviewed"]
     requirements: list[RequirementAlignment]
 
+    @model_validator(mode="after")
+    def complete_source_coverage(self):
+        if set(self.source_coverage) != DIMENSIONS:
+            raise ValueError("source coverage requires all six dimensions")
+        return self
+
     @property
     def alignments(self) -> list[MemberAlignment]:
         return [item for requirement in self.requirements for item in requirement.alignments]
@@ -332,6 +338,8 @@ class RoleComparisonSet(Strict):
 
     @model_validator(mode="after")
     def exact_checked_scope(self):
+        if set(self.source_coverage) != DIMENSIONS:
+            raise ValueError("source coverage requires all six dimensions")
         if self.checked_role_ids != sorted(self.checked_role_ids):
             raise ValueError("checked role IDs must be sorted")
         if [item.role_id for item in self.comparisons] != self.checked_role_ids:

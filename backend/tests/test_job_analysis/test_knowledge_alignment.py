@@ -207,5 +207,16 @@ def test_alignment_reader_rejects_a_tampered_source_requirement_shape():
         AlignmentResult.model_validate(value)
 
 
+def test_alignment_reader_requires_all_six_source_coverage_dimensions():
+    import pytest
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.models import AlignmentResult
+
+    value = align_analysis(mixed_analysis(), shipped()).model_dump()
+    value["source_coverage"].pop("classification")
+    with pytest.raises(ValueError, match="coverage"):
+        AlignmentResult.model_validate(value)
+
+
 def original_requirement(analysis):
     return next(claim for claim in analysis["claims"] if claim["kind"] == "requirement")["requirement"]

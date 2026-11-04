@@ -100,3 +100,40 @@ def test_redeliver_is_a_new_bound_alignment():
     assert redelivered.knowledge_sha256 == new.sha256
     assert redelivered.alignments[0].concept_id == "concept-python"
     assert old.sha256 != new.sha256
+
+
+def test_relation_basis_change_marks_related_observations_for_realignment():
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    def relation_change(value):
+        relation = next(item for item in value["relations"] if item["source_id"] == "concept-typescript")
+        relation["basis"] = "修订后的关系说明"
+        value["revision"] = "backend-foundations-relation-2"
+
+    source = analysis_with(["TypeScript"])
+    old = shipped()
+    new = loaded_variant(relation_change)
+    record = align_analysis(source, old)
+    report = locate_impact(old, new, [record])
+    assert report.changed_relations
+    assert report.changed_concept_ids == []
+    assert report.conservative is False
+    assert report.affected == [f"synthetic:{record.jd_id}:{record.source_analysis_sha256[:12]}"]
+
+
+def test_source_metadata_change_is_conservative():
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    def source_change(value):
+        value["sources"][0]["retrieved_on"] = "2026-11-05"
+        value["revision"] = "backend-foundations-source-2"
+
+    source = analysis_with(["Python"])
+    old = shipped()
+    new = loaded_variant(source_change)
+    record = align_analysis(source, old)
+    report = locate_impact(old, new, [record])
+    assert report.conservative is True
+    assert report.affected == [f"synthetic:{record.jd_id}:{record.source_analysis_sha256[:12]}"]

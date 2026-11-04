@@ -1,6 +1,7 @@
 """Deterministic version impact scans with conservative fallback."""
 from __future__ import annotations
 
+from ..foundation.inputs import digest
 from .alignment import align_analysis
 from .catalog import LoadedSnapshot
 from .models import AlignmentResult, ImpactReport, normalize_term
@@ -42,12 +43,20 @@ def locate_impact(old: LoadedSnapshot, new: LoadedSnapshot,
         if old_aliases.get(term) != new_aliases.get(term)
     )
     old_relations = {
-        f"{item.source_id}:{item.kind}:{item.target_id}" for item in old.snapshot.relations
+        f"{item.source_id}:{item.kind}:{item.target_id}:{digest(item.model_dump())[:12]}"
+        for item in old.snapshot.relations
     }
     new_relations = {
-        f"{item.source_id}:{item.kind}:{item.target_id}" for item in new.snapshot.relations
+        f"{item.source_id}:{item.kind}:{item.target_id}:{digest(item.model_dump())[:12]}"
+        for item in new.snapshot.relations
     }
     changed_relations = sorted(old_relations ^ new_relations)
+    changed_relation_pairs = set()
+    if changed_relations:
+        for item in [*old.snapshot.relations, *new.snapshot.relations]:
+            key = f"{item.source_id}:{item.kind}:{item.target_id}:{digest(item.model_dump())[:12]}"
+            if key in changed_relations:
+                changed_relation_pairs.add((item.source_id, item.target_id))
     old_roles = _ids_by_key(old.snapshot.roles, "id")
     new_roles = _ids_by_key(new.snapshot.roles, "id")
     changed_roles = sorted(
@@ -69,6 +78,9 @@ def locate_impact(old: LoadedSnapshot, new: LoadedSnapshot,
         if conservative else
         "Affected results were derived from changed concept, exact alias, relation, role or source records."
     )
+    if changed_sources:
+        conservative = True
+        reason = "Source metadata changed; all supplied results were conservatively affected."
     if changed_roles:
         # Alignment records alone cannot locate role-comparison consumers.
         conservative = True
@@ -78,12 +90,16 @@ def locate_impact(old: LoadedSnapshot, new: LoadedSnapshot,
     else:
         affected = []
         for record in checked:
-            touched = any(
-                decision.concept_id in changed_concepts
-                or normalize_term(decision.member) in changed_aliases
-                or any(neighbor.concept_id in changed_concepts for neighbor in decision.related_concepts)
-                for decision in record.alignments
-            )
+            touched = False
+            for decision in record.alignments:
+                decision_ids = {decision.concept_id, *[n.concept_id for n in decision.related_concepts]}
+                if (decision.concept_id in changed_concepts
+                        or normalize_term(decision.member) in changed_aliases
+                        or any(neighbor.concept_id in changed_concepts for neighbor in decision.related_concepts)
+                        or any(left in decision_ids and right in decision_ids
+                               for left, right in changed_relation_pairs)):
+                    touched = True
+                    break
             if touched:
                 affected.append(_analysis_key(record))
     return ImpactReport(

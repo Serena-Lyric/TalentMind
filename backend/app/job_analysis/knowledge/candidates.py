@@ -10,7 +10,7 @@ from typing import Literal
 from pydantic import Field
 
 from ..baseline.contract import validate_analysis
-from ..foundation.inputs import canonical, digest
+from ..foundation.inputs import digest
 from ..foundation.store import safe_destination
 from ..semantics.models import Evidence
 from .alignment import AlignmentResult
@@ -253,4 +253,26 @@ class CandidateRegistry:
             reason=reason,
             competing_hypotheses=(previous.competing_hypotheses if competing_hypotheses is None
                                   else competing_hypotheses),
+        ))
+
+    def mark_disputed(self, candidate_id: str, reason: str,
+                      competing_hypotheses: list[str]) -> CandidateVersion:
+        previous = self.read(candidate_id)
+        if not competing_hypotheses:
+            raise ValueError("dispute requires at least one competing hypothesis")
+        return self._write(CandidateVersion(
+            **previous.model_dump(exclude={"version", "status", "reason", "competing_hypotheses"}),
+            version=previous.version + 1,
+            status="disputed",
+            reason=reason,
+            competing_hypotheses=competing_hypotheses,
+        ))
+
+    def withdraw(self, candidate_id: str, reason: str) -> CandidateVersion:
+        previous = self.read(candidate_id)
+        return self._write(CandidateVersion(
+            **previous.model_dump(exclude={"version", "status", "reason"}),
+            version=previous.version + 1,
+            status="withdrawn",
+            reason=reason,
         ))
