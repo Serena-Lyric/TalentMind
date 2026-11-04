@@ -391,3 +391,18 @@ class RoleProfile(Strict):
     not_formal_role: Literal[True]
     source_analysis_sha256s: list[Sha256]
     members: list[ProfileMember]
+
+
+class ImpactReport(Strict):
+    schema_version: Literal["m2-knowledge-impact-1"]
+    old_revision: Text
+    new_revision: Text
+    old_knowledge_sha256: Sha256
+    new_knowledge_sha256: Sha256
+    changed_concept_ids: list[StableId]
+    changed_aliases: list[Text]
+    changed_relations: list[Text]
+    changed_role_ids: list[StableId]
+    affected: list[Text]
+    conservative: bool
+    reason: Text
