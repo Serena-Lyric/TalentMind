@@ -137,3 +137,61 @@ def test_source_metadata_change_is_conservative():
     report = locate_impact(old, new, [record])
     assert report.conservative is True
     assert report.affected == [f"synthetic:{record.jd_id}:{record.source_analysis_sha256[:12]}"]
+
+
+def test_added_relation_affects_old_alignment_even_when_other_endpoint_was_absent():
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    def add_relation(value):
+        value["relations"].append({
+            "source_id": "concept-python",
+            "target_id": "concept-javascript",
+            "kind": "related_to",
+            "basis": "新增关系",
+            "evidence": [{
+                "source_id": "src-python-docs",
+                "locator": "fixture relation",
+                "quote": "Python 是一门易于学习、功能强大的编程语言。",
+            }],
+        })
+        value["revision"] = "backend-foundations-added-relation"
+
+    source = analysis_with(["Python"])
+    old = shipped()
+    new = loaded_variant(add_relation)
+    record = align_analysis(source, old)
+    assert record.alignments[0].related_concepts == []
+    report = locate_impact(old, new, [record])
+    assert report.changed_relations
+    assert report.conservative is False
+    assert report.affected == [f"synthetic:{record.jd_id}:{record.source_analysis_sha256[:12]}"]
+
+
+def test_deleted_relation_affects_old_neighbor_alignment():
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    def delete_relation(value):
+        value["relations"] = [item for item in value["relations"]
+                              if item["source_id"] != "concept-typescript"]
+        value["revision"] = "backend-foundations-deleted-relation"
+
+    source = analysis_with(["TypeScript"])
+    old = shipped()
+    new = loaded_variant(delete_relation)
+    record = align_analysis(source, old)
+    assert record.alignments[0].related_concepts
+    report = locate_impact(old, new, [record])
+    assert report.changed_relations
+    assert report.affected == [f"synthetic:{record.jd_id}:{record.source_analysis_sha256[:12]}"]
+
+
+def test_impact_rejects_alignment_not_bound_to_old_knowledge_sha():
+    import pytest
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    record = align_analysis(analysis_with(["Python"]), loaded_variant(with_python_alias))
+    with pytest.raises(ValueError, match="old knowledge"):
+        locate_impact(shipped(), loaded_variant(with_python_alias), [record])

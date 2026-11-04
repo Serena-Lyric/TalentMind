@@ -9,7 +9,7 @@ from ..baseline.contract import validate_analysis
 from ..foundation.inputs import check_public, parse_json
 from ..understanding.storage import read_run
 from .alignment import align_analysis
-from .candidates import CandidateRegistry
+from .candidates import CandidateRegistry, load_projection
 from .catalog import load_snapshot
 from .impact import locate_impact
 from .models import AlignmentResult, RoleComparisonSet
@@ -53,6 +53,7 @@ def _alignment_summary(result: AlignmentResult):
                 source_outcome=result.source_outcome,
                 source_coverage={key: value.status for key, value in result.source_coverage.items()},
                 requirements=len(result.requirements), **counts,
+                candidate_projection_sha256=result.candidate_projection_sha256,
                 semantic_review=result.semantic_review)
 
 
@@ -67,6 +68,7 @@ def build_parser():
     align.add_argument("--analysis", required=True, type=Path)
     align.add_argument("--snapshot", required=True, type=Path)
     align.add_argument("--output", required=True, type=Path)
+    align.add_argument("--candidate-projection", type=Path)
 
     compare = commands.add_parser("compare")
     compare.add_argument("--analysis", required=True, type=Path)
@@ -105,7 +107,8 @@ def main():
             return 0
         if args.command == "align":
             knowledge = load_snapshot(args.snapshot)
-            result = align_analysis(_load_analysis(args.analysis), knowledge)
+            result = align_analysis(_load_analysis(args.analysis), knowledge,
+                                    load_projection(args.candidate_projection) if args.candidate_projection else None)
             save_result(args.output, result.model_dump())
             _write_summary(_alignment_summary(result))
             return 0
@@ -117,6 +120,7 @@ def main():
             for item in result.comparisons:
                 counts[item.judgment] += 1
             _write_summary(dict(status="ok", checked_roles=len(result.checked_role_ids),
+                                comparison_status=result.comparison_status,
                                 knowledge_revision=result.knowledge_revision,
                                 source_analysis_sha256=result.source_analysis_sha256,
                                 source_outcome=result.source_outcome,
@@ -126,9 +130,13 @@ def main():
             return 0
         if args.command == "govern":
             analysis = _load_analysis(args.analysis)
-            observations = CandidateRegistry(args.registry).observe(analysis, _alignment(args.alignment))
+            registry = CandidateRegistry(args.registry)
+            observations = registry.observe(analysis, _alignment(args.alignment))
+            projection = registry.project()
             _write_summary(dict(status="ok", observations=len(observations),
-                                candidates=sorted({item.candidate_id for item in observations})))
+                                candidates=sorted({item.candidate_id for item in observations}),
+                                projection_sha256=projection.sha256,
+                                projection_concepts=len(projection.projection.concepts)))
             return 0
         if args.command == "profile":
             result = build_profile(args.role_id, _comparison(args.comparisons),

@@ -30,6 +30,8 @@ def _alias_owners(snapshot):
 def locate_impact(old: LoadedSnapshot, new: LoadedSnapshot,
                   records: list[AlignmentResult]) -> ImpactReport:
     checked = [AlignmentResult.model_validate(item.model_dump()) for item in records]
+    if any(item.knowledge_sha256 != old.sha256 for item in checked):
+        raise ValueError("alignment records must be bound to the old knowledge SHA")
     old_concepts = _ids_by_key(old.snapshot.concepts, "id")
     new_concepts = _ids_by_key(new.snapshot.concepts, "id")
     changed_concepts = sorted(
@@ -96,7 +98,7 @@ def locate_impact(old: LoadedSnapshot, new: LoadedSnapshot,
                 if (decision.concept_id in changed_concepts
                         or normalize_term(decision.member) in changed_aliases
                         or any(neighbor.concept_id in changed_concepts for neighbor in decision.related_concepts)
-                        or any(left in decision_ids and right in decision_ids
+                        or any(left in decision_ids or right in decision_ids
                                for left, right in changed_relation_pairs)):
                     touched = True
                     break

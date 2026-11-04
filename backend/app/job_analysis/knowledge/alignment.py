@@ -11,6 +11,7 @@ from .models import (
     AlignmentResult,
     Concept,
     ConceptRelation,
+    CandidateProjectionBinding,
     MemberAlignment,
     RelatedConcept,
     RequirementAlignment,
@@ -66,8 +67,55 @@ def _compound_candidates(member: str, index: dict[str, tuple[Concept, bool]]) ->
                    if normalize_term(part) in index})
 
 
+def _candidate_index(binding):
+    if binding is None:
+        return {}
+    result = {}
+    for concept in binding.projection.concepts:
+        result.setdefault(concept.normalized_term, []).append(concept)
+    return result
+
+
+def _candidate_decision(claim_id: str, member: str, requirement, groups) -> MemberAlignment | None:
+    concepts = groups.get(normalize_term(member), [])
+    if not concepts:
+        return None
+    if len(concepts) > 1 or any(item.status == "disputed" for item in concepts):
+        if len(concepts) < 2:
+            return None
+        return MemberAlignment(
+            claim_id=claim_id,
+            member=member,
+            state="ambiguous",
+            concept_id=None,
+            concept_name=None,
+            knowledge_status="ambiguous",
+            candidate_concept_ids=sorted(item.concept_id for item in concepts),
+            related_concepts=[],
+            concept_source=None,
+            source_evidence=[*requirement["scope_evidence"]],
+            reason="Multiple isolated candidate interpretations match this exact surface form.",
+        )
+    concept = concepts[0]
+    return MemberAlignment(
+        claim_id=claim_id,
+        member=member,
+        state="exact_synonym",
+        concept_id=concept.concept_id,
+        concept_name=concept.surface,
+        knowledge_status="candidate",
+        candidate_concept_ids=[],
+        related_concepts=[],
+        concept_source="candidate",
+        candidate_id=concept.candidate_id,
+        candidate_version_sha256=concept.candidate_version_sha256,
+        source_evidence=[*requirement["scope_evidence"]],
+        reason="Exact, automatically corroborated candidate expression; formal admission remains disabled.",
+    )
+
+
 def _decision(claim_id: str, member: str, requirement, knowledge: LoadedSnapshot,
-              index: dict[str, tuple[Concept, bool]]) -> MemberAlignment:
+              index: dict[str, tuple[Concept, bool]], candidate_groups) -> MemberAlignment:
     candidates = _compound_candidates(member, index)
     if len(candidates) >= 2:
         return MemberAlignment(
@@ -84,6 +132,9 @@ def _decision(claim_id: str, member: str, requirement, knowledge: LoadedSnapshot
         )
     found = index.get(normalize_term(member))
     if found is None:
+        candidate = _candidate_decision(claim_id, member, requirement, candidate_groups)
+        if candidate is not None:
+            return candidate
         return MemberAlignment(
             claim_id=claim_id,
             member=member,
@@ -106,18 +157,23 @@ def _decision(claim_id: str, member: str, requirement, knowledge: LoadedSnapshot
         knowledge_status=concept.maturity,
         candidate_concept_ids=[],
         related_concepts=_neighbors(concept.id, knowledge),
+        concept_source="knowledge",
+        candidate_id=None,
+        candidate_version_sha256=None,
         source_evidence=[*requirement["scope_evidence"]],
         reason=("Exact alias declared in the bound knowledge version."
                 if via_alias else "Exact canonical concept name in the bound knowledge version."),
     )
 
 
-def align_analysis(analysis: dict, knowledge: LoadedSnapshot) -> AlignmentResult:
+def align_analysis(analysis: dict, knowledge: LoadedSnapshot,
+                   candidate_projection: CandidateProjectionBinding | None = None) -> AlignmentResult:
     """Create a new bound explanation; the P1 analysis object is never mutated."""
     checked = validate_analysis(deepcopy(analysis))
     source = checked.model_dump()
     source_sha256 = digest(source)
     index = _index(knowledge)
+    candidate_groups = _candidate_index(candidate_projection)
     requirements = []
     for claim in checked.claims:
         if claim.kind != "requirement" or claim.requirement is None:
@@ -129,7 +185,7 @@ def align_analysis(analysis: dict, knowledge: LoadedSnapshot) -> AlignmentResult
         ]
         alignments = []
         for member in requirement["members"]:
-            decision = _decision(claim.id, member, requirement, knowledge, index)
+            decision = _decision(claim.id, member, requirement, knowledge, index, candidate_groups)
             alignments.append(MemberAlignment.model_validate({
                 **decision.model_dump(),
                 "source_evidence": source_evidence,
@@ -152,6 +208,9 @@ def align_analysis(analysis: dict, knowledge: LoadedSnapshot) -> AlignmentResult
         knowledge_id=knowledge.snapshot.id,
         knowledge_revision=knowledge.snapshot.revision,
         knowledge_sha256=knowledge.sha256,
+        candidate_projection_id=(candidate_projection.projection.id if candidate_projection else None),
+        candidate_projection_revision=(candidate_projection.projection.revision if candidate_projection else None),
+        candidate_projection_sha256=(candidate_projection.sha256 if candidate_projection else None),
         semantic_review="machine_unreviewed",
         requirements=requirements,
     )

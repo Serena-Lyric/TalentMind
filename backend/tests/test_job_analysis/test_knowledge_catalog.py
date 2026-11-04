@@ -165,3 +165,22 @@ def test_evidence_must_bind_existing_source_and_roles_need_core_content():
     value["roles"][0]["responsibilities"] = []
     with pytest.raises(ValueError):
         validate_snapshot(value)
+
+
+def test_concept_only_snapshot_loads_and_compares_without_role_candidates(tmp_path):
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.catalog import load_snapshot
+    from app.job_analysis.knowledge.roles import compare_roles
+    from test_knowledge_alignment import analysis_with
+
+    value = catalog_value()
+    value["roles"] = []
+    root = tmp_path / "concept-only"
+    write_snapshot(root, value)
+    knowledge = load_snapshot(root)
+    aligned = align_analysis(analysis_with(["别名一"]), knowledge)
+    compared = compare_roles(analysis_with(["整理资料"]), knowledge)
+    assert aligned.alignments[0].concept_id == "concept-one"
+    assert compared.checked_role_ids == []
+    assert compared.comparisons == []
+    assert compared.comparison_status == "no_role_candidates"

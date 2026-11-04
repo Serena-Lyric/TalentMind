@@ -1,6 +1,7 @@
 """P2-1 role comparison follows responsibilities and explicit boundaries only."""
 from copy import deepcopy
 from pathlib import Path
+import pytest
 
 from app.job_analysis.foundation.inputs import InputRecord
 from app.job_analysis.knowledge.catalog import load_snapshot
@@ -15,7 +16,8 @@ def shipped():
     return load_snapshot(SHIPPED_CATALOG)
 
 
-def analysis_with_duties(duty_texts, *, requirement="Python", state="preferred", jd_id="roles-one"):
+def analysis_with_duties(duty_texts, *, requirement="Python", state="preferred", jd_id="roles-one",
+                         core_values=None, duty_coverage="complete"):
     raw = "职责：" + "；".join(duty_texts) + "。要求：" + requirement + "。"
     value = analysis_with(
         [requirement],
@@ -29,17 +31,21 @@ def analysis_with_duties(duty_texts, *, requirement="Python", state="preferred",
     requirement_claim["evidence"][0] = evidence(record, raw)
     requirement_claim["requirement"]["scope_evidence"] = [evidence(record, raw)]
     duties = []
-    for index, text in enumerate(duty_texts, 1):
+    for index, (text, core) in enumerate(zip(duty_texts, core_values or [True] * len(duty_texts)), 1):
         duties.append({
             "id": f"d{index}",
             "kind": "duty",
             "text": text,
             "evidence": [evidence(record, text)],
             "requirement": None,
-            "core": None,
+            "core": core,
             "reason": "合成职责测试",
         })
     value["claims"] = [*duties, requirement_claim]
+    if duty_coverage != "complete":
+        value["coverage"]["duties"] = {"status": duty_coverage,
+                                       "reason": "职责覆盖仅用于定向反例"}
+        value["outcome"] = "partial"
     return value
 
 
@@ -144,3 +150,39 @@ def test_profile_rejects_alignment_from_a_different_knowledge_version():
     different_alignment = align_analysis(source, mismatch)
     with pytest.raises(ValueError, match="knowledge"):
         build_profile("p0-ref-programming", comparisons, [different_alignment])
+
+
+def test_negated_boundary_text_is_not_an_explicit_role_conflict():
+    from app.job_analysis.knowledge.roles import compare_roles
+
+    source = analysis_with_duties(["不承担课程教学，仅负责代码开发"])
+    result = compare_roles(source, shipped())
+    boundary_role = by_role(result, "test-ref-excludes-teaching")
+    assert boundary_role.judgment == "unresolved"
+    assert boundary_role.conflicts == []
+
+
+def test_partial_duty_coverage_cannot_support_role_and_profile_member():
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.profile import build_profile
+    from app.job_analysis.knowledge.roles import compare_roles
+
+    source = analysis_with_duties(["编写代码"], duty_coverage="partial")
+    knowledge = shipped()
+    comparison = compare_roles(source, knowledge)
+    programming = by_role(comparison, "p0-ref-programming")
+    profile = build_profile("p0-ref-programming", comparison, [align_analysis(source, knowledge)])
+    assert programming.judgment == "unresolved"
+    assert "coverage" in programming.reason
+    assert profile.members == []
+
+
+@pytest.mark.parametrize("core", [None, False])
+def test_unproven_or_noncore_duty_cannot_support_role(core):
+    from app.job_analysis.knowledge.roles import compare_roles
+
+    result = compare_roles(analysis_with_duties(["编写代码"], core_values=[core]), shipped())
+    programming = by_role(result, "p0-ref-programming")
+    assert programming.judgment == "unresolved"
+    assert "core" in programming.reason
+import pytest

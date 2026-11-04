@@ -18,10 +18,24 @@ from .models import (
 def _normal(value: str) -> str:
     return re.sub(r"\s+", "", unicodedata.normalize("NFKC", value)).casefold()
 
+CLAUSE_SPLIT = re.compile(r"[，,；;。.!！?？\n]+")
+NEGATION = re.compile(r"不|未|无|没|非|禁止|避免|无需|不需|不是|并未|没有")
+
+
+def _positive_term(text: str, term: str) -> bool:
+    source = _normal(text)
+    target = _normal(term)
+    start = 0
+    while (position := source.find(target, start)) >= 0:
+        prefix = CLAUSE_SPLIT.split(source[:position])[-1]
+        if not NEGATION.search(prefix):
+            return True
+        start = position + len(target)
+    return False
+
 
 def _anchors_match(text: str, anchors: list[list[str]]) -> bool:
-    source = _normal(text)
-    return all(any(_normal(term) in source for term in group) for group in anchors)
+    return all(any(_positive_term(text, term) for term in group) for group in anchors)
 
 
 def compare_roles(analysis: dict, knowledge: LoadedSnapshot) -> RoleComparisonSet:
@@ -35,6 +49,8 @@ def compare_roles(analysis: dict, knowledge: LoadedSnapshot) -> RoleComparisonSe
         )
         for claim in checked.claims if claim.kind == "duty"
     ]
+    coverage_complete = checked.coverage["duties"].status == "complete"
+    core_by_id = {duty.id: duty.core for duty in duties}
     comparisons = []
     for role in knowledge.snapshot.roles:
         covered = []
@@ -55,12 +71,23 @@ def compare_roles(analysis: dict, knowledge: LoadedSnapshot) -> RoleComparisonSe
                     ))
         covered = sorted(set(covered))
         uncovered = sorted(duty.id for duty in duties if duty.id not in set(covered))
-        if conflicts:
+        if not coverage_complete:
+            conflicts = []
+            judgment = "unresolved"
+            reason = "P1 duty coverage is not complete; strong role conclusions were withheld."
+        elif conflicts and any(core_by_id[item.duty_id] is True for item in conflicts):
             judgment = "not_supported"
-            reason = "Explicit role boundary matched one or more evidenced local duties."
-        elif duties and covered and not uncovered:
+            reason = "A core local duty positively matched an explicit role boundary."
+        elif conflicts:
+            judgment = "unresolved"
+            reason = "A boundary pattern matched, but local duty core status is not confirmed."
+        elif (duties and covered and not uncovered
+              and all(core_by_id[duty.id] is True for duty in duties)):
             judgment = "supported"
-            reason = "All local duties matched configured candidate responsibilities; scope is limited to this snapshot."
+            reason = "All complete, core local duties matched candidate responsibilities; scope is limited to this snapshot."
+        elif duties and covered and not uncovered:
+            judgment = "unresolved"
+            reason = "All duties matched, but one or more core-status fields are absent or false."
         elif covered:
             judgment = "unresolved"
             reason = "Some local duties matched, but uncovered duties remain unresolved."
@@ -78,6 +105,7 @@ def compare_roles(analysis: dict, knowledge: LoadedSnapshot) -> RoleComparisonSe
             reason=reason,
         ))
     checked_role_ids = sorted(role.id for role in knowledge.snapshot.roles)
+    comparison_status = "no_role_candidates" if not checked_role_ids else "completed"
     by_id = {item.role_id: item for item in comparisons}
     return RoleComparisonSet(
         schema_version="m2-role-comparison-1",
@@ -91,7 +119,10 @@ def compare_roles(analysis: dict, knowledge: LoadedSnapshot) -> RoleComparisonSe
         knowledge_revision=knowledge.snapshot.revision,
         knowledge_sha256=knowledge.sha256,
         retrieval_scope="all_roles_in_bound_snapshot",
-        scope_limitation="No claim is made about roles outside this bound knowledge snapshot.",
+        scope_limitation=("The bound snapshot has no role candidates; no role conclusion was made."
+                          if not checked_role_ids else
+                          "No claim is made about roles outside this bound knowledge snapshot."),
+        comparison_status=comparison_status,
         checked_role_ids=checked_role_ids,
         duties=duties,
         comparisons=[by_id[role_id] for role_id in checked_role_ids],

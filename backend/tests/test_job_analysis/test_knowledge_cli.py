@@ -117,3 +117,59 @@ def test_cli_align_verifies_a_saved_p1_run_directory(tmp_path):
                        "--output", tmp_path / "tampered-output")
     assert rejected.returncode == 1
     assert not (tmp_path / "tampered-output").exists()
+
+
+def test_cli_govern_projects_verified_candidate_for_limited_alignment(tmp_path):
+    from app.job_analysis.knowledge.storage import read_result
+
+    first_analysis = analysis_with(["Flink SQL"], jd_id="cli-projection-one")
+    second_analysis = analysis_with(
+        ["Flink SQL"],
+        raw_text="任职要求：掌握 Flink SQL。",
+        source="Zhaopin",
+        jd_id="cli-projection-two",
+    )
+    first_path = tmp_path / "first.json"
+    second_path = tmp_path / "second.json"
+    write_analysis(first_path, first_analysis)
+    write_analysis(second_path, second_analysis)
+    first_alignment = tmp_path / "first-alignment"
+    second_alignment = tmp_path / "second-alignment"
+    for source, output in ((first_path, first_alignment), (second_path, second_alignment)):
+        completed = run_cli("align", "--analysis", source, "--snapshot", SHIPPED_CATALOG,
+                            "--output", output)
+        assert completed.returncode == 0
+    registry = tmp_path / "registry"
+    for source, alignment in ((first_path, first_alignment), (second_path, second_alignment)):
+        governed = run_cli("govern", "--analysis", source, "--alignment", alignment,
+                           "--registry", registry)
+        assert governed.returncode == 0
+    summary = json.loads(governed.stdout)
+    assert summary["projection_concepts"] == 1
+    projection = registry / "projections" / summary["projection_sha256"]
+    output = tmp_path / "limited-alignment"
+    completed = run_cli(
+        "align", "--analysis", first_path, "--snapshot", SHIPPED_CATALOG,
+        "--candidate-projection", projection, "--output", output,
+    )
+    assert completed.returncode == 0
+    value = read_result(output)
+    decision = value["requirements"][0]["alignments"][0]
+    assert decision["concept_source"] == "candidate"
+    assert decision["knowledge_status"] == "candidate"
+    assert value["candidate_projection_sha256"] == summary["projection_sha256"]
+
+
+def test_cli_compare_accepts_concept_only_snapshot(tmp_path):
+    from test_knowledge_catalog import catalog_value, write_snapshot
+
+    value = catalog_value()
+    value["roles"] = []
+    snapshot = tmp_path / "concept-only"
+    write_snapshot(snapshot, value)
+    source = tmp_path / "analysis.json"
+    write_analysis(source, analysis_with(["别名一"]))
+    completed = run_cli("compare", "--analysis", source, "--snapshot", snapshot,
+                        "--output", tmp_path / "comparison")
+    assert completed.returncode == 0
+    assert json.loads(completed.stdout)["checked_roles"] == 0

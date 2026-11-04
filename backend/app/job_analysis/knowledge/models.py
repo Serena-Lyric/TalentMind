@@ -140,7 +140,7 @@ class KnowledgeSnapshot(Strict):
     sources: list[KnowledgeSource] = Field(min_length=1)
     concepts: list[Concept] = Field(min_length=1)
     relations: list[ConceptRelation]
-    roles: list[RoleDefinition] = Field(min_length=1)
+    roles: list[RoleDefinition] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def referential_and_identity_integrity(self):
@@ -220,6 +220,9 @@ class MemberAlignment(Strict):
     knowledge_status: Literal["test", "candidate", "formal", "ambiguous", "unknown"]
     candidate_concept_ids: list[StableId]
     related_concepts: list[RelatedConcept]
+    concept_source: Literal["knowledge", "candidate"] | None = None
+    candidate_id: StableId | None = None
+    candidate_version_sha256: Sha256 | None = None
     source_evidence: list[Evidence] = Field(min_length=1)
     reason: Text
 
@@ -230,9 +233,16 @@ class MemberAlignment(Strict):
                     or self.knowledge_status not in {"test", "candidate", "formal"}
                     or self.candidate_concept_ids):
                 raise ValueError("exact alignment requires exactly one selected concept")
+            if self.concept_source == "candidate":
+                if self.candidate_id is None or self.candidate_version_sha256 is None:
+                    raise ValueError("candidate alignment requires candidate version binding")
+            elif self.concept_source != "knowledge" or self.candidate_id is not None:
+                raise ValueError("exact alignment requires knowledge or candidate source")
+
         elif self.state == "ambiguous":
             if (self.concept_id is not None or self.concept_name is not None
-                    or self.knowledge_status != "ambiguous" or len(self.candidate_concept_ids) < 2):
+                    or self.knowledge_status != "ambiguous" or len(self.candidate_concept_ids) < 2
+                    or self.concept_source is not None):
                 raise ValueError("ambiguous alignment cannot select one concept")
         elif (self.concept_id is not None or self.concept_name is not None
               or self.knowledge_status != "unknown" or self.candidate_concept_ids):
@@ -268,6 +278,9 @@ class AlignmentResult(Strict):
     source_coverage: dict[str, Coverage]
     knowledge_id: StableId
     knowledge_revision: Text
+    candidate_projection_id: StableId | None = None
+    candidate_projection_revision: Text | None = None
+    candidate_projection_sha256: Sha256 | None = None
     knowledge_sha256: Sha256
     semantic_review: Literal["machine_unreviewed"]
     requirements: list[RequirementAlignment]
@@ -276,6 +289,12 @@ class AlignmentResult(Strict):
     def complete_source_coverage(self):
         if set(self.source_coverage) != DIMENSIONS:
             raise ValueError("source coverage requires all six dimensions")
+        candidate_bound = (self.candidate_projection_id, self.candidate_projection_revision,
+                           self.candidate_projection_sha256)
+        if any(value is not None for value in candidate_bound) and any(value is None for value in candidate_bound):
+            raise ValueError("candidate projection binding must be complete")
+        if any(item.concept_source == "candidate" for item in self.alignments) and self.candidate_projection_sha256 is None:
+            raise ValueError("candidate concept alignment requires projection binding")
         return self
 
     @property
@@ -332,14 +351,18 @@ class RoleComparisonSet(Strict):
     knowledge_sha256: Sha256
     retrieval_scope: Literal["all_roles_in_bound_snapshot"]
     scope_limitation: Text
-    checked_role_ids: list[StableId] = Field(min_length=1)
+    comparison_status: Literal["completed", "no_role_candidates"]
+    checked_role_ids: list[StableId] = Field(default_factory=list)
     duties: list[DutySnapshot]
-    comparisons: list[RoleComparison] = Field(min_length=1)
+    comparisons: list[RoleComparison] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def exact_checked_scope(self):
         if set(self.source_coverage) != DIMENSIONS:
             raise ValueError("source coverage requires all six dimensions")
+        expected = "no_role_candidates" if not self.checked_role_ids else "completed"
+        if self.comparison_status != expected:
+            raise ValueError("comparison status disagrees with checked role scope")
         if self.checked_role_ids != sorted(self.checked_role_ids):
             raise ValueError("checked role IDs must be sorted")
         if [item.role_id for item in self.comparisons] != self.checked_role_ids:
@@ -408,6 +431,40 @@ class RoleProfile(Strict):
     not_formal_role: Literal[True]
     source_analysis_sha256s: list[Sha256]
     members: list[ProfileMember]
+
+
+class CandidateProjectionConcept(Strict):
+    concept_id: StableId
+    candidate_id: StableId
+    candidate_version_sha256: Sha256
+    surface: Text
+    normalized_term: Text
+    category: Category
+    context_key: Text
+    status: Literal["corroborated", "disputed"]
+    independent_evidence: int = Field(ge=1)
+    observation_keys: list[Sha256] = Field(min_length=1)
+    maturity: Literal["candidate"]
+    formal_admission_allowed: Literal[False]
+
+
+class CandidateProjection(Strict):
+    schema_version: Literal["m2-candidate-knowledge-1"]
+    id: StableId
+    revision: Text
+    policy_version: Text
+    concepts: list[CandidateProjectionConcept]
+    semantic_review: Literal["machine_unreviewed"]
+    formal_admission_allowed: Literal[False]
+
+
+class CandidateProjectionBinding(Strict):
+    projection: CandidateProjection
+    sha256: Sha256
+
+    @property
+    def snapshot(self) -> CandidateProjection:
+        return self.projection
 
 
 class ImpactReport(Strict):

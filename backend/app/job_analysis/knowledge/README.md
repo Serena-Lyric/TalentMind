@@ -10,21 +10,29 @@
 - `catalog/backend-foundations.v1/`：小范围外部知识快照。来源包含 Python 3.14.10
   中文文档、MDN 中文 JavaScript/TypeScript 页面和 Kubernetes 中文概述；两条 P0
   候选岗位参照保留原来源、字节摘要和许可未明限制。快照只保存短引用，不复制整页/整本资料。
+  这里的“SHA-256”是知识开发时记录的来源下载字节摘要；`load_snapshot` 只校验仓库清单、
+  来源字段、引用结构和短摘录非空，不会联网重新下载或独立证明外部页面/PDF 当前内容。
+
 - `align_analysis`：只做 NFKC + 空白/大小写归一后的精确标准名或显式别名匹配。
   模糊名称、共同出现和同一模型重复输出都不会建立同义；一个原始 member 同时含多个已知概念时
   返回 `ambiguous`，不擅自拆分。
-- `compare_roles`：按职责短语和显式边界比较。覆盖缺口保持 `unresolved`；
-  `not_supported` 必须带本地职责证据与知识边界证据。
-- `CandidateRegistry`：只从有明确能力上下文的未知表达建立候选。独立证据按规范化正文去重，
-  平台名称或转载次数不会增加独立性。候选修订、争议和撤回都只追加版本，旧版始终可读。
-- `locate_impact`：别名、概念、关系、角色或来源变化可定位受影响对齐；角色、来源或无法证明范围时
-  保守标记全部。
+- `compare_roles`：按职责短语和显式边界比较，并识别局部否定。只有 P1 duties coverage
+  完整、核心性明确且为正时才能给 `supported/not_supported`；partial 或 core 未确认时保持 `unresolved`。
+  目录为空时返回 `no_role_candidates`，不阻止技能对齐加载。
+- `CandidateRegistry`：只从有明确能力上下文的未知表达建立候选；独立证据按规范化正文去重。
+  `candidate-evidence-policy-1` 在同义上下文出现两个不同正文时自动核验为 `corroborated` 并写入机器描述；
+  不同上下文保留隔离的 competing candidates 并自动标为 `disputed`。修订必须绑定新 P1 证据，版本只追加。
+- `locate_impact`：旧对齐必须绑定旧知识 SHA；别名、概念及关系新增/删除/修改都可定位受影响对齐；
+  角色、来源或无法证明范围时保守标记全部。
 - `build_profile`：只从已支持的角色比较与显式版本对齐重建候选画像，保留成员原始五态和组合，
   不把单个成员的 `required` 推广为全体岗位要求。
 
 知识状态只允许 `test / candidate / formal`。当前发布快照没有正式条目；正式条目缺少逐项批准证据
 会加载失败。候选合并、拆分、身份确认、正式准入和正式发布都返回
 `requires_human_decision`，本段不开放自动正式准入。
+自动核验只允许生成 `candidate` 投影，通过 `CandidateRegistry.project()` 持久化为独立 SHA，
+并由 align 读取；它既不是正式 knowledge，也不是人工确认，独立上下文数不是概率。
+
 
 ## 命令
 
@@ -40,6 +48,13 @@
   --analysis ..\data\local\p1-run `
   --snapshot app/job_analysis/knowledge/catalog/backend-foundations.v1 `
   --output ..\data\local\p2-knowledge\alignment-001
+
+# govern 成功后会生成 projections/<sha256>；可显式用于候选性质重解释
+.\.venv\Scripts\python.exe -m app.job_analysis.knowledge align `
+  --analysis ..\data\local\p1-run `
+  --snapshot app/job_analysis/knowledge/catalog/backend-foundations.v1 `
+  --candidate-projection ..\data\local\p2-knowledge\candidate-registry\projections\<sha256> `
+  --output ..\data\local\p2-knowledge\alignment-candidate-001
 
 .\.venv\Scripts\python.exe -m app.job_analysis.knowledge compare `
   --analysis ..\data\local\p1-run `
@@ -76,6 +91,9 @@
   关联概念的 `narrower_than`、`related_to` 等关系单独列出。
 - `unknown` 只表示当前知识版本未命中，不是“不存在”或“不是技能”。
 - `ambiguous` 保留全部候选概念 ID，不选一个答案。
+- 自动核验候选只能通过独立 projection SHA 读取；`concept_source=candidate` 且正式准入仍为 false。
+  同一表面词的不同上下文保留为 competing candidate IDs；不会累计为单一候选的独立验证强度。
+- 无岗位目录时技能知识仍可加载/对齐；岗位比较返回 `no_role_candidates` 与空对比范围。
 - 岗位摘要明确 `all_roles_in_bound_snapshot`；不能解释为排除快照外职业。
 - 候选画像固定 `candidate_profile`、`linked_members_only`、`not_formal_role` 和
   `not_market_statistics`。

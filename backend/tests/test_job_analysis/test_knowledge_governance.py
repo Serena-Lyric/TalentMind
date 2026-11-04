@@ -81,15 +81,23 @@ def test_revision_appends_version_preserves_old_head_and_keeps_hypotheses(tmp_pa
     analysis, alignment = unknown_case()
     registry = CandidateRegistry(tmp_path / "registry")
     first = registry.observe(analysis, alignment)[0]
+    second_analysis, second_alignment = unknown_case(
+        raw_text="任职要求：掌握 Flink SQL。",
+        source="Zhaopin",
+        jd_id="governance-two",
+    )
     second = registry.revise(
         first.candidate_id,
         "经上下文补充后的候选描述",
-        "补充同一能力的上下文说明",
+        "补充新的独立上下文证据",
+        analysis=second_analysis,
+        alignment=second_alignment,
         competing_hypotheses=["流式数据处理能力", "具体SQL方言"],
     )
     assert second.version == 2
     assert second.description == "经上下文补充后的候选描述"
     assert second.competing_hypotheses == ["流式数据处理能力", "具体SQL方言"]
+    assert len(second.referenced_observations) == 2
     assert registry.read(first.candidate_id, 1) == first
     assert registry.read(first.candidate_id).version == 2
 
@@ -122,3 +130,77 @@ def test_dispute_then_withdrawal_preserves_the_original_observation(tmp_path):
     assert withdrawn.status == "withdrawn"
     assert registry.read(original.candidate_id, 1) == original
     assert registry.read(original.candidate_id, 2) == disputed
+
+
+def test_two_independent_contexts_automatically_corroborate_and_project_candidate(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    first_analysis, first_alignment = unknown_case(source="BOSS", jd_id="corroborate-one")
+    second_analysis, second_alignment = unknown_case(
+        raw_text="任职要求：掌握 Flink SQL。",
+        source="Zhaopin",
+        jd_id="corroborate-two",
+    )
+    registry = CandidateRegistry(tmp_path / "registry")
+    first = registry.observe(first_analysis, first_alignment)[0]
+    second = registry.observe(second_analysis, second_alignment)[0]
+    assert second.candidate_id == first.candidate_id
+    assert second.status == "corroborated"
+    assert second.independent_evidence == 2
+    assert "机器核验候选" in second.description
+    assert second.formal_admission_allowed is False
+
+    projection = registry.project()
+    assert len(projection.snapshot.concepts) == 1
+    assert projection.snapshot.concepts[0].maturity == "candidate"
+    assert projection.snapshot.formal_admission_allowed is False
+
+
+def test_corroborated_candidate_is_available_only_as_candidate_knowledge(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    first_analysis, first_alignment = unknown_case(source="BOSS", jd_id="projection-one")
+    second_analysis, second_alignment = unknown_case(
+        raw_text="任职要求：掌握 Flink SQL。",
+        source="Zhaopin",
+        jd_id="projection-two",
+    )
+    registry = CandidateRegistry(tmp_path / "registry")
+    registry.observe(first_analysis, first_alignment)
+    registry.observe(second_analysis, second_alignment)
+    projection = registry.project()
+    result = align_analysis(first_analysis, shipped(), candidate_projection=projection)
+    decision = result.alignments[0]
+    assert decision.state == "exact_synonym"
+    assert decision.knowledge_status == "candidate"
+    assert decision.concept_source == "candidate"
+    assert decision.concept_id.startswith("candidatec-")
+    assert result.candidate_projection_sha256 == projection.sha256
+
+
+def test_same_surface_with_different_contexts_stays_ambiguous_and_does_not_add_evidence(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    development, development_alignment = unknown_case(
+        raw_text="负责用 Flink SQL 开发实时任务。",
+        jd_id="context-development",
+    )
+    teaching, teaching_alignment = unknown_case(
+        raw_text="负责讲授 Flink SQL 课程。",
+        jd_id="context-teaching",
+    )
+    registry = CandidateRegistry(tmp_path / "registry")
+    first = registry.observe(development, development_alignment)[0]
+    second = registry.observe(teaching, teaching_alignment)[0]
+    first_head = registry.read(first.candidate_id)
+    assert first.candidate_id != second.candidate_id
+    assert first_head.status == "disputed"
+    assert second.status == "disputed"
+    assert first_head.independent_evidence == 1
+    assert second.independent_evidence == 1
+    projection = registry.project()
+    result = align_analysis(development, shipped(), candidate_projection=projection)
+    decision = result.alignments[0]
+    assert decision.state == "ambiguous"
+    assert len(decision.candidate_concept_ids) == 2
+    assert decision.concept_id is None
