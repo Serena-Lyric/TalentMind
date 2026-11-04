@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from ..baseline.contract import Coverage, Requirement
 from ..foundation.inputs import check_public
 from ..semantics.models import Evidence
 
@@ -247,6 +248,7 @@ class RequirementAlignment(Strict):
 
     @model_validator(mode="after")
     def one_decision_per_original_member(self):
+        Requirement.model_validate(self.source_requirement)
         members = self.source_requirement.get("members")
         if not isinstance(members, list) or [item.member for item in self.alignments] != members:
             raise ValueError("alignment must preserve original member order and multiplicity")
@@ -262,6 +264,8 @@ class AlignmentResult(Strict):
     input_sha256: Sha256
     input_version: Text
     source_analysis_sha256: Sha256
+    source_outcome: Literal["complete", "partial", "failed", "not_run"]
+    source_coverage: dict[str, Coverage]
     knowledge_id: StableId
     knowledge_revision: Text
     knowledge_sha256: Sha256
@@ -315,6 +319,8 @@ class RoleComparisonSet(Strict):
     jd_id: Text
     input_sha256: Sha256
     source_analysis_sha256: Sha256
+    source_outcome: Literal["complete", "partial", "failed", "not_run"]
+    source_coverage: dict[str, Coverage]
     knowledge_id: StableId
     knowledge_revision: Text
     knowledge_sha256: Sha256
@@ -385,6 +391,9 @@ class RoleProfile(Strict):
     role_id: StableId
     role_revision: Text
     role_maturity: Maturity
+    knowledge_id: StableId
+    knowledge_revision: Text
+    knowledge_sha256: Sha256
     mode: Literal["candidate_profile"]
     claim_scope: Literal["linked_members_only"]
     not_market_statistics: Literal[True]

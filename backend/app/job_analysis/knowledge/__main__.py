@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..baseline.contract import validate_analysis
 from ..foundation.inputs import check_public, parse_json
+from ..understanding.storage import read_run
 from .alignment import align_analysis
 from .candidates import CandidateRegistry
 from .catalog import load_snapshot
@@ -18,10 +19,12 @@ from .storage import read_result, save_result
 
 
 def _load_analysis(path: Path) -> dict:
+    if Path(path).is_dir():
+        return validate_analysis(read_run(path)["analysis"]).model_dump()
     value = parse_json(Path(path).read_text(encoding="utf-8-sig"))
     check_public(value)
     if isinstance(value, dict) and value.get("schema_version") == "m2-p1-run-1":
-        value = value.get("analysis")
+        raise ValueError("saved P1 runs require their manifest-bound directory")
     if not isinstance(value, dict):
         raise ValueError("analysis object required")
     return validate_analysis(value).model_dump()
@@ -47,6 +50,8 @@ def _alignment_summary(result: AlignmentResult):
                 knowledge_revision=result.knowledge_revision,
                 knowledge_sha256=result.knowledge_sha256,
                 source_analysis_sha256=result.source_analysis_sha256,
+                source_outcome=result.source_outcome,
+                source_coverage={key: value.status for key, value in result.source_coverage.items()},
                 requirements=len(result.requirements), **counts,
                 semantic_review=result.semantic_review)
 
@@ -114,6 +119,9 @@ def main():
             _write_summary(dict(status="ok", checked_roles=len(result.checked_role_ids),
                                 knowledge_revision=result.knowledge_revision,
                                 source_analysis_sha256=result.source_analysis_sha256,
+                                source_outcome=result.source_outcome,
+                                source_coverage={key: value.status
+                                                 for key, value in result.source_coverage.items()},
                                 **counts))
             return 0
         if args.command == "govern":
@@ -128,7 +136,9 @@ def main():
             save_result(args.output, result.model_dump())
             _write_summary(dict(status="ok", role_id=result.role_id,
                                 members=len(result.members), mode=result.mode,
-                                claim_scope=result.claim_scope))
+                                claim_scope=result.claim_scope,
+                                knowledge_revision=result.knowledge_revision,
+                                knowledge_sha256=result.knowledge_sha256))
             return 0
         if args.command == "impact":
             result = locate_impact(load_snapshot(args.old), load_snapshot(args.new),

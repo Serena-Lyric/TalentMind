@@ -147,6 +147,8 @@ def align_analysis(analysis: dict, knowledge: LoadedSnapshot) -> AlignmentResult
         input_sha256=checked.input_sha256,
         input_version=checked.input_version,
         source_analysis_sha256=source_sha256,
+        source_outcome=checked.outcome,
+        source_coverage={key: value.model_dump() for key, value in checked.coverage.items()},
         knowledge_id=knowledge.snapshot.id,
         knowledge_revision=knowledge.snapshot.revision,
         knowledge_sha256=knowledge.sha256,

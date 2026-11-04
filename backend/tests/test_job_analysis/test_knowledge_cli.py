@@ -85,16 +85,35 @@ def test_cli_refuses_overwrite_and_public_repository_output(tmp_path):
         if public_dir.exists():
             shutil.rmtree(public_dir)
 
+    public_registry = BACKEND / "app" / ("__knowledge_registry_" + uuid4().hex)
+    try:
+        rejected_registry = run_cli(
+            "govern", "--analysis", source, "--alignment", output,
+            "--registry", public_registry,
+        )
+        assert rejected_registry.returncode == 1
+        assert not public_registry.exists()
+    finally:
+        if public_registry.exists():
+            shutil.rmtree(public_registry)
 
-def test_cli_align_accepts_a_saved_p1_run_shape(tmp_path):
+
+def test_cli_align_verifies_a_saved_p1_run_directory(tmp_path):
     from test_understanding import draft, run
+    from app.job_analysis.understanding.storage import save_run
 
     result = run(draft())
-    run_path = tmp_path / "p1-run.json"
-    write_analysis(run_path, result)
+    run_path = tmp_path / "p1-run"
+    save_run(run_path, result)
     output = tmp_path / "alignment"
     completed = run_cli("align", "--analysis", run_path, "--snapshot", SHIPPED_CATALOG,
                         "--output", output)
     assert completed.returncode == 0
     assert json.loads(completed.stdout)["requirements"] == 1
     assert "Redis" not in completed.stdout
+
+    (run_path / "run.json").write_text('{"tampered":true}', encoding="utf-8")
+    rejected = run_cli("align", "--analysis", run_path, "--snapshot", SHIPPED_CATALOG,
+                       "--output", tmp_path / "tampered-output")
+    assert rejected.returncode == 1
+    assert not (tmp_path / "tampered-output").exists()

@@ -11,6 +11,7 @@ from pydantic import Field
 
 from ..baseline.contract import validate_analysis
 from ..foundation.inputs import canonical, digest
+from ..foundation.store import safe_destination
 from ..semantics.models import Evidence
 from .alignment import AlignmentResult
 from .models import Maturity, StableId, Strict, Text, normalize_term
@@ -123,7 +124,7 @@ def structural_decision(action: str) -> StructuralDecision:
 
 class CandidateRegistry:
     def __init__(self, path: Path | str):
-        self.root = Path(path)
+        self.root = safe_destination(path)
         self.root.mkdir(parents=True, exist_ok=True)
 
     def _versions(self, candidate_id: str) -> list[int]:

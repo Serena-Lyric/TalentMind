@@ -14,6 +14,10 @@ from .models import (
 def build_profile(role_id: str, comparisons: RoleComparisonSet,
                   alignments: list[AlignmentResult]) -> RoleProfile:
     comparison = comparisons.for_role(role_id)
+    if any((item.knowledge_id, item.knowledge_revision, item.knowledge_sha256) !=
+           (comparisons.knowledge_id, comparisons.knowledge_revision, comparisons.knowledge_sha256)
+           for item in alignments):
+        raise ValueError("profile alignments require the same knowledge version as the comparison")
     by_source = {
         item.source_analysis_sha256: item
         for item in alignments
@@ -63,6 +67,9 @@ def build_profile(role_id: str, comparisons: RoleComparisonSet,
         role_id=comparison.role_id,
         role_revision=comparison.role_revision,
         role_maturity=comparison.role_maturity,
+        knowledge_id=comparisons.knowledge_id,
+        knowledge_revision=comparisons.knowledge_revision,
+        knowledge_sha256=comparisons.knowledge_sha256,
         mode="candidate_profile",
         claim_scope="linked_members_only",
         not_market_statistics=True,

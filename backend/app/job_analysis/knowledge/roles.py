@@ -85,6 +85,8 @@ def compare_roles(analysis: dict, knowledge: LoadedSnapshot) -> RoleComparisonSe
         jd_id=checked.jd_id,
         input_sha256=checked.input_sha256,
         source_analysis_sha256=digest(checked.model_dump()),
+        source_outcome=checked.outcome,
+        source_coverage={key: value.model_dump() for key, value in checked.coverage.items()},
         knowledge_id=knowledge.snapshot.id,
         knowledge_revision=knowledge.snapshot.revision,
         knowledge_sha256=knowledge.sha256,

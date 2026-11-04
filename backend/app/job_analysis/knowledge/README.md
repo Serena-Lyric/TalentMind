@@ -34,19 +34,19 @@
 .\.venv\Scripts\python.exe -m app.job_analysis.knowledge validate `
   --snapshot app/job_analysis/knowledge/catalog/backend-foundations.v1
 
-# 接受 P1 Analysis JSON 或已保存 P1 run.json
+# 接受 P1 Analysis JSON 或含 manifest 的已保存 P1 run 目录
 .\.venv\Scripts\python.exe -m app.job_analysis.knowledge align `
-  --analysis ..\data\local\p1-run\run.json `
+  --analysis ..\data\local\p1-run `
   --snapshot app/job_analysis/knowledge/catalog/backend-foundations.v1 `
   --output ..\data\local\p2-knowledge\alignment-001
 
 .\.venv\Scripts\python.exe -m app.job_analysis.knowledge compare `
-  --analysis ..\data\local\p1-run\run.json `
+  --analysis ..\data\local\p1-run `
   --snapshot app/job_analysis/knowledge/catalog/backend-foundations.v1 `
   --output ..\data\local\p2-knowledge\comparison-001
 
 .\.venv\Scripts\python.exe -m app.job_analysis.knowledge govern `
-  --analysis ..\data\local\p1-run\run.json `
+  --analysis ..\data\local\p1-run `
   --alignment ..\data\local\p2-knowledge\alignment-001 `
   --registry ..\data\local\p2-knowledge\candidate-registry
 
@@ -69,6 +69,8 @@
 ## 读取语义
 
 - 对齐结果绑定 `input_sha256`、P1 完整分析摘要、知识 ID/revision/SHA。
+- P1 的 `outcome` 和六维 coverage 原样进入对齐/岗位比较读取边界；`partial`、
+  `not_run`、执行失败与知识未知不会合并成同一个空结果。
 - `exact_synonym` 表示当前知识版本的精确名称/显式别名，不表示可替代性；
   关联概念的 `narrower_than`、`related_to` 等关系单独列出。
 - `unknown` 只表示当前知识版本未命中，不是“不存在”或“不是技能”。

@@ -106,6 +106,9 @@ def test_profile_preserves_preferred_state_and_never_claims_universal_requiremen
     assert profile.mode == "candidate_profile"
     assert profile.role_maturity == "candidate"
     assert profile.claim_scope == "linked_members_only"
+    assert profile.knowledge_id == knowledge.snapshot.id
+    assert profile.knowledge_revision == knowledge.snapshot.revision
+    assert profile.knowledge_sha256 == knowledge.sha256
     assert profile.not_market_statistics is True
     assert profile.not_formal_role is True
     assert profile.members[0].requirements[0].state == "preferred"
@@ -125,3 +128,19 @@ def test_profile_is_reproducible_from_the_same_bound_inputs():
     first = build_profile("p0-ref-programming", comparisons, [alignment])
     second = build_profile("p0-ref-programming", comparisons, [alignment])
     assert first == second
+
+
+def test_profile_rejects_alignment_from_a_different_knowledge_version():
+    import pytest
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.profile import build_profile
+    from app.job_analysis.knowledge.roles import compare_roles
+    from test_knowledge_versions import loaded_variant, with_python_alias
+
+    source = analysis_with_duties(["编写代码并核验模块功能"])
+    knowledge = shipped()
+    mismatch = loaded_variant(with_python_alias)
+    comparisons = compare_roles(source, knowledge)
+    different_alignment = align_analysis(source, mismatch)
+    with pytest.raises(ValueError, match="knowledge"):
+        build_profile("p0-ref-programming", comparisons, [different_alignment])

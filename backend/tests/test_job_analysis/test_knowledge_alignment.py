@@ -181,5 +181,31 @@ def test_atomic_member_with_multiple_known_concepts_is_ambiguous_not_split():
     assert result.requirements[0].source_requirement["members"] == ["Kubernetes 或 容器编排"]
 
 
+def test_partial_source_outcome_and_coverage_remain_visible():
+    from app.job_analysis.knowledge.alignment import align_analysis
+
+    source = mixed_analysis()
+    source["outcome"] = "partial"
+    source["coverage"]["requirements"] = {
+        "status": "partial",
+        "reason": "one source requirement remained only partially interpreted",
+    }
+    result = align_analysis(source, shipped())
+    assert result.source_outcome == "partial"
+    assert result.source_coverage["requirements"].status == "partial"
+    assert result.source_coverage["requirements"].reason.startswith("one source")
+
+
+def test_alignment_reader_rejects_a_tampered_source_requirement_shape():
+    import pytest
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.models import AlignmentResult
+
+    value = align_analysis(mixed_analysis(), shipped()).model_dump()
+    value["requirements"][0]["source_requirement"]["target"] = "education"
+    with pytest.raises(ValueError):
+        AlignmentResult.model_validate(value)
+
+
 def original_requirement(analysis):
     return next(claim for claim in analysis["claims"] if claim["kind"] == "requirement")["requirement"]
