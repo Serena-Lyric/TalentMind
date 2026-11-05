@@ -1,0 +1,313 @@
+{
+  "schema_version": "m2-knowledge-1",
+  "id": "backend-foundations",
+  "revision": "backend-foundations-1",
+  "purpose": "P2-1小规模技术岗位知识初始化与严禁同义合并的工程边界；不是正式职业目录",
+  "created_on": "2026-11-04",
+  "sources": [
+    {
+      "id": "src-python-docs",
+      "title": "The Python Tutorial (Chinese documentation)",
+      "uri": "https://docs.python.org/zh-cn/3.14/tutorial/index.html",
+      "document_version": "Python 3.14.10 documentation; retrieved web bytes 2026-11-04",
+      "retrieved_on": "2026-11-04",
+      "license_id": "PSF-2.0",
+      "license_url": "https://docs.python.org/zh-cn/3.14/license.html",
+      "use_constraint": "Use only short cited excerpts; attribution and PSF terms apply; no full documentation redistribution.",
+      "sha256": "a6c562621b42513d6bf472eab16b98b120ba6eb309fd410cbb911fd00b26b7cc"
+    },
+    {
+      "id": "src-mdn-javascript",
+      "title": "JavaScript | MDN Web Docs",
+      "uri": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript",
+      "document_version": "Web page bytes retrieved 2026-11-04; Last-Modified 2026-11-03T01:03:47Z",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC-BY-SA-2.5",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "use_constraint": "Mozilla Contributors; reuse requires attribution and ShareAlike terms; this catalog stores only short excerpts.",
+      "sha256": "d00343728ccef41208ded60a31349bf5a72df6f3776f3b34f44396085bf4072d"
+    },
+    {
+      "id": "src-mdn-typescript",
+      "title": "TypeScript - MDN Web Docs Glossary",
+      "uri": "https://developer.mozilla.org/zh-CN/docs/Glossary/TypeScript",
+      "document_version": "Web page bytes retrieved 2026-11-04; no independent release number in the page",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC-BY-SA-2.5",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "use_constraint": "Mozilla Contributors; reuse requires attribution and ShareAlike terms; this catalog stores only short excerpts.",
+      "sha256": "f560436808b628927ef0d7f5780d9aff75eac585294d4cb32728ea548fc77f54"
+    },
+    {
+      "id": "src-kubernetes",
+      "title": "Kubernetes 概述",
+      "uri": "https://kubernetes.io/zh-cn/docs/concepts/overview/",
+      "document_version": "Page metadata dateModified 2026-06-18; retrieved web bytes 2026-11-04",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://git.k8s.io/website/LICENSE",
+      "use_constraint": "The Kubernetes Authors; documentation distributed under CC BY 4.0; this catalog stores only short excerpts.",
+      "sha256": "92c2726ef377dd95eaae38e2d0e0c067763fb75c71da9cc49b6bd74768ada0c1"
+    },
+    {
+      "id": "src-role-programming",
+      "title": "计算机程序设计员（三级）职业技能等级认定指导手册",
+      "uri": "https://www.softline.org.cn/Attachment/Files?n=%E9%99%84%E4%BB%B61%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E5%91%98-%E6%8C%87%E5%AF%BC%E6%89%8B%E5%86%8C-3%E7%BA%A7.pdf&p=2024%2F09%2F09%2F453fec04-c0ae-49ee-8e16-d80df9e473a1.pdf",
+      "document_version": "2024-09-09 publication path; source body has no independent edition number; fixed download from p0-role-references-1",
+      "retrieved_on": "2026-10-28",
+      "license_id": "LICENSE-UNVERIFIED",
+      "license_url": "https://www.softline.org.cn/",
+      "use_constraint": "No explicit reuse licence was located. Keep only the pre-existing candidate summary and short locator; do not redistribute the PDF or claim formal adoption.",
+      "sha256": "8223e1c0952f6db9f483ff3d0ec21dcbb5c4ca2d0d3058c446ddea7893a50220"
+    },
+    {
+      "id": "src-role-network",
+      "title": "信息通信网络运行管理员国家职业技能标准",
+      "uri": "https://chinajob.mohrss.gov.cn/upload/resources/jnbzpdf/4ccc6a76ab6420078cc004.pdf",
+      "document_version": "2019 published edition; fixed download from p0-role-references-1",
+      "retrieved_on": "2026-10-28",
+      "license_id": "LICENSE-UNVERIFIED",
+      "license_url": "https://chinajob.mohrss.gov.cn/",
+      "use_constraint": "No explicit open-content reuse licence was established for automated redistribution. Keep only the pre-existing candidate summary and locator; do not redistribute the PDF.",
+      "sha256": "c27243f9630d1e485b69f3ff0b3e95957d08b01e4dd8f72d7a3b74c910716b61"
+    },
+    {
+      "id": "src-synthetic-test",
+      "title": "TalentMind P2-1 synthetic boundary fixture",
+      "uri": "https://example.invalid/talentmind/p2-test-boundary",
+      "document_version": "p2-knowledge-test-1",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "use_constraint": "Synthetic engineering fixture only; not external occupational evidence and not a formal role.",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "concepts": [
+    {
+      "id": "concept-python",
+      "name": "Python",
+      "definition": "一种易于学习、功能强大的通用编程语言，提供高级数据结构、面向对象编程、动态类型和解释器执行能力。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-python-docs",
+          "locator": "Python Tutorial, first introduction paragraph",
+          "quote": "Python 是一门易于学习、功能强大的编程语言。它提供了高效的高级数据结构，还能简单有效地面向对象编程。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-javascript",
+      "name": "JavaScript",
+      "definition": "具有函数优先特性的轻量级、解释型或即时编译型编程语言，支持多种编程范式。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [
+        {
+          "term": "JS",
+          "scope": "MDN defines the abbreviation as JavaScript on this exact page.",
+          "evidence": [
+            {
+              "source_id": "src-mdn-javascript",
+              "locator": "Page description, first sentence",
+              "quote": "JavaScript（JS）是一种具有函数优先特性的轻量级、解释型或者说即时编译型的编程语言。"
+            }
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "src-mdn-javascript",
+          "locator": "Page description, first sentence",
+          "quote": "JavaScript（JS）是一种具有函数优先特性的轻量级、解释型或者说即时编译型的编程语言。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-typescript",
+      "name": "TypeScript",
+      "definition": "为JavaScript添加静态类型检查的编程语言，保留独立身份，不等同JavaScript。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-mdn-typescript",
+          "locator": "Page description",
+          "quote": "TypeScript 是一个为 JavaScript 添加静态类型检查的编程语言。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-kubernetes",
+      "name": "Kubernetes",
+      "definition": "用于管理容器化工作负载和服务的可移植、可扩展开源平台，支持声明式配置和自动化。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-kubernetes",
+          "locator": "Overview page description",
+          "quote": "Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-container-orchestration",
+      "name": "容器编排",
+      "definition": "围绕容器化工作负载与服务进行部署、伸缩和运行管理的专业能力；不等同任何单一产品。",
+      "category": "professional_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-kubernetes",
+          "locator": "Overview page description",
+          "quote": "Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。"
+        }
+      ],
+      "approval_source": null
+    }
+  ],
+  "relations": [
+    {
+      "source_id": "concept-typescript",
+      "target_id": "concept-javascript",
+      "kind": "narrower_than",
+      "basis": "TypeScript adds static type checking to JavaScript; this preserves separate identities and does not assert substitutability.",
+      "evidence": [
+        {
+          "source_id": "src-mdn-typescript",
+          "locator": "Page description",
+          "quote": "TypeScript 是一个为 JavaScript 添加静态类型检查的编程语言。"
+        }
+      ]
+    },
+    {
+      "source_id": "concept-kubernetes",
+      "target_id": "concept-container-orchestration",
+      "kind": "related_to",
+      "basis": "Kubernetes is one platform used for containerized workload management; the concepts remain distinct and non-substitutable.",
+      "evidence": [
+        {
+          "source_id": "src-kubernetes",
+          "locator": "Overview page description",
+          "quote": "Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。"
+        }
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "id": "p0-ref-programming",
+      "name": "程序设计工作参照",
+      "definition_version": "p0-role-1",
+      "maturity": "candidate",
+      "goals": ["交付满足功能需求的计算机或移动终端应用程序"],
+      "responsibilities": [
+        {
+          "id": "resp-understand-design",
+          "text": "理解开发需求及模块设计内容",
+          "anchors": [["理解", "分析"], ["开发需求", "模块设计", "设计内容"]],
+          "evidence": [{"source_id": "src-role-programming", "locator": "P0 role reference; core duty 1", "quote": "理解开发需求及模块设计内容"}]
+        },
+        {
+          "id": "resp-write-design-doc",
+          "text": "形成模块设计文档",
+          "anchors": [["形成", "编写", "撰写"], ["模块设计文档", "设计文档"]],
+          "evidence": [{"source_id": "src-role-programming", "locator": "P0 role reference; core duty 2", "quote": "形成模块设计文档"}]
+        },
+        {
+          "id": "resp-write-program",
+          "text": "编写与修改程序",
+          "anchors": [["编写", "修改", "开发"], ["程序", "代码"]],
+          "evidence": [{"source_id": "src-role-programming", "locator": "P0 role reference; core duty 3", "quote": "编写与修改程序"}]
+        },
+        {
+          "id": "resp-debug-verify",
+          "text": "调试代码并核验模块功能",
+          "anchors": [["调试"], ["核验", "验证"], ["模块", "功能"]],
+          "evidence": [{"source_id": "src-role-programming", "locator": "P0 role reference; core duty 4", "quote": "调试代码并核验模块功能"}]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": ["仅作为应用程序设计与编制工作的粗粒度参照", "语言和框架不是本参照划分职责的依据"],
+      "unresolved_boundaries": ["尚未界定后端、前端、平台、嵌入式及算法工程之间的市场岗位边界", "不将一般程序设计责任推导为所有系统运维或教学职责均被覆盖", "来源的技能等级考核要求不自动成为企业招聘条件"],
+      "evidence": [{"source_id": "src-role-programming", "locator": "P0 candidate role summary", "quote": "程序设计工作参照"}],
+      "approval_source": null
+    },
+    {
+      "id": "p0-ref-network-operations",
+      "name": "信息通信网络运行工作参照",
+      "definition_version": "p0-role-1",
+      "maturity": "candidate",
+      "goals": ["保持信息通信网络运行并改善网络性能"],
+      "responsibilities": [
+        {
+          "id": "resp-network-config",
+          "text": "管理网络运行配置",
+          "anchors": [["管理", "配置"], ["网络运行配置", "网络配置"]],
+          "evidence": [{"source_id": "src-role-network", "locator": "P0 role reference; core duty 1", "quote": "管理网络运行配置"}]
+        },
+        {
+          "id": "resp-network-monitor",
+          "text": "监测和管理网络性能",
+          "anchors": [["监测", "监控", "管理"], ["网络性能", "性能"]],
+          "evidence": [{"source_id": "src-role-network", "locator": "P0 role reference; core duty 2", "quote": "监测和管理网络性能"}]
+        },
+        {
+          "id": "resp-network-optimize",
+          "text": "优化网络运行",
+          "anchors": [["优化"], ["网络运行", "网络"]],
+          "evidence": [{"source_id": "src-role-network", "locator": "P0 role reference; core duty 3", "quote": "优化网络运行"}]
+        },
+        {
+          "id": "resp-network-fault",
+          "text": "定位并排除网络故障",
+          "anchors": [["定位", "排除", "排查"], ["网络故障", "故障"]],
+          "evidence": [{"source_id": "src-role-network", "locator": "P0 role reference; core duty 4", "quote": "定位并排除网络故障"}]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": ["来源是人社部与工信部制定的信息通信网络运行管理员国家职业技能标准", "用于比较网络运行责任，不能凭Linux或网络工具名直接归类"],
+      "unresolved_boundaries": ["尚未确认与SRE、DevOps、应用运维及信息安全岗位的精确职责边界", "定义未覆盖数据库或业务主数据维护，不代表有明确排除证据", "仅有网络相关经验不证明当前承担网络交付责任"],
+      "evidence": [{"source_id": "src-role-network", "locator": "P0 candidate role summary", "quote": "信息通信网络运行工作参照"}],
+      "approval_source": null
+    },
+    {
+      "id": "test-ref-excludes-teaching",
+      "name": "合成教学边界测试参照",
+      "definition_version": "p2-test-role-1",
+      "maturity": "test",
+      "goals": ["只验证明确边界冲突机制"],
+      "responsibilities": [
+        {
+          "id": "resp-test-code-example",
+          "text": "编写并调试示例代码",
+          "anchors": [["编写", "调试"], ["代码"]],
+          "evidence": [{"source_id": "src-synthetic-test", "locator": "synthetic responsibility", "quote": "编写并调试示例代码"}]
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "boundary-not-course-delivery",
+          "text": "以课程教学为主要交付的活动不属于该测试参照",
+          "anchors": [["教学", "课程"]],
+          "evidence": [{"source_id": "src-synthetic-test", "locator": "synthetic explicit boundary", "quote": "以课程教学为主要交付的活动不属于该测试参照"}]
+        }
+      ],
+      "known_scope": ["仅用于合成边界测试"],
+      "unresolved_boundaries": ["不是外部职业标准，不得据此比较真实市场岗位"],
+      "evidence": [{"source_id": "src-synthetic-test", "locator": "synthetic role heading", "quote": "合成教学边界测试参照"}],
+      "approval_source": null
+    }
+  ]
+}
