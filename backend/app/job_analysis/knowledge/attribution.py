@@ -44,7 +44,11 @@ NUMBERED = re.compile(r"(?:岗位|职位)([一二三1-3])[：:]")
 
 def read_attribution(path: Path | str) -> AttributionResult:
     """Read historical results against their embedded facts, definitions and rules."""
-    return AttributionResult.model_validate(read_result(path))
+    value = read_result(path)
+    if value.get("schema_version") == "m2-role-attribution-2":
+        from .work_context_models import ContextAttributionResult
+        return ContextAttributionResult.model_validate(value)
+    return AttributionResult.model_validate(value)
 
 
 def _validate_dependencies(knowledge, policy, projection):
@@ -93,7 +97,19 @@ def _axis(candidates, values=None, reason="仅表示当前版本中的有界机�
 
 
 def attribute_roles(analysis: dict, knowledge: LoadedSnapshot, policy: BoundPolicy,
-                    candidate_projection: CandidateProjectionBinding | None = None) -> AttributionResult:
+                    candidate_projection: CandidateProjectionBinding | None = None, *,
+                    method="bounded", local_model=None) -> AttributionResult:
+    if method == "context":
+        from .work_context import contextualize
+        result = contextualize(attribute_roles(analysis, knowledge, policy, candidate_projection))
+        if local_model is not None:
+            from .local_semantics import infer_locally
+            result = infer_locally(result, local_model)
+        return result
+    if local_model is not None:
+        raise ValueError("local semantics requires context method")
+    if method != "bounded":
+        raise ValueError("unknown attribution method")
     checked = validate_analysis(analysis)
     row = InputRecord.from_row(checked.namespace, checked.input_row)
     rules = _validate_dependencies(knowledge, policy, candidate_projection)

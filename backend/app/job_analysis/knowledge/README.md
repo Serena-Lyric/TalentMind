@@ -226,3 +226,69 @@ Task ID、原文短引、来源下载摘要和具体更新时间随快照保留�
 专项合成反例与真实 DEV 的结果分账，不用测试通过数或全部未决宣称市场准确率。
 P2-2 方案、实际命令、首轮失败、DEV 分母、CI 和提审证据集中在
 [Issue #63](https://github.com/Serena-Lyric/TalentMind/issues/63)，不新建重复阶段报告。
+
+### 上下文解释与本地语义候选（显式启用）
+
+前述 `bounded` 路径和 `m2-role-attribution-1` 继续保留。新增 `--method context`
+返回 `m2-role-attribution-2` / `context-work-attribution-3`；不传该参数仍使用旧路径。
+两种结果都由 `read-attribution` 读取，旧解释不补入新字段。`reexplain --method context`
+以旧 P1 追加新结果和 lineage，不覆盖旧目录。
+
+```powershell
+python -m app.job_analysis.knowledge attribute `
+  --analysis ../data/local/<saved-p1-run> `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v3 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v2.json `
+  --method context --output ../data/local/<new-context-result>
+
+# 可选：只有明确提供本地文件清单才运行模型；不下载模型或连接远端服务。
+python -m app.job_analysis.knowledge reexplain `
+  --previous ../data/local/<saved-attribution-result> `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v3 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v2.json `
+  --method context --local-model ../data/local/<runtime-root>/local-model.json `
+  --output ../data/local/<new-local-model-result>
+```
+
+新契约的消费边界：
+
+- `work_units` 保留 P1 职责实际引用内的局部工作、精确位置、作用域、原有重要性和参考缺口，
+  目录为空也不丢失。`source_pattern_support` 直接对账原引用，不要求 P1 转述复述相同词表；
+  它仍是有界模式支持，不代表通用语义等价。P1 原文、转述、五态和核心性不改写。
+- `core_candidate` 表示局部核心工作有依据，不再要求每项职责 core 已知或出现交付动词。
+  无对应交付原文时 `deliveries` 仍为空；未解释的核心或重要性未知工作保留在
+  `unaccounted_work`，阻止强行选择主岗。可以解释的 core=null 工作不会全局否决其他核心支持。
+- `work_links` 只记录同源语句中带目标/用途连接且没有多项职责争用的 duty—goal/object 上下文。
+  来源关系单独保存，不补写 P1 成果，不把共享句子自动当成熟职业或正式明确关系。
+- `axis_assessments` 区分实际执行与无参考未执行。当前 seniority 为
+  `not_evaluated/no_versioned_reference`；技术仍为有出处的原词工作方向，不是正式方向目录。
+  `axes.*.candidates` 新增 `basis` 与 `semantic_match_key`，可区分模式、技术原词和模型候选。
+  **模型候选只进入 candidates，不单独选中 values、主岗或消除未解释工作。**
+- 可选 `semantic` 输出本地模型对工作与参考任务的 `possible_support/related/insufficient`，
+  保存理由、双侧证据、模型/运行时/生成参数、固定输入 JSON、当时提示词和响应摘要。
+  `possible_support` 只是未核验的局部任务方面假设，不证明覆盖整个任务、完整职业、排除或正式身份。
+  技术知识只经 P1 已有 duty—requirement 关系进入输入，保留 explicit/inferred、知识成熟度和投影版本；
+  没有关系时不因同一 JD 共现而补关联。历史读取校验保存的输入，不生成当前版本提示词或重新推理。
+- 模型必须选择实际存在的工作/角色/任务 ID，解码约束和保存时校验分别执行。
+  假 ID、错误归属、重复项或非法输出使 `semantic.status=failed`，保留原局部解释，CLI 摘要为
+  `status=partial`。无本地模型、无可用工作或无参照分别标明 not_run 原因，不能算模型比较成功。
+  CLI 退出 0 表示结果已保存可读；语义成功须另外检查 `semantic_status`，不能只看进程退出码。
+
+本地清单由操作者准备，字段为 `schema_version=m2-local-model-1`、`binding`、`model_file`、
+`runtime_file`、`runtime_files`。文件路径相对清单目录，拒绝绝对路径、逃逸和摘要不符。
+`runtime_files` 应记录所用分发目录的全部 EXE/DLL；`binding.runtime_sha256` 为该映射的
+`foundation.inputs.digest()`。模型与所有列明运行时文件在加载及每次推理前校验。
+`binding` 还需模型 ID/revision/source_url/license_id/model_sha256/runtime_version 以及
+`generation={seed:0, temperature:0, max_tokens:2048, context_size:8192}`。
+
+当前适配器使用本地 **Qwen3 GGUF 非思考模板 + llama-completion**，固定 CPU 4 线程、offline 模式、
+单次 300 秒超时、无 shell，临时提示文件在结束后清理。它不接受云端 URL/API Key，也不自动启动常驻服务。
+本轮公开模型为 [Qwen3-4B-GGUF](https://huggingface.co/Qwen/Qwen3-4B-GGUF)
+revision `bc640142c66e1fdd12af0bd68f40445458f3869b` 的 Q4_K_M（Apache-2.0），
+模型 SHA `7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5`；
+运行时为 [llama.cpp b12128](https://github.com/ggml-org/llama.cpp/releases/tag/b12128)。
+完整模型、清单和真实产物仅留在私有 `data/local/m2-p2-2-20261105-review2/`。
+
+此路径仍是有限五参照和有界语法保护下的实验性岗位候选解释。复杂作用域、未见表达、模型误支持、
+参考覆盖及级别知识仍须独立评价；没有独立岗位人审真值时不报告职业准确率或完整召回。
+本地生成式推理的实测与失败、NLI 方案拒用理由及分母见 Issue #63；CI 的合成契约回归不等于模型效果。

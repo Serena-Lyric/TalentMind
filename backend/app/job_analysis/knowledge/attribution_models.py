@@ -17,7 +17,7 @@ class WorkSupport(Strict):
     action: Text
     object: Text
     importance: Literal["core", "auxiliary", "unknown"]
-    basis: Literal["bounded_pattern_support"] = "bounded_pattern_support"
+    basis: Literal["bounded_pattern_support", "source_pattern_support"] = "bounded_pattern_support"
     jd_evidence: Evidence
     reference_evidence: list[SourceEvidence] = Field(min_length=1)
 
@@ -192,7 +192,8 @@ class AttributionResult(Strict):
             if item.definition != definitions[item.role_id]:
                 raise ValueError("role definition differs from bound knowledge")
             if item.judgment == "core_candidate" and (
-                    not any(s.importance == "core" for s in item.supports) or not item.deliveries
+                    not any(s.importance == "core" for s in item.supports)
+                    or (self.schema_version == "m2-role-attribution-1" and not item.deliveries)
                     or item.conflicts or source.coverage["duties"].status != "complete"
                     or item.definition.maturity == "test"):
                 raise ValueError("core candidate lacks necessary evidence")
@@ -221,7 +222,8 @@ class AttributionResult(Strict):
                     raise ValueError("foreign axis support")
                 for evidence in candidate.evidence:
                     source.check_evidence(evidence, row)
-                if self.explanation_version == "bounded-work-attribution-2" and axis == "technology_tracks":
+                if (self.explanation_version == "bounded-work-attribution-2"
+                        or self.schema_version == "m2-role-attribution-2") and axis == "technology_tracks":
                     if candidate.role_ids or not candidate.claim_ids or any(
                             claims[cid].kind not in {"duty", "goal"} for cid in candidate.claim_ids):
                         raise ValueError("technology candidate requires actual work claims, independent of roles")

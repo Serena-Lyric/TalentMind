@@ -67,6 +67,8 @@ def build_parser():
         command.add_argument("--snapshot", required=True, type=Path)
         command.add_argument("--policy", required=True, type=Path)
         command.add_argument("--candidate-projection", type=Path)
+        command.add_argument("--method", choices=("bounded", "context"), default="bounded")
+        command.add_argument("--local-model", type=Path, help="explicit hash-bound local runtime manifest; never downloads")
         command.add_argument("--output", required=True, type=Path)
     historical = commands.add_parser("read-attribution")
     historical.add_argument("--result", required=True, type=Path)
@@ -118,12 +120,17 @@ def main():
             else:
                 previous = read_attribution(args.previous) if args.command == "reexplain" else None
                 source = previous.source_analysis.model_dump() if previous else _load_analysis(args.analysis)
+                from .local_semantics import load_local_model
                 result = attribute_roles(source, load_snapshot(args.snapshot), load_policy(args.policy),
-                                         load_projection(args.candidate_projection) if args.candidate_projection else None)
+                                         load_projection(args.candidate_projection) if args.candidate_projection else None,
+                                         method=args.method, local_model=load_local_model(args.local_model) if args.local_model else None)
                 if previous:
                     result.reinterprets_sha256 = digest(previous.model_dump())
                 save_result(args.output, result.model_dump())
-            _write_summary(dict(status="ok", schema_version=result.schema_version,
+            semantic = getattr(result, "semantic", None)
+            _write_summary(dict(status="partial" if semantic and semantic.status == "failed" else "ok",
+                                semantic_status=semantic.status if semantic else "not_run",
+                                schema_version=result.schema_version,
                                 source_analysis_sha256=result.source_analysis_sha256,
                                 knowledge_sha256=result.knowledge_sha256, policy_sha256=result.policy_sha256,
                                 implementation_sha256=result.implementation_sha256,
