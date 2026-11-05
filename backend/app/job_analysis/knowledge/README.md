@@ -266,6 +266,8 @@ python -m app.job_analysis.knowledge reexplain `
   **模型候选只进入 candidates，不单独选中 values、主岗或消除未解释工作。**
 - 可选 `semantic` 输出本地模型对工作与参考任务的 `possible_support/related/insufficient`，
   保存理由、双侧证据、模型/运行时/生成参数、固定输入 JSON、当时提示词和响应摘要。
+  输入 v2 按 claim 保存实际原文上下文，工作片段引用 claim ID，避免只凭 P1 转述补省略对象；
+  列表数字/标点不形成工作。历史输入 v1 仍按当时保存内容验证。
   `possible_support` 只是未核验的局部任务方面假设，不证明覆盖整个任务、完整职业、排除或正式身份。
   技术知识只经 P1 已有 duty—requirement 关系进入输入，保留 explicit/inferred、知识成熟度和投影版本；
   没有关系时不因同一 JD 共现而补关联。历史读取校验保存的输入，不生成当前版本提示词或重新推理。

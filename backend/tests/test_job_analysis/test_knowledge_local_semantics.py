@@ -189,3 +189,15 @@ def test_no_eligible_work_does_not_invoke_a_model():
     out = infer_locally(result, object())
     assert out.semantic.status == "not_run"
     assert out.semantic.reason_code == "no_eligible_work"
+
+
+def test_model_context_comes_from_actual_source_not_only_a_machine_paraphrase():
+    from app.job_analysis.knowledge.local_semantics import build_prompt
+    value = analysis_with_duties(["负责设计、开发爬虫系统"])
+    value["claims"][0]["text"] = "机器转述的工作"
+    result = execute(value)
+    data = json.loads(build_prompt(result).split("\nDATA_JSON\n")[1])
+    context = next(c for c in data["source_claims"] if c["claim_id"] == "d1")
+    assert context["evidence"][0]["quote"] == "负责设计、开发爬虫系统"
+    assert context["p1_text"] == "机器转述的工作"
+    assert all("claim_id" in w for w in data["work"])

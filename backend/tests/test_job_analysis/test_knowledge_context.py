@@ -215,3 +215,9 @@ def test_explicit_self_does_not_remove_a_governing_negation(raw, local):
     out = execute(value)
     assert not comparison(out).supports
     assert out.primary_role_id is None
+
+
+def test_list_number_is_not_a_standalone_work_hypothesis():
+    out = execute(analysis_with_duties(["1.负责开发软件服务"]))
+    assert all(u.evidence.quote.strip() != "1" for u in out.work_units)
+    assert any("开发软件服务" in u.evidence.quote for u in out.work_units)

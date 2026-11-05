@@ -69,6 +69,8 @@ def work_units(analysis):
                     parts.append((start, clause.end()))
             for start, end in parts:
                 part = evidence_slice(ev, start, end)
+                if not re.search(r"[A-Za-z\u4e00-\u9fff]", part.quote):
+                    continue  # List numbering/punctuation is not a work assertion.
                 key = (claim.id, part.field, part.start, part.end)
                 if key in seen:
                     continue

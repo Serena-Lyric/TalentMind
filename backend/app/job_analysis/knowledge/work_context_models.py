@@ -82,6 +82,18 @@ def semantic_input_v1(result):
             for c in result.comparisons])
 
 
+def semantic_input_v2(result):
+    value = semantic_input_v1(result)
+    value["schema_version"] = "local-work-reference-input-2"
+    eligible = [u for u in result.work_units if u.scope == "affirmed" and u.kind == "work"]
+    ids = {u.claim_id for u in eligible}
+    value["work"] = [dict(unit_id=u.id, claim_id=u.claim_id, quote=u.evidence.quote,
+                          importance=u.importance) for u in eligible]
+    value["source_claims"] = [dict(claim_id=c.id, p1_text=c.text,
+        evidence=[e.model_dump() for e in c.evidence]) for c in result.source_claims if c.id in ids]
+    return value
+
+
 class WorkUnit(Strict):
     id: Text
     claim_id: Text
@@ -161,7 +173,10 @@ class ContextAttributionResult(AttributionResult):
                                                        self.semantic.response, self.semantic.matches)):
             raise ValueError("unrun semantic inference cannot carry model evidence")
         if self.semantic.status != "not_run":
-            if (self.semantic.binding is None or self.semantic.input_json != canonical(semantic_input_v1(self))
+            saved_input = parse_json(self.semantic.input_json or "{}")
+            expected_input = (semantic_input_v1(self) if saved_input.get("schema_version") == "local-work-reference-input-1"
+                              else semantic_input_v2(self))
+            if (self.semantic.binding is None or self.semantic.input_json != canonical(expected_input)
                     or self.semantic.prompt is None or self.semantic.prompt_sha256 != digest(self.semantic.prompt)
                     or not self.semantic.prompt.endswith("\nDATA_JSON\n" + self.semantic.input_json)):
                 raise ValueError("semantic inference input binding mismatch")
