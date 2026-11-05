@@ -221,3 +221,12 @@ def test_list_number_is_not_a_standalone_work_hypothesis():
     out = execute(analysis_with_duties(["1.负责开发软件服务"]))
     assert all(u.evidence.quote.strip() != "1" for u in out.work_units)
     assert any("开发软件服务" in u.evidence.quote for u in out.work_units)
+
+
+@pytest.mark.parametrize("text", ["参与编写软件服务", "参与教学相关文档编写"])
+def test_connector_does_not_split_inside_participation_word(text):
+    out = execute(analysis_with_duties([text]))
+    assert all(u.evidence.quote != "参" for u in out.work_units)
+    assert any(u.evidence.quote.startswith("参与") for u in out.work_units)
+    if "教学" in text:
+        assert all(u.scope != "affirmed" for u in out.work_units)
