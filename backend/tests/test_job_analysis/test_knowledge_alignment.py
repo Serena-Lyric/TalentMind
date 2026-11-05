@@ -50,6 +50,7 @@ def analysis_with(
     degree_polarity=None,
     condition=None,
     jd_id="alignment-one",
+    row_extra=None,
     source="synthetic",
 ):
     quote = raw_text or "要求：" + "、".join(members) + "。"
@@ -59,6 +60,7 @@ def analysis_with(
         "job_title": "合成开发岗位",
         "raw_text": quote,
     }
+    row.update(row_extra or {})
     record = InputRecord.from_row("synthetic", row)
     requirement = {
         "state": state,

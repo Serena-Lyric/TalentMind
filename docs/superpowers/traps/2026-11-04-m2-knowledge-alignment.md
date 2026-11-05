@@ -45,3 +45,14 @@
 - 岗位目录为空是合法状态：技能知识仍可读取/对齐，岗位比较显式返回 `no_role_candidates`。
 - 快照清单摘要只证明仓库 JSON 与清单一致；外部页面/PDF 的真实性与现行内容需要在受控私有
   证据中重新核对，不能由本地加载器自动声称。
+
+## 2026-11-05 第二轮复审补充
+
+- candidate projection 的消费必须同时匹配词面、`target`、`category` 和上下文；只在 registry 端分组、
+  在 align 端只按词面读取，会把技能候选错误用于学历、证书或其他领域要求。
+- “不同正文”不是独立证据。自动核验必须检查已知来源身份、同源改写和跨来源近似转载；来源不明时
+  保持 observing，不能以另一固定正文数量阈值代替证据质量。
+- 教学、开发等用途上下文不同，不自动证明概念身份冲突。可以隔离为不同 candidate context，
+  只有当前要求匹配相应 context 时才能读取；显式 disputed 仍由反证或人工判断产生。
+- 静态知识 SHA 相同不代表 candidate projection 相同。impact 必须比较新旧 projection SHA 与
+  concept 集合，画像必须绑定一个 projection SHA 并拒绝混版。

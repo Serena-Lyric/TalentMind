@@ -19,19 +19,22 @@
 - `compare_roles`：按职责短语和显式边界比较，并识别局部否定。只有 P1 duties coverage
   完整、核心性明确且为正时才能给 `supported/not_supported`；partial 或 core 未确认时保持 `unresolved`。
   目录为空时返回 `no_role_candidates`，不阻止技能对齐加载。
-- `CandidateRegistry`：只从有明确能力上下文的未知表达建立候选；独立证据按规范化正文去重。
-  `candidate-evidence-policy-1` 在同义上下文出现两个不同正文时自动核验为 `corroborated` 并写入机器描述；
-  不同上下文保留隔离的 competing candidates 并自动标为 `disputed`。修订必须绑定新 P1 证据，版本只追加。
-- `locate_impact`：旧对齐必须绑定旧知识 SHA；别名、概念及关系新增/删除/修改都可定位受影响对齐；
-  角色、来源或无法证明范围时保守标记全部。
+- `CandidateRegistry`：只从有明确能力上下文的未知表达建立候选；每份观察显式保留来源身份。
+  `candidate-evidence-policy-1` 只在至少两个已知且不同的来源身份提供语义一致证据时自动核验；
+  未明来源、同源改写和跨来源近似转载分别保留 `source_independence_unverified / same_source_only /
+  likely_republished`，不得进入 projection。不同用途上下文单独归档，但不自动宣称概念身份冲突。
+  修订必须绑定新 P1 证据，版本只追加。
+- `locate_impact`：旧对齐必须绑定旧静态知识与旧 candidate projection SHA；静态概念/别名/关系和
+  candidate 新增、修订、撤回都可定位受影响对齐；角色、来源或无法证明范围时保守标记全部。
 - `build_profile`：只从已支持的角色比较与显式版本对齐重建候选画像，保留成员原始五态和组合，
   不把单个成员的 `required` 推广为全体岗位要求。
 
 知识状态只允许 `test / candidate / formal`。当前发布快照没有正式条目；正式条目缺少逐项批准证据
 会加载失败。候选合并、拆分、身份确认、正式准入和正式发布都返回
 `requires_human_decision`，本段不开放自动正式准入。
-自动核验只允许生成 `candidate` 投影，通过 `CandidateRegistry.project()` 持久化为独立 SHA，
-并由 align 读取；它既不是正式 knowledge，也不是人工确认，独立上下文数不是概率。
+自动核验只允许生成 `candidate` 投影，通过 `CandidateRegistry.project()` 持久化为独立 SHA；
+消费时必须同时匹配 `target / category / context`。它既不是正式 knowledge，也不是人工确认，
+来源独立性分类不是概率。画像必须绑定单一 candidate projection SHA，拒绝混版。
 
 
 ## 命令
@@ -75,6 +78,8 @@
 .\.venv\Scripts\python.exe -m app.job_analysis.knowledge impact `
   --old app/job_analysis/knowledge/catalog/backend-foundations.v1 `
   --new ..\data\local\p2-knowledge\knowledge-v2 `
+  --old-candidate-projection ..\data\local\p2-knowledge\old-projection `
+  --new-candidate-projection ..\data\local\p2-knowledge\new-projection `
   --alignments ..\data\local\p2-knowledge\alignment-001 `
   --output ..\data\local\p2-knowledge\impact-001
 ```

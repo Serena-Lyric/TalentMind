@@ -89,6 +89,8 @@ def build_parser():
     impact = commands.add_parser("impact")
     impact.add_argument("--old", required=True, type=Path)
     impact.add_argument("--new", required=True, type=Path)
+    impact.add_argument("--old-candidate-projection", type=Path)
+    impact.add_argument("--new-candidate-projection", type=Path)
     impact.add_argument("--alignments", required=True, nargs="+", type=Path)
     impact.add_argument("--output", required=True, type=Path)
     return parser
@@ -146,14 +148,22 @@ def main():
                                 members=len(result.members), mode=result.mode,
                                 claim_scope=result.claim_scope,
                                 knowledge_revision=result.knowledge_revision,
+                                candidate_projection_sha256=result.candidate_projection_sha256,
                                 knowledge_sha256=result.knowledge_sha256))
             return 0
         if args.command == "impact":
-            result = locate_impact(load_snapshot(args.old), load_snapshot(args.new),
-                                   [_alignment(path) for path in args.alignments])
+            result = locate_impact(
+                load_snapshot(args.old), load_snapshot(args.new),
+                [_alignment(path) for path in args.alignments],
+                old_candidate_projection=(load_projection(args.old_candidate_projection)
+                                          if args.old_candidate_projection else None),
+                new_candidate_projection=(load_projection(args.new_candidate_projection)
+                                          if args.new_candidate_projection else None),
+            )
             save_result(args.output, result.model_dump())
             _write_summary(dict(status="ok", affected=len(result.affected),
                                 conservative=result.conservative,
+                                candidate_projection_changed=result.candidate_projection_changed,
                                 old_revision=result.old_revision,
                                 new_revision=result.new_revision))
             return 0

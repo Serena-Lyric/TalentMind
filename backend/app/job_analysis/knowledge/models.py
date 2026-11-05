@@ -118,19 +118,31 @@ class RoleDefinition(Strict):
     unresolved_boundaries: list[Text] = Field(min_length=1)
     evidence: list[SourceEvidence] = Field(min_length=1)
     approval_source: Text | None
-
     @model_validator(mode="after")
     def formal_requires_approval(self):
         if self.maturity == "formal" and not self.approval_source:
             raise ValueError("formal role requires per-definition approval evidence")
         return self
 
-
 def normalize_term(value: str) -> str:
     """Exact lookup only: compatibility normalization, not fuzzy matching."""
     return unicodedata.normalize("NFKC", value).strip().casefold()
 
 
+
+CONTEXT_SIGNALS = (
+    ("teaching", re.compile(r"教学|课程|讲授|培训|授课")),
+    ("development", re.compile(r"开发|实现|构建|编程|代码")),
+    ("operations", re.compile(r"运维|部署|监控|故障|运行")),
+    ("analysis", re.compile(r"分析|建模|指标|报表")),
+)
+
+
+def context_key(value: str) -> str:
+    source = unicodedata.normalize("NFKC", value).casefold()
+
+    labels = [name for name, pattern in CONTEXT_SIGNALS if pattern.search(source)]
+    return "+".join(labels) if labels else "generic"
 class KnowledgeSnapshot(Strict):
     schema_version: Literal["m2-knowledge-1"]
     id: StableId
@@ -424,6 +436,9 @@ class RoleProfile(Strict):
     role_maturity: Maturity
     knowledge_id: StableId
     knowledge_revision: Text
+    candidate_projection_id: StableId | None = None
+    candidate_projection_revision: Text | None = None
+    candidate_projection_sha256: Sha256 | None = None
     knowledge_sha256: Sha256
     mode: Literal["candidate_profile"]
     claim_scope: Literal["linked_members_only"]
@@ -439,6 +454,7 @@ class CandidateProjectionConcept(Strict):
     candidate_version_sha256: Sha256
     surface: Text
     normalized_term: Text
+    target: Text
     category: Category
     context_key: Text
     status: Literal["corroborated", "disputed"]
@@ -473,6 +489,10 @@ class ImpactReport(Strict):
     new_revision: Text
     old_knowledge_sha256: Sha256
     new_knowledge_sha256: Sha256
+    old_candidate_projection_sha256: Sha256 | None
+    new_candidate_projection_sha256: Sha256 | None
+    candidate_projection_changed: bool
+    changed_candidate_concept_ids: list[StableId]
     changed_concept_ids: list[StableId]
     changed_aliases: list[Text]
     changed_relations: list[Text]

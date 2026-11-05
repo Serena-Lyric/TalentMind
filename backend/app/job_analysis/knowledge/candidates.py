@@ -1,6 +1,7 @@
 """Append-only candidate knowledge with deduplicated observations and no formal gate."""
 from __future__ import annotations
 
+from difflib import SequenceMatcher
 import hashlib
 import re
 import unicodedata
@@ -15,28 +16,15 @@ from ..foundation.store import safe_destination
 from ..semantics.models import Evidence
 from .alignment import AlignmentResult
 from .models import (CandidateProjection, CandidateProjectionBinding, CandidateProjectionConcept,
-                     Maturity, StableId, Strict, Text, normalize_term)
+                     Maturity, StableId, Strict, Text, context_key, normalize_term)
 from .storage import read_result, save_result
 
 
 CAPABILITY_CUES = re.compile(
-    r"要求|需要|熟悉|掌握|了解|具备|使用|运用|基于|至少|优先|技能|能力|经验|开发|实现|讲授"
+    r"要求|需要|熟悉|掌握|了解|具备|使用|运用|基于|至少|优先|技能|能力|经验|开发|实现|讲授|培训|课程|教学"
 )
 
 CANDIDATE_POLICY_VERSION = "candidate-evidence-policy-1"
-MIN_INDEPENDENT_OBSERVATIONS = 2
-CONTEXT_SIGNALS = (
-    ("teaching", re.compile(r"教学|课程|讲授|培训|授课")),
-    ("development", re.compile(r"开发|实现|构建|编程|代码")),
-    ("operations", re.compile(r"运维|部署|监控|故障|运行")),
-    ("analysis", re.compile(r"分析|建模|指标|报表")),
-)
-
-
-def _context_key(text: str) -> str:
-    source = unicodedata.normalize("NFKC", text).casefold()
-    labels = [name for name, pattern in CONTEXT_SIGNALS if pattern.search(source)]
-    return "+".join(labels) if labels else "generic"
 
 class RequirementContext(Strict):
     state: Text
@@ -59,6 +47,7 @@ class CandidateObservation(Strict):
     analysis_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     claim_id: StableId
     member: Text
+    source_identity: Text | None = None
     context_key: Text
     interpretation_key: Text
     requirement_context: RequirementContext
@@ -80,6 +69,8 @@ class CandidateVersion(Strict):
     version: int = Field(ge=1)
     reason: Text
     referenced_observations: list[CandidateObservation] = Field(min_length=1)
+    source_identity_count: int = Field(default=0, ge=0)
+    evidence_quality: Literal["source_independence_unverified", "same_source_only", "likely_republished", "independent_consistent"] = "source_independence_unverified"
     independent_evidence: int = Field(ge=1)
     verification_strength: Literal["single_independent_context", "multiple_independent_contexts"]
     competing_hypotheses: list[Text]
@@ -126,9 +117,40 @@ def admission_decision(candidate: CandidateVersion) -> AdmissionDecision:
         reasons=[
             "Formal skill admission thresholds are not approved.",
             "Machine observations and automatic revisions are not human confirmation.",
-            "Independent evidence count is not a calibrated probability.",
+            "Source independence classification is not a calibrated probability.",
         ],
     )
+
+
+def _source_identity(row: dict) -> str | None:
+    for field in ("source_identity", "company_name", "company", "employer"):
+        value = row.get(field)
+        if isinstance(value, str) and value.strip():
+            return normalize_term(value)
+    return None
+
+
+def _evidence_assessment(observations: list[CandidateObservation]) -> tuple[str, int]:
+    identities = [item.source_identity for item in observations]
+    known = {item for item in identities if item is not None}
+    if any(item is None for item in identities):
+        return "source_independence_unverified", len(known)
+    independent_pairs = [
+        (left, right) for left in known for right in known if left < right
+    ]
+    if not independent_pairs:
+        return "same_source_only", len(known)
+    texts = [
+        normalize_term("\n".join(evidence.quote for evidence in item.evidence))
+        for item in observations
+    ]
+    for left in range(len(observations)):
+        for right in range(left + 1, len(observations)):
+            if observations[left].source_identity == observations[right].source_identity:
+                continue
+            if SequenceMatcher(None, texts[left], texts[right]).ratio() >= 0.92:
+                return "likely_republished", len(known)
+    return "independent_consistent", len(known)
 
 
 def structural_decision(action: str) -> StructuralDecision:
@@ -160,11 +182,12 @@ def _extract_observations(analysis: dict, alignment: AlignmentResult) -> list[Ca
         evidence_text = "\n".join(item["quote"] for item in evidence)
         if not _clear_capability_context(requirement, decision.member, evidence_text):
             continue
-        context_key = _context_key(evidence_text)
+        context_key_value = context_key(evidence_text)
         interpretation_key = digest(dict(
             normalized_term=normalize_term(decision.member),
             category=requirement.category,
-            context_key=context_key,
+            target=requirement.target,
+            context_key=context_key_value,
         ))
         observation_key = digest(dict(
             namespace=checked.namespace,
@@ -181,9 +204,10 @@ def _extract_observations(analysis: dict, alignment: AlignmentResult) -> list[Ca
             source=str(checked.input_row.get("source", "unknown")),
             input_sha256=checked.input_sha256,
             analysis_sha256=bound.source_analysis_sha256,
+            source_identity=_source_identity(checked.input_row),
             claim_id=claim.id,
             member=decision.member,
-            context_key=context_key,
+            context_key=context_key_value,
             interpretation_key=interpretation_key,
             requirement_context=RequirementContext(
                 state=requirement.state,
@@ -242,38 +266,17 @@ class CandidateRegistry:
             return []
         return [self.read(path.name) for path in sorted(root.iterdir()) if path.is_dir()]
 
-    def _mark_surface_conflict(self, current: CandidateVersion) -> CandidateVersion:
-        group = {
-            item.candidate_id: item for item in self._heads()
-            if item.normalized_term == current.normalized_term
-            and item.status != "withdrawn"
-        }
-        if not any(item.interpretation_key != current.interpretation_key for item in group.values()):
-            return current
-        ids = sorted(group)
-        hypotheses = sorted({f"{item.context_key}:{item.description}" for item in group.values()})
-        updated = {}
-        for item in group.values():
-            if item.status == "disputed" and item.competing_candidate_ids == ids:
-                updated[item.candidate_id] = item
-                continue
-            updated[item.candidate_id] = self._write(CandidateVersion(
-                **item.model_dump(exclude={"version", "status", "reason", "competing_hypotheses",
-                                           "competing_candidate_ids"}),
-                version=item.version + 1,
-                status="disputed",
-                reason="Independent contexts imply different candidate interpretations; no identity was selected.",
-                competing_hypotheses=hypotheses,
-                competing_candidate_ids=ids,
-            ))
-        return updated[current.candidate_id]
-
     def _observe_one(self, observation: CandidateObservation) -> CandidateVersion:
         normalized = normalize_term(observation.member)
         candidate_id = "candidate-" + hashlib.sha256(observation.interpretation_key.encode("utf-8")).hexdigest()[:16]
         versions = self._versions(candidate_id)
         if not versions:
-            created = self._write(CandidateVersion(
+            quality, source_count = _evidence_assessment([observation])
+            status = "corroborated" if quality == "independent_consistent" else "observing"
+            description = (f"机器核验候选：{observation.member}；来源独立性已分类；仅限候选知识使用"
+                           if status == "corroborated" else
+                           f"待核对的能力表达：{observation.member}")
+            return self._write(CandidateVersion(
                 schema_version="m2-knowledge-candidate-1",
                 candidate_id=candidate_id,
                 surface=observation.member,
@@ -281,49 +284,54 @@ class CandidateRegistry:
                 context_key=observation.context_key,
                 interpretation_key=observation.interpretation_key,
                 competing_candidate_ids=[],
-                description=f"待核对的能力表达：{observation.member}",
-                status="observing",
+                description=description,
+                status=status,
                 maturity="candidate",
                 version=1,
-                reason="Clear capability context created an evidence-bound candidate observation.",
+                reason=f"Candidate evidence quality: {quality}.",
                 referenced_observations=[observation],
                 independent_evidence=1,
-                verification_strength="single_independent_context",
+                source_identity_count=source_count,
+                evidence_quality=quality,
+                verification_strength=("multiple_independent_contexts"
+                                       if status == "corroborated" else
+                                       "single_independent_context"),
                 competing_hypotheses=[],
                 formal_admission_allowed=False,
             ))
-            return self._mark_surface_conflict(created)
         previous = self.read(candidate_id)
         if any(item.observation_key == observation.observation_key
                for item in previous.referenced_observations):
             return previous
         referenced = [*previous.referenced_observations, observation]
         independent = len({item.content_sha256 for item in referenced})
-        strength = ("single_independent_context" if independent < MIN_INDEPENDENT_OBSERVATIONS
-                    else "multiple_independent_contexts")
+        quality, source_count = _evidence_assessment(referenced)
         status = previous.status
         description = previous.description
-        if status not in {"disputed", "withdrawn"}:
-            status = "corroborated" if independent >= MIN_INDEPENDENT_OBSERVATIONS else "observing"
-            if status == "corroborated":
-                description = (f"机器核验候选：{observation.member}；"
-                               f"{independent}个独立上下文；仅限候选知识使用")
-        updated = self._write(CandidateVersion(
+        if status != "withdrawn":
+            status = "corroborated" if quality == "independent_consistent" else "observing"
+            description = (f"机器核验候选：{observation.member}；"
+                           f"{source_count}个已知来源身份；仅限候选知识使用"
+                           if status == "corroborated" else
+                           f"待核对的能力表达：{observation.member}；{quality}")
+        return self._write(CandidateVersion(
             **previous.model_dump(exclude={
                 "version", "referenced_observations", "independent_evidence",
                 "verification_strength", "reason", "status", "description",
+                "source_identity_count", "evidence_quality",
             }),
             version=previous.version + 1,
             status=status,
             description=description,
-            reason=("Candidate policy promoted consistent independent evidence for limited candidate use."
-                    if status == "corroborated" else
-                    "New source observation appended; no formal admission was granted."),
+            reason=f"Candidate evidence quality: {quality}.",
             referenced_observations=referenced,
             independent_evidence=independent,
-            verification_strength=strength,
+            source_identity_count=source_count,
+            evidence_quality=quality,
+            verification_strength=("multiple_independent_contexts"
+                                   if quality == "independent_consistent" else
+                                   "single_independent_context"),
         ))
-        return self._mark_surface_conflict(updated)
 
     def revise(self, candidate_id: str, description: str, reason: str, *,
                analysis: dict, alignment: AlignmentResult,
@@ -342,14 +350,16 @@ class CandidateRegistry:
             raise ValueError("revision requires new evidence not already bound to the candidate")
         referenced = [*previous.referenced_observations, *added]
         independent = len({item.content_sha256 for item in referenced})
+        quality, source_count = _evidence_assessment(referenced)
         if previous.status in {"disputed", "withdrawn"}:
             status = previous.status
         else:
-            status = "corroborated" if independent >= MIN_INDEPENDENT_OBSERVATIONS else "observing"
-        updated = self._write(CandidateVersion(
+            status = "corroborated" if quality == "independent_consistent" else "observing"
+        return self._write(CandidateVersion(
             **previous.model_dump(exclude={
                 "version", "description", "reason", "competing_hypotheses",
                 "referenced_observations", "independent_evidence", "verification_strength", "status",
+                "source_identity_count", "evidence_quality",
             }),
             version=previous.version + 1,
             status=status,
@@ -357,13 +367,14 @@ class CandidateRegistry:
             reason=reason,
             referenced_observations=referenced,
             independent_evidence=independent,
+            source_identity_count=source_count,
+            evidence_quality=quality,
             verification_strength=("multiple_independent_contexts"
-                                   if independent >= MIN_INDEPENDENT_OBSERVATIONS else
+                                   if quality == "independent_consistent" else
                                    "single_independent_context"),
             competing_hypotheses=(previous.competing_hypotheses if competing_hypotheses is None
                                   else competing_hypotheses),
         ))
-        return self._mark_surface_conflict(updated)
 
     def mark_disputed(self, candidate_id: str, reason: str,
                       competing_hypotheses: list[str]) -> CandidateVersion:
@@ -396,6 +407,7 @@ class CandidateRegistry:
                 candidate_id=item.candidate_id,
                 candidate_version_sha256=digest(item.model_dump()),
                 surface=item.surface,
+                target=item.referenced_observations[0].requirement_context.target,
                 normalized_term=item.normalized_term,
                 category=item.referenced_observations[0].requirement_context.category,
                 context_key=item.context_key,

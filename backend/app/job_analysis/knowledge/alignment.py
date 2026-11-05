@@ -16,6 +16,7 @@ from .models import (
     RelatedConcept,
     RequirementAlignment,
     normalize_term,
+    context_key,
 )
 
 
@@ -76,13 +77,18 @@ def _candidate_index(binding):
     return result
 
 
-def _candidate_decision(claim_id: str, member: str, requirement, groups) -> MemberAlignment | None:
-    concepts = groups.get(normalize_term(member), [])
+def _candidate_decision(claim_id: str, member: str, requirement, groups,
+                        current_context_key: str) -> MemberAlignment | None:
+    candidates = groups.get(normalize_term(member), [])
+    concepts = [
+        item for item in candidates
+        if item.target == requirement["target"]
+        and item.category == requirement["category"]
+        and item.context_key == current_context_key
+    ]
     if not concepts:
         return None
-    if len(concepts) > 1 or any(item.status == "disputed" for item in concepts):
-        if len(concepts) < 2:
-            return None
+    if len(concepts) > 1:
         return MemberAlignment(
             claim_id=claim_id,
             member=member,
@@ -94,7 +100,7 @@ def _candidate_decision(claim_id: str, member: str, requirement, groups) -> Memb
             related_concepts=[],
             concept_source=None,
             source_evidence=[*requirement["scope_evidence"]],
-            reason="Multiple isolated candidate interpretations match this exact surface form.",
+            reason="Multiple candidate interpretations apply to the same target, category and context.",
         )
     concept = concepts[0]
     return MemberAlignment(
@@ -110,12 +116,13 @@ def _candidate_decision(claim_id: str, member: str, requirement, groups) -> Memb
         candidate_id=concept.candidate_id,
         candidate_version_sha256=concept.candidate_version_sha256,
         source_evidence=[*requirement["scope_evidence"]],
-        reason="Exact, automatically corroborated candidate expression; formal admission remains disabled.",
+        reason="Exact candidate expression applies to the same target, category and context; formal admission remains disabled.",
     )
 
 
 def _decision(claim_id: str, member: str, requirement, knowledge: LoadedSnapshot,
-              index: dict[str, tuple[Concept, bool]], candidate_groups) -> MemberAlignment:
+              index: dict[str, tuple[Concept, bool]], candidate_groups,
+              current_context_key: str) -> MemberAlignment:
     candidates = _compound_candidates(member, index)
     if len(candidates) >= 2:
         return MemberAlignment(
@@ -132,7 +139,8 @@ def _decision(claim_id: str, member: str, requirement, knowledge: LoadedSnapshot
         )
     found = index.get(normalize_term(member))
     if found is None:
-        candidate = _candidate_decision(claim_id, member, requirement, candidate_groups)
+        candidate = _candidate_decision(claim_id, member, requirement, candidate_groups,
+                                        current_context_key)
         if candidate is not None:
             return candidate
         return MemberAlignment(
@@ -184,8 +192,10 @@ def align_analysis(analysis: dict, knowledge: LoadedSnapshot,
             *requirement["scope_evidence"],
         ]
         alignments = []
+        current_context_key = context_key("\n".join(item["quote"] for item in source_evidence))
         for member in requirement["members"]:
-            decision = _decision(claim.id, member, requirement, knowledge, index, candidate_groups)
+            decision = _decision(claim.id, member, requirement, knowledge, index, candidate_groups,
+                                 current_context_key)
             alignments.append(MemberAlignment.model_validate({
                 **decision.model_dump(),
                 "source_evidence": source_evidence,

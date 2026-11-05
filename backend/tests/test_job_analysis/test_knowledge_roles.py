@@ -17,12 +17,13 @@ def shipped():
 
 
 def analysis_with_duties(duty_texts, *, requirement="Python", state="preferred", jd_id="roles-one",
-                         core_values=None, duty_coverage="complete"):
+                         core_values=None, duty_coverage="complete", row_extra=None):
     raw = "职责：" + "；".join(duty_texts) + "。要求：" + requirement + "。"
     value = analysis_with(
         [requirement],
         raw_text=raw,
         state=state,
+        row_extra=row_extra,
         jd_id=jd_id,
     )
     record = InputRecord.from_row(value["namespace"], value["input_row"])
@@ -186,3 +187,35 @@ def test_unproven_or_noncore_duty_cannot_support_role(core):
     assert programming.judgment == "unresolved"
     assert "core" in programming.reason
 import pytest
+
+def test_profile_binds_one_candidate_projection_and_rejects_mixed_versions(tmp_path):
+    import pytest
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+    from app.job_analysis.knowledge.profile import build_profile
+    from app.job_analysis.knowledge.roles import compare_roles
+
+    knowledge = shipped()
+    registry = CandidateRegistry(tmp_path / "registry")
+    empty = registry.project()
+    source = analysis_with_duties(
+        ["编写代码并核验模块功能"], requirement="Flink SQL", jd_id="profile-candidate",
+        row_extra={"source_identity": "profile-employer-a"},
+    )
+    supporting = analysis_with_duties(
+        ["开发软件模块并验证功能"], requirement="Flink SQL", jd_id="profile-support",
+        row_extra={"source_identity": "profile-employer-b"},
+    )
+    registry.observe(source, align_analysis(source, knowledge))
+    registry.observe(supporting, align_analysis(supporting, knowledge))
+    projection = registry.project()
+    comparison = compare_roles(source, knowledge)
+    without_candidates = align_analysis(source, knowledge, candidate_projection=empty)
+    with_candidates = align_analysis(source, knowledge, candidate_projection=projection)
+    with pytest.raises(ValueError, match="candidate projection"):
+        build_profile("p0-ref-programming", comparison, [without_candidates, with_candidates])
+
+    profile = build_profile("p0-ref-programming", comparison, [with_candidates])
+    assert profile.candidate_projection_id == projection.projection.id
+    assert profile.candidate_projection_revision == projection.projection.revision
+    assert profile.candidate_projection_sha256 == projection.sha256

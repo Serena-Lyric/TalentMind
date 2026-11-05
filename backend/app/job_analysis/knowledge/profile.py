@@ -18,6 +18,13 @@ def build_profile(role_id: str, comparisons: RoleComparisonSet,
            (comparisons.knowledge_id, comparisons.knowledge_revision, comparisons.knowledge_sha256)
            for item in alignments):
         raise ValueError("profile alignments require the same knowledge version as the comparison")
+    candidate_versions = {
+        (item.candidate_projection_id, item.candidate_projection_revision,
+         item.candidate_projection_sha256)
+        for item in alignments
+    }
+    if len(candidate_versions) > 1:
+        raise ValueError("profile alignments require one candidate projection version")
     by_source = {
         item.source_analysis_sha256: item
         for item in alignments
@@ -70,6 +77,9 @@ def build_profile(role_id: str, comparisons: RoleComparisonSet,
         knowledge_id=comparisons.knowledge_id,
         knowledge_revision=comparisons.knowledge_revision,
         knowledge_sha256=comparisons.knowledge_sha256,
+        candidate_projection_id=(next(iter(candidate_versions))[0] if candidate_versions else None),
+        candidate_projection_revision=(next(iter(candidate_versions))[1] if candidate_versions else None),
+        candidate_projection_sha256=(next(iter(candidate_versions))[2] if candidate_versions else None),
         mode="candidate_profile",
         claim_scope="linked_members_only",
         not_market_statistics=True,

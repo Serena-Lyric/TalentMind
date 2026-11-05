@@ -132,22 +132,43 @@ def test_dispute_then_withdrawal_preserves_the_original_observation(tmp_path):
     assert registry.read(original.candidate_id, 2) == disputed
 
 
-def test_two_independent_contexts_automatically_corroborate_and_project_candidate(tmp_path):
+def _observe_case(registry, *, raw_text, source_identity, jd_id, target="capability",
+                  category="technical_skill", source="BOSS"):
+    analysis = analysis_with(
+        ["Flink SQL"],
+        raw_text=raw_text,
+        target=target,
+        category=category,
+        source=source,
+        jd_id=jd_id,
+        row_extra={"source_identity": source_identity} if source_identity else None,
+    )
+    alignment = align_analysis(analysis, shipped())
+    return analysis, registry.observe(analysis, alignment)[0]
+
+
+def test_known_independent_sources_automatically_corroborate_and_project_candidate(tmp_path):
     from app.job_analysis.knowledge.candidates import CandidateRegistry
 
-    first_analysis, first_alignment = unknown_case(source="BOSS", jd_id="corroborate-one")
-    second_analysis, second_alignment = unknown_case(
-        raw_text="任职要求：掌握 Flink SQL。",
-        source="Zhaopin",
-        jd_id="corroborate-two",
-    )
     registry = CandidateRegistry(tmp_path / "registry")
-    first = registry.observe(first_analysis, first_alignment)[0]
-    second = registry.observe(second_analysis, second_alignment)[0]
+    first = _observe_case(
+        registry,
+        raw_text="要求：使用 Flink SQL 开发实时数据任务。",
+        source_identity="employer-a",
+        jd_id="corroborate-one",
+    )[1]
+    second = _observe_case(
+        registry,
+        raw_text="岗位需要具备 Flink SQL 实现流式任务的能力。",
+        source_identity="employer-b",
+        jd_id="corroborate-two",
+        source="Zhaopin",
+    )[1]
     assert second.candidate_id == first.candidate_id
     assert second.status == "corroborated"
     assert second.independent_evidence == 2
-    assert "机器核验候选" in second.description
+    assert second.source_identity_count == 2
+    assert second.evidence_quality == "independent_consistent"
     assert second.formal_admission_allowed is False
 
     projection = registry.project()
@@ -156,20 +177,64 @@ def test_two_independent_contexts_automatically_corroborate_and_project_candidat
     assert projection.snapshot.formal_admission_allowed is False
 
 
-def test_corroborated_candidate_is_available_only_as_candidate_knowledge(tmp_path):
+def test_same_source_rewrite_does_not_become_corroborated(tmp_path):
     from app.job_analysis.knowledge.candidates import CandidateRegistry
 
-    first_analysis, first_alignment = unknown_case(source="BOSS", jd_id="projection-one")
+    registry = CandidateRegistry(tmp_path / "registry")
+    first = _observe_case(
+        registry,
+        raw_text="要求：使用 Flink SQL 开发实时数据任务。",
+        source_identity="employer-a",
+        jd_id="same-source-one",
+    )[1]
+    second = _observe_case(
+        registry,
+        raw_text="要求：使用 Flink SQL 开发实时数据任务！",
+        source_identity="employer-a",
+        jd_id="same-source-two",
+        source="Zhaopin",
+    )[1]
+    assert second.candidate_id == first.candidate_id
+    assert second.status == "observing"
+    assert second.source_identity_count == 1
+    assert second.evidence_quality == "same_source_only"
+    assert registry.project().snapshot.concepts == []
+
+
+def test_unknown_source_independence_does_not_become_corroborated(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    registry = CandidateRegistry(tmp_path / "registry")
+    first_analysis, first_alignment = unknown_case(source="BOSS", jd_id="unknown-source-one")
     second_analysis, second_alignment = unknown_case(
         raw_text="任职要求：掌握 Flink SQL。",
         source="Zhaopin",
-        jd_id="projection-two",
+        jd_id="unknown-source-two",
     )
+    first = registry.observe(first_analysis, first_alignment)[0]
+    second = registry.observe(second_analysis, second_alignment)[0]
+    assert first.candidate_id == second.candidate_id
+    assert second.status == "observing"
+    assert second.source_identity_count == 0
+    assert second.evidence_quality == "source_independence_unverified"
+    assert registry.project().snapshot.concepts == []
+
+
+def test_corroborated_candidate_is_available_only_in_matching_context(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
     registry = CandidateRegistry(tmp_path / "registry")
-    registry.observe(first_analysis, first_alignment)
-    registry.observe(second_analysis, second_alignment)
+    _observe_case(registry, raw_text="要求：使用 Flink SQL 开发实时数据任务。",
+                  source_identity="employer-a", jd_id="projection-one")
+    dev_analysis, dev = _observe_case(
+        registry,
+        raw_text="岗位需要具备 Flink SQL 实现流式任务的能力。",
+        source_identity="employer-b",
+        jd_id="projection-two",
+        source="Zhaopin",
+    )
     projection = registry.project()
-    result = align_analysis(first_analysis, shipped(), candidate_projection=projection)
+    result = align_analysis(dev_analysis, shipped(), candidate_projection=projection)
     decision = result.alignments[0]
     assert decision.state == "exact_synonym"
     assert decision.knowledge_status == "candidate"
@@ -177,30 +242,63 @@ def test_corroborated_candidate_is_available_only_as_candidate_knowledge(tmp_pat
     assert decision.concept_id.startswith("candidatec-")
     assert result.candidate_projection_sha256 == projection.sha256
 
+    education = analysis_with(["Flink SQL"], raw_text="学历要求：Flink SQL。",
+                              target="education", category=None, jd_id="education-context")
+    assert align_analysis(education, shipped(), candidate_projection=projection).alignments[0].state == "unknown"
 
-def test_same_surface_with_different_contexts_stays_ambiguous_and_does_not_add_evidence(tmp_path):
+    teaching = analysis_with(["Flink SQL"], raw_text="要求：讲授 Flink SQL 课程。",
+                             jd_id="teaching-context")
+    assert align_analysis(teaching, shipped(), candidate_projection=projection).alignments[0].state == "unknown"
+
+
+def test_same_surface_usage_contexts_remain_separate_without_false_conflict(tmp_path):
     from app.job_analysis.knowledge.candidates import CandidateRegistry
 
-    development, development_alignment = unknown_case(
-        raw_text="负责用 Flink SQL 开发实时任务。",
-        jd_id="context-development",
-    )
-    teaching, teaching_alignment = unknown_case(
-        raw_text="负责讲授 Flink SQL 课程。",
-        jd_id="context-teaching",
-    )
     registry = CandidateRegistry(tmp_path / "registry")
-    first = registry.observe(development, development_alignment)[0]
-    second = registry.observe(teaching, teaching_alignment)[0]
-    first_head = registry.read(first.candidate_id)
-    assert first.candidate_id != second.candidate_id
-    assert first_head.status == "disputed"
-    assert second.status == "disputed"
-    assert first_head.independent_evidence == 1
-    assert second.independent_evidence == 1
+    dev_one, _ = _observe_case(
+        registry,
+        raw_text="要求：使用 Flink SQL 开发实时数据任务。",
+        source_identity="dev-employer-a",
+        jd_id="dev-one",
+    )
+    _observe_case(registry, raw_text="岗位需要具备 Flink SQL 实现流式任务的能力。",
+                  source_identity="dev-employer-b", jd_id="dev-two", source="Zhaopin")
+    teach_one, _ = _observe_case(
+        registry,
+        raw_text="要求：讲授 Flink SQL 课程。",
+        source_identity="teach-employer-a",
+        jd_id="teach-one",
+        source="Liepin",
+    )
+    _observe_case(registry, raw_text="岗位职责包括培训 Flink SQL 课程。",
+                  source_identity="teach-employer-b", jd_id="teach-two", source="Liepin")
     projection = registry.project()
-    result = align_analysis(development, shipped(), candidate_projection=projection)
-    decision = result.alignments[0]
-    assert decision.state == "ambiguous"
-    assert len(decision.candidate_concept_ids) == 2
-    assert decision.concept_id is None
+    assert len(projection.snapshot.concepts) == 2
+    assert all(item.status == "corroborated" for item in projection.snapshot.concepts)
+    dev_decision = align_analysis(dev_one, shipped(), candidate_projection=projection).alignments[0]
+    teach_decision = align_analysis(teach_one, shipped(), candidate_projection=projection).alignments[0]
+    assert dev_decision.state == teach_decision.state == "exact_synonym"
+    assert dev_decision.concept_id != teach_decision.concept_id
+
+def test_cross_source_near_rewrite_is_treated_as_possible_republish(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    registry = CandidateRegistry(tmp_path / "registry")
+    first = _observe_case(
+        registry,
+        raw_text="要求：使用 Flink SQL 开发实时数据任务。",
+        source_identity="employer-a",
+        jd_id="near-copy-one",
+    )[1]
+    second = _observe_case(
+        registry,
+        raw_text="要求：使用 Flink SQL 开发实时数据任务！",
+        source_identity="employer-b",
+        jd_id="near-copy-two",
+        source="Zhaopin",
+    )[1]
+    assert second.candidate_id == first.candidate_id
+    assert second.status == "observing"
+    assert second.source_identity_count == 2
+    assert second.evidence_quality == "likely_republished"
+    assert registry.project().snapshot.concepts == []

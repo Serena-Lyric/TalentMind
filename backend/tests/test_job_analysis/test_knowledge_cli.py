@@ -122,9 +122,11 @@ def test_cli_align_verifies_a_saved_p1_run_directory(tmp_path):
 def test_cli_govern_projects_verified_candidate_for_limited_alignment(tmp_path):
     from app.job_analysis.knowledge.storage import read_result
 
-    first_analysis = analysis_with(["Flink SQL"], jd_id="cli-projection-one")
+    first_analysis = analysis_with(["Flink SQL"], jd_id="cli-projection-one",
+                                   row_extra={"source_identity": "cli-employer-a"})
     second_analysis = analysis_with(
         ["Flink SQL"],
+        row_extra={"source_identity": "cli-employer-b"},
         raw_text="任职要求：掌握 Flink SQL。",
         source="Zhaopin",
         jd_id="cli-projection-two",
@@ -173,3 +175,25 @@ def test_cli_compare_accepts_concept_only_snapshot(tmp_path):
                         "--output", tmp_path / "comparison")
     assert completed.returncode == 0
     assert json.loads(completed.stdout)["checked_roles"] == 0
+
+def test_cli_impact_reads_candidate_projection_versions(tmp_path):
+    from test_knowledge_versions import _candidate_projection_pair
+
+    registry, empty, projected, source = _candidate_projection_pair(tmp_path)
+    source_path = tmp_path / "source.json"
+    write_analysis(source_path, source)
+    alignment = tmp_path / "old-alignment"
+    completed = run_cli(
+        "align", "--analysis", source_path, "--snapshot", SHIPPED_CATALOG,
+        "--candidate-projection", registry.root / "projections" / empty.sha256, "--output", alignment,
+    )
+    assert completed.returncode == 0
+    output = tmp_path / "impact"
+    completed = run_cli(
+        "impact", "--old", SHIPPED_CATALOG, "--new", SHIPPED_CATALOG,
+        "--old-candidate-projection", registry.root / "projections" / empty.sha256,
+        "--new-candidate-projection", registry.root / "projections" / projected.sha256,
+        "--alignments", alignment, "--output", output,
+    )
+    assert completed.returncode == 0
+    assert json.loads(completed.stdout)["candidate_projection_changed"] is True

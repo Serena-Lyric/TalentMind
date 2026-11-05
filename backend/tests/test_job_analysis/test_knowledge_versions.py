@@ -195,3 +195,68 @@ def test_impact_rejects_alignment_not_bound_to_old_knowledge_sha():
     record = align_analysis(analysis_with(["Python"]), loaded_variant(with_python_alias))
     with pytest.raises(ValueError, match="old knowledge"):
         locate_impact(shipped(), loaded_variant(with_python_alias), [record])
+
+def _candidate_projection_pair(tmp_path):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+    from app.job_analysis.knowledge.alignment import align_analysis
+
+    registry = CandidateRegistry(tmp_path / "candidate-registry")
+    empty = registry.project()
+    sources = []
+    for identity, text, jd_id, platform in (
+        ("employer-a", "要求：使用 Flink SQL 开发实时数据任务。", "p-one", "BOSS"),
+        ("employer-b", "岗位需要具备 Flink SQL 实现流式任务的能力。", "p-two", "Zhaopin"),
+    ):
+        analysis = analysis_with(
+            ["Flink SQL"], raw_text=text, source=platform, jd_id=jd_id,
+            row_extra={"source_identity": identity},
+        )
+        registry.observe(analysis, align_analysis(analysis, shipped()))
+        sources.append(analysis)
+    return registry, empty, registry.project(), sources[0]
+
+
+def test_candidate_projection_addition_enters_impact_scope_with_static_knowledge_unchanged(tmp_path):
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    registry, empty, projected, source = _candidate_projection_pair(tmp_path)
+    old_record = align_analysis(source, shipped(), candidate_projection=empty)
+    assert old_record.alignments[0].state == "unknown"
+    report = locate_impact(
+        shipped(), shipped(), [old_record],
+        old_candidate_projection=empty, new_candidate_projection=projected,
+    )
+    assert report.candidate_projection_changed is True
+    assert report.changed_candidate_concept_ids
+    assert report.affected == [f"synthetic:{old_record.jd_id}:{old_record.source_analysis_sha256[:12]}"]
+
+
+def test_candidate_projection_withdrawal_enters_impact_scope(tmp_path):
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    registry, empty, projected, source = _candidate_projection_pair(tmp_path)
+    old_record = align_analysis(source, shipped(), candidate_projection=projected)
+    for concept in projected.projection.concepts:
+        registry.withdraw(concept.candidate_id, "反证后撤回")
+    withdrawn = registry.project()
+    report = locate_impact(
+        shipped(), shipped(), [old_record],
+        old_candidate_projection=projected, new_candidate_projection=withdrawn,
+    )
+    assert report.candidate_projection_changed is True
+    assert report.changed_candidate_concept_ids
+    assert report.affected == [f"synthetic:{old_record.jd_id}:{old_record.source_analysis_sha256[:12]}"]
+
+
+def test_impact_rejects_alignment_bound_to_different_old_candidate_projection(tmp_path):
+    import pytest
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    _registry, empty, projected, source = _candidate_projection_pair(tmp_path)
+    record = align_analysis(source, shipped(), candidate_projection=projected)
+    with pytest.raises(ValueError, match="old candidate projection"):
+        locate_impact(shipped(), shipped(), [record],
+                      old_candidate_projection=empty, new_candidate_projection=projected)
