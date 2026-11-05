@@ -48,6 +48,7 @@ jobs:
             tests/test_job_analysis/test_knowledge_cli.py \
             tests/test_job_analysis/test_knowledge_attribution.py \
             tests/test_job_analysis/test_knowledge_attribution_io.py \
+            tests/test_job_analysis/test_knowledge_attribution_review.py \
             tests/test_job_analysis/test_baseline_contract.py \
             tests/test_job_analysis/test_understanding.py \
             tests/test_job_analysis/test_governance.py \

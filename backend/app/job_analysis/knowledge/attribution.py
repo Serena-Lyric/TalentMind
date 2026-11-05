@@ -14,9 +14,10 @@ from .models import CandidateProjectionBinding, validate_snapshot
 from .catalog import LoadedSnapshot
 from .role_policy import BoundPolicy, bind_policy
 from .storage import read_result
+from .tracks import technology_candidates
 from .roles import _anchors_match
 from .work_evidence import (
-    AUXILIARY, UNSAFE, PREDICATES, claim_matches, delivery_matches, occurrences, units, evidence_slice,
+    AUXILIARY, PREDICATES, claim_matches, delivery_matches, evidence_slice,
     same_work_group, work_groups, source_conditioned,
 )
 
@@ -205,7 +206,25 @@ def attribute_roles(analysis: dict, knowledge: LoadedSnapshot, policy: BoundPoli
                                                    and not AUXILIARY.search(d.text) for d in duties)
     main = core_roles[0] if len(core_roles) == 1 and not unaccounted_core else None
     shape = ("single_core_hypothesis" if main else "parallel_core_hypothesis" if len(core_roles) > 1
-             else "mixed_hypothesis" if family_candidates else "unresolved")
+             else "unresolved")
+    mixed_evidence = []
+    # Multiple labels for the same work cannot establish a mixed job. Require
+    # different directions AND independently evidenced work fragments.
+    for first in explanations:
+        first_rule = rules.get(first.role_id)
+        if not first_rule or not first_rule.family or first.judgment == "conflict":
+            continue
+        for second in explanations:
+            second_rule = rules.get(second.role_id)
+            if (not second_rule or not second_rule.family or second.judgment == "conflict"
+                    or first_rule.family == second_rule.family):
+                continue
+            for left in first.supports:
+                for right in second.supports:
+                    if not same_work_group(left.jd_evidence, right.jd_evidence, row):
+                        mixed_evidence = [left.jd_evidence, right.jd_evidence]
+    if mixed_evidence and shape != "parallel_core_hypothesis":
+        shape = "mixed_hypothesis"
     if len(core_roles) == 1 and rules[core_roles[0]].composite_reference and main:
         shape = "composite_hypothesis"
     shape_evidence = []
@@ -221,26 +240,10 @@ def attribute_roles(analysis: dict, knowledge: LoadedSnapshot, policy: BoundPoli
     selected_jobs = core_roles if not unaccounted_core else []
     if shape_evidence:
         main, selected_jobs, shape = None, [], "multi_position_advertisement"
+    else:
+        shape_evidence = mixed_evidence
 
-    tracks = []
-    for term in policy.policy.track_terms:
-        evidence, ids = [], []
-        for duty in duties:
-            if not any(s.claim_id == duty.id for item in explanations for s in item.supports):
-                continue
-            local_support = [s for item in explanations for s in item.supports if s.claim_id == duty.id]
-            for ev in duty.evidence:
-                for start, end, unit in units(ev.quote):
-                    if not UNSAFE.search(unit) and re.search(r"使用|利用|基于|采用|借助|通过", unit) and occurrences(unit, term):
-                        part = evidence_slice(ev, start, end)
-                        if source_conditioned(part, row) or not any(same_work_group(part, s.jd_evidence, row) for s in local_support):
-                            continue
-                        evidence.append(part)
-                        ids.append(duty.id)
-        if evidence:
-            tracks.append(AxisCandidate(value=term, strength="local_hypothesis", role_ids=[],
-                                        claim_ids=sorted(set(ids)), evidence=evidence,
-                                        reason="支持的工作上下文中明确使用该技术；不改变要求五态、熟练度或职业身份。"))
+    tracks = technology_candidates(checked, policy.policy.track_terms)
     limitations = ["machine_unreviewed", "bounded_patterns_not_general_entailment", "no_market_accuracy_claim",
                    policy.policy.scope_limitation, "seniority_reference_not_configured"]
     for dimension in ("goals", "objects", "duties", "requirements"):
@@ -250,6 +253,7 @@ def attribute_roles(analysis: dict, knowledge: LoadedSnapshot, policy: BoundPoli
         limitations.append("unaccounted_core_work")
     checked_ids = [i.role_id for i in explanations]
     return AttributionResult(
+        explanation_version="bounded-work-attribution-2",
         implementation_sha256=IMPLEMENTATION_SHA256, source_analysis_sha256=digest(checked.model_dump()),
         source_analysis=checked, knowledge_id=knowledge.snapshot.id, knowledge_revision=knowledge.snapshot.revision,
         knowledge_sha256=knowledge.sha256, knowledge_sources=knowledge.snapshot.sources,

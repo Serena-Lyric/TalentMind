@@ -133,7 +133,8 @@ P6 独立效果评价。HOLD 未读取。
 ## P2-2 岗位检索与四轴解释
 
 `attribute_roles(analysis, knowledge, policy, candidate_projection=None)` 位于
-`attribution.py`，输出独立 `m2-role-attribution-1`；`read_attribution(path)` 校验历史结果。
+`attribution.py`，输出独立 `m2-role-attribution-1`；当前解释器为 `bounded-work-attribution-2`，
+`read_attribution(path)` 继续校验并原样读取解释版本 1/2 的历史结果。
 原 `compare_roles` / `RoleComparisonSet` v1 和 `build_profile` 的语义保持不变。
 P2-3 可读取 `axes`、`comparisons`、`unaccounted_work` 和 `alignment`，不能将候选值当正式岗位或统计资格。
 
@@ -143,16 +144,16 @@ P2-3 可读取 `axes`、`comparisons`、`unaccounted_work` 和 `alignment`，不
 ```powershell
 python -m app.job_analysis.knowledge attribute `
   --analysis ../data/local/<saved-p1-run> `
-  --snapshot app/job_analysis/knowledge/catalog/role-references.v2 `
-  --policy app/job_analysis/knowledge/policies/role-attribution.v1.json `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v3 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v2.json `
   --output ../data/local/<new-attribution-result>
 
 python -m app.job_analysis.knowledge read-attribution --result ../data/local/<saved-attribution-result>
 
 python -m app.job_analysis.knowledge reexplain `
   --previous ../data/local/<saved-attribution-result> `
-  --snapshot app/job_analysis/knowledge/catalog/role-references.v2 `
-  --policy app/job_analysis/knowledge/policies/role-attribution.v1.json `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v3 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v2.json `
   --output ../data/local/<another-new-result>
 ```
 
@@ -179,9 +180,17 @@ stdout 仅输出摘要和各轴状态，退出码 0 表示产物可读（包括�
   证据与理由。single/multiple 仅表示当前受限机器候选集合。核心工作并列时主岗为 null；
   辅助关联单列，未解释核心片段不能靠职责条目数消除。`canonical_job` 的值直接引用来源角色 ID，
   不自由生成正式名称。没有已配置级别标准时 seniority 未决，年限/熟练度不换算级别。
-  技术方向仅来自有职责支持的同一工作片段中明确使用的技术；仅有技能共现不确认方向。
+  技术方向由 `tracks.py` 单独读取有出处的实际技术工作（duty/goal），**不以岗位参照命中为前提**。
+  目录为空、标准岗位未决或 core 不明确时，有明确手段—技术—工作证据仍可提出局部方向候选。
+  技术名来自配置、原技术能力成员或实际工作中逐字出现的拉丁字母技术名称；未知名称保持原文候选，
+  不发布规范名/同义关系。P1 摘要可省略工具，原引文必须明示使用且实际工作方面仍与该 claim 对账。
+  单独熟悉要求、经验/技术列表、条件/否定、他人责任和培训内容不确认方向；跨任务不继承手段。
+  仅有技能共现也不确认方向，不更改原要求五态或把实际使用变成必备/熟练度。
 - **工作形态**：保留 single/parallel/mixed/composite hypothesis 与明确 multi-position advertisement；
   composite 必须由版本化参考规则显式声明，标题“全栈”或多技能不建立成熟职业。
+  单候选缺交付/重要性证据复用 `unresolved`；`mixed_hypothesis` 需要不同方向及独立工作片段，
+  并记录 `shape_evidence`，多个参照解释同一工作不构成混合。主岗+辅助可为受限混合假设；
+  两项核心主次不明仍为 `parallel_core_hypothesis`，不因此建立 P3 身份或计数事实。
   明确多职位广告保留职责候选、清空单岗位选择；不拆分职位数。
   `identity_action=none`、`formal_statistics_eligible=false` 始终保留。
 - **版本**：绑定原始 input、完整 P1 analysis SHA、知识原始 JSON SHA、候选 projection SHA、
@@ -197,6 +206,13 @@ stdout 仅输出摘要和各轴状态，退出码 0 表示产物可读（包括�
 动作/对象/交付适配规则，与外部原定义分开版本化；family 映射也是候选解释。
 `canonical_candidate=true` 仅允许提出岗位候选，不代表正式职业获批。
 新快照不包含 P2-1 的 synthetic test role；旧快照保持原字节和原摘要。
+
+推荐的 `catalog/role-references.v3` / `policies/role-attribution.v2.json` 保留五个参照，
+独立补入 O*NET Task 16139 的 BI 工具/系统维护工作方面；原任务原文和下载摘要可核对。
+新策略对已有程序任务补“代码实现/编码”和设计文档输出，对 Task 21667 补原文已有的设计动作。
+共享对象的并列谓词只在无第二对象的有界语法内联结，不能跨新对象/否定条件/其他任务借用。
+`default_policy_path()` 仍返回 v1 以保持既有调用兼容；使用新版必须显式传入匹配的新策略和快照。
+解释 v1 曾将单一弱候选标为 mixed，读取旧结果仍原样保留这一历史解释；需要纠正时显式 reexplain。
 
 新增参考取自 [O*NET® 31.0 Database](https://www.onetcenter.org/database.html) 的
 [Occupation Data](https://www.onetcenter.org/dl_files/database/db_31_0_json/occupation_data.json) 和

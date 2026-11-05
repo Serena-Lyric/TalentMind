@@ -100,7 +100,7 @@ class UnaccountedWork(Strict):
 
 class AttributionResult(Strict):
     schema_version: Literal["m2-role-attribution-1"] = "m2-role-attribution-1"
-    explanation_version: Literal["bounded-work-attribution-1"] = "bounded-work-attribution-1"
+    explanation_version: Literal["bounded-work-attribution-1", "bounded-work-attribution-2"] = "bounded-work-attribution-1"
     implementation_sha256: Sha256
     source_analysis_sha256: Sha256
     source_analysis: Analysis
@@ -221,6 +221,16 @@ class AttributionResult(Strict):
                     raise ValueError("foreign axis support")
                 for evidence in candidate.evidence:
                     source.check_evidence(evidence, row)
+                if self.explanation_version == "bounded-work-attribution-2" and axis == "technology_tracks":
+                    if candidate.role_ids or not candidate.claim_ids or any(
+                            claims[cid].kind not in {"duty", "goal"} for cid in candidate.claim_ids):
+                        raise ValueError("technology candidate requires actual work claims, independent of roles")
+                    for evidence in candidate.evidence:
+                        if not any(ev.field == evidence.field and ev.start <= evidence.start < evidence.end <= ev.end
+                                   for cid in candidate.claim_ids for ev in claims[cid].evidence):
+                            raise ValueError("technology evidence is outside its work claims")
+                        if candidate.value.casefold() not in evidence.quote.casefold():
+                            raise ValueError("technology surface absent from actual work evidence")
         for evidence in self.shape_evidence:
             source.check_evidence(evidence, row)
         for gap in self.unaccounted_work:

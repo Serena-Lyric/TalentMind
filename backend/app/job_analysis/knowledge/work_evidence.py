@@ -18,7 +18,7 @@ UNSAFE = re.compile(
 AUXILIARY = re.compile(r"协助|辅助|偶尔|配合|支持其他")
 DELIVERY = re.compile(r"(?:交付|产出|输出|上线|完成验收|保障)[^，,；;。\n]{0,24}")
 # A new predicate starts a separate local work unit; terms may not pair across it.
-PREDICATES = r"开发|编写|修改|实现|设计|构建|建设|搭建|分析|整理|监测|监控|管理|配置|排查|优化|讲解|教学|授课|验证|核验|交付|产出|输出|保障"
+PREDICATES = r"开发|编写|修改|实现|设计|构建|建设|搭建|分析|整理|监测|监控|管理|维护|配置|排查|优化|讲解|教学|授课|验证|核验|清洗|处理|标注|采集|抽取|建模|训练|评测|评估|封装|生成|交付|产出|输出|保障"
 WORK_PREFIX = r"(?:负责|承担|协助|辅助)?"
 MEANS = r"使用|利用|基于|采用|借助|通过"
 COORDINATE = re.compile(r"(?:并且|并|以及|同时|及)(?=" + WORK_PREFIX + r"(?:" + PREDICATES + r")|(?:" + MEANS + r"))")
@@ -77,8 +77,22 @@ def occurrences(text, term):
     return list(re.finditer(pattern, text, re.I))
 
 
+def _shared_predicate_gap(unit, action_span, object_span, gap):
+    if object_span.end() <= action_span.start() and re.search(PREDICATES, unit[:object_span.start()]):
+        return False
+    # Only grammatical particles and known coordinated predicates may intervene.
+    # Any second noun/object blocks inheritance (e.g. service review + pipeline development).
+    return (bool(re.search(PREDICATES, gap)) and bool(re.search(r"与|和|、|并|及", gap))
+            and re.fullmatch(r"(?:\s|的|和|与|以及|及|并且|并|、|整体|日常|方案|" + PREDICATES + r")*", gap) is not None)
+
+
 def frame_hits(text: str, frame: Frame):
-    for start, end, unit in units(text):
+    candidates = [(s, e, value, False) for s, e, value in units(text)]
+    for clause in CLAUSES.finditer(text):
+        parent = next(s for s in STATEMENTS.finditer(text) if s.start() <= clause.start() < s.end())
+        if not CONDITION.search(parent.group()):
+            candidates.append((clause.start(), clause.end(), clause.group(), True))
+    for start, end, unit, shared in candidates:
         if UNSAFE.search(unit):
             continue
         for action in frame.actions:
@@ -96,9 +110,13 @@ def frame_hits(text: str, frame: Frame):
                             continue
                         if re.search(r"的(?:课程|教学|培训|介绍|讲解|演示)", unit):
                             continue
-                        if (len(gap) <= 12 and not re.search(PREDICATES, gap)
-                                and not re.search(r"与|和|或|、|及|另", gap)):
-                            yield start, end, action, obj, bool(AUXILIARY.search(unit))
+                        if re.match(r"(?:的)?(?:课程|教学|培训|介绍|讲解|演示)", unit[max(action_span.end(), object_span.end()):]):
+                            continue
+                        simple = not re.search(PREDICATES, gap) and not re.search(r"与|和|或|、|及|另", gap)
+                        bound = (_shared_predicate_gap(unit, action_span, object_span, gap) if shared else simple)
+                        if len(gap) <= 12 and bound:
+                            local_end = max(action_span.end(), object_span.end()) if shared else len(unit)
+                            yield start, start + local_end, action, obj, bool(AUXILIARY.search(unit[:local_end]))
 
 
 def evidence_slice(evidence, start, end):
