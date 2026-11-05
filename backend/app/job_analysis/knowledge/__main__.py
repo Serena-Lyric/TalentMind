@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from ..baseline.contract import validate_analysis
-from ..foundation.inputs import check_public, parse_json
+from ..foundation.inputs import check_public, digest, parse_json
 from ..understanding.storage import read_run
 from .alignment import align_analysis
 from .candidates import CandidateRegistry, load_projection
@@ -61,6 +61,16 @@ def build_parser():
     parser = argparse.ArgumentParser(description="P2-1 versioned knowledge workflow")
     commands = parser.add_subparsers(dest="command", required=True)
 
+    for name in ("attribute", "reexplain"):
+        command = commands.add_parser(name)
+        command.add_argument("--analysis" if name == "attribute" else "--previous", required=True, type=Path)
+        command.add_argument("--snapshot", required=True, type=Path)
+        command.add_argument("--policy", required=True, type=Path)
+        command.add_argument("--candidate-projection", type=Path)
+        command.add_argument("--output", required=True, type=Path)
+    historical = commands.add_parser("read-attribution")
+    historical.add_argument("--result", required=True, type=Path)
+
     validate = commands.add_parser("validate")
     validate.add_argument("--snapshot", required=True, type=Path)
 
@@ -99,6 +109,29 @@ def build_parser():
 def main():
     args = build_parser().parse_args()
     try:
+        if args.command in {"attribute", "reexplain", "read-attribution"}:
+            from .attribution import attribute_roles, read_attribution
+            from .role_policy import load_policy
+
+            if args.command == "read-attribution":
+                result = read_attribution(args.result)
+            else:
+                previous = read_attribution(args.previous) if args.command == "reexplain" else None
+                source = previous.source_analysis.model_dump() if previous else _load_analysis(args.analysis)
+                result = attribute_roles(source, load_snapshot(args.snapshot), load_policy(args.policy),
+                                         load_projection(args.candidate_projection) if args.candidate_projection else None)
+                if previous:
+                    result.reinterprets_sha256 = digest(previous.model_dump())
+                save_result(args.output, result.model_dump())
+            _write_summary(dict(status="ok", schema_version=result.schema_version,
+                                source_analysis_sha256=result.source_analysis_sha256,
+                                knowledge_sha256=result.knowledge_sha256, policy_sha256=result.policy_sha256,
+                                implementation_sha256=result.implementation_sha256,
+                                candidate_projection_sha256=result.alignment.candidate_projection_sha256,
+                                checked_roles=len(result.comparisons), work_shape=result.work_shape,
+                                axes={name: getattr(result.axes, name).status for name in type(result.axes).model_fields},
+                                semantic_review=result.semantic_review, change_kind=result.change_kind))
+            return 0
         if args.command == "validate":
             loaded = load_snapshot(args.snapshot)
             _write_summary(dict(status="ok", id=loaded.snapshot.id,

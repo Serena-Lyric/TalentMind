@@ -1,4 +1,4 @@
-name: M2 P2-1 Knowledge
+name: M2 P2 Knowledge and Attribution
 
 on:
   pull_request:
@@ -37,7 +37,7 @@ jobs:
             httpx==0.27.2 pydantic==2.12.0 pytest==8.3.3
       - name: Compile knowledge and baseline modules
         run: python -m compileall -q app/job_analysis/knowledge app/job_analysis/baseline
-      - name: Run P2-1 focused and affected offline tests
+      - name: Run P2-1 baseline and P2-2 attribution offline tests
         run: |
           python -m pytest \
             tests/test_job_analysis/test_knowledge_catalog.py \
@@ -46,6 +46,8 @@ jobs:
             tests/test_job_analysis/test_knowledge_governance.py \
             tests/test_job_analysis/test_knowledge_versions.py \
             tests/test_job_analysis/test_knowledge_cli.py \
+            tests/test_job_analysis/test_knowledge_attribution.py \
+            tests/test_job_analysis/test_knowledge_attribution_io.py \
             tests/test_job_analysis/test_baseline_contract.py \
             tests/test_job_analysis/test_understanding.py \
             tests/test_job_analysis/test_governance.py \

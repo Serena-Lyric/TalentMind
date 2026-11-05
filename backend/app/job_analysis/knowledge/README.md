@@ -1,4 +1,4 @@
-# P2-1 版本化知识与候选治理
+# P2 版本化知识、候选治理与岗位解释
 
 本包把 P1 已保存的机器候选事实对齐到独立知识快照，不修改 P1 的
 `claims/requirements/relations`、五态、程度、条件、组合、证据或
@@ -129,3 +129,84 @@ P6 独立效果评价。HOLD 未读取。
 阶段依据：[Issue #61](https://github.com/Serena-Lyric/TalentMind/issues/61)、
 [P2 分段目标](../../../../docs/superpowers/plans/2026-10-28-m2-core-delivery/P2-knowledge-role.md)、
 [审核标准](../../../../docs/superpowers/specs/2026-10-28-m2-delivery-review-standard.md)。
+
+## P2-2 岗位检索与四轴解释
+
+`attribute_roles(analysis, knowledge, policy, candidate_projection=None)` 位于
+`attribution.py`，输出独立 `m2-role-attribution-1`；`read_attribution(path)` 校验历史结果。
+原 `compare_roles` / `RoleComparisonSet` v1 和 `build_profile` 的语义保持不变。
+P2-3 可读取 `axes`、`comparisons`、`unaccounted_work` 和 `alignment`，不能将候选值当正式岗位或统计资格。
+
+从仓库 `backend/` 执行以下离线命令；路径中的 P1 run、projection 和新结果都须显式指定。
+`--analysis` 也支持严格的 `m2-semantic-0.2` JSON，P1 run 目录必须通过原 manifest 校验。
+
+```powershell
+python -m app.job_analysis.knowledge attribute `
+  --analysis ../data/local/<saved-p1-run> `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v2 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v1.json `
+  --output ../data/local/<new-attribution-result>
+
+python -m app.job_analysis.knowledge read-attribution --result ../data/local/<saved-attribution-result>
+
+python -m app.job_analysis.knowledge reexplain `
+  --previous ../data/local/<saved-attribution-result> `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v2 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v1.json `
+  --output ../data/local/<another-new-result>
+```
+
+`attribute/reexplain` 可加 `--candidate-projection <saved-projection-directory>`。
+重解释不会默认继承旧 projection；未指定代表本次没有使用该投影，结果明确绑定 null。
+stdout 仅输出摘要和各轴状态，退出码 0 表示产物可读（包括未决），1 表示拒绝/输入输出错误。
+结果仍使用只追加目录、`value.json` + SHA manifest；已有目录和仓内公开输出路径拒绝。
+
+### 读取契约与判定边界
+
+- **检索**：全量比较绑定快照中的每个角色，保留 available/checked/recalled IDs、
+  `unranked_exhaustive` 及范围局限。旧 anchors 仅为 `retrieval_clues`，没有线索的角色也实际比较。
+  当前目录内没有 top-k 截断；目录外职业、未配置中文表达和未命中来源任务仍可能遗漏。
+- **逐候选解释**：`definition` 与原知识 JSON/摘要绑定，保留 maturity、来源、版本、未决边界。
+  `supports/context_supports` 分别引用 P1 职责/目标对象和参考责任；每项保存动作、对象、
+  core/auxiliary/unknown、精确局部引文及参考摘录。`bounded_pattern_support` 是有界规则支持，
+  不代表语义已人审。`deliveries` 只使用与该参考工作处于同一工作片段的明确交付，不借用其他职责或无关联目标。
+  未覆盖 duty、未对齐来源目标/对象、未覆盖参考责任与 `unaccounted_work` 分别保留。
+- **质量**：P1 claims、五态、程度、组合、条件、对象、关系与原始证据嵌入保存，不改写。
+  partial duties、重要性未知、缺交付等阻止强主岗；目标/对象各自的 partial/not_run 单独报告。
+  否定、条件、他人责任、历史经验及教学/介绍的作用域做保守检查，无法覆盖的表达保持缺口。
+  真正的 `conflict` 必须来自配置的明确参考边界及实际正向职责，不把有限目录未命中当排除。
+- **四轴**：`family/canonical_job/technology_tracks/seniority` 各有 status、values、candidates、
+  证据与理由。single/multiple 仅表示当前受限机器候选集合。核心工作并列时主岗为 null；
+  辅助关联单列，未解释核心片段不能靠职责条目数消除。`canonical_job` 的值直接引用来源角色 ID，
+  不自由生成正式名称。没有已配置级别标准时 seniority 未决，年限/熟练度不换算级别。
+  技术方向仅来自有职责支持的同一工作片段中明确使用的技术；仅有技能共现不确认方向。
+- **工作形态**：保留 single/parallel/mixed/composite hypothesis 与明确 multi-position advertisement；
+  composite 必须由版本化参考规则显式声明，标题“全栈”或多技能不建立成熟职业。
+  明确多职位广告保留职责候选、清空单岗位选择；不拆分职位数。
+  `identity_action=none`、`formal_statistics_eligible=false` 始终保留。
+- **版本**：绑定原始 input、完整 P1 analysis SHA、知识原始 JSON SHA、候选 projection SHA、
+  policy revision/规范化内容 SHA、检索/解释版本及载入时源码摘要。源码摘要将 CRLF 规范为 LF；
+  知识摘要校验原始字节，Git attributes 固定其 LF，不改变旧 manifest。
+  旧结果内含当时事实、规则、知识 JSON 与定义，读取不执行当前分类算法。
+  `reexplain` 使用旧 P1 事实并追加 `reinterprets_sha256`，标为 `interpretation_only`，不表示市场变化。
+
+### 参考来源与适用范围
+
+`catalog/role-references.v2` 保留两个 P0 国内粗粒度参照，新增三个有来源的候选摘要：
+软件开发、数据仓储、商业智能分析。`policies/role-attribution.v1.json` 是 Agent 编写的中文
+动作/对象/交付适配规则，与外部原定义分开版本化；family 映射也是候选解释。
+`canonical_candidate=true` 仅允许提出岗位候选，不代表正式职业获批。
+新快照不包含 P2-1 的 synthetic test role；旧快照保持原字节和原摘要。
+
+新增参考取自 [O*NET® 31.0 Database](https://www.onetcenter.org/database.html) 的
+[Occupation Data](https://www.onetcenter.org/dl_files/database/db_31_0_json/occupation_data.json) 和
+[Task Statements](https://www.onetcenter.org/dl_files/database/db_31_0_json/task_statements.json)，
+原始来源为 USDOL/ETA，按 [CC BY 4.0 许可](https://www.onetcenter.org/license_db.html)使用。
+TalentMind 翻译、摘编并添加中文匹配词表；USDOL/ETA 未批准、背书或测试这些修改。
+Task ID、原文短引、来源下载摘要和具体更新时间随快照保留；完整下载仅在本地留存。
+国外职业参考不等于中国市场正式标准，未摘录任务/未定义边界不能成为排除证据。
+
+本实现不使用收费模型或在线检索，尚不能处理任意中文改写、隐含主次或目录外职业。
+专项合成反例与真实 DEV 的结果分账，不用测试通过数或全部未决宣称市场准确率。
+P2-2 方案、实际命令、首轮失败、DEV 分母、CI 和提审证据集中在
+[Issue #63](https://github.com/Serena-Lyric/TalentMind/issues/63)，不新建重复阶段报告。
