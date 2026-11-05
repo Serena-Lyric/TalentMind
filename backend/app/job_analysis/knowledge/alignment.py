@@ -103,6 +103,22 @@ def _candidate_decision(claim_id: str, member: str, requirement, groups,
             reason="Multiple candidate interpretations apply to the same target, category and context.",
         )
     concept = concepts[0]
+    if concept.status == "disputed":
+        return MemberAlignment(
+            claim_id=claim_id,
+            member=member,
+            state="unknown",
+            concept_id=None,
+            concept_name=None,
+            knowledge_status="unknown",
+            candidate_concept_ids=[],
+            related_concepts=[],
+            concept_source=None,
+            candidate_id=concept.candidate_id,
+            candidate_version_sha256=concept.candidate_version_sha256,
+            source_evidence=[*requirement["scope_evidence"]],
+            reason="The matching candidate is disputed; competing hypotheses require review before exact alignment.",
+        )
     return MemberAlignment(
         claim_id=claim_id,
         member=member,

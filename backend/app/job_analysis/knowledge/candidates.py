@@ -308,8 +308,10 @@ class CandidateRegistry:
         quality, source_count = _evidence_assessment(referenced)
         status = previous.status
         description = previous.description
-        if status != "withdrawn":
+        reason = previous.reason
+        if status not in {"disputed", "withdrawn"}:
             status = "corroborated" if quality == "independent_consistent" else "observing"
+            reason = f"Candidate evidence quality: {quality}."
             description = (f"机器核验候选：{observation.member}；"
                            f"{source_count}个已知来源身份；仅限候选知识使用"
                            if status == "corroborated" else
@@ -323,7 +325,7 @@ class CandidateRegistry:
             version=previous.version + 1,
             status=status,
             description=description,
-            reason=f"Candidate evidence quality: {quality}.",
+            reason=reason,
             referenced_observations=referenced,
             independent_evidence=independent,
             source_identity_count=source_count,

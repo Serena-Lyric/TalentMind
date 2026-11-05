@@ -1,6 +1,8 @@
 """Candidate governance is append-only, evidence-bound and never auto-formal."""
 from pathlib import Path
 
+import pytest
+
 from app.job_analysis.knowledge.alignment import align_analysis
 from app.job_analysis.knowledge.catalog import load_snapshot
 from test_knowledge_alignment import analysis_with
@@ -302,3 +304,92 @@ def test_cross_source_near_rewrite_is_treated_as_possible_republish(tmp_path):
     assert second.source_identity_count == 2
     assert second.evidence_quality == "likely_republished"
     assert registry.project().snapshot.concepts == []
+
+
+def _corroborated_candidate(registry):
+    _observe_case(registry, raw_text="要求：使用 Flink SQL 开发实时数据任务。",
+                  source_identity="employer-a", jd_id="dispute-one")
+    analysis, candidate = _observe_case(
+        registry, raw_text="岗位需要具备 Flink SQL 实现流式任务的能力。",
+        source_identity="employer-b", jd_id="dispute-two",
+    )
+    assert candidate.status == "corroborated"
+    return analysis, candidate
+
+
+def test_single_disputed_candidate_cannot_be_exact_in_alignment_or_profile(tmp_path):
+    from app.job_analysis.foundation.inputs import digest
+    from app.job_analysis.knowledge.candidates import CandidateRegistry, load_projection
+    from app.job_analysis.knowledge.models import AlignmentResult
+    from app.job_analysis.knowledge.profile import build_profile
+    from app.job_analysis.knowledge.roles import compare_roles
+    from app.job_analysis.knowledge.storage import read_result, save_result
+    from test_knowledge_roles import analysis_with_duties
+
+    registry = CandidateRegistry(tmp_path / "registry")
+    _, candidate = _corroborated_candidate(registry)
+    source = analysis_with_duties(["编写代码并核验模块功能"], requirement="Flink SQL")
+    source_before = digest(source)
+    old_projection = registry.project()
+    old_alignment = align_analysis(source, shipped(), candidate_projection=old_projection)
+    assert old_alignment.alignments[0].state == "exact_synonym"
+    save_result(tmp_path / "old-alignment", old_alignment.model_dump())
+
+    disputed = registry.mark_disputed(
+        candidate.candidate_id, "表达含义尚未确定", ["流式处理能力", "企业内部工具"],
+    )
+    new_projection = registry.project()
+    assert len(new_projection.projection.concepts) == 1
+    assert new_projection.projection.concepts[0].status == "disputed"
+    new_alignment = align_analysis(source, shipped(), candidate_projection=new_projection)
+    decision = new_alignment.alignments[0]
+    assert decision.state == "unknown"
+    assert decision.concept_id is None
+    assert decision.concept_source is None
+    assert decision.candidate_concept_ids == []
+    assert decision.knowledge_status == "unknown"
+    assert decision.candidate_id == disputed.candidate_id
+    assert decision.candidate_version_sha256 == digest(disputed.model_dump())
+    assert "disputed" in decision.reason
+    assert new_alignment.requirements[0].source_requirement == old_alignment.requirements[0].source_requirement
+    assert new_alignment.source_analysis_sha256 == old_alignment.source_analysis_sha256
+    assert digest(source) == source_before
+
+    comparison = compare_roles(source, shipped())
+    profile = build_profile("p0-ref-programming", comparison, [new_alignment])
+    member = profile.members[0].requirements[0].alignments[0]
+    assert member.state == "unknown"
+    assert member.concept_id is None
+    assert profile.candidate_projection_sha256 == new_projection.sha256
+    assert registry.read(candidate.candidate_id, candidate.version) == candidate
+    assert registry.read(candidate.candidate_id, disputed.version) == disputed
+    assert load_projection(registry.root / "projections" / old_projection.sha256) == old_projection
+    assert AlignmentResult.model_validate(read_result(tmp_path / "old-alignment")) == old_alignment
+
+
+@pytest.mark.parametrize("protected_status", ["disputed", "withdrawn"])
+def test_ordinary_observation_cannot_release_protected_candidate_status(tmp_path, protected_status):
+    from app.job_analysis.knowledge.candidates import CandidateRegistry
+
+    registry = CandidateRegistry(tmp_path / "registry")
+    _, candidate = _corroborated_candidate(registry)
+    disputed = registry.mark_disputed(candidate.candidate_id, "含义冲突待核查", ["义项A", "义项B"])
+    protected = (disputed if protected_status == "disputed"
+                 else registry.withdraw(candidate.candidate_id, "反证后撤回"))
+    analysis, observed = _observe_case(
+        registry, raw_text="使用 Flink SQL 开发数据应用，要求能够处理复杂事件。",
+        source_identity="employer-c", jd_id="dispute-three",
+    )
+    assert observed.status == protected_status
+    assert observed.reason == protected.reason
+    assert observed.description == protected.description
+    assert observed.competing_hypotheses == protected.competing_hypotheses
+    assert observed.competing_candidate_ids == protected.competing_candidate_ids
+    assert observed.version == protected.version + 1
+    assert len(observed.referenced_observations) == len(protected.referenced_observations) + 1
+    assert registry.read(candidate.candidate_id, candidate.version) == candidate
+    assert registry.read(candidate.candidate_id, protected.version) == protected
+    projection = registry.project()
+    assert align_analysis(analysis, shipped(), candidate_projection=projection).alignments[0].state == "unknown"
+    if protected_status == "withdrawn":
+        assert projection.projection.concepts == []

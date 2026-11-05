@@ -1,5 +1,27 @@
 # M2 P2-1 外部知识初始化、事实对齐与自动治理 Implementation Plan
 
+## 当前执行增量：第三轮复审（2026-11-05）
+
+依据：[第三轮 Review](https://github.com/Serena-Lyric/TalentMind/pull/62#pullrequestreview-5778403234)。
+负责人允许 P2 内必要重构；核查原需求、三轮审查和实际调用链后，本次沿用现有架构，
+修复状态保护与版本影响兜底，不扩大正式准入或 P2-2 范围。阶段报告直接写 Issue #61。
+
+- [x] 在 `test_knowledge_governance.py` 补 corroborated→disputed→projection→alignment/画像、
+  disputed/withdrawn→新增观察、旧版本重读的回归；先确认失败，再修改 `alignment.py` 与
+  `candidates.py`。单条 disputed 返回有原因及候选版本引用的 unknown，不选择 concept，
+  普通观察追加证据但保留争议/撤回状态、原因与竞争假设。
+- [x] 在 `test_knowledge_versions.py` 补 policy/revision-only、元数据与概念/静态变更同时出现、
+  相同 projection 不重评的回归；先确认失败，再修改 `impact.py`。无法证明影响范围的
+  projection 元数据变化保守重评全部提供的历史记录，不能被其他已知变更掩盖。
+- [x] 运行专项及 workflow 相同的离线回归、编译检查；检查 diff、文档相对链接，更新
+  knowledge 使用说明、资产状态、总进度和日期陷阱。本地 RED 为 10 failed/25 passed，
+  修复后该组 35 passed，完整受影响回归 208 passed；DEV-09 原文件 SHA 与事实保持不变。
+- 交付：提交同一分支并核对实际 CI，在同一 Issue/PR 回报固定新 head、RED/GREEN、
+  CI 与未验证范围；提交和 CI 的最终证据维护在 Issue #61。
+- [ ] 新 head 经独立复审及负责人合并授权；在此之前 PR/Issue 保持 OPEN。
+
+---
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 从可追溯外部知识建立小规模版本化知识快照，在不改写 P1 事实的前提下完成严格对齐、候选治理、岗位比较、画像读取和知识变更影响定位。

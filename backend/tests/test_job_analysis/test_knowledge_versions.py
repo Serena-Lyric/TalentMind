@@ -2,6 +2,8 @@
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 from app.job_analysis.foundation.inputs import digest
 from app.job_analysis.knowledge.catalog import LoadedSnapshot, load_snapshot
 from app.job_analysis.knowledge.models import validate_snapshot
@@ -260,3 +262,65 @@ def test_impact_rejects_alignment_bound_to_different_old_candidate_projection(tm
     with pytest.raises(ValueError, match="old candidate projection"):
         locate_impact(shipped(), shipped(), [record],
                       old_candidate_projection=empty, new_candidate_projection=projected)
+
+
+@pytest.mark.parametrize("field", ["policy_version", "revision", "id"])
+@pytest.mark.parametrize("static_alias_change", [False, True])
+def test_projection_metadata_change_conservatively_affects_bound_results(tmp_path, field, static_alias_change):
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+    from app.job_analysis.knowledge.models import CandidateProjection, CandidateProjectionBinding
+
+    _, _, projected, source = _candidate_projection_pair(tmp_path)
+    value = projected.projection.model_dump()
+    value[field] = "candidate-policy-next"
+    projection = CandidateProjection.model_validate(value)
+    new_projection = CandidateProjectionBinding(projection=projection, sha256=digest(projection.model_dump()))
+    old = shipped()
+    new = loaded_variant(with_python_alias) if static_alias_change else old
+    records = [align_analysis(item, old, candidate_projection=projected) for item in (
+        source, analysis_with(["Go"], jd_id="metadata-unmatched"),
+    )]
+    report = locate_impact(old, new, records, old_candidate_projection=projected,
+                           new_candidate_projection=new_projection)
+    assert report.candidate_projection_changed is True
+    assert report.changed_candidate_concept_ids == []
+    assert report.conservative is True
+    assert report.affected == sorted(
+        f"synthetic:{item.jd_id}:{item.source_analysis_sha256[:12]}" for item in records
+    )
+    assert "metadata" in report.reason.lower()
+
+
+def test_projection_policy_change_is_not_masked_by_known_candidate_changes(tmp_path):
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+    from app.job_analysis.knowledge.models import CandidateProjection, CandidateProjectionBinding
+
+    registry, _, old_projection, source = _candidate_projection_pair(tmp_path)
+    registry.mark_disputed(old_projection.projection.concepts[0].candidate_id, "新反证", ["另一义项"])
+    value = registry.project().projection.model_dump()
+    value["policy_version"] = "candidate-policy-next"
+    projection = CandidateProjection.model_validate(value)
+    new_projection = CandidateProjectionBinding(projection=projection, sha256=digest(projection.model_dump()))
+    records = [align_analysis(item, shipped(), candidate_projection=old_projection) for item in (
+        source, analysis_with(["Go"], jd_id="policy-unmatched"),
+    )]
+    report = locate_impact(shipped(), shipped(), records, old_candidate_projection=old_projection,
+                           new_candidate_projection=new_projection)
+    assert report.changed_candidate_concept_ids
+    assert report.conservative is True
+    assert len(report.affected) == len(records)
+
+
+def test_unchanged_candidate_projection_does_not_trigger_reevaluation(tmp_path):
+    from app.job_analysis.knowledge.alignment import align_analysis
+    from app.job_analysis.knowledge.impact import locate_impact
+
+    _, _, projected, source = _candidate_projection_pair(tmp_path)
+    record = align_analysis(source, shipped(), candidate_projection=projected)
+    report = locate_impact(shipped(), shipped(), [record], old_candidate_projection=projected,
+                           new_candidate_projection=projected)
+    assert report.candidate_projection_changed is False
+    assert report.conservative is False
+    assert report.affected == []

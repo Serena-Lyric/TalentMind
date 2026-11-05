@@ -23,9 +23,12 @@
   `candidate-evidence-policy-1` 只在至少两个已知且不同的来源身份提供语义一致证据时自动核验；
   未明来源、同源改写和跨来源近似转载分别保留 `source_independence_unverified / same_source_only /
   likely_republished`，不得进入 projection。不同用途上下文单独归档，但不自动宣称概念身份冲突。
-  修订必须绑定新 P1 证据，版本只追加。
+  修订必须绑定新 P1 证据，版本只追加。普通新观察只追加证据，不解除 `disputed/withdrawn`，
+  保留原争议/撤回原因、描述及竞争假设；当前未实现争议解决或自动恢复使用流程。
 - `locate_impact`：旧对齐必须绑定旧静态知识与旧 candidate projection SHA；静态概念/别名/关系和
   candidate 新增、修订、撤回都可定位受影响对齐；角色、来源或无法证明范围时保守标记全部。
+  projection 策略、revision、身份等非概念元数据变化时，保守重评所有提供的记录，
+  即使同次还存在可精确定位的别名或概念变化；相同 projection 不额外触发重评。
 - `build_profile`：只从已支持的角色比较与显式版本对齐重建候选画像，保留成员原始五态和组合，
   不把单个成员的 `required` 推广为全体岗位要求。
 
@@ -98,6 +101,9 @@
 - `ambiguous` 保留全部候选概念 ID，不选一个答案。
 - 自动核验候选只能通过独立 projection SHA 读取；`concept_source=candidate` 且正式准入仍为 false。
   同一表面词的不同上下文保留为 competing candidate IDs；不会累计为单一候选的独立验证强度。
+- projection 保留 disputed 候选用于追溯，但不代表可确定使用。单个适用 disputed 候选返回
+  `unknown`，不选择 concept，保留 candidate ID/版本 SHA 和未决原因；多个适用候选
+  仍为 `ambiguous`。画像沿用未知/歧义和绑定的 projection，不把争议解释升级为确定概念。
 - 无岗位目录时技能知识仍可加载/对齐；岗位比较返回 `no_role_candidates` 与空对比范围。
 - 岗位摘要明确 `all_roles_in_bound_snapshot`；不能解释为排除快照外职业。
 - 候选画像固定 `candidate_profile`、`linked_members_only`、`not_formal_role` 和

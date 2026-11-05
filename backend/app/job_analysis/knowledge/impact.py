@@ -110,6 +110,13 @@ def locate_impact(old: LoadedSnapshot, new: LoadedSnapshot,
     )
     conservative = bool(old.sha256 != new.sha256 and not semantic_changes)
     reason = "Affected results were derived from versioned static and candidate knowledge changes."
+    old_projection_metadata = (old_candidate_projection.projection.model_dump(exclude={"concepts"})
+                               if old_candidate_projection else None)
+    new_projection_metadata = (new_candidate_projection.projection.model_dump(exclude={"concepts"})
+                               if new_candidate_projection else None)
+    if old_projection_metadata != new_projection_metadata:
+        conservative = True
+        reason = "Candidate projection policy or metadata changed; all supplied results were conservatively affected."
     if changed_sources or changed_roles:
         conservative = True
         reason = "Source or role metadata changed; all supplied results were conservatively affected."
