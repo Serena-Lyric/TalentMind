@@ -23,8 +23,10 @@ def _other_actor(text):
     for match in OTHER.finditer(text):
         cooperation = re.search(r"(?:协助|辅助|配合)(?P<target>[^，,；;。:：\n]{0,12})$", text[:match.start()])
         target = cooperation["target"] if cooperation else ""
-        if match.group().endswith("完成") and cooperation and not (LINK.search(target) or re.search(
-                r"负责|承担|完成|要求|安排|委托|交给|由|让|之后|然后|随后|后$|而|但|却|不过|同时|另外|旨在|使得|供$",
+        # Common compound nouns are not the purpose marker "供 + recipient".
+        transfer_text = re.sub(r"供应链|供应商|供应$|供需(?!求)|^供给$", "", target)
+        if match.group().endswith("完成") and cooperation and not (LINK.search(target) or "供" in transfer_text or re.search(
+                r"负责|承担|完成|要求|安排|委托|交给|由|让|之后|然后|随后|后$|而|但|却|不过|同时|另外|旨在|使得",
                 target)):
             continue
         return True

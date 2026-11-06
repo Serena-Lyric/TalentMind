@@ -142,6 +142,13 @@ def test_history_rejects_rewritten_program_bound_quotation(tmp_path):
     ("配合数据分析团队完成记录校验", "affirmed"),
     ("协助后端团队完成软件系统开发", "affirmed"),
     ("协助客户服务团队完成数据分析", "affirmed"),
+    ("协助供应链团队完成记录校验", "affirmed"),
+    ("协助供应商团队完成记录校验", "affirmed"),
+    ("配合供应团队完成记录校验", "affirmed"),
+    ("协助外部供应商团队完成记录校验", "affirmed"),
+    ("配合采购供应团队完成记录校验", "affirmed"),
+    ("配合供需分析团队完成记录校验", "affirmed"),
+    ("协助供给团队完成记录校验", "affirmed"),
     ("开发团队完成软件系统开发", "other_actor"),
     ("数据团队完成软件系统开发", "other_actor"),
     ("安排数据团队完成软件系统开发", "other_actor"),
@@ -151,6 +158,10 @@ def test_history_rejects_rewritten_program_bound_quotation(tmp_path):
     ("本人协助整理资料但开发团队完成软件系统开发", "other_actor"),
     ("本人协助整理资料以便客户完成软件系统开发", "other_actor"),
     ("本人协助整理资料供客户完成软件系统开发", "other_actor"),
+    ("本人协助整理资料供后端团队完成软件系统开发", "other_actor"),
+    ("本人协助整理资料供数据团队完成软件系统开发", "other_actor"),
+    ("本人协助整理资料供应急团队完成软件系统开发", "other_actor"),
+    ("本人协助整理资料供需求团队完成软件系统开发", "other_actor"),
     ("安排开发团队完成软件系统开发", "other_actor"),
     ("若有需要则协助开发团队完成软件系统开发", "conditional"),
 ])
@@ -158,6 +169,8 @@ def test_personal_collaboration_is_distinct_from_delegating_work_to_a_team(text,
     result = execute(analysis_with_duties([text], core_values=[False]))
     assert result.work_units[0].scope == scope
     assert result.work_units[0].importance == "auxiliary"
+    if scope == "other_actor":
+        assert not any(c.supports for c in result.comparisons)
 
 
 def test_public_work_method_runs_selected_pairs_and_reads_without_models(tmp_path, monkeypatch):
