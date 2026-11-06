@@ -1,3 +1,5 @@
 # B3-5 definition provenance hashes must survive checkout on every platform.
 docs/PRODUCT_DECISIONS.md text eol=lf
 backend/app/job_analysis/canonical_catalog/sources/*.txt text eol=lf
+# Knowledge manifests bind exact published JSON bytes as well.
+backend/app/job_analysis/knowledge/catalog/**/knowledge.json text eol=lf

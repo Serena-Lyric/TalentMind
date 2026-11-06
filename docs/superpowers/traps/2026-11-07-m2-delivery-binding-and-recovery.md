@@ -25,3 +25,5 @@
 测试必须穿过实际入口、真实 SQLite 与子进程提交边界。`test_delivery.py`、`test_delivery_cli.py` 覆盖停止/取消、条目和候选提交前后 `os._exit`、导出失败、重复、过时请求、只读并发及实时提示变化；`test_delivery_evaluation.py` 覆盖实际 CLI/批准绑定、篡改/重复/错误 run 拒绝。临时夹具 finally 精确移除，持久化演示证据独立私有保留。独立真值不足仍是未验收，不以绿色测试或缓存重编译替代真实效果。
 
 全仓复验还暴露 Windows 测试夹具的两个边界：`tempfile` 可能返回 `SERENA~1` 短路径，签审发布保护要求显式路径等于其 resolve，应在合成测试夹具中使用规范化路径，不能放松生产校验；PID 文件存在也可能尚未写完，睡眠 worker 测试改为临时文件写完后原子发布 ready 文件，不修改真实采集实现。
+
+干净 Windows worktree 还重现了已发布 P2-1 `knowledge.json` 被 autocrlf 转换后与 manifest 摘要不符。按不可变资产路径固定 LF 检出，而不是修改 manifest/归一化后再校验。必须验证真正的新检出，原工作目录恰好为 LF 的绿色测试不能证明跨平台可重放。
