@@ -2,6 +2,49 @@
 
 > 状态及提交记录仅维护在 [总进度表](../2026-10-28-m2-core-delivery-plan.md#3-分段地图与当前进度)。直接依赖：P1、P2 的已审结果与 P0 候选配对案例。自动重新归纳和生效的完整验收由 P4 完成，本段不得提前宣称全部持续演化已完成。
 
+## 2026-11-06 限定执行范围与实施计划
+
+**Spec / 授权：** [Issue #65](https://github.com/Serena-Lyric/TalentMind/issues/65)。其最新执行范围替代本页对完整 P2 的前置依赖：从 master `70a6f07` 独立开发，仅使用已合并 P1/P2-1，P2-2 #63 搁置、#64 未合并且业务未通过。不自动开始 P4/P5、合并或正式发布。技术选型由 Codex 自主完成，不等待技术方案审批。
+
+**Goal：** 可跨进程研究、追踪、纠正工作组合候选，语义不足明确待核验。
+
+**Architecture / Tech Stack：** 复用 P1 严格验证和 P2-1 对齐；标准库 SQLite 事务、只追加批次快照和内容寻址的原始分析/知识，不接生产存储。候选 ID 由显式稳定 ID 标识，描述只作机器解释；检索只读取有来源的工作陈述，返回有限研究线索，不确认同职业。与复用旧技能候选 registry 相比，独立轻量存储能避免技能准入语义泄漏；与接入未合并 P2-2 相比，可保持已发布依赖和真实验收边界。
+
+**Global Constraints：** 原 P1 事实/机器未审状态不变；人工身份与语义认证不由哈希代替；未知来源独立性/职位数为 null；同批固定基线；关键结构和正式身份操作不开放；原始数据不出本地；报告直接写 Issue，不新增阶段报告。
+
+**Review Focus：** 重跑/转载不能增加独立强度；候选链条无传递；部分/失败输入不生成身份；过时基线/并发写入整体拒绝；纠错/描述/知识变化保留旧事实和版本且不报告市场变化。
+
+### Task 1：事务与候选生命周期
+
+Files：新增 `backend/app/job_analysis/work_candidates/{models,storage,service}.py`；测试 `backend/tests/test_job_analysis/test_work_candidates.py`。
+
+Interfaces：`CandidateStore(path)` 上下文管理器；`store.read(revision=None)` 返回冻结快照；`apply_batch(store, request, analyses, knowledge)` 原子提交，明确绑定 P1 SHA、知识 SHA、算法/源码与候选基线；重复 batch ID 精确复用，不同内容拒绝。
+
+- [x] 写失败测试：同一候选两批持续、当前/历史分别读取、过时基线和非法写入整批拒绝、重复批次不增量。
+- [x] 运行测试确认缺少实现；实现严格请求、独立库身份、只追加快照/来源和乐观基线校验。
+- [x] 运行上述测试，8 项合成测试通过；提交明确文件。
+
+### Task 2：有界关联、反证与去重
+
+Files：新增 `work_candidates/retrieval.py`；扩展 service 和上述测试。
+
+Interfaces：自动检索只返回待核验工作线索；显式关联可多候选；纠正必须绑定旧关系摘要；受控语义参照与未认证外部审核分别保留，均不改成正式身份。候选修订只改机器解释，不靠改写文本扩大核心证据范围。
+
+- [x] 写并运行失败测试：不同栈正例、同工具异责任反例、A/B/C 无传递、多候选、撤回/反证、重复及转载、部分事实/空目录、知识/分析版本变化。
+- [x] 实现独立语义与事实定位分账、重复观察与成员分账、代表来源/竞争线索、纠正和说明修订。
+- [x] 全部相关测试通过后提交；真实人审分母为零，不计算语义准确率。
+
+### Task 3：真实 CLI 序列、文档与 CI
+
+Files：新增 `work_candidates/{__init__,__main__}.py`、`README.md`、CLI 回归和 `.github/workflows/m2-p3-candidates.yml`；更新 M2 入口、资产和总计划。
+
+Interfaces：`init/apply/show/history/jd/source` 命令；manifest 显式输入路径，P1 run 用其 manifest 读取；JSON 输出可由 P4/P5 使用。读取不重新执行历史算法。
+
+- [x] 先写并运行跨子进程两批及纠正/恢复测试，确认 CLI 缺失；实现入口，测试事务中硬退出和提交后重试。
+- [x] 运行相关 P0/P1/P2-1 回归、离线全套与编译；核查 SQLite 仅临时实例、夹具 teardown，未接正式数据库。全套两项旧目录哈希失败及基线复现直接报告 #65，不改写旧草案版本。
+- [x] 更新正式使用契约/状态，按 verification-before-completion 和 requesting-code-review 做最终复核；提交、推送独立 [PR #66](https://github.com/Serena-Lyric/TalentMind/pull/66)，真实 CI、固定 head、分母、限制与开发报告直接见 #65。内部复核不代替 ChatGPT 产品验收，不合并。
+- [ ] ChatGPT 在固定 head 独立审核，负责人决定是否合并；P2-2 不因本段工程交付自动通过，P4/P5 不自动启动。
+
 **目标：** 形成可持续研究的工作组合假设，能够跨运行关联新 JD、保留反对/未决证据及稳定身份，不把一次分类失败变成临时日志。
 
 ## 最小阅读与输入

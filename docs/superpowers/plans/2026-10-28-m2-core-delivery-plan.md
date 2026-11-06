@@ -17,6 +17,7 @@
 - 一段包含形成独立结果所需的最少实现、必要验证、文档与提交；不单独为安装依赖、建目录或空接口开一个阶段。段内可持续修复，不重复申请已经授予的常规开发权限。
 - 每段经 ChatGPT 审核后更新交接。未通过的关键依赖不能被后段假定完成；非依赖工作可记录为部分结果，不以等待个别事实标注阻塞所有离线工程工作。
 - 后续常规开发按 AGENTS 在临时分支提交、创建面向 master 的 PR，ChatGPT 审查并由用户授权合并。本次直接提交 master 的文档授权不扩展为后续代码自行合并授权。
+- **2026-11-06 P3 独立授权：** [Issue #65](https://github.com/Serena-Lyric/TalentMind/issues/65) 允许从已合并 P1/P2-1 独立完成候选生命周期，暂搁置 P2-2 #63（仍 OPEN、业务未通过、Draft #64 未合并）。此限定范围不要求等待完整 P2，不追认其语义结果；自主实现/测试/提交独立 PR，报告直接评论 #65，不新增重复临时报告。未授权自动 P4/P5、合并或正式发布。
 
 ## 2. Global Constraints — 全阶段约束
 
@@ -38,8 +39,8 @@
 |---|---|---|---|---|---|---|
 | [P0 基准与契约](2026-10-28-m2-core-delivery/P0-baseline.md) | **P0 限定范围通过（2026-10-29）**；9例人工参照、184项批准条件、199个适用单位、三组原比较及受控契约完成交付；真实模型与市场全面覆盖未验收 | [#55](https://github.com/Serena-Lyric/TalentMind/pull/55)已合并；[#56](https://github.com/Serena-Lyric/TalentMind/pull/56)已合并；[#57](https://github.com/Serena-Lyric/TalentMind/pull/57)方案A已合并；[#58](https://github.com/Serena-Lyric/TalentMind/pull/58)已合并；[#59](https://github.com/Serena-Lyric/TalentMind/pull/59)已合并 | #55：`2a87e47464e5da3312b1194f6978ad92453605a6`；#56：`393069c2c41dcb7b15f73363e96e1f5f144d35e9`；#58：`27b9d32bab26b80f9ff76889e75b610289aaae47`；#59：`cbb5c8d1861bd9be5145e7797533fce9eed11370` | [#55 工程复审](https://github.com/Serena-Lyric/TalentMind/pull/55#pullrequestreview-5684918398)、[#56 最终工程/归档复审](https://github.com/Serena-Lyric/TalentMind/pull/56#pullrequestreview-5685348280)通过合并范围；[交付证据](../../review/M2-P0-baseline-2026-10-28.md)；[#58业务Review](https://github.com/Serena-Lyric/TalentMind/pull/58#pullrequestreview-5691672989)方向可接受、需修订；负责人已于2026-10-29在聊天确认“审核通过，可以推送”；[#58定向复审](https://github.com/Serena-Lyric/TalentMind/pull/58#pullrequestreview-5693769894)已通过合并范围；[#59 P0限定范围最终验收](https://github.com/Serena-Lyric/TalentMind/pull/59#pullrequestreview-5697729218)通过；更广泛真实语义/模型效果未验收 | #55：`7fce612ae94f96a9d585865f21508520b26146af`；#56：`504ac42d9a03a8f94677217e8a5b1a9fa92d299a`；#58：`af93b53073448a31af8bc12076261fafd3068ae7`；#59：`317e77ab1507b17970f6b274c52fc66cd6ad53e8` | 方案A总体已批准；162项修订条件及等价粒度/补样策略已签审，6项Review指导已回填；原八例批准版保留；DEV-09完整人审/22项映射已签审并新版本入评，当前9例184条件/199单位；限定范围关闭前提和固定head验收已完成；严格跨句条件、同组合不同栈正例、真实目录反证、真实跨批演化、多目标/别名/市场代表性、HOLD独立效果、真实模型效果/成本仍未验证；外发/付费未授权；P1 的执行及外发按 P1 最新阶段授权和费用门禁执行 |
 | [P1 单条理解](2026-10-28-m2-core-delivery/P1-jd-analysis.md) | **限定范围工程交付通过（2026-11-03）**：已实现单条中文JD机器候选理解、原文证据、版本追踪、定向审计及partial/unknown/失败隔离；最终策略 `p1-source-constraints-5`。DEV-09最终代码fresh Flash为19/20单位完整+1有界partial、22/22条件；DEV-05历史Flash回包零网络重编译23/23、17/17；**混合口径**合计42/43完整、1 partial、39/39条件。**不是完整市场语义准确率验收** | [#60](https://github.com/Serena-Lyric/TalentMind/pull/60)（2026-11-03已合并） | `369e25e2a6609c146d7ce6931718f7f8b5d69647`（第六次独立复审，最终head） | [#60 第六次 Review：限定范围接受](https://github.com/Serena-Lyric/TalentMind/pull/60#pullrequestreview-5745442419)；[阶段证据](../../review/M2-P1-understanding-2026-10-30.md)；负责人2026-11-03明确授权合并，未授权自动开始P2 | `f21a0456f91f333f8e3c5552eace98fd709bff03` | R01申请材料对象保留`target=unresolved`；审计仍拒绝5个限定作用域编辑和1个关系证明、coverage partial，稀疏关系召回/未人审边不作为事实。所有分析标记`machine_unreviewed`，下游不得把partial/unknown推断为审核通过或硬资格。HOLD、真实市场效果及吞吐仍未验收；P2须单独授权启动 |
-| [P2 知识与岗位](2026-10-28-m2-core-delivery/P2-knowledge-role.md) | **第三轮定向修复完成，待新 head 复审（2026-11-05）**：disputed 候选返回带版本引用的 unknown；普通观察保留争议/撤回状态与原因；projection 非概念元数据变化保守重评全部提供记录，且不被同批已知变更掩盖；本地相关回归208 passed | [#62](https://github.com/Serena-Lyric/TalentMind/pull/62) | 第三轮修复及最终 CI head见PR与Issue #61 | 第三轮结论为争议状态机阻断及版本兜底缺口；修复后新head待独立复审 | 未合并 | P1 machine_unreviewed与partial继续保留；候选projection仅用于candidate性质解释，正式准入关闭。DEV-09仍为2 exact/25 unknown/0 ambiguous、3岗位unresolved、6 observing/0 projected；真实同责不同栈、正式目录反证、跨批演化、HOLD与市场效果仍未验证 |
-| [P3 持续候选](2026-10-28-m2-core-delivery/P3-candidate.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P1、P2；依赖未交付 |
+| [P2 知识与岗位](2026-10-28-m2-core-delivery/P2-knowledge-role.md) | **P2-1 已合并；P2-2 暂搁置、业务未通过（2026-11-06）** | [#62](https://github.com/Serena-Lyric/TalentMind/pull/62)；[#64 Draft](https://github.com/Serena-Lyric/TalentMind/pull/64) | P2-1：`2aceb953a193852e45be07970b66722772b23968`；P2-2：`19d2b69fb48f23f6793c5d5957aaafd619a5f69f` | [#62 限定范围接受](https://github.com/Serena-Lyric/TalentMind/pull/62#pullrequestreview-5778514052)；P2-2 限制与研发结果见 [#63](https://github.com/Serena-Lyric/TalentMind/issues/63)，按 #65 暂搁置 | P2-1：`70a6f07c6b90139c8dd601a84c46847e923d504b`；P2-2 未合并 | P1 机器未审/partial 保留；真实同组语义、人审归属分母、完整岗位解释未验收；#64 不作为 P3 发布依赖，不据 P3 限定交付判定 P2-2 通过 |
+| [P3 持续候选](2026-10-28-m2-core-delivery/P3-candidate.md) | **限定范围实现提审、待独立验收（2026-11-06）**：工作候选身份、跨批只追加版本、多候选/未决、反证/撤回、来源/重跑分账和真实 CLI | [#66](https://github.com/Serena-Lyric/TalentMind/pull/66)；[任务与开发报告 #65](https://github.com/Serena-Lyric/TalentMind/issues/65) | 实现 head：`d5809b646f466454cdafa7e30d8d2ccb6616b4b2`；含状态文档的最终固定 head/CI 见 #65 | ChatGPT 尚未独立验收；合成工程验证不等于真实语义通过 | 未合并 | 只依赖已合并 P1/P2-1；P2-2 暂搁置；真实同组判断/独立来源均未验证；P4/P5 未授权自动启动 |
 | [P4 自动演化](2026-10-28-m2-core-delivery/P4-evolution.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P3；上段未交付 |
 | [P5 集成与恢复](2026-10-28-m2-core-delivery/P5-integration.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P1～P4 实际接口；依赖未交付 |
 | [P6 最终效果](2026-10-28-m2-core-delivery/P6-acceptance.md) | 未开始 | 未创建 | — | 未提审 | 未合并 | 依赖 P0～P5；依赖未交付 |
@@ -94,6 +95,8 @@
 ## 7. 审查记录与报告数量
 
 开发时在 `docs/review/` 维护当前阶段临时报告，提交到该阶段 PR；全仓阶段报告最多 5 份。新报告需要淘汰旧报告时，先将长期规则/使用说明/陷阱写回正式文档，保留 PR/commit 审查证据，再移除过期报告及其独有公开附件，并修正活跃链接；不转存 archive 规避上限。
+
+P3 本次按 #65 的明确例外，报告直接评论 Issue，仓库仅保留正式接口/说明、状态和复用陷阱，不新增阶段报告文件。
 
 该规则不授权清理私有 JD、标注、历史分析或数据库。私有可复核证据的保留与可访问性单独记录，公开报告删除后仍应能由审查引用定位。当前计划编制不新增验收报告、不删除既有报告。
 
