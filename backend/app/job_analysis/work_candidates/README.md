@@ -63,6 +63,8 @@ SHA 由 `foundation.inputs.digest(value)` 计算，**分析对象 SHA 与输入 
 - `correct.replacement`（可选）：`{analysis_sha256,work_ids}`，必须是本批同 namespace/JD 的新分析，至少有 duty。旧分析进入 superseded，新旧均可读。不能借替换更换 JD 身份。批内出现新分析但未明确替换时，旧关系保留，`pending_analysis_sha256s/needs_reassessment` 提醒重评，不自动选一个“更正确”版本。
 - `describe`：`candidate_id, expected_version, description, research_question, unresolved, reason`。只修改机器解释及疑点，不修改 core_work、不使用描述扩大检索范围。完整共同职责重归纳属于后续 P4，此处没有偷做自动演化。
 
+所有关系创建/显式操作完成后，统一核对该 JD 截至本版已观察的分析，其他未明确 superseded 的版本均列为 pending；create/link 不能清空已存在的版本疑点。`analysis_selection=unreviewed_representative` 表示用于定位的代表分析，不表示其优于 pending 版本。种子引用同 JD 多版本时只保留一个确定性代表及全部竞争版本，不按最后写入覆盖；不同候选上的替代判断互不传递。
+
 `verification=null` 是普通机器纠正。受控语义适配材料包含 `kind, subject_sha256, document, document_sha256, quote, reviewer, provider_version`；`kind` 为 `synthetic_control` 或 `external_review_record`。`document_sha256` 是 UTF-8 原文摘要，quote 必须在 document 内，且含 `service.review_subject(old_relation, baseline_candidate, decision, replacement, counterevidence)` 的完整摘要，以绑定确切候选/关系/比较范围。哈希通过只证明材料绑定；不存在将外部自述升级为认证人审的路径。未来可靠语义处理器可以提供带版本的新材料并用新批次重解释，旧材料不改写。
 
 ## P4/P5 最小读取契约与恢复

@@ -34,6 +34,7 @@ def _relation(candidate_id, analysis, sha, work_ids, baseline, reason):
                  analysis_sha256=sha, work_ids=work_ids, state="pending_review", reason=reason,
                  baseline=baseline, source_binding="validated_p1_quotes", semantic_validation="not_run",
                  human_confirmation="not_confirmed", formal_identity=None,
+                 analysis_selection="unreviewed_representative",
                  source_independence="unknown", pending_analysis_sha256s=[], superseded_analysis_sha256s=[], needs_reassessment=False)
     return key, value
 
@@ -84,7 +85,7 @@ def _correct(store, operation, baseline, state, analyses):
         claims = [_claim(store, dict(analysis_sha256=sha, claim_id=i))[1] for i in replacement["work_ids"]]
         if not any(c["kind"] == "duty" for c in claims):
             raise ValueError("replacement requires a concrete duty")
-        relation["superseded_analysis_sha256s"] = sorted(set(relation["superseded_analysis_sha256s"]) | {old["analysis_sha256"]})
+        relation["superseded_analysis_sha256s"] = sorted((set(relation["superseded_analysis_sha256s"]) | {old["analysis_sha256"]}) - {sha})
         relation["analysis_sha256"], relation["work_ids"] = sha, replacement["work_ids"]
         relation["pending_analysis_sha256s"] = [s for s in relation["pending_analysis_sha256s"] if s != sha]
         relation["needs_reassessment"] = bool(relation["pending_analysis_sha256s"])
@@ -131,13 +132,6 @@ def apply_batch(store, request, analyses, knowledge):
         searches = []
         # All automatic comparisons read baseline core evidence, never this batch's revisions/members.
         for sha, analysis in sorted(analyses.items()):
-            for rel in state["relations"].values():
-                if ((rel["namespace"], rel["jd_id"]) == (analysis["namespace"], analysis["jd_id"])
-                        and sha != rel["analysis_sha256"] and sha not in rel["pending_analysis_sha256s"]
-                        and sha not in rel["superseded_analysis_sha256s"]):
-                    rel["pending_analysis_sha256s"] = sorted(rel["pending_analysis_sha256s"] + [sha])
-                    rel["needs_reassessment"] = True
-                    changed.add(rel["candidate_id"])
             search = retrieve(store, analysis, baseline["candidates"])
             for match in search["matches"]:
                 cid = match["candidate_id"]
@@ -208,14 +202,26 @@ def apply_batch(store, request, analyses, knowledge):
                 analysis = store.source("analysis", sha)
                 ids = [r["claim_id"] for r in op["core_work"] if r["analysis_sha256"] == sha]
                 key, rel = _relation(cid, analysis, sha, ids, baseline["binding"], "显式建立的机器工作组合观察假设")
-                state["relations"][key] = rel
+                # Multiple seed versions are competing interpretations, not last-write-wins facts.
+                state["relations"].setdefault(key, rel)
             changed.add(cid)
+        state["analysis_sha256s"] = sorted(set(state["analysis_sha256s"]) | set(analyses))
+        versions = {}
+        for sha in state["analysis_sha256s"]:
+            source = store.source("analysis", sha)
+            versions.setdefault((source["namespace"], source["jd_id"]), set()).add(sha)
+        # Reconcile after every operation so create/link cannot erase versions observed earlier.
+        for rel in state["relations"].values():
+            pending = sorted(versions[(rel["namespace"], rel["jd_id"])] - {rel["analysis_sha256"]}
+                             - set(rel["superseded_analysis_sha256s"]))
+            if pending != rel["pending_analysis_sha256s"] or bool(pending) != rel["needs_reassessment"]:
+                rel["pending_analysis_sha256s"], rel["needs_reassessment"] = pending, bool(pending)
+                changed.add(rel["candidate_id"])
         for cid in sorted(changed):
             candidate = state["candidates"][cid]
             candidate["version"] += 1
             candidate["members"] = sorted(rid for rid, rel in state["relations"].items()
                                            if rel["candidate_id"] == cid and rel["state"] not in {"withdrawn", "rejected_proposal"})
-        state["analysis_sha256s"] = sorted(set(state["analysis_sha256s"]) | set(analyses))
         identities, contents = set(), {}
         for rel in state["relations"].values():
             if rel["state"] in {"withdrawn", "rejected_proposal"}:

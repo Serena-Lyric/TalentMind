@@ -411,3 +411,35 @@ def test_algorithm_binding_covers_p1_p2_dependency_sources(tmp_path):
     assert version["dependencies"]["baseline/contract.py"]
     assert version["dependencies"]["work_candidates/service.py"]
     assert version["sha256"] == digest(version["dependencies"])
+
+
+@pytest.mark.parametrize("mode", ["create", "link", "automatic", "multiversion-seed", "historical-version"])
+def test_new_relations_preserve_all_observed_versions_of_the_same_jd(tmp_path, mode):
+    from app.job_analysis.work_candidates.storage import CandidateStore
+    a = work("ambiguous", "开发订单服务接口并交付交易服务。")
+    b = work("ambiguous", "分析订单服务接口性能并交付诊断报告。")
+    with CandidateStore(tmp_path / "state.db", create=True) as store:
+        if mode in {"link", "automatic"}:
+            seed = work("seed", "开发订单服务接口并保障交易服务。")
+            apply(store, batch(store, "seed", [seed], [create(seed)]), [seed])
+        if mode == "historical-version":
+            apply(store, batch(store, "earlier-analysis", [b]), [b])
+        values = [a] if mode == "historical-version" else [a, b]
+        operations = []
+        if mode in {"create", "multiversion-seed", "historical-version"}:
+            seed_op = create(a)
+            if mode == "multiversion-seed":
+                seed_op["core_work"] += [ref(b)]
+            operations = [seed_op]
+        elif mode == "link":
+            operations = [link(a)]
+        result = apply(store, batch(store, "ambiguous-versions", values, operations), values)
+        relation = next(r for r in result["relations"].values() if r["jd_id"] == "ambiguous")
+        other = sorted({digest(a), digest(b)} - {relation["analysis_sha256"]})
+        assert relation["pending_analysis_sha256s"] == other
+        assert relation["needs_reassessment"] is True
+        assert result["counts"]["independent_evidence"] is None
+        assert relation["state"] == "pending_review"
+        repeat = apply(store, batch(store, "repeat", values), values)
+        assert repeat["relations"] == result["relations"]
+        assert repeat["candidates"] == result["candidates"]
