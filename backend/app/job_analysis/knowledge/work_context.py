@@ -39,7 +39,9 @@ def scope_of(evidence, row):
     history_context = local if explicit_self or (independent and re.search(r"熟悉|掌握|精通|了解", prefix)) else before
     if HISTORY.search(history_context):
         return "historical"
-    if OTHER.search(local if explicit_self else before):
+    actor_context = local if explicit_self else before
+    if any(not (match.group().endswith("完成") and re.search(r"(?:协助|辅助|配合)\s*$", actor_context[:match.start()]))
+           for match in OTHER.finditer(actor_context)):
         return "other_actor"
     if (INSTRUCTION.search(local if independent else before) or re.search(r"的(?:课程|教学|培训|介绍|讲解|演示)", evidence.quote)
             or re.search(r"(?:软件系统|软件服务|应用程序|代码|程序|软件)(?:开发|设计)?(?:相关|的)?(?:课程|教材|培训|教程)", evidence.quote)):

@@ -67,7 +67,7 @@ def build_parser():
         command.add_argument("--snapshot", required=True, type=Path)
         command.add_argument("--policy", required=True, type=Path)
         command.add_argument("--candidate-projection", type=Path)
-        command.add_argument("--method", choices=("bounded", "context", "evidence"), default="bounded")
+        command.add_argument("--method", choices=("bounded", "context", "evidence", "work"), default="bounded")
         command.add_argument("--local-model", type=Path, help="explicit hash-bound local runtime manifest; never downloads")
         command.add_argument("--task-retriever", type=Path, help="explicit local ONNX priority manifest; evidence method only")
         command.add_argument("--pairs-per-role", type=int, choices=(1, 2, 3), default=1)

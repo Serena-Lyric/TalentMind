@@ -287,11 +287,14 @@ def test_runtime_preserves_requested_schema_order_for_evidence_before_decision(t
     def external_runtime(args, **kwargs):
         schema = json.loads(Path(args[args.index("--json-schema-file")+1]).read_text(encoding="utf-8"))
         captured.extend(schema["properties"])
+        assert schema["properties"]["source_text"] == dict(type="string", minLength=1, maxLength=180)
+        assert schema["properties"]["decision"]["pattern"] == "^unknown$"
         return subprocess.CompletedProcess(args, 0, '{"source_text":"实际片段","decision":"unknown"} [end of text]', '')
     monkeypatch.setattr("app.job_analysis.knowledge.local_semantics.subprocess.run", external_runtime)
     model = load_local_model(tmp_path / "manifest.json")
     raw = model.complete_json("synthetic", dict(type="object", properties=dict(
-        source_text=dict(type="string"), decision=dict(type="string")), required=["source_text", "decision"]))
+        source_text=dict(type="string", pattern=r"\S", minLength=1, maxLength=180),
+        decision=dict(type="string", pattern="^unknown$")), required=["source_text", "decision"]))
     assert captured == ["source_text", "decision"]
     assert json.loads(raw)["source_text"] == "实际片段"
 

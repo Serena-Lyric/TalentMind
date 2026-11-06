@@ -39,6 +39,17 @@ def _local(root, relative):
     return path
 
 
+def _runtime_schema(value):
+    # b12128 returns early for unsupported unanchored patterns, losing length
+    # bounds too. Pydantic still enforces nonblank text after generation.
+    if isinstance(value, dict):
+        return {key: _runtime_schema(item) for key, item in value.items()
+                if not (key == "pattern" and item == r"\S")}
+    if isinstance(value, list):
+        return [_runtime_schema(item) for item in value]
+    return value
+
+
 @dataclass(frozen=True)
 class LocalModel:
     root: Path
@@ -73,7 +84,7 @@ class LocalModel:
             (directory / "prompt.txt").write_text(packed, encoding="utf-8")
             # llama.cpp's grammar follows property order. Sorting keys would
             # make the model decide labels before producing requested evidence.
-            (directory / "schema.json").write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")
+            (directory / "schema.json").write_text(json.dumps(_runtime_schema(schema), ensure_ascii=False), encoding="utf-8")
             env = {k: v for k, v in os.environ.items() if not k.startswith(("LLAMA_", "HF_"))}
             done = subprocess.run([
                 str(_local(self.root, config.runtime_file)), "--model", str(_local(self.root, config.model_file)),

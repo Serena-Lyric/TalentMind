@@ -32,10 +32,10 @@ def start_comparison(context):
     return TaskAttributionResult.model_validate(value)
 
 
-def select_tasks(result, ranker, pairs_per_role=1):
+def select_tasks(result, ranker, pairs_per_role=1, eligible_scopes=("affirmed",), definition_examples=False):
     if not 1 <= pairs_per_role <= 3:
         raise ValueError("pair budget out of range")
-    eligible = {u.claim_id for u in result.work_units if u.scope == "affirmed" and u.kind == "work"}
+    eligible = {u.claim_id for u in result.work_units if u.scope in eligible_scopes and u.kind == "work"}
     claims = [c for c in result.source_claims if c.id in eligible]
     pairs = [(claim, role.definition, reference) for role in result.comparisons
              for reference in role.definition.responsibilities for claim in claims]
@@ -45,7 +45,13 @@ def select_tasks(result, ranker, pairs_per_role=1):
     proposals = []
     for (claim, role, ref), (score, truncated) in zip(pairs, ranked):
         query = _terms("\n".join(e.quote for e in claim.evidence))
-        target = _terms(ref.text)
+        definition_text = ref.text
+        if definition_examples:
+            rule = next((r for r in result.policy.roles if r.role_id == role.id), None)
+            frame = next((f for f in rule.frames if f.reference_id == ref.id), None) if rule else None
+            if frame:
+                definition_text += " " + " ".join(frame.actions + frame.objects)
+        target = _terms(definition_text)
         proposals.append(TaskProposal(id=pair_identity(claim.id, role.id, ref.id), claim_id=claim.id,
             role_id=role.id, reference_id=ref.id, retrieval_score=float(score),
             lexical_score=len(query & target)/len(target) if target else 0.0, input_truncated=truncated))
@@ -60,7 +66,8 @@ def select_tasks(result, ranker, pairs_per_role=1):
             if proposal.id not in chosen and len(chosen) < pairs_per_role:
                 chosen.append(proposal.id)
         selected.extend(chosen)
-    return TaskSelection(status="ranked" if pairs else "empty_catalog" if not result.comparisons else "no_eligible_work",
+    return TaskSelection(method="definition-context-task-budget-1" if definition_examples else "dual-priority-task-budget-1",
+        status="ranked" if pairs else "empty_catalog" if not result.comparisons else "no_eligible_work",
         retriever_binding=ranker.binding, pairs_per_role=pairs_per_role, proposals=proposals,
         selected_pair_ids=selected, checked_pair_ids=[], pending_selected_pair_ids=selected,
         unchecked_pair_ids=[p.id for p in proposals if p.id not in selected],

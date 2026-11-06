@@ -48,7 +48,7 @@ class TaskProposal(Strict):
 
 
 class TaskSelection(Strict):
-    method: Literal["dual-priority-task-budget-1", "explicit-given-pairs-1"] = "dual-priority-task-budget-1"
+    method: Literal["dual-priority-task-budget-1", "definition-context-task-budget-1", "explicit-given-pairs-1"] = "dual-priority-task-budget-1"
     status: Literal["not_run", "ranked", "given_pairs", "empty_catalog", "no_eligible_work"]
     retriever_binding: dict
     pairs_per_role: int = Field(ge=1, le=3)
@@ -307,36 +307,40 @@ class TaskAttributionResult(ContextAttributionResult):
             for a in self.task_assessments if a.state == "machine_supported"]
         if [c.model_dump() for c in self.work_candidates] != expected_candidates:
             raise ValueError("work candidate lacks a supported task assessment")
-        ids = [p.id for p in self.task_selection.proposals]
-        if len(set(ids)) != len(ids) or any(p.id != pair_identity(p.claim_id, p.role_id, p.reference_id)
-                                         for p in self.task_selection.proposals):
-            raise ValueError("task selection IDs invalid")
-        actual_pairs = {(c.id, role.role_id, ref.id) for c in self.source_claims if c.kind == "duty"
-                        for role in self.comparisons for ref in role.definition.responsibilities}
-        if any((p.claim_id, p.role_id, p.reference_id) not in actual_pairs for p in self.task_selection.proposals):
-            raise ValueError("proposal references absent source or task")
-        selected = self.task_selection.selected_pair_ids
-        if (not set(self.task_selection.selected_pair_ids) <= set(ids)
-                or set(self.task_selection.unchecked_pair_ids) != set(ids) - set(self.task_selection.selected_pair_ids)):
-            raise ValueError("task selection scope mismatch")
-        if (len(set(selected)) != len(selected) or self.task_selection.checked_pair_ids != list(by_id)
-                or not set(by_id) <= set(selected) or self.task_selection.pending_selected_pair_ids != [
-                    p for p in selected if p not in by_id]):
-            raise ValueError("task selection and executed assessments disagree")
-        if self.task_selection.status in {"not_run", "empty_catalog", "no_eligible_work"} and (ids or by_id):
-            raise ValueError("unrun task selection cannot carry checks")
-        if self.task_selection.status == "given_pairs" and self.task_selection.method != "explicit-given-pairs-1":
-            raise ValueError("given pair method mismatch")
-        if self.task_selection.status == "ranked":
-            if self.task_selection.method != "dual-priority-task-budget-1" or not self.task_selection.retriever_binding:
-                raise ValueError("ranked selection lacks priority method binding")
-            if any(p.retrieval_score is None or p.lexical_score is None for p in self.task_selection.proposals):
-                raise ValueError("ranked proposal has no priority score")
-            eligible = {u.claim_id for u in self.work_units if u.scope == "affirmed" and u.kind == "work"}
-            if {(p.claim_id, p.role_id, p.reference_id) for p in self.task_selection.proposals} != {
-                    pair for pair in actual_pairs if pair[0] in eligible}:
-                raise ValueError("scored task pool is incomplete")
-            for role in self.comparisons:
-                if sum(p.id in selected and p.role_id == role.role_id for p in self.task_selection.proposals) > self.task_selection.pairs_per_role:
-                    raise ValueError("selected pairs exceed declared role budget")
+        validate_task_selection(self, by_id)
         return self
+
+
+def validate_task_selection(result, by_id, eligible_scopes=("affirmed",), priority_method="dual-priority-task-budget-1"):
+    ids = [p.id for p in result.task_selection.proposals]
+    if len(set(ids)) != len(ids) or any(p.id != pair_identity(p.claim_id, p.role_id, p.reference_id)
+                                     for p in result.task_selection.proposals):
+        raise ValueError("task selection IDs invalid")
+    actual_pairs = {(c.id, role.role_id, ref.id) for c in result.source_claims if c.kind == "duty"
+                    for role in result.comparisons for ref in role.definition.responsibilities}
+    if any((p.claim_id, p.role_id, p.reference_id) not in actual_pairs for p in result.task_selection.proposals):
+        raise ValueError("proposal references absent source or task")
+    selected = result.task_selection.selected_pair_ids
+    if (not set(result.task_selection.selected_pair_ids) <= set(ids)
+            or set(result.task_selection.unchecked_pair_ids) != set(ids) - set(result.task_selection.selected_pair_ids)):
+        raise ValueError("task selection scope mismatch")
+    if (len(set(selected)) != len(selected) or result.task_selection.checked_pair_ids != list(by_id)
+            or not set(by_id) <= set(selected) or result.task_selection.pending_selected_pair_ids != [
+                p for p in selected if p not in by_id]):
+        raise ValueError("task selection and executed assessments disagree")
+    if result.task_selection.status in {"not_run", "empty_catalog", "no_eligible_work"} and (ids or by_id):
+        raise ValueError("unrun task selection cannot carry checks")
+    if result.task_selection.status == "given_pairs" and result.task_selection.method != "explicit-given-pairs-1":
+        raise ValueError("given pair method mismatch")
+    if result.task_selection.status == "ranked":
+        if result.task_selection.method != priority_method or not result.task_selection.retriever_binding:
+            raise ValueError("ranked selection lacks priority method binding")
+        if any(p.retrieval_score is None or p.lexical_score is None for p in result.task_selection.proposals):
+            raise ValueError("ranked proposal has no priority score")
+        eligible = {u.claim_id for u in result.work_units if u.scope in eligible_scopes and u.kind == "work"}
+        if {(p.claim_id, p.role_id, p.reference_id) for p in result.task_selection.proposals} != {
+                pair for pair in actual_pairs if pair[0] in eligible}:
+            raise ValueError("scored task pool is incomplete")
+        for role in result.comparisons:
+            if sum(p.id in selected and p.role_id == role.role_id for p in result.task_selection.proposals) > result.task_selection.pairs_per_role:
+                raise ValueError("selected pairs exceed declared role budget")
