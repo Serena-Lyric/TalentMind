@@ -283,9 +283,9 @@ def quick_match_weighted(resume_skills: List[str], required_skills: List[str],
     - 分类权重基于技能类别（大小写不敏感），必备命中率低时真实分显著下降。
     """
     matcher = ResumeJobMatcher()
-    resume_set = set(resume_skills)
-    required_set = set(required_skills or [])
-    bonus_set = set(bonus_skills or [])
+    resume_set = {to_canonical(s) for s in resume_skills if s.strip()}
+    required_set = {to_canonical(s) for s in required_skills or [] if s.strip()}
+    bonus_set = {to_canonical(s) for s in bonus_skills or [] if s.strip()} - required_set
     job_set = required_set | bonus_set
     if not job_set:
         return {
@@ -294,10 +294,8 @@ def quick_match_weighted(resume_skills: List[str], required_skills: List[str],
             'category_scores': {}, 'matched_count': 0, 'job_required_count': len(required_set),
         }
 
-    expanded = matcher._expand_skills(resume_set)
-    exact_matched = resume_set & job_set
-    fuzzy_matched = (expanded & job_set) - exact_matched
-    matched = exact_matched | fuzzy_matched
+    # 与学习路径共用 canonical；相关技术不自动当作已命中的岗位技能。
+    matched = resume_set & job_set
 
     def _weight(skill: str) -> float:
         return matcher.SKILL_WEIGHTS.get(get_skill_category(skill), 1.0)

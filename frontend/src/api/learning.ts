@@ -12,6 +12,8 @@ export interface LearningSkill {
   evidence?: string
   bridge_skills?: string[]
   suggestion?: string
+  practice?: string
+  completion_criteria?: string
 }
 export interface LearningStage { stage: number; title: string; description?: string; priority?: string; skills: LearningSkill[] }
 export interface LearningOverview {
@@ -20,6 +22,8 @@ export interface LearningOverview {
   missing_required: number
   missing_bonus: number
   at_standard: boolean
+  requirements_available?: boolean
+  needs_verification?: number
 }
 export interface LearningPath {
   job_id: string
@@ -28,6 +32,7 @@ export interface LearningPath {
   category?: string
   mastered_skills: string[]
   missing_skills: LearningSkill[]
+  verification_skills?: LearningSkill[]
   core_skills: LearningSkill[]
   bonus_skills: LearningSkill[]
   stages: LearningStage[]

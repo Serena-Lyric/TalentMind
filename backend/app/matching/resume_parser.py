@@ -15,8 +15,8 @@ class ResumeParser:
         # 个人信息模式
         self.patterns = {
             'name': r'(?:姓名[：:]\s*|name[：:]\s*|^)([^\s\n]{2,10})(?:$|\n)',
-            'phone': r'(?:电话[：:]|手机[：:]|Tel[：:]|phone[：:]\s*)(1[3-9]\d{9})',
-            'email': r'(?:邮箱[：:]|Email[：:]|E-mail[：:]\s*)([\w.-]+@[\w.-]+\.\w+)',
+            'phone': r'(?:电话|手机|Tel|phone)\s*[：:]\s*(1[3-9]\d{9})',
+            'email': r'(?:邮箱|Email|E-mail)\s*[：:]\s*([\w.-]+@[\w.-]+\.\w+)',
             'age': r'(?:年龄[：:]|age[：:]\s*)(\d{1,2})',
             'gender': r'(?:性别[：:]|gender[：:]\s*)(男|女)',
             'location': r'(?:地点[：:]|城市[：:]|location[：:]\s*)([^\n]{2,20})',
@@ -51,10 +51,28 @@ class ResumeParser:
         if not text:
             return {}
 
-        lines = text.strip().split('\n')
+        raw_text = text
+        # 只规范化完整标题，支持编号/装饰/双语及“章节：正文”，不匹配正文内关键词。
+        headings = self._section_names()
+        heading_pattern = '|'.join(re.escape(s) for s in sorted(headings, key=len, reverse=True))
+        heading_re = re.compile(
+            r'^[#*•·\s]*(?:(?:\d+|[一二三四五六七八九十]+)[、.．)）]\s*)?'
+            r'[【\[]?(' + heading_pattern + r')[】\]]?'
+            r'(?:\s*[/／|｜]\s*(?:' + heading_pattern + r'))?'
+            r'\s*(?:[：:]\s*(.*))?$', re.I)
+        lines = []
+        for line in text.splitlines():
+            heading = heading_re.fullmatch(line.strip())
+            if heading:
+                lines.append(heading.group(1))
+                if heading.group(2):
+                    lines.append(heading.group(2))
+            else:
+                lines.append(line)
+        text = '\n'.join(lines)
 
         resume = {
-            'raw_text': text,
+            'raw_text': raw_text,
             'personal_info': self._extract_personal_info(text),
             'education': self._extract_education(text),
             'work_experience': self._extract_work_experience(text),
@@ -81,12 +99,12 @@ class ResumeParser:
             info['name'] = name
 
         # 提取手机号
-        phone_match = re.search(self.patterns['phone'], text)
+        phone_match = re.search(self.patterns['phone'], text, re.I)
         if phone_match:
             info['phone'] = phone_match.group(1)
 
         # 提取邮箱
-        email_match = re.search(self.patterns['email'], text)
+        email_match = re.search(self.patterns['email'], text, re.I)
         if email_match:
             info['email'] = email_match.group(1)
 
@@ -168,6 +186,10 @@ class ResumeParser:
             return company, position
         return text, ''
 
+    def _section_names(self) -> List[str]:
+        return (self.education_keywords + self.work_keywords + self.project_keywords
+                + self.skill_keywords + self.honor_keywords + self.self_keywords + ['自我介绍'])
+
     def _find_section(self, text: str, keywords: List[str]) -> tuple:
         """查找章节的起始和结束位置"""
         lines = text.split('\n')
@@ -179,7 +201,7 @@ class ResumeParser:
         for i, line in enumerate(lines):
             line_stripped = line.strip()
             for keyword in keywords:
-                if keyword in line_stripped:
+                if line_stripped.casefold() == keyword.casefold():
                     start_idx = i + 1
                     break
             if start_idx != -1:
@@ -189,21 +211,13 @@ class ResumeParser:
             return None, None
 
         # 查找结束位置（下一个章节标题或文件结尾）
-        section_names = [
-            '教育背景', '教育经历', '工作经历', '工作经验', '项目经历',
-            '专业技能', '技能专长', '项目经验', '自我介绍', '自我评价',
-            '竞赛与荣誉', '获奖情况', '所获荣誉', '获奖经历', '个人荣誉', '个人评价', '个人总结',
-            'Education', 'Experience', 'Projects', 'Skills'
-        ]
+        section_names = self._section_names()
 
         for j in range(start_idx, len(lines)):
             line_stripped = lines[j].strip()
             # 遇到新章节标题（独立的行且包含关键词）
             for sn in section_names:
-                # 跳过刚找到的关键词本身
-                if sn in keywords:
-                    continue
-                if line_stripped == sn or line_stripped.startswith(sn + '：') or line_stripped.startswith(sn + ':'):
+                if line_stripped.casefold() == sn.casefold():
                     end_idx = j
                     return start_idx, end_idx
 
@@ -224,7 +238,8 @@ class ResumeParser:
         # 时间范围模式：2019.09 - 2023.06 或 2019/09 - 2023/06
         time_pattern = r'(\d{4}[./]\d{1,2})\s*[-~至]\s*(\d{4}[./]\d{1,2}|至今)'
 
-        # 按行分割，每行可能是一条教育经历
+        current = {}
+        # 日期、学校、专业经常分行排版，直到下一段日期/学校才开始新条目。
         for line in lines[start_idx:end_idx]:
             line = line.strip()
             if not line:
@@ -238,18 +253,9 @@ class ResumeParser:
                 edu['start_date'] = time_match.group(1)
                 edu['end_date'] = time_match.group(2)
 
-            # 提取学校
-            schools = ['清华大学', '北京大学', '复旦大学', '上海交通大学', '浙江大学',
-                      '中国科学技术大学', '南京大学', '武汉大学', '中山大学', '同济大学',
-                      '北京航空航天大学', '北京邮电大学', '华中科技大学', '西安交通大学',
-                      '哈尔滨工业大学', '中国人民大学', '华东师范大学', '南开大学',
-                      '厦门大学', '天津大学', '中南大学', '四川大学', '电子科技大学',
-                      '大连理工大学', '湖南大学', '重庆大学', '北京理工大学',
-                      '东北大学', '兰州大学', '西北工业大学', '华南理工大学']
-            for school in schools:
-                if school in line:
-                    edu['school'] = school
-                    break
+            school_match = re.search(r'[\u4e00-\u9fff]{2,30}?(?:大学|学院|学校)', line)
+            if school_match:
+                edu['school'] = school_match.group(0)
 
             # 提取学历
             degrees = ['博士', '硕士', '本科', '大专', '高中']
@@ -269,7 +275,13 @@ class ResumeParser:
                     break
 
             if edu:
-                education.append(edu)
+                if current and ((time_match and 'start_date' in current) or ('school' in edu and 'school' in current)):
+                    education.append(current)
+                    current = {}
+                current.update(edu)
+
+        if current:
+            education.append(current)
 
         return education
 
@@ -321,7 +333,7 @@ class ResumeParser:
                     'description': []
                 }
                 # 提取公司名与职位（时间之后的部分，尽量拆分）
-                after_time = line[time_match.end():].strip()
+                after_time = (line[:time_match.start()] + ' ' + line[time_match.end():]).strip(' -–—|')
                 if after_time:
                     company, position = self._split_company_position(after_time)
                     current_work['company'] = company
@@ -332,6 +344,9 @@ class ResumeParser:
                 continue
 
             # 非时间行：按状态填充公司/职位/描述
+            if stage == 'idle':
+                current_work = {'start_date': '', 'end_date': '', 'company': '', 'position': '', 'description': []}
+                stage = 'after_header'
             if stage == 'after_header':
                 company, position = self._split_company_position(line)
                 current_work['company'] = company or line
