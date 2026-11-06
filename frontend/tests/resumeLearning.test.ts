@@ -102,3 +102,28 @@ test('预览保留多段教育和工作经历，不捏造技能分', () => {
     assert.equal(page.state.resume.value.skills.details['已识别技能'].level, undefined)
   } finally { page.stop() }
 })
+
+for (const reject of [false, true]) {
+  test(`上传组件卸载后迟到${reject ? '失败' : '成功'}不写回状态、存储或消息`, async () => {
+    let settle!: Function
+    const page = component('ResumeDiagnosis', { uploadResume: () => new Promise((resolve, fail) => { settle = reject ? fail : resolve }) })
+    await page.mounted()
+    const upload = page.state.handleFile(new File(['one'], 'one.txt'))
+    page.stop()
+    const before = JSON.stringify({ store: page.store, parsed: page.state.parsed.value, uploading: page.state.uploading.value, file: page.state.fileName.value, messages: page.messages })
+    settle(reject ? new Error('late') : { profile: { name: 'late', skills: ['python'] } })
+    await upload
+    assert.equal(JSON.stringify({ store: page.store, parsed: page.state.parsed.value, uploading: page.state.uploading.value, file: page.state.fileName.value, messages: page.messages }), before)
+  })
+
+  test(`学习路径卸载后迟到${reject ? '失败' : '成功'}不写回状态或消息`, async () => {
+    let settle!: Function
+    const page = component('LearningRoadmap', { generateLearningPath: () => new Promise((resolve, fail) => { settle = reject ? fail : resolve }) })
+    await tick()
+    page.stop()
+    const before = JSON.stringify({ path: page.state.path.value, error: page.state.error.value, generating: page.state.generating.value, messages: page.messages })
+    settle(reject ? new Error('late') : { job_id: '1' })
+    await tick()
+    assert.equal(JSON.stringify({ path: page.state.path.value, error: page.state.error.value, generating: page.state.generating.value, messages: page.messages }), before)
+  })
+}

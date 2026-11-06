@@ -5,10 +5,11 @@
         <div class="module-mark jobs-mark"><el-icon><Files /></el-icon><span class="mark-spark">✦</span></div>
         <div><h1>JD 岗位管理 <span class="title-star" aria-hidden="true">✦</span></h1><p>完整岗位目录：新一代与现有岗位、中文及英文来源</p></div>
       </div>
-      <div class="page-actions"><el-button class="btn-soft" :loading="loading" @click="loadPage"><el-icon><RefreshRight /></el-icon>刷新数据</el-button><el-button class="btn-soft-green" @click="exportCurrent"><el-icon><Download /></el-icon>导出岗位目录</el-button></div>
+      <div class="page-actions"><el-button class="btn-soft" :loading="loading || statsLoading" @click="refreshData"><el-icon><RefreshRight /></el-icon>刷新数据</el-button><el-button class="btn-soft-green" @click="exportCurrent"><el-icon><Download /></el-icon>导出岗位目录</el-button></div>
     </div>
 
-    <div class="stats-row" v-loading="loading">
+    <el-alert v-if="statsError" :title="statsError" type="warning" :closable="false"><el-button text @click="loadStats">重试统计</el-button></el-alert>
+    <div class="stats-row" v-loading="statsLoading">
       <aside class="job-guide-mascot" aria-label="岗位小管家">
         <span class="mascot-spark spark-a" aria-hidden="true">✦</span>
         <span class="mascot-spark spark-b" aria-hidden="true">✧</span>
@@ -32,11 +33,12 @@
 
     <section class="filter-panel panel">
       <div class="filter-sprite" aria-hidden="true"><span class="satellite-ring"></span><span class="satellite-face"><i></i><i></i><b></b></span><em>✦</em></div>
-      <div class="search-line"><el-input v-model="keyword" clearable :prefix-icon="Search" placeholder="搜索岗位名称、岗位职责或技能" @keyup.enter="loadPage" /><el-button class="btn-coral" @click="loadPage">搜索</el-button></div>
-      <div class="filter-line"><el-select v-model="platform" clearable placeholder="全部平台" @change="loadPage"><el-option v-for="item in platformStats" :key="item.platform" :label="item.label" :value="item.platform" /></el-select><el-select v-model="category" clearable placeholder="全部岗位类型" @change="loadPage"><el-option label="新一代岗位" value="新一代" /><el-option label="现有岗位" value="现有" /></el-select><el-button class="btn-soft" @click="resetFilters"><el-icon><RefreshLeft /></el-icon>重置</el-button><span class="result-count">共 {{ formatNumber(total) }} 个岗位定义</span></div>
+      <div class="search-line"><el-input v-model="keyword" clearable :prefix-icon="Search" placeholder="搜索岗位名称、岗位职责或技能" @keyup.enter="searchJobs" /><el-button class="btn-coral" @click="searchJobs">搜索</el-button></div>
+      <div class="filter-line"><el-select v-model="platform" clearable placeholder="全部平台" @change="searchJobs"><el-option v-for="item in platformStats" :key="item.platform" :label="item.label" :value="item.platform" /></el-select><el-select v-model="category" clearable placeholder="全部岗位类型" @change="searchJobs"><el-option label="新一代岗位" value="新一代" /><el-option label="现有岗位" value="现有" /></el-select><el-button class="btn-soft" @click="resetFilters"><el-icon><RefreshLeft /></el-icon>重置</el-button><span class="result-count">共 {{ formatNumber(total) }} 个岗位定义</span></div>
     </section>
 
     <section class="table-panel panel" v-loading="loading">
+      <el-alert v-if="listError" :title="listError" type="error" :closable="false"><el-button text @click="loadPage">重试列表</el-button></el-alert>
       <el-table :data="jobs" stripe style="width: 100%">
         <el-table-column label="岗位信息" min-width="310"><template #default="{ row }"><strong class="job-title">{{ row.title }}</strong><span class="job-subtitle">{{ row.core_duties ? shortText(row.core_duties, 72) : '暂无职责摘要' }}</span></template></el-table-column>
         <el-table-column label="类型 / 来源" width="150"><template #default="{ row }"><el-tag size="small" effect="plain" :type="row.category === '新一代' ? 'success' : 'info'">{{ row.category || '岗位' }}</el-tag><small class="job-source">{{ row.platform_label || row.type || '未知来源' }}</small></template></el-table-column>
@@ -44,11 +46,11 @@
         <el-table-column label="更新时间" width="170"><template #default="{ row }">{{ formatTime(row.updated) }}</template></el-table-column>
         <el-table-column label="操作" width="110" fixed="right"><template #default="{ row }"><el-button text class="detail-link" @click="openDetail(row)">查看详情</el-button></template></el-table-column>
       </el-table>
-      <div v-if="!jobs.length && !loading" class="table-empty"><el-icon><Document /></el-icon><p>没有找到匹配的岗位定义</p><el-button class="btn-soft" @click="resetFilters">清除筛选</el-button></div>
-      <div class="pagination-wrap"><el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" background small @current-change="loadPage" @size-change="loadPage" /></div>
+      <div v-if="!jobs.length && !loading && !listError" class="table-empty"><el-icon><Document /></el-icon><p>没有找到匹配的岗位定义</p><el-button class="btn-soft" @click="resetFilters">清除筛选</el-button></div>
+      <div class="pagination-wrap"><el-pagination :current-page="page" :page-size="pageSize" :total="total" :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" background small @current-change="changePage" @size-change="changePageSize" /></div>
     </section>
 
-    <el-dialog v-model="detailVisible" :title="detailJob?.title || '岗位详情'" width="760px"><div v-if="detailJob" class="detail-content"><div class="detail-meta"><el-tag effect="plain">{{ detailJob.category || '岗位' }}</el-tag><el-tag effect="plain">{{ detailJob.platform_label || detailJob.type }}</el-tag><span v-if="detailJob.name_en">英文名：{{ detailJob.name_en }}</span><span>采集时间：{{ formatTime(detailJob.collected_at || detailJob.updated) }}</span><span v-if="detailJob.experience">经验：{{ detailJob.experience }}</span></div><section><h3>岗位职责</h3><p class="duties">{{ detailJob.core_duties || '暂无岗位职责文本' }}</p></section><section><h3>技能要求</h3><div class="skill-tags"><template v-for="(skill, index) in detailSkills" :key="skill + index"><el-input v-if="editingIndex === index" v-model="editValue" size="small" class="skill-input" placeholder="修改技能名" @keyup.enter="confirmEditSkill" @keyup.esc="cancelEditSkill" @blur="confirmEditSkill" /><el-tag v-else closable effect="plain" @close="removeDetailSkill(index)" @dblclick="startEditSkill(index)">{{ skill }}</el-tag></template><span v-if="!detailSkills.length" class="muted">暂无结构化技能</span></div><div class="skill-editor"><template v-if="addingSkill"><el-input v-model="newSkill" size="small" class="skill-input" placeholder="输入技能名后回车添加" @keyup.enter="confirmAddSkill" /><button type="button" class="skill-add-btn" title="确认添加" @click="confirmAddSkill">+</button></template><button v-else type="button" class="skill-add-btn" title="添加技能" @click="startAddSkill">+</button><span v-if="skillDirty" class="muted skill-tip">技能有未保存变更</span><el-button v-if="skillDirty" size="small" type="primary" :loading="savingSkills" @click="saveSkills">保存技能</el-button></div></section></div></el-dialog>
+    <el-dialog v-model="detailVisible" :title="detailJob?.title || '岗位详情'" width="760px"><div v-if="detailJob" class="detail-content"><div class="detail-meta"><el-tag effect="plain">{{ detailJob.category || '岗位' }}</el-tag><el-tag effect="plain">{{ detailJob.platform_label || detailJob.type }}</el-tag><span v-if="detailJob.name_en">英文名：{{ detailJob.name_en }}</span><span>采集时间：{{ formatTime(detailJob.collected_at || detailJob.updated) }}</span><span v-if="detailJob.experience">经验：{{ detailJob.experience }}</span></div><section><h3>岗位职责</h3><p class="duties">{{ detailJob.core_duties || '暂无岗位职责文本' }}</p></section><section><h3>技能要求</h3><p v-if="detailLoading" class="muted">{{ savingSkills ? '此岗位上一次保存尚未完成，可继续编辑，完成后将重新核对详情' : '详情加载中，可继续编辑，完整详情到齐后可保存' }}</p><el-alert v-if="detailError" :title="detailError" type="warning" :closable="false"><el-button text @click="detailConflict ? discardAndReload() : retryDetail()">{{ detailConflict ? '放弃当前编辑并重新读取' : '重试详情' }}</el-button></el-alert><div class="skill-tags"><template v-for="(skill, index) in detailSkills" :key="skill + index"><el-input v-if="editingIndex === index" v-model="editValue" size="small" class="skill-input" placeholder="修改技能名" @keyup.enter="confirmEditSkill" @keyup.esc="cancelEditSkill" @blur="confirmEditSkill" /><el-tag v-else closable effect="plain" @close="removeDetailSkill(index)" @dblclick="startEditSkill(index)">{{ skill }}</el-tag></template><span v-if="!detailSkills.length" class="muted">暂无结构化技能</span></div><div class="skill-editor"><template v-if="addingSkill"><el-input v-model="newSkill" size="small" class="skill-input" placeholder="输入技能名后回车添加" @keyup.enter="confirmAddSkill" /><button type="button" class="skill-add-btn" title="确认添加" @click="confirmAddSkill">+</button></template><button v-else type="button" class="skill-add-btn" title="添加技能" @click="startAddSkill">+</button><span v-if="skillDirty" class="muted skill-tip">技能有未保存变更</span><el-button v-if="skillDirty" size="small" type="primary" :loading="savingSkills" :disabled="!detailReady" @click="saveSkills">保存技能</el-button></div></section></div></el-dialog>
   </section>
 </template>
 
@@ -59,6 +61,9 @@ import { ElMessage } from 'element-plus'
 import { exportJobs, getJobDetail, getJobList, getJobPlatformStats, updateJob, type Job, type JobPlatformStat } from '../api/jobs'
 
 const loading = ref(false)
+const listError = ref('')
+const statsLoading = ref(false)
+const statsError = ref('')
 const keyword = ref('')
 const platform = ref('')
 const category = ref('')
@@ -73,33 +78,142 @@ const detailSkills = ref<string[]>([])
 const addingSkill = ref(false)
 const newSkill = ref("")
 const skillDirty = ref(false)
-const savingSkills = ref(false)
+const pendingWrites = ref(new Map<string, Promise<void>>())
+const savingSkills = computed(() => !!detailJob.value && pendingWrites.value.has(detailJob.value.id))
 const editingIndex = ref(-1)
 const editValue = ref("")
+const detailLoading = ref(false)
+const detailReady = ref(false)
+const detailError = ref('')
+const detailConflict = ref(false)
+let active = true
+let listRequest = 0
+let statsRequest = 0
+let detailSession = 0
+let editVersion = 0
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const statCards = computed(() => {
-  const fallback = [{ platform: 'boss', label: 'BOSS', count: 0, unique_titles: 0 }, { platform: 'zhaopin', label: '智联', count: 0, unique_titles: 0 }, { platform: 'liepin', label: '猎聘', count: 0, unique_titles: 0 }, { platform: 'linkedin', label: 'LinkedIn', count: 0, unique_titles: 0 }, { platform: 'hn', label: 'Hacker News', count: 0, unique_titles: 0 }]
+  const fallback = [{ platform: 'boss', label: 'BOSS', count: null, unique_titles: null }, { platform: 'zhaopin', label: '智联', count: null, unique_titles: null }, { platform: 'liepin', label: '猎聘', count: null, unique_titles: null }, { platform: 'linkedin', label: 'LinkedIn', count: null, unique_titles: null }, { platform: 'hn', label: 'Hacker News', count: null, unique_titles: null }]
   return fallback.map((item, index) => ({ ...(platformStats.value.find(stat => stat.platform === item.platform) || item), short: item.label === 'BOSS' ? item.label : item.label.slice(0, 2), bg: ['#E8EFF5', '#E7F5EF', '#FFF3E5'][index], color: ['#6D8EAD', '#55B88D', '#D58A3D'][index] }))
 })
 
-function formatNumber(value: number) { return new Intl.NumberFormat('zh-CN').format(value || 0) }
+function formatNumber(value: number | null) { return value === null ? '—' : new Intl.NumberFormat('zh-CN').format(value || 0) }
 function formatTime(value: string) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }) }
 function shortText(value: string, length: number) { return value.length > length ? `${value.slice(0, length)}…` : value }
-function resetFilters() { keyword.value = ''; platform.value = ''; category.value = ''; page.value = 1; loadPage() }
-async function loadPage() { loading.value = true; try { const [result, stats] = await Promise.all([getJobList({ keyword: keyword.value.trim(), platform: platform.value, category: category.value, page: page.value, page_size: pageSize.value }), getJobPlatformStats()]); jobs.value = result?.list || []; total.value = result?.total || 0; platformStats.value = Array.isArray(stats) ? stats : [] } catch { ElMessage.error('中文平台岗位数据加载失败') } finally { loading.value = false } }
-async function openDetail(job: Job) { detailJob.value = job; detailSkills.value = [...(job.skills || [])]; skillDirty.value = false; addingSkill.value = false; detailVisible.value = true; try { const detail = await getJobDetail(job.id); if (detail) { detailJob.value = { ...job, ...detail }; detailSkills.value = [...(detail.skills || [])] } } catch { } }
+function cancelSearch() { if (searchTimer) clearTimeout(searchTimer); searchTimer = null }
+function searchJobs() { cancelSearch(); page.value = 1; return loadPage() }
+function resetFilters() { keyword.value = ''; platform.value = ''; category.value = ''; return searchJobs() }
+function changePage(value: number) { if (value === page.value) return; page.value = value; cancelSearch(); return loadPage() }
+function changePageSize(value: number) { if (value === pageSize.value) return; pageSize.value = value; return searchJobs() }
+async function loadPage() {
+  if (!active) return
+  const request = ++listRequest
+  loading.value = true
+  listError.value = ''
+  try {
+    const result = await getJobList({ keyword: keyword.value.trim(), platform: platform.value, category: category.value, page: page.value, page_size: pageSize.value })
+    if (!active || request !== listRequest) return
+    jobs.value = result?.list || []
+    total.value = result?.total || 0
+  } catch { if (active && request === listRequest) listError.value = jobs.value.length ? '岗位列表刷新失败，当前显示上次结果' : '岗位列表加载失败，请重试' }
+  finally { if (active && request === listRequest) loading.value = false }
+}
+async function loadStats() {
+  if (!active) return
+  const request = ++statsRequest
+  statsLoading.value = true
+  statsError.value = ''
+  try {
+    const stats = await getJobPlatformStats()
+    if (!active || request !== statsRequest) return
+    if (!Array.isArray(stats)) throw new Error('Invalid platform statistics')
+    platformStats.value = stats
+  } catch {
+    if (active && request === statsRequest) statsError.value = platformStats.value.length ? '平台统计刷新失败，当前显示上次结果' : '平台统计加载失败，请重试'
+  } finally { if (active && request === statsRequest) statsLoading.value = false }
+}
+function refreshData() { cancelSearch(); return Promise.all([loadPage(), loadStats()]) }
+function currentDetail(session: number, id: string) { return active && detailVisible.value && session === detailSession && detailJob.value?.id === id }
+async function readDetail(job: Job, session: number) {
+  const version = editVersion
+  const pristine = !skillDirty.value && !addingSkill.value && editingIndex.value < 0
+  detailLoading.value = true
+  detailReady.value = false
+  detailError.value = ''
+  try {
+    // 会话关闭不取消已提交的写；重开必须等前写结束后再读取基线。
+    const pendingWrite = pendingWrites.value.get(job.id)
+    if (pendingWrite) await pendingWrite
+    if (!currentDetail(session, job.id)) return
+    const detail = await getJobDetail(job.id)
+    if (!currentDetail(session, job.id)) return
+    if (!detail || detail.id !== job.id) throw new Error('Invalid job detail')
+    const edited = !pristine || version !== editVersion
+    const initialSkills = job.skills || []
+    const loadedSkills = detail.skills || []
+    if (edited && (initialSkills.length !== loadedSkills.length || loadedSkills.some(skill => !initialSkills.includes(skill)))) detailConflict.value = true
+    detailJob.value = { ...job, ...detail }
+    if (!edited) detailSkills.value = [...loadedSkills]
+    detailReady.value = !detailConflict.value
+    if (detailConflict.value) detailError.value = '完整详情与编辑前的技能不同，当前草稿已保留。为避免覆盖新数据，请放弃当前编辑并重新读取后再修改'
+  } catch { if (currentDetail(session, job.id)) detailError.value = '岗位详情加载失败，重试后可保存技能' }
+  finally { if (currentDetail(session, job.id)) detailLoading.value = false }
+}
+function openDetail(job: Job) {
+  const session = ++detailSession
+  detailJob.value = job
+  detailSkills.value = [...(job.skills || [])]
+  skillDirty.value = false
+  addingSkill.value = false
+  newSkill.value = ''
+  cancelEditSkill()
+  detailReady.value = false
+  detailConflict.value = false
+  detailVisible.value = true
+  return readDetail(job, session)
+}
+function retryDetail() { if (detailJob.value && !detailLoading.value) return readDetail(detailJob.value, detailSession) }
+function discardAndReload() { if (detailJob.value) return openDetail(detailJob.value) }
 function startAddSkill() { newSkill.value = ""; addingSkill.value = true }
 function confirmAddSkill() { const s = newSkill.value.trim(); if (!s) return; if (!detailSkills.value.includes(s)) { detailSkills.value.push(s); skillDirty.value = true } newSkill.value = "" }
 function removeDetailSkill(index: number) { detailSkills.value.splice(index, 1); skillDirty.value = true }
 function startEditSkill(index: number) { editingIndex.value = index; editValue.value = detailSkills.value[index] }
 function cancelEditSkill() { editingIndex.value = -1; editValue.value = "" }
 function confirmEditSkill() { if (editingIndex.value < 0) return; const idx = editingIndex.value; const old = detailSkills.value[idx]; const val = editValue.value.trim(); if (!val) { cancelEditSkill(); return } if (val !== old) { if (detailSkills.value.includes(val)) { ElMessage.warning("该技能已存在"); editValue.value = old; return } detailSkills.value[idx] = val; skillDirty.value = true } editingIndex.value = -1 }
-async function saveSkills() { const job = detailJob.value; if (!job) return; const edited = detailSkills.value; const oldRequired = job.required_skills || []; const oldBonus = job.bonus_skills || []; const removed = oldRequired.concat(oldBonus).filter(s => !edited.includes(s)); const added = edited.filter(s => !oldRequired.includes(s) && !oldBonus.includes(s)); const required = oldRequired.filter(s => !removed.includes(s)).concat(added); const bonus = oldBonus.filter(s => !removed.includes(s)); savingSkills.value = true; try { const payload: any = { job_name: job.job_name || job.name_en || "", core_duties: job.core_duties || "", required_skills: required, bonus_skills: bonus, scenarios: job.scenarios || [], source: job.source || [], quality: typeof (job as any).quality === "number" ? (job as any).quality : 0, is_emerging: job.category === "新一代", evolution: (job as any).evolution || {}, collected_at: job.collected_at || "", updated_at: new Date().toISOString() }; await updateJob(job.id, payload); skillDirty.value = false; ElMessage.success("技能已保存"); const detail = await getJobDetail(job.id); if (detail) { detailJob.value = { ...job, ...detail }; detailSkills.value = [...(detail.skills || [])] } loadPage() } catch { ElMessage.error("技能保存失败") } finally { savingSkills.value = false } }
-async function exportCurrent() { try { const blob = await exportJobs(); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = '中文平台岗位.csv'; link.click(); URL.revokeObjectURL(url) } catch { ElMessage.error('岗位导出失败') } }
-watch([keyword, platform, category], () => { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(() => { page.value = 1; loadPage() }, 300) })
-onMounted(loadPage)
-onUnmounted(() => { if (searchTimer) clearTimeout(searchTimer) })
+async function saveSkills() {
+  const job = detailJob.value
+  if (!job || !detailVisible.value || !detailReady.value || savingSkills.value || !active) return
+  const session = detailSession
+  const version = editVersion
+  const edited = [...detailSkills.value]
+  const oldRequired = job.required_skills || []
+  const oldBonus = job.bonus_skills || []
+  const removed = oldRequired.concat(oldBonus).filter(s => !edited.includes(s))
+  const added = edited.filter(s => !oldRequired.includes(s) && !oldBonus.includes(s))
+  const required = oldRequired.filter(s => !removed.includes(s)).concat(added)
+  const bonus = oldBonus.filter(s => !removed.includes(s))
+  let finishWrite!: () => void
+  pendingWrites.value.set(job.id, new Promise<void>(resolve => { finishWrite = resolve }))
+  try {
+    const payload: any = { job_name: job.job_name || job.name_en || '', core_duties: job.core_duties || '', required_skills: required, bonus_skills: bonus, scenarios: job.scenarios || [], source: job.source || [], quality: typeof job.quality === 'number' ? job.quality : 0, is_emerging: job.category === '新一代', evolution: job.evolution || {}, collected_at: job.collected_at || '', updated_at: new Date().toISOString() }
+    await updateJob(job.id, payload)
+    if (currentDetail(session, job.id)) {
+      // 已提交基线与继续编辑的草稿分开，避免回读覆盖用户新输入。
+      detailJob.value = { ...job, required_skills: required, bonus_skills: bonus, skills: edited }
+      if (version === editVersion) skillDirty.value = false
+      ElMessage.success('技能已保存')
+    }
+    if (active) void loadPage()
+  } catch { if (currentDetail(session, job.id)) ElMessage.error('技能保存失败') }
+  finally { pendingWrites.value.delete(job.id); finishWrite() }
+}
+async function exportCurrent() { try { const blob = await exportJobs(); if (!active) return; const url = URL.createObjectURL(blob); try { const link = document.createElement('a'); link.href = url; link.download = '中文平台岗位.csv'; link.click() } finally { URL.revokeObjectURL(url) } } catch { if (active) ElMessage.error('岗位导出失败') } }
+watch(keyword, () => { cancelSearch(); ++listRequest; searchTimer = setTimeout(searchJobs, 300) }, { flush: 'sync' })
+watch([detailSkills, addingSkill, newSkill, editingIndex, editValue], () => { ++editVersion }, { deep: true, flush: 'sync' })
+watch(detailVisible, visible => { if (!visible) ++detailSession }, { flush: 'sync' })
+onMounted(refreshData)
+onUnmounted(() => { active = false; cancelSearch() })
 </script>
 
 <style scoped>

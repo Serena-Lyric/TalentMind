@@ -7,13 +7,16 @@
         <p class="welcome-sub">统一采集全渠道JD岗位与简历数据，可视化分析岗位技能需求、人才匹配缺口</p>
       </div>
       <div class="welcome-right">
+        <el-button @click="loadDashboardData">刷新数据</el-button>
         <div class="time-pills">
           <button v-for="opt in timeOptions" :key="opt.value" class="pill-btn" :class="{ active: timeRange === opt.value }" @click="timeRange = opt.value">{{ opt.label }}</button>
         </div>
       </div>
     </header>
 
-    <section class="stats-row" v-loading="dashboardLoading" element-loading-text="加载中...">
+    <p v-if="panelState.overview.loading" role="status">统计概览加载中…</p>
+    <p v-if="panelState.overview.error" role="alert">{{ panelState.overview.error }}<el-button link @click="loadDashboardData">重试</el-button></p>
+    <section class="stats-row" v-loading="panelState.overview.loading" element-loading-text="加载中...">
       <div v-for="(card, i) in statCards" :key="card.title" class="stat-card warm-card blueprint-card">
         <div class="stat-icon-circle" :style="{ background: card.iconBg }">
           <svg v-if="i===0" width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="8" width="16" height="12" rx="2" stroke="#247CA2" stroke-width="1.4" fill="none"/><path d="M7 8 V6 Q7 3 11 3 Q15 3 15 6 V8" stroke="#247CA2" stroke-width="1.4" fill="none"/><circle cx="11" cy="14" r="2" stroke="#247CA2" stroke-width="1" fill="#E6F1F5"/></svg>
@@ -21,7 +24,7 @@
           <svg v-else-if="i===2" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="11" r="5" stroke="#D58A3D" stroke-width="1.4" fill="none"/><circle cx="14" cy="11" r="5" stroke="#D58A3D" stroke-width="1.4" fill="none"/><circle cx="11" cy="11" r="1.5" fill="#FFF3E5"/></svg>
           <svg v-else width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3 L3 19 L19 19 Z" stroke="#D25B5B" stroke-width="1.4" fill="none" stroke-linejoin="round"/><line x1="11" y1="9" x2="11" y2="13" stroke="#D25B5B" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="16" r="1" fill="#D25B5B"/></svg>
         </div>
-        <div class="stat-info"><span class="stat-label">{{ card.title }}</span><span class="stat-value">{{ animatedNums[i] }}</span></div>
+        <div class="stat-info"><span class="stat-label">{{ card.title }}</span><span class="stat-value">{{ panelState.overview.loaded ? animatedNums[i] : '—' }}</span></div>
         <span class="stat-badge" :style="{ background: card.badgeBg, color: card.badgeColor }">{{ card.trend }}</span>
 
       </div>
@@ -37,10 +40,14 @@
         <div class="card-head"><div><h3>岗位能力趋势</h3><p>近6个月各岗位需求指数变化</p></div>
           <div class="metric-pills"><button v-for="m in metricOptions" :key="m.value" class="pill-btn sm" :class="{ active: lineMetric === m.value }" @click="lineMetric = m.value">{{ m.label }}</button></div>
         </div>
+        <p v-if="panelState.trend.loading" role="status">趋势加载中…</p>
+        <p v-if="panelState.trend.error" role="alert">{{ panelState.trend.error }}<el-button link @click="loadDashboardData">重试</el-button></p>
         <div ref="lineChartRef" class="chart-box"></div>
       </div>
       <div class="warm-card chart-card">
         <div class="card-head"><div><h3>岗位技能分布</h3><p>Top 8 核心技能覆盖率</p></div></div>
+        <p v-if="panelState.skills.loading" role="status">技能分布加载中…</p>
+        <p v-if="panelState.skills.error" role="alert">{{ panelState.skills.error }}<el-button link @click="loadDashboardData">重试</el-button></p>
         <div ref="barChartRef" class="chart-box"></div>
       </div>
     </section>
@@ -48,7 +55,9 @@
     <section class="bottom-row">
       <div class="warm-card table-card">
         <div class="card-head"><div><h3>岗位列表</h3><p>共 {{ filteredJobs.length }} 个在招岗位</p></div><el-input v-model="jobSearch" placeholder="搜索岗位名称..." :prefix-icon="Search" clearable style="width:200px" size="small" /></div>
-        <el-table :data="pagedJobs" style="width:100%" :header-cell-style="tblHeaderStyle" :cell-style="{ padding:'12px 0' }">
+        <p v-if="panelState.jobs.loading" role="status">岗位列表加载中…</p>
+        <p v-if="panelState.jobs.error" role="alert">{{ panelState.jobs.error }}<el-button link @click="loadDashboardData">重试</el-button></p>
+        <el-table :data="pagedJobs" :empty-text="panelState.jobs.loading ? '加载中…' : panelState.jobs.error ? '岗位列表加载失败' : '暂无岗位'" style="width:100%" :header-cell-style="tblHeaderStyle" :cell-style="{ padding:'12px 0' }">
           <el-table-column prop="name" label="岗位名称" min-width="150"><template #default="{ row }"><span class="job-name">{{ row.name }}</span></template></el-table-column>
           <el-table-column prop="dept" label="部门" width="110" />
           <el-table-column prop="count" label="需求人数" width="90" align="center"><template #default="{ row }"><span class="count-badge" :class="row.count>=10?'hot':row.count>=5?'warm':'cool'">{{ row.count ? row.count + '人' : '—' }}</span></template></el-table-column>
@@ -93,7 +102,13 @@ import * as echarts from 'echarts'
 import { getDashboardOverview, getDashboardTrend, getSkillDistribution } from '../api/dashboard'
 import { getJobList } from '../api/jobs'
 
-const dashboardLoading = ref(true)
+const panelState = reactive({
+  overview: { loading: false, loaded: false, error: '' },
+  trend: { loading: false, loaded: false, error: '' },
+  skills: { loading: false, loaded: false, error: '' },
+  jobs: { loading: false, loaded: false, error: '' },
+})
+let disposed = false, requestVersion = 0
 const timeRange = ref<'day' | 'week' | 'month'>('month')
 const lineMetric = ref<'demand' | 'salary'>('demand')
 const jobSearch = ref('')
@@ -139,7 +154,7 @@ const barValues = ref<number[]>([])
 
 function getLineOption() {
   return {
-    title: { show: !months.value.length, text: '暂无趋势数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
+    title: { show: panelState.trend.loaded && !months.value.length, text: '暂无趋势数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
     tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#D9E2E7', textStyle: { color: '#3D3D3D', fontSize: 12 }, borderRadius: 12 },
     legend: { bottom: 0, textStyle: { color: '#999', fontSize: 11 }, itemWidth: 14, itemHeight: 6, itemGap: 14 },
     grid: { top: 16, right: 16, bottom: 44, left: 44 },
@@ -151,7 +166,7 @@ function getLineOption() {
 
 function getBarOption() {
   return {
-    title: { show: !barSkills.value.length, text: '暂无技能分布数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
+    title: { show: panelState.skills.loaded && !barSkills.value.length, text: '暂无技能分布数据', left: 'center', top: 'middle', textStyle: { color: '#B0B0B0', fontSize: 13, fontWeight: 400 } },
     tooltip: { trigger: 'axis' },
     grid: { top: 10, right: 32, bottom: 18, left: 76 },
     xAxis: { type: 'value', max: 100, axisLabel: { color: '#999', fontSize: 10 }, splitLine: { lineStyle: { color: '#F8FAFB', type: 'dashed' } } },
@@ -177,49 +192,56 @@ function initCharts() {
   if (barChartRef.value) { barChart = echarts.init(barChartRef.value); barChart.setOption(getBarOption()) }
 }
 function refreshCharts() {
+  if (disposed) return
   lineChart?.setOption(getLineOption(), true)
   barChart?.setOption(getBarOption(), true)
 }
 function handleResize() { lineChart?.resize(); barChart?.resize() }
 
 async function loadDashboardData() {
-  dashboardLoading.value = true
-  try {
-    const [overview, trend, distribution, jobs] = await Promise.all([
-      getDashboardOverview(),
-      getDashboardTrend(timeRange.value),
-      getSkillDistribution(),
-      getJobList({ page: 1, page_size: 100 }),
-    ])
-    if (overview) {
+  const version = ++requestVersion
+  async function loadPanel<T>(key: keyof typeof panelState, fetch: () => Promise<T>, apply: (data: T) => void) {
+    const state = panelState[key]
+    state.loading = true; state.error = ''
+    try {
+      const data = await fetch()
+      if (disposed || version !== requestVersion) return
+      apply(data); state.loaded = true; refreshCharts()
+    } catch {
+      if (!disposed && version === requestVersion) state.error = state.loaded ? '刷新失败，保留上次数据。' : '加载失败，请重试。'
+    } finally { if (!disposed && version === requestVersion) state.loading = false }
+  }
+  await Promise.all([
+    loadPanel('overview', getDashboardOverview, overview => {
       statCards[0].value = Number(overview.totalJobs || 0)
       statCards[1].value = Number(overview.totalResumes || 0)
       statCards[2].value = Number(overview.matchSuccess || 0)
       statCards[3].value = Number(overview.skillGaps || 0)
       coralBlocks.value = (overview.coralBlocks || []).map(block => ({ label: block.label, value: block.value }))
       animateNumbers()
-    }
-    months.value = Array.isArray(trend?.months) ? trend.months : []
-    trendSeries.value = Array.isArray(trend?.series) ? trend.series : []
-    const dist = Array.isArray(distribution) ? distribution : []
-    barSkills.value = dist.slice(0, 8).map(item => item.name)
-    barValues.value = dist.slice(0, 8).map(item => Number(item.percentage || 0))
-    allJobs.value = (jobs?.list || []).map(job => ({
-      id: String(job.id), name: job.title, dept: job.company || '—', count: 0,
-      salary: job.salary || '—', status: job.status === 'open' ? '招聘中' : job.status || '—', updateTime: job.updated || '—',
-    }))
-    refreshCharts()
-  } catch (error) {
-    console.error('加载看板数据失败:', error)
-  } finally {
-    dashboardLoading.value = false
-  }
+    }),
+    loadPanel('trend', () => getDashboardTrend(timeRange.value), trend => {
+      months.value = Array.isArray(trend?.months) ? trend.months : []
+      trendSeries.value = Array.isArray(trend?.series) ? trend.series : []
+    }),
+    loadPanel('skills', getSkillDistribution, distribution => {
+      const dist = Array.isArray(distribution) ? distribution : []
+      barSkills.value = dist.slice(0, 8).map(item => item.name)
+      barValues.value = dist.slice(0, 8).map(item => Number(item.percentage || 0))
+    }),
+    loadPanel('jobs', () => getJobList({ page: 1, page_size: 100 }), jobs => {
+      allJobs.value = (jobs?.list || []).map(job => ({
+        id: String(job.id), name: job.title, dept: job.company || '—', count: 0,
+        salary: job.salary || '—', status: job.status === 'open' ? '招聘中' : job.status || '—', updateTime: job.updated || '—',
+      }))
+    }),
+  ])
 }
 
 watch(timeRange, loadDashboardData)
 watch(lineMetric, refreshCharts)
 onMounted(async () => { initCharts(); window.addEventListener('resize', handleResize); await loadDashboardData() })
-onUnmounted(() => { window.removeEventListener('resize', handleResize); lineChart?.dispose(); barChart?.dispose(); if (animTimer) clearInterval(animTimer) })
+onUnmounted(() => { disposed = true; ++requestVersion; window.removeEventListener('resize', handleResize); lineChart?.dispose(); barChart?.dispose(); lineChart = null; barChart = null; if (animTimer) clearInterval(animTimer) })
 </script>
 <style scoped>
 .dashboard {

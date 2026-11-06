@@ -1,10 +1,21 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.response import ok, BizError
 from app.middleware import register_exception_handlers
 from app.collect.bridge_access import EXTENSION_ORIGIN
+from app.db.neo4j import close_neo4j
 
-app = FastAPI(title="TalentMind")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        yield
+    finally:
+        close_neo4j()
+
+
+app = FastAPI(title="TalentMind", lifespan=lifespan)
 register_exception_handlers(app)
 
 # 前端联调 CORS（Vite dev / preview）

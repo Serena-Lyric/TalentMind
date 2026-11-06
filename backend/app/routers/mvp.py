@@ -3,13 +3,16 @@ from __future__ import annotations
 
 import io
 import json
+import math
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Body, File, Form, Query, UploadFile
 from fastapi.responses import Response as FastResponse
-from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
@@ -164,12 +167,9 @@ def graph_years():
 @router.get("/graph/data")
 def graph_data(year: str = "", focus_job: str = ""):
     driver = get_neo4j()
-    try:
-        with driver.session() as session:
-            node_recs = session.run("MATCH (n) RETURN n.node_id AS node_id, n.name AS name, labels(n) AS labels, properties(n) AS props").data()
-            edge_recs = session.run("MATCH (a)-[r]->(b) RETURN a.node_id AS source, b.node_id AS target, type(r) AS kind, properties(r) AS props").data()
-    finally:
-        driver.close()
+    with driver.session() as session:
+        node_recs = session.run("MATCH (n) RETURN n.node_id AS node_id, n.name AS name, labels(n) AS labels, properties(n) AS props").data()
+        edge_recs = session.run("MATCH (a)-[r]->(b) RETURN a.node_id AS source, b.node_id AS target, type(r) AS kind, properties(r) AS props").data()
     nodes = []
     for record in node_recs:
         node_id = record.get("node_id") or record.get("name")
@@ -252,16 +252,22 @@ def _resume_skills(content: str) -> list[str]:
 
 @router.post("/resume/upload")
 async def resume_upload(file: UploadFile | None = File(None), content: str = Form(""), target_job_id: str = Form("")):
-    if file is not None:
-        raw = await file.read(_RESUME_MAX_BYTES + 1)
+    raw = await file.read(_RESUME_MAX_BYTES + 1) if file is not None else None
+    filename = (file.filename or "") if file is not None else ""
+    return await run_in_threadpool(_process_resume_upload, filename, raw, content, target_job_id)
+
+
+def _process_resume_upload(filename: str, raw: bytes | None, content: str, target_job_id: str):
+    # Parsing, matching and the complete SQL session stay in the same worker.
+    if raw is not None:
         if len(raw) > _RESUME_MAX_BYTES:
             raise BizError(4002, "文件超过 10MB 上限")
-        if Path(file.filename or '').suffix.lower() == '.doc':
+        if Path(filename).suffix.lower() == '.doc':
             raise BizError(4002, "旧版 DOC 请先另存为 DOCX 或 PDF")
-        if Path(file.filename or '').suffix.lower() not in {'.pdf', '.docx', '.txt'}:
+        if Path(filename).suffix.lower() not in {'.pdf', '.docx', '.txt'}:
             raise BizError(4002, "仅支持 PDF、DOCX、TXT 文件")
         try:
-            content = (content + "\n" + _extract_file_text(file.filename or "", raw)).strip()
+            content = (content + "\n" + _extract_file_text(filename, raw)).strip()
         except Exception as exc:
             raise BizError(4002, "文件解析失败，请使用可读取的 PDF、DOCX 或 UTF-8 文本") from exc
     if len(content.encode('utf-8')) > _RESUME_MAX_BYTES:
@@ -431,7 +437,7 @@ def export_jobs():
     buf = io.StringIO(); writer = csv.writer(buf)
     writer.writerow(["job_name", "core_duties", "required_skills", "bonus_skills", "source", "collected_at", "updated_at"])
     for row in rows:
-        writer.writerow([row["job_name"], row["core_duties"] or "", " | ".join(_parse_json_list(row["required_skills"])), " | ".join(_parse_json_list(row["bonus_skills"])), " | ".join(_parse_json_list(row["source"])), row["collected_at"] or "", row["updated_at"] or ""])
+        writer.writerow([row["job_name"], row["core_duties"] or "", json.dumps(_parse_json_list(row["required_skills"]), ensure_ascii=False), json.dumps(_parse_json_list(row["bonus_skills"]), ensure_ascii=False), json.dumps(_parse_json_list(row["source"]), ensure_ascii=False), row["collected_at"] or "", row["updated_at"] or ""])
     return FastResponse(content="\ufeff" + buf.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=chinese-platform-jobs.csv"})
 
 
@@ -457,7 +463,10 @@ def create_job(payload: JobPayload):
     if not payload.job_name.strip(): raise BizError(4001, "job_name 不能为空")
     db = SessionLocal()
     try:
-        db.execute(text("""INSERT INTO job_definition (job_name, core_duties, required_skills, bonus_skills, scenarios, source, quality, is_emerging, evolution, collected_at, updated_at) VALUES (:job_name, :core_duties, :required_skills, :bonus_skills, :scenarios, :source, :quality, :is_emerging, :evolution, :collected_at, :updated_at)"""), {"job_name": payload.job_name.strip(), "core_duties": payload.core_duties, "required_skills": json.dumps(payload.required_skills, ensure_ascii=False), "bonus_skills": json.dumps(payload.bonus_skills, ensure_ascii=False), "scenarios": json.dumps(payload.scenarios, ensure_ascii=False), "source": json.dumps(payload.source, ensure_ascii=False), "quality": payload.quality, "is_emerging": int(payload.is_emerging), "evolution": json.dumps(payload.evolution, ensure_ascii=False), "collected_at": payload.collected_at or None, "updated_at": payload.updated_at or None}); db.commit(); new_id=db.execute(text("SELECT LAST_INSERT_ID()")).scalar(); return ok({"id": str(new_id)})
+        result = db.execute(text("""INSERT INTO job_definition (job_name, core_duties, required_skills, bonus_skills, scenarios, source, quality, is_emerging, evolution, collected_at, updated_at) VALUES (:job_name, :core_duties, :required_skills, :bonus_skills, :scenarios, :source, :quality, :is_emerging, :evolution, :collected_at, :updated_at)"""), {"job_name": payload.job_name.strip(), "core_duties": payload.core_duties, "required_skills": json.dumps(payload.required_skills, ensure_ascii=False), "bonus_skills": json.dumps(payload.bonus_skills, ensure_ascii=False), "scenarios": json.dumps(payload.scenarios, ensure_ascii=False), "source": json.dumps(payload.source, ensure_ascii=False), "quality": payload.quality, "is_emerging": int(payload.is_emerging), "evolution": json.dumps(payload.evolution, ensure_ascii=False), "collected_at": payload.collected_at or None, "updated_at": payload.updated_at or None})
+        new_id = result.lastrowid
+        db.commit()
+        return ok({"id": str(new_id)})
     except Exception: db.rollback(); raise
     finally: db.close()
 
@@ -498,18 +507,91 @@ def batch_delete_jobs(ids: list[int] = Body(...)):
 
 @router.post("/jobs/import")
 async def import_jobs(file: UploadFile = File(...)):
-    raw=(await file.read()).decode("utf-8",errors="replace"); name=(file.filename or "").lower(); imported=0
-    if name.endswith(".json") or raw.lstrip().startswith("["):
-        data=json.loads(raw)
-        for item in data:
-            payload=JobPayload(job_name=str(item.get("job_name","")).strip(),core_duties=item.get("core_duties","") or "",required_skills=item.get("required_skills",[]) or [],bonus_skills=item.get("bonus_skills",[]) or [],scenarios=item.get("scenarios",[]) or [],source=item.get("source",[]) or [],quality=float(item.get("quality",0) or 0),is_emerging=bool(item.get("is_emerging",False)),evolution=item.get("evolution",{}) or {},collected_at=str(item.get("collected_at","") or ""),updated_at=str(item.get("updated_at","") or ""))
-            if payload.job_name: create_job(payload); imported+=1
-    else:
-        import csv
-        for item in csv.DictReader(io.StringIO(raw)):
-            title=(item.get("job_name") or item.get("title") or "").strip()
-            if title: create_job(JobPayload(job_name=title,required_skills=[skill.strip() for skill in (item.get("required_skills") or "").split(";") if skill.strip()])); imported+=1
-    return ok({"imported":imported})
+    raw = await file.read()
+    return await run_in_threadpool(_import_jobs, raw, file.filename or "")
+
+
+def _import_jobs(raw: bytes, filename: str):
+    import csv
+    index = 0
+    field = "结构"
+    file_error = "导入文件编码无效，请使用 UTF-8 编码"
+    try:
+        content = raw.decode("utf-8-sig")
+        is_json = filename.lower().endswith(".json") or content.lstrip().startswith("[")
+        file_error = "JSON 文件语法无效，请检查文件格式" if is_json else "CSV 文件语法无效，请检查引号与列格式"
+        if is_json:
+            rows = json.loads(content)
+            if not isinstance(rows, list):
+                raise BizError(4001, "JSON 文件顶层必须为记录数组")
+        else:
+            reader = csv.DictReader(io.StringIO(content), strict=True)
+            if not reader.fieldnames or not {"job_name", "title"}.intersection(reader.fieldnames):
+                raise BizError(4001, "CSV 表头缺少 job_name 或 title 列")
+            if len(set(reader.fieldnames)) != len(reader.fieldnames):
+                raise BizError(4001, "CSV 表头存在重复列名")
+            rows = list(reader)
+        payloads = []
+        for index, row in enumerate(rows, start=1):
+            field = "结构"
+            if not isinstance(row, dict) or None in row:
+                raise ValueError(f"第 {index} 行结构无效")
+            item = dict(row)
+            item["job_name"] = item.get("job_name") or item.get("title") or ""
+            for field in ("required_skills", "bonus_skills", "scenarios", "source"):
+                value = item.get(field)
+                if value is None or value == "":
+                    value = []
+                elif not is_json and isinstance(value, str):
+                    value = json.loads(value) if value.lstrip().startswith("[") else [part.strip() for part in re.split(r"[;|]", value) if part.strip()]
+                if not isinstance(value, list) or any(not isinstance(part, str) for part in value):
+                    raise ValueError(f"第 {index} 行 {field} 必须为字符串列表")
+                item[field] = value
+            for field in ("core_duties", "collected_at", "updated_at", "first_seen"):
+                if item.get(field) is None:
+                    item[field] = ""
+            for field, default in (("quality", 0), ("is_emerging", False), ("evolution", {})):
+                if item.get(field) is None or item.get(field) == "":
+                    item[field] = default
+            if not is_json and isinstance(item["evolution"], str):
+                field = "evolution"
+                item["evolution"] = json.loads(item["evolution"])
+            payload = JobPayload(**item)
+            field = "job_name"
+            payload.job_name = payload.job_name.strip()
+            if not payload.job_name or len(payload.job_name) > 128:
+                raise ValueError(f"第 {index} 行 job_name 必须为 1–128 个字符")
+            field = "quality"
+            if not math.isfinite(payload.quality) or abs(payload.quality) > 3.4028234663852886e38:
+                raise ValueError(f"第 {index} 行 quality 超出 FLOAT 范围")
+            field = "core_duties"
+            if len(payload.core_duties.encode("utf-8")) > 65535:
+                raise ValueError(f"第 {index} 行 core_duties 超出 TEXT 字节上限")
+            # MySQL JSON rejects non-finite numbers, including nested overflow from 1e999.
+            for field, value in payload.model_dump().items():
+                json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+            for field in ("collected_at", "updated_at", "first_seen"):
+                value = getattr(payload, field)
+                if value:
+                    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?)?", value):
+                        raise ValueError(f"第 {index} 行 {field} 必须为不带时区的日期时间")
+                    parsed = datetime.fromisoformat(value)
+                    if parsed.year < 1000:
+                        raise ValueError(f"第 {index} 行 {field} 超出 DATETIME 范围")
+                    setattr(payload, field, parsed.isoformat(sep=" "))
+            payloads.append(payload)
+    except ValidationError as exc:
+        # Only schema-owned top-level names are public; nested keys and input values stay private.
+        field = next((error["loc"][0] for error in exc.errors(include_input=False, include_context=False)
+                      if error["loc"] and error["loc"][0] in JobPayload.model_fields), "结构")
+        raise BizError(4001, f"第 {index} 条记录的 {field} 无效，请检查字段类型") from exc
+    except (ValueError, TypeError, csv.Error) as exc:
+        message = f"第 {index} 条记录的 {field} 无效，请检查字段格式或存储范围" if index else file_error
+        raise BizError(4001, message) from exc
+    # Preserve per-row commits; validate the whole file before any database write.
+    for payload in payloads:
+        create_job(payload)
+    return ok({"imported": len(payloads)})
 
 
 @router.get("/graph/skill-radar")
