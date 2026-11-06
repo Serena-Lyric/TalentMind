@@ -19,3 +19,5 @@
 - 独立子代理审查（不替代 ChatGPT 产品验收）发现受控 not_run 误计失败、长驻提示漂移两项 P2，及完整 P1 记录重放可用性限制；三项均已有 RED→GREEN 回归，补充了精确绑定的评价 CLI 篡改/重复/错误 run 拒绝。未遗留已确认的审查阻断项。
 - 首轮全仓为 2063 passed、2 skipped、24 deselected、6 failed（exit 1）：五项新评价夹具短路径和一项 Windows PID 发布竞态。前者只规范化测试路径，后者只原子发布睡眠 worker 夹具 PID；对应定向测试重新通过。最终整合回归及 CI 以 #69 的固定提交证据为准，不沿用首轮数字作通过证明。
 - 同工作区出现其他任务的匹配/学习路由及前端修改，明确排除本提交；最终全仓验证从本任务提交建立隔离 worktree，避免夹带和混用并行变化。
+- 整合 PR 为 [#70](https://github.com/Serena-Lyric/TalentMind/pull/70)，新增实现提交 `6f70f23ed1c202ce99786708fed6b4496a6dea63`，基于未合并 #68；最终提审 head 与 CI 在 #69 记录。干净检出不复制 .env，CI 显式使用回环端口 1 的合成设置，模型回退也限制到回环，不依赖真实服务。
+- 干净 Windows checkout 实测暴露 P2-1 知识 JSON 的 CRLF 摘要失败，已在 .gitattributes 固定不可变资产 LF；新建检出相关 45 项通过。首次 Linux 全仓 CI 为 2045 passed/6 skipped/24 deselected/1 failed（exit 1），失败为 Windows 查询测试缺 OS 替身，已保留全部断言并补齐该边界；Windows 浏览器定向 64 项通过。最终全仓/CI 继续复验，不将首轮算通过。

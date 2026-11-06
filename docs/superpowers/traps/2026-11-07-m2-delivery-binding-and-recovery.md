@@ -27,3 +27,5 @@
 全仓复验还暴露 Windows 测试夹具的两个边界：`tempfile` 可能返回 `SERENA~1` 短路径，签审发布保护要求显式路径等于其 resolve，应在合成测试夹具中使用规范化路径，不能放松生产校验；PID 文件存在也可能尚未写完，睡眠 worker 测试改为临时文件写完后原子发布 ready 文件，不修改真实采集实现。
 
 干净 Windows worktree 还重现了已发布 P2-1 `knowledge.json` 被 autocrlf 转换后与 manifest 摘要不符。按不可变资产路径固定 LF 检出，而不是修改 manifest/归一化后再校验。必须验证真正的新检出，原工作目录恰好为 LF 的绿色测试不能证明跨平台可重放。
+
+首次全仓 Linux CI 的 Windows 浏览器查询测试虽替换了进程查询，仍进入真实 Windows 平台门禁。该单测在非 Windows 时补齐 OS/无引号合成 argv 边界替身，保持完整输出断言；Windows 仍走真实原生 argv 解析。不能为了离线测试削弱浏览器生产门禁，也不跳过该断言。
