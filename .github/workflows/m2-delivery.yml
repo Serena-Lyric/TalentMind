@@ -23,6 +23,7 @@ jobs:
       NEO4J_PASSWORD: synthetic
       REDIS_URL: redis://127.0.0.1:1/15
       OPENAI_API_KEY: offline-not-a-real-key
+      OPENAI_BASE_URL: https://127.0.0.1:1/v1
     defaults:
       run:
         working-directory: backend
