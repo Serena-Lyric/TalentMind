@@ -17,15 +17,20 @@ for (const input of [token, session]) {
   })
 }
 
+let sending = false
 async function send(type) {
-  await chrome.storage.local.set({
-    token: token.value.trim(),
-    sessionId: session.value.trim(),
-  })
+  if (sending) return
+  sending = true
   buttons.forEach(button => { button.disabled = true })
   status.textContent = '正在读取当前页面…'
   try {
-    const response = await chrome.runtime.sendMessage({ type })
+    await chrome.storage.local.set({
+      token: token.value.trim(),
+      sessionId: session.value.trim(),
+    })
+    const response = await chrome.runtime.sendMessage({ type }).catch(() => {
+      throw new Error('扩展通信中断，提交结果尚未确认。请先在控制台核对本轮结果，不要直接重复提交。')
+    })
     if (!response?.ok) throw new Error(response?.error || '采集失败')
     const result = response.data?.result || {}
     status.textContent = JSON.stringify({
@@ -37,9 +42,11 @@ async function send(type) {
   } catch (error) {
     status.textContent = String(error?.message || error)
   } finally {
+    sending = false
     buttons.forEach(button => { button.disabled = false })
   }
 }
 
 document.querySelector('#capture-list').addEventListener('click', () => send('capture-list'))
 document.querySelector('#capture-detail').addEventListener('click', () => send('capture-detail'))
+

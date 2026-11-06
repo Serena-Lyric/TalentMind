@@ -22,3 +22,10 @@ This unpacked Manifest V3 extension is for sites where ordinary browser access w
 Current validation covers synthetic pages, the actual control API and isolated SQLite. The user's extension installation and live-platform capture have not been verified in this repair. Restart the reviewed backend before using the new API, and obtain separate permission for the identity-column migration.
 
 The committed public key fixes the unpacked extension ID so the loopback API can enforce one stable Origin. It is not a private key or credential.
+
+
+## Request recovery
+
+Only one capture may be in flight in the extension worker. Repeated clicks (including a reopened popup) are rejected while that request is running. The local POST and response-body read share a 15-second deadline. Timeouts, connection errors and invalid JSON leave the submission outcome **unknown**: check the session results in the TalentMind console before another explicit capture. Aborting a client request does not prove the server did not persist it. There is no automatic retry, and the in-memory guard is not a cross-worker-restart exactly-once guarantee.
+
+Offline regression: from `frontend/`, run `node --experimental-strip-types --test tests/bridge*.test.ts`. These tests simulate Chrome APIs and DOM boundaries; they do not verify extension installation, live-site compatibility or database persistence.
