@@ -1,5 +1,7 @@
 """离线验证真实采集编排及 SQL 提交；仅使用临时 SQLite 和合成岗位。"""
 from contextlib import contextmanager
+import sys
+import types
 
 import pytest
 from datetime import datetime
@@ -8,12 +10,15 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session
 
 from app.collect import fetch_boss_jobs as boss
+from app.collect import frequency
 from app.collect.fetchers.cdp import CdpError
 
 
 @pytest.fixture
 def offline(monkeypatch, tmp_path):
-    from app.db import mysql
+    # Never instantiate the production DB engine during fixture imports.
+    mysql = types.ModuleType("app.db.mysql")
+    monkeypatch.setitem(sys.modules, "app.db.mysql", mysql)
 
     db_path = tmp_path / "interruption.sqlite3"
     engine = create_engine(f"sqlite:///{db_path}")
@@ -33,8 +38,11 @@ def offline(monkeypatch, tmp_path):
         with Session(engine) as db:
             yield db
 
-    monkeypatch.setattr(mysql, "get_db", get_db)
-    monkeypatch.setattr(boss.time, "sleep", lambda _: None)
+    mysql.get_db = get_db
+    clock = [1000.0]
+    monkeypatch.setattr(frequency, "_STATE_PATH", tmp_path / "frequency.sqlite3")
+    monkeypatch.setattr(frequency, "_clock", lambda: clock[0])
+    monkeypatch.setattr(boss.time, "sleep", lambda seconds: clock.__setitem__(0, clock[0] + seconds))
     monkeypatch.setattr(boss.browser, 'ensure_ready', lambda *a, **kw: {
         'endpoint': 'http://127.0.0.1:9333', 'user_data_dir': str(tmp_path / 'profile'), 'can_collect': True})
     monkeypatch.setattr(boss.browser, 'wait_access', lambda *a, **kw: {'can_collect': True})
@@ -68,7 +76,7 @@ def offline(monkeypatch, tmp_path):
     @contextmanager
     def run(**kwargs):
         try:
-            yield lambda: boss.run_fetch(["Python"], [("合成城市", "1")], delay=0, settle=0, **kwargs)
+            yield lambda: boss.run_fetch(["Python"], [("合成城市", "1")], delay=15, settle=5, **kwargs)
         finally:
             assert all(c.closed for c in clients)
 
@@ -143,9 +151,10 @@ def test_detail_commit_survives_later_failure_and_empty_card_is_discarded(offlin
 
     monkeypatch.setattr(Client, "evaluate", detail)
     with run(pages=1, detail_limit=3) as collect:
-        stats = collect()
-    assert stats["new"] == 1
-    assert observed == [1, 1]
+        with pytest.raises(CdpError, match="synthetic detail closed"):
+            collect()
+    # A browser callback error leaves an uncertain action: stop, retain commits.
+    assert observed == [1]
     assert len(rows()) == 1
     assert "/first.html" in rows()[0]["source_detail"]
 
@@ -279,3 +288,4 @@ def test_placeholder_detail_does_not_block_next_round_completion(offline, monkey
         assert collect()["new"] == 1
     assert len(rows()) == 1
     assert "负责 Python 后端服务开发" in rows()[0]["raw_text"]
+

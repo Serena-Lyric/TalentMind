@@ -13,12 +13,15 @@ async function capture(kind) {
   if (!pairing.token || !pairing.sessionId) {
     throw new Error('请先在扩展中填写 TalentMind 配对令牌和任务 ID')
   }
+  const authorization = await post(pairing, 'permit', { kind })
+  if (!authorization?.permit || !Number.isFinite(authorization.expires_at)) throw new Error('采集预约无效，未读取页面。请检查本地采集服务版本。')
   const tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
   if (!tab?.id) throw new Error('没有可读取的活动页面')
+  if (Date.now() >= authorization.expires_at * 1000) throw new Error('采集预约已过期，未读取页面，请按模块频率重新操作。')
   const execution = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func: captureCurrentPage,
-    args: [kind],
+    args: [kind, authorization.expires_at],
   })
   const extracted = execution[0]?.result
   let captured = extracted?.capture
@@ -29,18 +32,23 @@ async function capture(kind) {
       page_url: extracted.page_url, blocked_reason: 'security_verification',
     }
   }
+  return post(pairing, 'captures', captured, authorization.permit)
+}
+
+async function post(pairing, endpoint, body, permit) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   try {
-    const response = await fetch(`${API}/api/collection/bridge/sessions/${encodeURIComponent(pairing.sessionId)}/captures`, {
+    const response = await fetch(`${API}/api/collection/bridge/sessions/${encodeURIComponent(pairing.sessionId)}/${endpoint}`, {
       method: 'POST',
       credentials: 'omit',
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         'X-TalentMind-Bridge-Token': pairing.token,
+        ...(permit ? { 'X-TalentMind-Capture-Permit': permit } : {}),
       },
-      body: JSON.stringify(captured),
+      body: JSON.stringify(body),
     })
     const payload = await response.json()
     if (!response.ok || payload.code !== 0) {

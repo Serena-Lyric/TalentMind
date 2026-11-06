@@ -15,6 +15,7 @@ from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 import httpx
 
 from app.collect.fetchers.cdp import CdpClient, CdpError, host_matches, validate_endpoint
+from app.collect import frequency
 from app.collect.fetchers.job_sites import SITES
 from app.collect.fetchers.boss import BOSS_CARD_SELECTOR, BOSS_DESCRIPTION_SELECTORS
 
@@ -331,6 +332,32 @@ def status(endpoint='http://127.0.0.1:9333', user_data_dir=None, platform=None,
     return result
 
 
+def search_navigation_target(platform: str, url: str) -> tuple[str, str]:
+    """Bind preparation to its real query, including the default entry URL.
+
+    Unknown/ambiguous search formats must not silently become a weaker scope.
+    Existing-tab status inspection does not call this navigation-only helper.
+    """
+    parts = urlsplit(url)
+    if (platform not in HOSTS or not host_matches(url, HOSTS[platform])
+            or parts.scheme != 'https' or parts.username is not None or parts.password is not None):
+        raise ValueError('目标 URL 必须属于指定平台')
+    keyword_key, city_key = {
+        'boss': ('query', 'city'), 'zhaopin': ('kw', 'jl'), 'liepin': ('key', 'dqs'),
+    }[platform]
+    fields = list(parse_qsl(urlsplit(url).query, keep_blank_values=True))
+    keyword = [value.strip() for key, value in fields if key == keyword_key]
+    city = [value.strip() for key, value in fields if key == city_key]
+    if len(keyword) != 1 or len(city) != 1 or not keyword[0] or not city[0]:
+        raise ValueError('无法确认准备页面的关键词和城市；请使用平台标准搜索 URL')
+    return keyword[0], city[0]
+
+
+def run_search_navigation(platform: str, url: str, action):
+    keyword, city = search_navigation_target(platform, url)
+    return frequency.run_action(platform, keyword, city, action, sleeper=time.sleep)
+
+
 def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=None,
             timeout=20.0, wait_for_login=0.0, url=None) -> dict:
     if platform not in HOSTS:
@@ -351,7 +378,7 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
         with _LOCK:
             sessions = _edge_sessions()
             if not any(Path(s['profile']).resolve() == profile for s in sessions):
-                _launch_edge(profile, target)
+                run_search_navigation(platform, target, lambda: _launch_edge(profile, target))
             while True:
                 actual = _owned_endpoint(profile, _edge_sessions())
                 if actual:
@@ -378,7 +405,7 @@ def prepare(platform='boss', endpoint='http://127.0.0.1:9333', user_data_dir=Non
                         return {**base, **existing}
                     matches = []
             if not matches:
-                created = _create_page(actual, target) or {}
+                created = run_search_navigation(platform, target, lambda: _create_page(actual, target)) or {}
                 # Default preparation follows manual login into a new same-platform tab.
                 target_id = created.get('id') if url else None
             elif url:
@@ -442,3 +469,4 @@ def main() -> int:
 
 if __name__ == '__main__':
     raise SystemExit(main())
+

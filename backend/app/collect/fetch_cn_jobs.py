@@ -28,6 +28,8 @@ from app.collect.fetchers.job_sites import (
 )
 from app.collect.pipeline import run_pipeline
 from app.collect import browser
+from app.collect import frequency
+from app.collect.timing_validation import validate_fetch_timing
 from app.collect.events import emit_event
 from app.collect.identity import content_rejection, dom_fingerprint, identity_decision
 from app.collect.repository import save_incremental_jd_rows
@@ -139,6 +141,16 @@ def detail_rejection(spec: SiteSpec, job: dict, detail) -> str | None:
     return reason
 
 
+def _require_current_target(client: CdpClient, platform: str, keyword: str, city_code: str) -> None:
+    url = client.evaluate('location.href')
+    try:
+        actual = browser.search_navigation_target(platform, str(url or ''))
+    except ValueError as exc:
+        raise CdpError('collection_search_target_mismatch') from exc
+    if actual != (keyword.strip(), city_code.strip()):
+        raise CdpError('collection_search_target_mismatch')
+
+
 def run_fetch(
     platform: str,
     keywords: Iterable[str],
@@ -158,6 +170,7 @@ def run_fetch(
     login_timeout: float = 120,
     on_event=None,
 ) -> dict:
+    validate_fetch_timing(delay, settle)
     spec = SITES.get(platform)
     if spec is None:
         raise ValueError(f"不支持的平台: {platform}")
@@ -167,8 +180,22 @@ def run_fetch(
         raise ValueError("至少需要一个关键词和城市")
     if pages < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0 or settle < 0:
         raise ValueError("pages 必须 >=1，其余数值不能为负数")
+    if current_page_only and (len(keywords) != 1 or len(cities) != 1):
+        raise ValueError("current_page_only 必须绑定一个关键词和城市")
     if search_url_template:
         spec = SiteSpec(**{**spec.__dict__, "search_template": search_url_template})
+
+    # Validate the complete prospective plan before preparing/loading any website.
+    # A later invalid city/page must not be discovered after earlier real actions.
+    queries = []
+    if not current_page_only:
+        for keyword in keywords:
+            for city_name, city_code in cities:
+                for page in range(1, pages + 1):
+                    url = spec.search_url(keyword, city_code, page)
+                    if browser.search_navigation_target(platform, url) != (keyword.strip(), city_code.strip()):
+                        raise ValueError('collection_search_target_mismatch')
+                    queries.append((keyword, city_name, city_code, page, url))
 
     target_binding = {}
     if os.environ.get('TALENTMIND_COLLECTION_TARGET_ID') or os.environ.get('TALENTMIND_COLLECTION_TARGET_URL'):
@@ -189,22 +216,33 @@ def run_fetch(
     collected: list[dict] = []
     try:
         if current_page_only:
-            collected = deduplicate_jobs(spec, extract_current_page(client, spec))
+            def read_current():
+                _require_current_target(client, platform, keywords[0], cities[0][1])
+                return extract_current_page(client, spec)
+            # Verify before waiting and again inside the serialized action.
+            _require_current_target(client, platform, keywords[0], cities[0][1])
+            collected = deduplicate_jobs(spec, frequency.run_action(
+                platform, keywords[0], cities[0][1], read_current, sleeper=time.sleep,
+            ))
+            for job in collected:
+                job["_collection_query"] = (keywords[0], cities[0][1])
             if max_jobs:
                 collected = collected[:max_jobs]
         else:
-            queries = ((keyword, name, code, page) for keyword in keywords
-                       for name, code in cities for page in range(1, pages + 1))
-            for keyword, city_name, city_code, page in queries:
-                incoming = fetch_search_page(client, spec, spec.search_url(keyword, city_code, page), settle)
+            for query_index, (keyword, city_name, city_code, page, url) in enumerate(queries):
+                if query_index:
+                    time.sleep(delay)
+                incoming = browser.run_search_navigation(
+                    platform, url, lambda: fetch_search_page(client, spec, url, settle),
+                )
+                for job in incoming:
+                    job["_collection_query"] = (keyword, city_code)
                 collected = deduplicate_jobs(spec, collected + incoming)
                 if max_jobs:
                     collected = collected[:max_jobs]
                 print(f"[fetch_cn_jobs] {platform} {city_name}/{keyword} 第 {page} 页: 候选 {len(collected)} 条", flush=True)
                 if max_jobs and len(collected) >= max_jobs:
                     break
-                if page < pages:
-                    time.sleep(delay)
     finally:
         client.close()
 
@@ -268,14 +306,18 @@ def run_fetch(
         )
         try:
             for index, job in enumerate(jobs[:detail_limit], 1):
+                if index == 1:
+                    time.sleep(delay)  # List-to-detail transitions also honor slower settings.
+                keyword, city_code = job["_collection_query"]
                 accepted_job = None
-                stats['detail_attempted'] += 1
-                stats['details'] += 1
-                stats['unattempted'] -= 1
-                emit('detail_attempt', index=index, job=job)
-                try:
+                def read_detail():
                     binding = None
+                    stats['detail_attempted'] += 1
+                    stats['details'] += 1
+                    stats['unattempted'] -= 1
+                    emit('detail_attempt', index=index, job=job)
                     if job.get('_dom'):
+                        _require_current_target(detail_client, platform, keyword, city_code)
                         before = detail_client.evaluate(build_panel_probe_js(spec, int(job.get('_card_index', -1))))
                         if not isinstance(before, dict):
                             raise CdpError('panel_probe_failed')
@@ -291,7 +333,11 @@ def run_fetch(
                     access = browser.wait_access(detail_client, platform, max(5.0, settle * 2.0))
                     if access.get('content_limited'):
                         raise browser.AccessBlocked('limited_guest_content')
-                    detail = detail_client.evaluate(build_detail_extract_js(spec))
+                    return binding, access, detail_client.evaluate(build_detail_extract_js(spec))
+                try:
+                    binding, access, detail = frequency.run_action(
+                        platform, keyword, city_code, read_detail, sleeper=time.sleep,
+                    )
                     if isinstance(detail, dict) and str(detail.get('description') or '').strip():
                         stats['detail_obtained'] += 1
                     content_reason = content_rejection(spec, job, detail)
@@ -393,3 +439,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

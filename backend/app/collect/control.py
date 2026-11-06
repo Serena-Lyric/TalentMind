@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import ast
 import json
-import math
 import os
 import re
 import subprocess
@@ -24,6 +23,7 @@ from app.collect.fetch_boss_jobs import _search_url as boss_search_url
 from app.collect.fetchers.job_sites import SITES, SiteSpec
 from app.collect import browser, worker_process
 from app.collect.cleaner import source_sections
+from app.collect.timing_validation import validate_collection_ranges
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _STATE_DIR = _REPO_ROOT / "data" / "local" / "collection"
@@ -103,10 +103,11 @@ def _validated_config(base: dict, payload: dict) -> dict:
     config['keywords'] = [keywords[0].strip()]
     if config['cities'] not in [[city] for city in spec['cities']]:
         raise ValueError('仅允许一个当前平台支持的城市及代码')
-    for prefix in ('page_delay', 'settle', 'switch_interval'):
-        values = [config[f'{prefix}_{suffix}'] for suffix in ('min', 'max')]
-        if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in values) or values[0] > values[1]:
-            raise ValueError(f'{prefix} 时间范围无效')
+    validate_collection_ranges(
+        config['page_delay_min'], config['page_delay_max'],
+        config['settle_min'], config['settle_max'],
+        config['switch_interval_min'], config['switch_interval_max'],
+    )
     if type(config['check_cdp_before_start']) is not bool:
         raise ValueError('check_cdp_before_start 必须是布尔值')
     endpoint = config['cdp_endpoint']
@@ -1001,3 +1002,4 @@ def stop_task(run_id: str | None = None) -> dict[str, Any]:
         if archived is None:
             raise RuntimeError('无法确认停止任务已归档，请保留后端')
     return {'stopped': True, 'status': 'stopped', 'run_id': selected_run}
+

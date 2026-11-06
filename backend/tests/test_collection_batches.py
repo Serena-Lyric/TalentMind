@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 from io import StringIO
+from types import SimpleNamespace
 
 import pytest
 
@@ -31,7 +32,10 @@ def batch(tmp_path, monkeypatch):
         'endpoint': endpoint, 'user_data_dir': profile,
         'platform_access': {platform: {'can_collect': True, 'access_state': 'public_accessible', 'target_id': 'synthetic-target'}}})
     monkeypatch.setattr(control, 'get_database_stats', lambda: pytest.fail('batch must not query DB'))
-    control.update_config({'switch_interval_min': 0, 'switch_interval_max': 0})
+    control.update_config({'switch_interval_min': 360, 'switch_interval_max': 720})
+    # Synthetic scheduler only: production configuration retains the hard floor.
+    # Action gate timing has dedicated fake-clock tests.
+    monkeypatch.setattr(module, 'random', SimpleNamespace(uniform=lambda *args: 0))
     yield module
     if module._ACTIVE_ID:
         module.stop_batch(module._ACTIVE_ID)
@@ -178,6 +182,7 @@ def test_worker_gate_stops_batch_but_ordinary_error_continues(batch, monkeypatch
 
 
 def test_waiting_batch_holds_shared_reservation_and_stop_interrupts_delay(batch, monkeypatch):
+    monkeypatch.setattr(batch, 'random', SimpleNamespace(uniform=lambda *args: 360))
     synthetic_workers(monkeypatch)
     control.update_config({'switch_interval_min': 360, 'switch_interval_max': 720})
     draft = batch.create_batch(plan())
@@ -487,6 +492,7 @@ def test_restarted_batch_is_interrupted_never_resumed(batch, monkeypatch):
 
 
 def test_routes_create_draft_and_global_stop_stops_active_batch(batch, monkeypatch):
+    monkeypatch.setattr(batch, 'random', SimpleNamespace(uniform=lambda *args: 360))
     from app.routers import collection
     monkeypatch.setattr(collection, 'batch', batch)
     synthetic_workers(monkeypatch)
@@ -532,3 +538,4 @@ def test_batch_stop_waits_for_real_synthetic_worker_tree_and_archive(batch, monk
             worker_process.close(process)
             process.wait(timeout=5)
         pid_file.unlink(missing_ok=True)
+

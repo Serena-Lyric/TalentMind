@@ -167,7 +167,8 @@ def start_batch(batch_id: str) -> dict:
             raise RuntimeError('批次已启动或已有其他批次正在运行')
         reservation = control._reserve_tasks()
         try:
-            config = control.get_config()
+            # Revalidate persisted settings before starting any browser work.
+            config = control._validated_config(control.get_config(), {})
             _STOP = threading.Event()
             _ACTIVE_ID = batch_id
             value.update(status='running', started_at=_now())
@@ -332,3 +333,4 @@ def stop_active() -> dict | None:
         return None
     value = stop_batch(batch_id)
     return {'batch_id': batch_id, 'stopped': value['status'] == 'stopped', 'status': value['status']}
+

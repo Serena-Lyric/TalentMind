@@ -19,6 +19,8 @@ from typing import Callable, Iterable
 
 from app.collect.fetch_boss_jobs import _parse_cities, _split_csv, run_fetch
 from app.collect.fetchers.cdp import CdpError
+from app.collect.frequency import FrequencyStateError
+from app.collect.timing_validation import validate_collection_ranges, validate_range
 
 
 DEFAULT_KEYWORDS = (
@@ -61,8 +63,7 @@ def build_targets(
 
 
 def _validate_range(lower: float, upper: float) -> None:
-    if lower < 0 or upper < lower:
-        raise ValueError("时间范围必须满足 0 <= lower <= upper")
+    validate_range(lower, upper)
 
 
 def _sample_seconds(rng: random.Random, lower: float, upper: float) -> float:
@@ -98,12 +99,8 @@ def run_loop(
         raise ValueError("targets 不能为空")
     if rounds < 0:
         raise ValueError("rounds 不能为负数")
-    for lower, upper in (
-        (page_delay_min, page_delay_max),
-        (settle_min, settle_max),
-        (switch_interval_min, switch_interval_max),
-    ):
-        _validate_range(lower, upper)
+    validate_collection_ranges(page_delay_min, page_delay_max, settle_min, settle_max,
+                               switch_interval_min, switch_interval_max)
 
     rng = rng or random.Random()
     round_index = 0
@@ -129,7 +126,7 @@ def run_loop(
                 settle=settle,
             )
             _log(f"BOSS 第 {round_index} 轮完成: {result}")
-        except CdpError as exc:
+        except (CdpError, FrequencyStateError) as exc:
             _log(f"BOSS CDP/登录状态异常，停止循环: {exc}")
             return 2
         except Exception as exc:
@@ -203,3 +200,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

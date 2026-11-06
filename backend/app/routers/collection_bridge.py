@@ -50,10 +50,18 @@ def bridge_session_get(session_id: str, request: Request):
     return ok(_biz_call(bridge.get_session, session_id))
 
 
+@router.post("/collection/bridge/sessions/{session_id}/permit")
+def bridge_capture_permit(session_id: str, request: Request, payload: dict[str, Any] = Body(...)):
+    require_bridge_access(request)
+    if set(payload) != {'kind'}:
+        raise BizError(4001, 'capture permit accepts kind only')
+    return ok(_biz_call(bridge.authorize_capture, session_id, payload['kind']))
+
+
 @router.post("/collection/bridge/sessions/{session_id}/captures")
 def bridge_session_capture(session_id: str, request: Request, payload: dict[str, Any] = Body(...)):
     require_bridge_access(request)
-    return ok(_biz_call(bridge.append_capture, session_id, payload))
+    return ok(_biz_call(bridge.append_capture, session_id, payload, permit=request.headers.get('X-TalentMind-Capture-Permit')))
 
 
 @router.post("/collection/bridge/sessions/{session_id}/finish")
@@ -61,3 +69,4 @@ def bridge_session_finish(session_id: str, request: Request, payload: dict[str, 
     require_bridge_management(request)
     reason = str(payload.get("reason") or "").strip() or None
     return ok(_biz_call(bridge.finish_session, session_id, reason))
+

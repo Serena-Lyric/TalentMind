@@ -2,7 +2,11 @@
  * Self-contained page function. Chrome serializes this function for executeScript,
  * so every helper and selector must remain inside its body.
  */
-export function captureCurrentPage(kind) {
+export function captureCurrentPage(kind, expiresAt) {
+  // Check inside the injected function, not only before asynchronous dispatch.
+  if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt * 1000) {
+    return { ok: false, reason: 'capture_permit_expired' }
+  }
   const pageUrl = location.href
   const listLimit = 5
   const text = (node) => (node?.innerText || node?.textContent || '').replace(/\s+/g, ' ').trim()
@@ -137,3 +141,4 @@ export function captureCurrentPage(kind) {
     },
   }
 }
+

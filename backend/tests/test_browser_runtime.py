@@ -78,6 +78,9 @@ def browser_env(monkeypatch, tmp_path):
     launches = []
     snapshots = [snapshot(cards=3)]
     now = [0.0]
+    monkeypatch.setattr(b.frequency, "_STATE_PATH", tmp_path / "frequency.sqlite3")
+    monkeypatch.setattr(b.frequency, "_clock", lambda: now[0])
+    monkeypatch.setattr(b.frequency.random.SystemRandom, "uniform", lambda _, low, high: low)
     monkeypatch.setattr(b, '_edge_sessions', lambda: sessions)
     monkeypatch.setattr(b, '_page_targets', lambda endpoint: list(targets))
     def launch(user_data_dir, initial_url='about:blank'):
@@ -578,3 +581,4 @@ def test_search_target_diagnostic_excludes_credentials_and_unknown_query(browser
     assert result['target_url'] == 'https://www.liepin.com/zhaopin/?key=Java&dqs=010&currentPage=1'
     with pytest.raises(ValueError):
         b.prepare('liepin', user_data_dir=str(profile), url='https://name:SECRET@www.liepin.com/')
+

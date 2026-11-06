@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import time
 import threading
 import uuid
 from datetime import datetime, timezone
@@ -12,7 +13,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
-from app.collect import control
+from app.collect import control, frequency
 from app.collect.bridge_schema import BridgeCapture, BridgeSessionCreate, validate_capture
 from app.collect.cleaner import clean, is_valid_jd
 from app.collect.fetchers.boss import normalize_boss_job, normalize_url
@@ -23,6 +24,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _STATE_DIR = _REPO_ROOT / "data" / "local" / "collection"
 _SESSIONS_DIR = _STATE_DIR / "bridge"
 _LOCK = threading.RLock()
+_permit_clock = time.time
 _RUN_ID = re.compile(r"bridge-[a-f0-9]{32}")
 
 
@@ -402,7 +404,27 @@ def _detail_result(session: dict[str, Any], capture: BridgeCapture) -> dict[str,
         return {"outcome": "failed", "reason": str(exc)}
 
 
-def append_capture(run_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+def authorize_capture(run_id: str, kind: str) -> dict[str, Any]:
+    """Reserve a module-paced slot before the extension reads page content."""
+    if not isinstance(kind, str) or kind not in {'list', 'detail'}:
+        raise ValueError('unsupported capture kind')
+    with _LOCK:
+        session = _load_session(run_id)
+        if session.get('finished_at'):
+            raise ValueError('桥接任务已结束')
+        reservation = frequency.reserve_action(
+            'boss', session['keywords'][0], session['cities'][0]['code'], kind='capture',
+        )
+        permit = frequency.issue_capture_permit(run_id, kind, reservation)
+        return {'permit': permit['token'], 'expires_at': permit['expires_at'],
+                'next_action_at': reservation['next_action_at']}
+
+
+def _consume_permit(session: dict[str, Any], capture: BridgeCapture, permit: str | None) -> None:
+    frequency.consume_capture_permit(session['run_id'], capture.kind, permit, _permit_clock())
+
+
+def append_capture(run_id: str, payload: dict[str, Any], *, permit: str | None = None) -> dict[str, Any]:
     capture = validate_capture(payload)
     normalized = capture.model_dump(mode="json")
     digest = _digest(normalized)
@@ -413,6 +435,8 @@ def append_capture(run_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         previous = (session.get("captures") or {}).get(digest)
         if previous:
             return {"duplicate": True, "result": previous, "session": session}
+        if capture.kind != 'blocked':
+            _consume_permit(session, capture, permit)
         if capture.kind == 'blocked':
             result = {'outcome': 'blocked', 'reason': capture.blocked_reason}
             _emit(run_id, 'access_blocked', reason=capture.blocked_reason)
@@ -459,3 +483,4 @@ def _finish_session(session: dict[str, Any], reason: str | None, status: str) ->
     _save_session(session)
     _sync_history(session)
     return session
+

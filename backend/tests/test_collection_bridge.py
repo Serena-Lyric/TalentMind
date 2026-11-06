@@ -5,7 +5,20 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from app.collect import bridge, control
+from app.collect import bridge, control, frequency
+
+
+_TEST_CLOCK = [1_800_000_000.0]
+
+
+def paced_capture(run_id, payload):
+    # Existing content/identity tests use the real gate at legal simulated times.
+    # Frequency rejection and permit lifecycle are tested separately.
+    _TEST_CLOCK[0] += 721
+    permit = None
+    if payload.get('kind') != 'blocked':
+        permit = bridge.authorize_capture(run_id, payload['kind'])['permit']
+    return bridge.append_capture(run_id, payload, permit=permit)
 
 
 def list_capture(*, count: int = 1) -> dict:
@@ -59,6 +72,10 @@ def detail_capture(**changes) -> dict:
 @pytest.fixture
 def private_state(tmp_path, monkeypatch):
     state = tmp_path / "collection"
+    _TEST_CLOCK[0] = 1_800_000_000.0
+    monkeypatch.setattr(frequency, '_STATE_PATH', state / 'frequency.sqlite3')
+    monkeypatch.setattr(frequency, '_clock', lambda: _TEST_CLOCK[0])
+    monkeypatch.setattr(bridge, '_permit_clock', lambda: _TEST_CLOCK[0])
     monkeypatch.setattr(control, "_STATE_DIR", state)
     monkeypatch.setattr(control, "_STATE_PATH", state / "control-state.json")
     monkeypatch.setattr(bridge, "_STATE_DIR", state)
@@ -97,7 +114,7 @@ def test_creating_bridge_session_does_not_query_database_or_browser(private_stat
 def test_extension_blocked_capture_stops_session_without_database(private_state, monkeypatch):
     monkeypatch.setattr(bridge, '_get_db', lambda: pytest.fail('blocked capture must not reach database'))
     run_id = bridge.create_session({'keyword': 'Java', 'city_name': '北京', 'city_code': '101010100'})['run_id']
-    result = bridge.append_capture(run_id, {
+    result = paced_capture(run_id, {
         'schema_version': 'm1-browser-bridge-v1', 'kind': 'blocked',
         'page_url': 'https://www.zhipin.com/web/passport/zp/security.html',
         'blocked_reason': 'security_verification',
@@ -107,7 +124,7 @@ def test_extension_blocked_capture_stops_session_without_database(private_state,
     assert result['session']['stop_reason'] == 'security_verification'
     assert result['session']['detail_attempted'] == 0
     with pytest.raises(ValueError, match='已结束'):
-        bridge.append_capture(run_id, list_capture())
+        paced_capture(run_id, list_capture())
 
 
 @pytest.mark.parametrize('action', ['start', 'reserve'])
@@ -129,7 +146,7 @@ def test_list_capture_must_match_single_page_session_target(private_state, query
     payload = list_capture()
     payload['page_url'] = 'https://www.zhipin.com/web/geek/jobs?' + query
     with pytest.raises(ValueError, match='bridge_search_target_mismatch'):
-        bridge.append_capture(run_id, payload)
+        paced_capture(run_id, payload)
     assert bridge.get_session(run_id)['listed'] == 0
 
 
@@ -139,7 +156,7 @@ def test_session_lifecycle_persists_history_events_and_counts(private_state):
     )
     run_id = created["run_id"]
 
-    bridge.append_capture(run_id, list_capture(count=2))
+    paced_capture(run_id, list_capture(count=2))
     current = bridge.get_session(run_id)
     assert current["status"] == "waiting_for_capture"
     assert current["listed"] == 2
@@ -161,7 +178,7 @@ def test_session_lifecycle_persists_history_events_and_counts(private_state):
     assert json.loads(event_file.read_text(encoding="utf-8").splitlines()[0])["event"] == "listed"
 
     with pytest.raises(ValueError, match="已结束"):
-        bridge.append_capture(run_id, list_capture())
+        paced_capture(run_id, list_capture())
 
 
 def test_duplicate_capture_digest_is_idempotent(private_state):
@@ -170,8 +187,8 @@ def test_duplicate_capture_digest_is_idempotent(private_state):
     )["run_id"]
     payload = list_capture(count=1)
 
-    first = bridge.append_capture(run_id, payload)
-    second = bridge.append_capture(run_id, payload)
+    first = paced_capture(run_id, payload)
+    second = paced_capture(run_id, payload)
 
     assert second["duplicate"] is True
     assert second["result"] == first["result"]
@@ -215,8 +232,8 @@ def test_missing_identity_schema_never_silently_drops_evidence(private_state, is
         for column in ('identity_status', 'content_eligible', 'identity_evidence'):
             db.exec_driver_sql(f'ALTER TABLE jd_pool DROP COLUMN {column}')
     run_id = bridge.create_session({'keyword': 'Java', 'city_name': '北京', 'city_code': '101010100'})['run_id']
-    bridge.append_capture(run_id, list_capture())
-    result = bridge.append_capture(run_id, detail_capture())
+    paced_capture(run_id, list_capture())
+    result = paced_capture(run_id, detail_capture())
     assert result['result'] == {'outcome': 'failed', 'reason': 'identity_schema_migration_required'}
     assert result['session']['finished_at']
     assert result['session']['status'] == 'error'
@@ -228,10 +245,10 @@ def test_missing_identity_schema_never_silently_drops_evidence(private_state, is
 def test_only_details_in_session_list_can_persist(private_state, isolated_db, capture_list_first):
     run_id = bridge.create_session({'keyword': 'Java', 'city_name': '北京', 'city_code': '101010100'})['run_id']
     if capture_list_first:
-        bridge.append_capture(run_id, list_capture())
+        paced_capture(run_id, list_capture())
     other = detail_capture(url='https://www.zhipin.com/job_detail/outside.html')
     other['page_url'] = other['detail']['url']
-    result = bridge.append_capture(run_id, other)
+    result = paced_capture(run_id, other)
     assert result['result'] == {'outcome': 'rejected', 'reason': 'detail_not_in_session_list'}
     with isolated_db.connect() as db:
         assert db.execute(text('SELECT COUNT(*) FROM jd_pool')).scalar_one() == 0
@@ -242,11 +259,11 @@ def test_list_capture_never_inserts_but_valid_detail_inserts_once(private_state,
         {"keyword": "Java", "city_name": "北京", "city_code": "101010100"}
     )["run_id"]
 
-    bridge.append_capture(run_id, list_capture(count=1))
+    paced_capture(run_id, list_capture(count=1))
     with isolated_db.connect() as connection:
         assert connection.execute(text("SELECT COUNT(*) FROM jd_pool")).scalar_one() == 0
 
-    inserted = bridge.append_capture(run_id, detail_capture())
+    inserted = paced_capture(run_id, detail_capture())
     assert inserted["result"]["outcome"] == "inserted"
     assert inserted["result"]["jd_pool_id"]
 
@@ -267,7 +284,7 @@ def test_list_capture_never_inserts_but_valid_detail_inserts_once(private_state,
         assert row["source_detail"] == "https://www.zhipin.com/job_detail/job-0.html"
         assert "Spring Boot" in row["raw_text"]
 
-    repeated = bridge.append_capture(run_id, detail_capture(description="负责 Java 服务端开发\n掌握 MySQL"))
+    repeated = paced_capture(run_id, detail_capture(description="负责 Java 服务端开发\n掌握 MySQL"))
     assert repeated["result"]["outcome"] == "skipped"
     assert repeated["result"]["jd_pool_id"] == inserted["result"]["jd_pool_id"]
     assert bridge.get_session(run_id)["inserted"] == 1
@@ -303,8 +320,13 @@ def test_control_api_pairing_list_detail_and_verification_stop(private_state, is
             })).json()
             run_id = created['data']['run_id']
             base = f'/api/collection/bridge/sessions/{run_id}'
+            permit = (await client.post(base + '/permit', headers=extension, json={'kind': 'list'})).json()
+            extension['X-TalentMind-Capture-Permit'] = permit['data']['permit']
             listed = await client.post(base + '/captures', headers=extension, json=list_capture(count=2))
             assert listed.json()['data']['session']['listed'] == 2
+            _TEST_CLOCK[0] += 721
+            permit = (await client.post(base + '/permit', headers=extension, json={'kind': 'detail'})).json()
+            extension['X-TalentMind-Capture-Permit'] = permit['data']['permit']
             detail = await client.post(base + '/captures', headers=extension, json=detail_capture())
             assert detail.json()['data']['result']['outcome'] == 'inserted'
             blocked = await client.post(base + '/captures', headers=extension, json={
@@ -336,9 +358,9 @@ def test_invalid_detail_is_rejected_without_write(private_state, isolated_db, ch
     run_id = bridge.create_session(
         {"keyword": "Java", "city_name": "北京", "city_code": "101010100"}
     )["run_id"]
-    bridge.append_capture(run_id, list_capture(count=1))
+    paced_capture(run_id, list_capture(count=1))
 
-    result = bridge.append_capture(run_id, detail_capture(**change))
+    result = paced_capture(run_id, detail_capture(**change))
 
     assert result["result"]["outcome"] == "rejected"
     assert result["result"]["reason"] == reason
@@ -353,7 +375,7 @@ def test_sixth_detail_url_is_rejected_at_session_limit(private_state, isolated_d
     run_id = bridge.create_session(
         {"keyword": "Java", "city_name": "北京", "city_code": "101010100", "detail_limit": 5}
     )["run_id"]
-    bridge.append_capture(run_id, list_capture(count=5))
+    paced_capture(run_id, list_capture(count=5))
 
     for index in range(5):
         payload = detail_capture(
@@ -361,12 +383,13 @@ def test_sixth_detail_url_is_rejected_at_session_limit(private_state, isolated_d
             title=f"Java 后端工程师 {index}",
         )
         payload["page_url"] = payload["detail"]["url"]
-        bridge.append_capture(run_id, payload)
+        paced_capture(run_id, payload)
 
     sixth = detail_capture(url="https://www.zhipin.com/job_detail/job-5.html", title="Java 后端工程师 5")
     sixth["page_url"] = sixth["detail"]["url"]
-    result = bridge.append_capture(run_id, sixth)
+    result = paced_capture(run_id, sixth)
 
     assert result["result"]["outcome"] == "rejected"
     assert result["result"]["reason"] == "bridge_session_limit_reached"
     assert bridge.get_session(run_id)["detail_attempted"] == 5
+

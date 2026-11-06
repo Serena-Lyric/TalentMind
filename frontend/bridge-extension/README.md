@@ -29,3 +29,9 @@ The committed public key fixes the unpacked extension ID so the loopback API can
 Only one capture may be in flight in the extension worker. Repeated clicks (including a reopened popup) are rejected while that request is running. The local POST and response-body read share a 15-second deadline. Timeouts, connection errors and invalid JSON leave the submission outcome **unknown**: check the session results in the TalentMind console before another explicit capture. Aborting a client request does not prove the server did not persist it. There is no automatic retry, and the in-memory guard is not a cross-worker-restart exactly-once guarantee.
 
 Offline regression: from `frontend/`, run `node --experimental-strip-types --test tests/bridge*.test.ts`. These tests simulate Chrome APIs and DOM boundaries; they do not verify extension installation, live-site compatibility or database persistence.
+
+## Mandatory module pacing
+
+Update the backend and reload this extension together. Before any DOM extraction the worker requests a one-use capture permit from the local bridge. A denied permit means the page is not read. The backend uses the same persistent per-platform ledger as CDP collection, with the existing 15–30 second page and 6–12 minute keyword/city switch cadence. Browser-capture reservations use 30 seconds and expire after 15 seconds; the switch reservation also compensates for that 15-second window (375–720 seconds); stale, missing or consumed permits cannot process new content. Creating a new session or restarting the worker does not reset this ledger. A failed attempt does not refund its time slot.
+
+This enforces module-controlled collection, not arbitrary manual browsing or third-party tools. Do not collect outside the module and submit it as a paced live trial. Rate limits never authorize bypassing login, verification or access restrictions.

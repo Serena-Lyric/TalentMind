@@ -10,6 +10,8 @@ from typing import Callable
 
 from app.collect.fetch_cn_jobs import parse_cities, run_fetch, split_csv
 from app.collect.fetchers.cdp import CdpError
+from app.collect.frequency import FrequencyStateError
+from app.collect.timing_validation import validate_collection_ranges, validate_range
 from app.collect.fetchers.job_sites import SITES
 
 
@@ -57,9 +59,8 @@ def run_loop(
         raise ValueError(f"不支持的平台: {platform}")
     if not targets or rounds < 0:
         raise ValueError("targets 不能为空，rounds 不能为负数")
-    ranges = ((page_delay_min, page_delay_max), (settle_min, settle_max), (switch_interval_min, switch_interval_max))
-    if any(lower < 0 or upper < lower for lower, upper in ranges):
-        raise ValueError("时间范围必须满足 0 <= lower <= upper")
+    validate_collection_ranges(page_delay_min, page_delay_max, settle_min, settle_max,
+                               switch_interval_min, switch_interval_max)
     rng = rng or random.Random()
     index = 0
     while rounds == 0 or index < rounds:
@@ -89,7 +90,7 @@ def run_loop(
             print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} 第 {index} 轮完成: {result}", flush=True)
             if result.get('stop_reason'):
                 return 2
-        except CdpError as exc:
+        except (CdpError, FrequencyStateError) as exc:
             print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {platform} CDP/登录状态异常，停止循环: {exc}", flush=True)
             return 2
         except Exception as exc:
@@ -153,3 +154,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

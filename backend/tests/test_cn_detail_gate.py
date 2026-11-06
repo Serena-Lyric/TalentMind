@@ -3,6 +3,8 @@ from datetime import datetime
 import json
 import shutil
 import subprocess
+import sys
+import types
 
 import pytest
 from sqlalchemy import create_engine, event, text
@@ -10,6 +12,7 @@ from sqlalchemy.orm import Session
 from websockets.exceptions import WebSocketException
 
 from app.collect import fetch_cn_jobs as cn
+from app.collect import frequency
 from app.collect.fetchers.job_sites import SITES, build_detail_extract_js, normalize_job
 from app.collect.cleaner import clean
 
@@ -24,8 +27,20 @@ def detail(n, **kw):
 
 
 @pytest.fixture
-def offline(monkeypatch,tmp_path):
-    from app.db import mysql
+def frequency_clock(monkeypatch, tmp_path):
+    clock = [1000.0]
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(frequency, '_clock', lambda: clock[0])
+    monkeypatch.setattr(cn.time, 'sleep', lambda seconds: clock.__setitem__(0, clock[0] + seconds))
+    return clock
+
+
+@pytest.fixture
+def offline(monkeypatch, tmp_path, frequency_clock):
+    mysql = types.ModuleType('app.db.mysql')
+    monkeypatch.setitem(sys.modules, 'app.db.mysql', mysql)
+    import app.db
+    monkeypatch.setattr(app.db, 'mysql', mysql, raising=False)
     path=tmp_path/'cn-detail.sqlite3'
     engine=create_engine('sqlite:///'+str(path))
     @event.listens_for(engine,'before_cursor_execute',retval=True)
@@ -41,10 +56,9 @@ def offline(monkeypatch,tmp_path):
         )
     def provider():
         with Session(engine) as db:yield db
-    monkeypatch.setattr(mysql,'get_db',provider)
+    monkeypatch.setattr(mysql,'get_db',provider, raising=False)
     monkeypatch.setattr(cn.browser,'ensure_ready',lambda *a,**kw:{'endpoint':'http://127.0.0.1:9333','target_id':'same'})
     monkeypatch.setattr(cn.browser,'wait_access',lambda *a,**kw:{'can_collect':True,'content_limited':False})
-    monkeypatch.setattr(cn.time,'sleep',lambda _:None)
     cards=[card(1)]
     details={card(1)['url']:detail(1)}
     monkeypatch.setattr(cn,'fetch_search_page',lambda *a,**kw:list(cards))
@@ -60,7 +74,7 @@ def offline(monkeypatch,tmp_path):
     def rows():
         with engine.connect() as db:return list(db.exec_driver_sql('SELECT * FROM jd_pool').mappings())
     def run(**kw):
-        return cn.run_fetch('liepin',['Python'],[('北京','010')],cdp_endpoint='http://127.0.0.1:9333',pages=1,max_jobs=5,delay=0,settle=0,**kw)
+        return cn.run_fetch('liepin',['Python'],[('北京','010')],cdp_endpoint='http://127.0.0.1:9333',pages=1,max_jobs=5,delay=15,settle=5,**kw)
     try:yield cards,details,rows,run
     finally:
         engine.dispose()
@@ -335,8 +349,11 @@ def test_persistence_failure_emits_specific_reason_and_stops_next_detail(offline
     assert rows() == []
 
 
-def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monkeypatch):
-    from app.db import mysql
+def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monkeypatch, frequency_clock):
+    mysql = types.ModuleType('app.db.mysql')
+    monkeypatch.setitem(sys.modules, 'app.db.mysql', mysql)
+    import app.db
+    monkeypatch.setattr(app.db, 'mysql', mysql, raising=False)
     path = tmp_path / 'zhaopin-pending.sqlite3'
     engine = create_engine('sqlite:///' + str(path))
     with engine.begin() as db:
@@ -350,7 +367,7 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
     def provider():
         with Session(engine) as db:
             yield db
-    monkeypatch.setattr(mysql, 'get_db', provider)
+    monkeypatch.setattr(mysql, 'get_db', provider, raising=False)
     monkeypatch.setattr(cn.browser, 'ensure_ready', lambda *a, **kw: {
         'endpoint': 'http://127.0.0.1:9333', 'target_id': 'same'
     })
@@ -384,6 +401,8 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
         def __init__(self):
             self.probes = iter([before, changed, changed])
         def evaluate(self, script):
+            if script == 'location.href':
+                return job['_list_url']
             if 'card.click();' in script:
                 return {'clicked': True}
             if 'description_truncated:' in script:
@@ -393,13 +412,12 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
             pass
     monkeypatch.setattr(cn, 'fetch_search_page', lambda *a, **kw: [dict(job)])
     monkeypatch.setattr(cn.CdpClient, 'connect_first_page', lambda *a, **kw: Client())
-    monkeypatch.setattr(cn.time, 'sleep', lambda _: None)
     events = []
     try:
         stats = cn.run_fetch(
             'zhaopin', ['Java'], [('上海', '538')],
             cdp_endpoint='http://127.0.0.1:9333', pages=1,
-            detail_limit=1, max_jobs=1, delay=0, settle=0,
+            detail_limit=1, max_jobs=1, delay=15, settle=5,
             on_event=events.append,
         )
         assert stats['detail_obtained'] == 1
@@ -419,3 +437,4 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
         engine.dispose()
         path.unlink(missing_ok=True)
         assert not path.exists()
+

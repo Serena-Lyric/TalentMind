@@ -2,7 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-import { captureCurrentPage } from '../bridge-extension/extractor.js'
+import { captureCurrentPage as extractWithPermit } from '../bridge-extension/extractor.js'
+const captureCurrentPage = (kind: string) => extractWithPermit(kind, Date.now() / 1000 + 15)
 
 class FakeNode {
   innerText: string
@@ -203,4 +204,12 @@ test('manifest has only explicit-click permissions and a narrow loopback host', 
   assert.equal(manifest.background.type, 'module')
   assert.equal(JSON.stringify(manifest).includes('<all_urls>'), false)
   assert.equal(JSON.stringify(manifest).toLowerCase().includes('cookie'), false)
+})
+
+
+
+test('injected extractor rejects an expired permit before touching DOM or location', () => {
+  Object.assign(globalThis, { document: undefined, location: undefined })
+  assert.deepEqual(extractWithPermit('detail', Date.now() / 1000 - 1), { ok: false, reason: 'capture_permit_expired' })
+  assert.deepEqual(extractWithPermit('detail', undefined), { ok: false, reason: 'capture_permit_expired' })
 })

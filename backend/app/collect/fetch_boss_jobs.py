@@ -19,6 +19,8 @@ from app.collect.cleaner import clean, is_valid_jd
 from app.collect.pipeline import run_pipeline
 from app.collect.repository import save_incremental_jd_rows
 from app.collect import browser
+from app.collect import frequency
+from app.collect.timing_validation import validate_fetch_timing
 
 SEARCH_URL = "https://www.zhipin.com/web/geek/jobs"
 
@@ -132,13 +134,14 @@ def run_fetch(
     pages: int = 5,
     detail_limit: int = 100,
     max_jobs: int = 0,
-    delay: float = 2.0,
-    settle: float = 2.0,
+    delay: float = 15.0,
+    settle: float = 5.0,
     no_details: bool = False,
     browser_timeout: float = 20,
     login_timeout: float = 120,
     on_event=None,
 ) -> dict:
+    validate_fetch_timing(delay, settle)
     if not keywords or not cities:
         raise ValueError("至少需要一个关键词和一个城市")
     if pages < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0:
@@ -175,7 +178,11 @@ def run_fetch(
                     consecutive_empty = 0
                     for page in range(1, pages + 1):
                         url = _search_url(keyword, city_code, page)
-                        page_jobs = _fetch_search_page(client, url, settle)
+                        page_jobs = browser.run_search_navigation(
+                            'boss', url, lambda: _fetch_search_page(client, url, settle),
+                        )
+                        for job in page_jobs:
+                            job["_collection_query"] = (keyword, city_code)
                         if not page_jobs:
                             consecutive_empty += 1
                             if consecutive_empty >= 2:
@@ -208,17 +215,23 @@ def run_fetch(
             detail_client = CdpClient.connect_first_page(cdp_endpoint, target_url_contains="zhipin.com", target_id=prepared.get('target_id'))
             try:
                 for index, job in enumerate(jobs[:detail_limit], 1):
-                    details_count += 1
-                    stats['details'] = stats['detail_attempted'] = details_count
-                    stats['unattempted'] = len(jobs) - details_count
-                    emit('detail_attempt', job=job, index=index)
-                    try:
+                    if index == 1:
+                        time.sleep(delay)  # Honor a slower caller setting after an early list break.
+                    keyword, city_code = job["_collection_query"]
+                    def read_detail():
+                        nonlocal details_count
+                        details_count += 1
+                        stats['details'] = stats['detail_attempted'] = details_count
+                        stats['unattempted'] = len(jobs) - details_count
+                        emit('detail_attempt', job=job, index=index)
                         detail_client.navigate(job["url"], settle_seconds=settle)
                         access = browser.wait_access(detail_client, 'boss', max(5.0, settle * 2.0))
                         if access.get('content_limited'):
                             raise browser.AccessBlocked('limited_guest_content')
-                        detail = detail_client.evaluate(DETAIL_EXTRACT_JS)
-                    except (browser.AccessBlocked, CdpConnectionError) as exc:
+                        return detail_client.evaluate(DETAIL_EXTRACT_JS)
+                    try:
+                        detail = frequency.run_action('boss', keyword, city_code, read_detail, sleeper=time.sleep)
+                    except (browser.AccessBlocked, CdpConnectionError, frequency.FrequencyStateError) as exc:
                         stats['failed'] += 1
                         stats['stop_reason'] = str(exc)
                         emit('failure', job=job, reason=str(exc))
@@ -228,8 +241,11 @@ def run_fetch(
                         stats['failed'] += 1
                         emit('failure', job=job, reason=str(exc))
                         print(f"[fetch_boss_jobs] 详情失败 {index}/{min(detail_limit, len(jobs))}: {exc}")
-                        time.sleep(delay)
-                        continue
+                        # The action ledger retains uncertainty after a callback error.
+                        # Do not attempt another real page until it has been reviewed.
+                        stats['stop_reason'] = str(exc)
+                        emit('finished', stats=stats)
+                        raise
                     reason = detail_rejection(job, detail)
                     if isinstance(detail, dict) and str(detail.get('description') or '').strip():
                         stats['detail_obtained'] += 1
@@ -278,8 +294,8 @@ def main() -> int:
     parser.add_argument("--pages", type=int, default=5, help="每个关键词/城市最多翻页数")
     parser.add_argument("--detail-limit", type=int, default=100, help="最多补采详情的岗位数，0=不补采")
     parser.add_argument("--max-jobs", type=int, default=0, help="全局岗位上限，0=不限制")
-    parser.add_argument("--delay", type=float, default=2.0, help="页面之间等待秒数")
-    parser.add_argument("--settle", type=float, default=2.0, help="页面加载后的等待秒数")
+    parser.add_argument("--delay", type=float, default=15.0, help="页面之间等待秒数")
+    parser.add_argument("--settle", type=float, default=5.0, help="页面加载后的等待秒数")
     parser.add_argument("--no-details", action="store_true", help="只采列表，不打开详情页")
     parser.add_argument('--prepare-only', action='store_true', help='只准备浏览器，不采集、不连接数据库')
     parser.add_argument('--browser-timeout', type=float, default=20)
@@ -316,3 +332,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
