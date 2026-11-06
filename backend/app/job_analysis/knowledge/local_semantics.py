@@ -23,6 +23,7 @@ class LocalManifest(Strict):
     model_file: Text
     runtime_file: Text
     runtime_files: dict[str, Sha256]
+    prompt_format: Literal["qwen3-no-thinking", "qwen3-instruct"] = "qwen3-no-thinking"
 
 
 def file_digest(path):
@@ -43,36 +44,37 @@ class LocalModel:
     manifest: LocalManifest
 
     def complete(self, prompt):
+        _verify_files(self.root, self.manifest)
+        payload = parse_json(prompt.rsplit("\nDATA_JSON\n", 1)[1])
+        alternatives = []
+        for role in payload["references"]:
+            alternatives.append(dict(type="object", additionalProperties=False,
+                required=["unit_id", "role_id", "reference_id", "relation", "reason"],
+                properties=dict(unit_id=dict(type="string", enum=[w["unit_id"] for w in payload["work"]]),
+                    role_id=dict(type="string", const=role["role_id"]),
+                    reference_id=dict(type="string", enum=[t["reference_id"] for t in role["tasks"]]),
+                    relation=dict(type="string", enum=["possible_support", "related", "insufficient"]),
+                    reason=dict(type="string", minLength=1))))
+        schema = dict(type="object", required=["matches"], additionalProperties=False,
+                      properties=dict(matches=dict(type="array", items=dict(anyOf=alternatives))))
+        return self.complete_json(prompt, schema)
+
+    def complete_json(self, prompt, schema):
         config = self.manifest
         _verify_files(self.root, config)
         settings = config.binding.generation
         with tempfile.TemporaryDirectory(prefix="talentmind-local-") as temporary:
             directory = Path(temporary)
-            # Explicit Qwen3 non-thinking chat serialization; no console/chat
-            # parser, tool execution, remote endpoint or executable shell.
+            instruction = prompt + ("\n/no_think" if config.prompt_format == "qwen3-no-thinking" else "")
+            suffix = "<think>\n\n</think>\n\n" if config.prompt_format == "qwen3-no-thinking" else ""
             packed = ("<|im_start|>system\n你是严谨的岗位工作比较助手。只输出JSON。<|im_end|>\n"
-                      "<|im_start|>user\n" + prompt + "\n/no_think<|im_end|>\n"
-                      "<|im_start|>assistant\n<think>\n\n</think>\n\n")
+                      "<|im_start|>user\n" + instruction + "<|im_end|>\n<|im_start|>assistant\n" + suffix)
             (directory / "prompt.txt").write_text(packed, encoding="utf-8")
-            payload = parse_json(prompt.rsplit("\nDATA_JSON\n", 1)[1])
-            # Constrain IDs during decoding as well as validating afterwards.
-            # A model must not replace a task ID with a plausible role label.
-            alternatives = []
-            for role in payload["references"]:
-                alternatives.append(dict(type="object", additionalProperties=False,
-                    required=["unit_id", "role_id", "reference_id", "relation", "reason"],
-                    properties=dict(unit_id=dict(type="string", enum=[w["unit_id"] for w in payload["work"]]),
-                        role_id=dict(type="string", const=role["role_id"]),
-                        reference_id=dict(type="string", enum=[t["reference_id"] for t in role["tasks"]]),
-                        relation=dict(type="string", enum=["possible_support", "related", "insufficient"]),
-                        reason=dict(type="string", minLength=1))))
-            schema = dict(type="object", required=["matches"], additionalProperties=False,
-                          properties=dict(matches=dict(type="array", items=dict(anyOf=alternatives))))
             (directory / "schema.json").write_text(canonical(schema), encoding="utf-8")
             env = {k: v for k, v in os.environ.items() if not k.startswith(("LLAMA_", "HF_"))}
             done = subprocess.run([
                 str(_local(self.root, config.runtime_file)), "--model", str(_local(self.root, config.model_file)),
-                "--offline", "--no-conversation", "--no-display-prompt", "--simple-io",
+                "--offline", "--no-conversation", "--no-display-prompt", "--simple-io", "--no-context-shift",
                 "--no-warmup", "--color", "off", "--threads", "4", "--seed", "0", "--temp", "0",
                 "--ctx-size", str(settings.context_size), "--predict", str(settings.max_tokens),
                 "--file", str(directory / "prompt.txt"), "--json-schema-file", str(directory / "schema.json"),
@@ -147,6 +149,10 @@ def apply_response(result, response, binding):
         trace.update(status="completed", reason_code="unreviewed_local_model_hypotheses", matches=matches)
     except (ValueError, TypeError, KeyError):
         value["semantic"] = trace
+        return ContextAttributionResult.model_validate(value)
+    if result.explanation_version != "context-work-attribution-3":
+        value["semantic"] = trace
+        value["semantic"]["reason_code"] = "research_proposals_only_not_semantic_support"
         return ContextAttributionResult.model_validate(value)
     # Keep model hypotheses out of primary/core support and leave all source
     # gaps intact. They enrich candidates, never identity or explicit facts.

@@ -3,7 +3,7 @@ import re
 
 from ..foundation.inputs import InputRecord, digest
 from .attribution_models import WorkSupport, UnaccountedWork
-from .work_context_models import ContextAttributionResult, WorkUnit, WorkLink
+from .work_context_models import ContextAttributionResult, WorkUnit, WorkLink, axis_evaluation_v1
 from .work_evidence import AUXILIARY, CLAUSES, STATEMENTS, CONDITION, PREDICATES, evidence_slice, frame_hits, same_work_group
 
 # These are grammatical scope guards, not job-specific synonyms. Unhandled
@@ -201,14 +201,12 @@ def contextualize(baseline):
     elif baseline.work_shape == "mixed_hypothesis" and not main:
         shape = "mixed_hypothesis"
     value = baseline.model_dump()
-    value.update(schema_version="m2-role-attribution-2", explanation_version="context-work-attribution-3",
+    value.update(schema_version="m2-role-attribution-2", explanation_version="context-work-attribution-4",
         comparisons=[c.model_dump() for c in comparisons], work_units=[u.model_dump() for u in units],
         work_links=[l.model_dump() for l in context_links(baseline.source_analysis)],
         unaccounted_work=[g.model_dump() for g in gaps], primary_role_id=main, work_shape=shape,
         auxiliary_role_ids=[c.role_id for c in comparisons if c.judgment == "auxiliary"],
-        axis_assessments={name: dict(status="not_evaluated" if name == "seniority" else "evaluated",
-            reason_code="no_versioned_reference" if name == "seniority" else "local_work_evidence")
-            for name in ("family", "canonical_job", "technology_tracks", "seniority")},
+        axis_assessments=axis_evaluation_v1(baseline),
         semantic=dict(status="not_run", reason_code="no_local_model", binding=None,
                       input_json=None, prompt=None, prompt_sha256=None, response=None, response_sha256=None, matches=[]))
     value["axes"]["family"] = _axis(families).model_dump()

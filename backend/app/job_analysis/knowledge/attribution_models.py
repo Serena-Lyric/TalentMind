@@ -223,7 +223,7 @@ class AttributionResult(Strict):
                 for evidence in candidate.evidence:
                     source.check_evidence(evidence, row)
                 if (self.explanation_version == "bounded-work-attribution-2"
-                        or self.schema_version == "m2-role-attribution-2") and axis == "technology_tracks":
+                        or self.schema_version != "m2-role-attribution-1") and axis == "technology_tracks":
                     if candidate.role_ids or not candidate.claim_ids or any(
                             claims[cid].kind not in {"duty", "goal"} for cid in candidate.claim_ids):
                         raise ValueError("technology candidate requires actual work claims, independent of roles")

@@ -118,6 +118,28 @@ class AxisAssessment(Strict):
     reason_code: Text
 
 
+def axis_evaluation_v1(result):
+    """Availability of facts/references, independent for each axis."""
+    duties = any(c.kind == "duty" for c in result.source_claims)
+    work = any(c.kind in {"duty", "goal"} for c in result.source_claims)
+    available = {c.role_id for c in result.comparisons}
+    configured = {"family": any(r.role_id in available and r.family for r in result.policy.roles),
+                  "canonical_job": any(r.role_id in available and r.canonical_candidate for r in result.policy.roles)}
+    output = {}
+    for name in ("family", "canonical_job", "technology_tracks", "seniority"):
+        if name == "seniority":
+            reason = "no_versioned_reference"
+        elif not (work if name == "technology_tracks" else duties):
+            reason = "no_work_facts"
+        elif name != "technology_tracks" and not configured[name]:
+            reason = "no_versioned_reference"
+        else:
+            reason = "local_work_evidence"
+        output[name] = dict(status="evaluated" if reason == "local_work_evidence" else "not_evaluated",
+                            reason_code=reason)
+    return output
+
+
 class ContextAxisCandidate(AxisCandidate):
     basis: Literal["source_pattern", "surface_work_use", "local_model"]
     semantic_match_key: Text | None
@@ -136,7 +158,7 @@ class ContextAxes(Axes):
 
 class ContextAttributionResult(AttributionResult):
     schema_version: Literal["m2-role-attribution-2"] = "m2-role-attribution-2"
-    explanation_version: Literal["context-work-attribution-3"] = "context-work-attribution-3"
+    explanation_version: Literal["context-work-attribution-3", "context-work-attribution-4"] = "context-work-attribution-3"
     work_units: list[WorkUnit]
     work_links: list[WorkLink]
     axis_assessments: dict[str, AxisAssessment]
@@ -150,6 +172,12 @@ class ContextAttributionResult(AttributionResult):
         claims = {c.id: c for c in source.claims}
         if set(self.axis_assessments) != {"family", "canonical_job", "technology_tracks", "seniority"}:
             raise ValueError("missing axis assessment")
+        if self.explanation_version != "context-work-attribution-3":
+            if {k: v.model_dump() for k, v in self.axis_assessments.items()} != axis_evaluation_v1(self):
+                raise ValueError("axis evaluation lacks facts or reference")
+            if any(c.basis == "local_model" for name in ContextAxes.model_fields
+                   for c in getattr(self.axes, name).candidates):
+                raise ValueError("unverified model proposal cannot enter business axes")
         if len({u.id for u in self.work_units}) != len(self.work_units):
             raise ValueError("duplicate work unit")
         for unit in self.work_units:

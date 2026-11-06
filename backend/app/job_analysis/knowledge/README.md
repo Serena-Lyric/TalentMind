@@ -230,7 +230,7 @@ P2-2 方案、实际命令、首轮失败、DEV 分母、CI 和提审证据集�
 ### 上下文解释与本地语义候选（显式启用）
 
 前述 `bounded` 路径和 `m2-role-attribution-1` 继续保留。新增 `--method context`
-返回 `m2-role-attribution-2` / `context-work-attribution-3`；不传该参数仍使用旧路径。
+返回 `m2-role-attribution-2` / `context-work-attribution-4`；不传该参数仍使用旧路径。
 两种结果都由 `read-attribution` 读取，旧解释不补入新字段。`reexplain --method context`
 以旧 P1 追加新结果和 lineage，不覆盖旧目录。
 
@@ -262,8 +262,12 @@ python -m app.job_analysis.knowledge reexplain `
   来源关系单独保存，不补写 P1 成果，不把共享句子自动当成熟职业或正式明确关系。
 - `axis_assessments` 区分实际执行与无参考未执行。当前 seniority 为
   `not_evaluated/no_versioned_reference`；技术仍为有出处的原词工作方向，不是正式方向目录。
+  解释 v4 中 family/canonical 分别要求有职责事实和适用参考，缺少时明确 not_evaluated；
+  技术轴可使用独立的 duty/goal 工作事实，不受职业目录为空影响。
   `axes.*.candidates` 新增 `basis` 与 `semantic_match_key`，可区分模式、技术原词和模型候选。
-  **模型候选只进入 candidates，不单独选中 values、主岗或消除未解释工作。**
+  解释 v4 的原始模型提议只留在 `semantic` 研究记录，**不进入 axes 候选、召回集合、选中值或主岗，
+  不改变工作片段的支持状态或消除 gap**。历史 v3 曾把弱提议放入 candidates，读取仍保持原样；
+  这不证明旧弱候选已获语义支持，纠正需显式 reexplain。
 - 可选 `semantic` 输出本地模型对工作与参考任务的 `possible_support/related/insufficient`，
   保存理由、双侧证据、模型/运行时/生成参数、固定输入 JSON、当时提示词和响应摘要。
   输入 v2 按 claim 保存实际原文上下文，工作片段引用 claim ID，避免只凭 P1 转述补省略对象；
@@ -296,3 +300,57 @@ revision `bc640142c66e1fdd12af0bd68f40445458f3869b` 的 Q4_K_M（Apache-2.0）�
 当前本地 Qwen 4B 的受控 DEV 诊断已观察到明确对象/动作误支持和遗漏，**不宜自动用于业务岗位判断**；
 弱候选隔离和来源校验不能证明模型语义可靠，P2-2 业务验收仍未通过。
 本地生成式推理的实测与失败、NLI 方案拒用理由及分母见 Issue #63；CI 的合成契约回归不等于模型效果。
+
+### 任务对照：动作、对象与实际执行关系
+
+`--method evidence` 返回 `m2-role-attribution-3/task-evidence-attribution-3`，保留 context 的
+P1、知识、对齐、作用域与 gap，再增加独立的任务检索/比较结果。原始模型提议、分数和机器对照
+均不写入正式身份，不选择主岗，不回写 P1 或清除基线 gap。
+
+```powershell
+# 仅使用显式提供的本地文件；optional 依赖不用于普通 CLI 或历史读取。
+python -m pip install -r app/job_analysis/knowledge/requirements-local-semantics.txt
+python -m app.job_analysis.knowledge attribute `
+  --analysis ../data/local/<saved-p1-run> `
+  --snapshot app/job_analysis/knowledge/catalog/role-references.v3 `
+  --policy app/job_analysis/knowledge/policies/role-attribution.v2.json `
+  --method evidence --local-model ../data/local/<runtime-root>/local-model-instruct.json `
+  --task-retriever ../data/local/<retriever-root>/source.json `
+  --pairs-per-role 2 --output ../data/local/<new-task-comparison>
+```
+
+- `task_selection.proposals` 保存合资格职责与全部参考任务的对照池、两种优先级分数、输入是否截断。
+  本地 NLI 只排检查顺序，不作语义核验；另一优先级采用源职责/参考任务的字符词面覆盖。
+  每角色先语义首位、再词面首位，剩余预算按语义顺序，预算允许 1～3 个 **pair**，不是 claim 数。
+  分数、标题或技术相同均不能确认工作。`selected_pair_ids/checked_pair_ids/pending_selected_pair_ids`
+  与实际检查绑定；`unchecked_pair_ids` 单列预算外未检查范围，不作为否定或完整召回。
+- 每个 `task_assessments` 只给定一个职责 claim 和一个参考任务，不让模型自由生成岗位/任务 ID。
+  `action_relation/object_relation/execution_relation` 分别解释；处于同一流程或供他人使用的输入
+  不等于本岗直接承担目标任务；招聘职责不要求已经做完，具体子任务也可以支持一般任务。
+  双方动作/对象短引必须逐字来自实际原文、参考定义或该任务绑定的原始引用，原始响应、
+  提示词、输入、模型/运行时摘要、模板类型和逐对耗时保存。
+- `machine_supported` 要求动作、对象均支持且实际执行，还须通过源 claim、作用域和共同工作范围
+  检查；不得把两项独立工作的动作与对象拼接。它是**机器任务方面判断，非独立人审确认**。
+  v3 的正向主判断还须单独检查对象类型：同一模型只看到双方对象及实际动作短引，不看整个
+  流程理由，区分对象本体/运行组成与说明、计划、输入材料。`object_check` 单独留存输入、输出、
+  耗时与绑定；没有执行、未知或失败都不产生支持。它是同模型的第二个问题，不是独立模型/人工真值。
+  `different_work` 只表示该对工作不相符，不是排除职业或正式边界反证；`unresolved/failed`
+  分别保存语义/关系缺口与调用、格式、引用失败，不能合并为正确未知。
+- 只有 machine_supported 生成独立的 `work_candidates`，每项绑定 assessment、源职责、参考任务和成熟度。
+  它们与 `axes` 中的基线模式候选、`semantic` 的原始研究提议分别消费，均不能冒充正式职业。
+  CLI 的 `task_execution_status`、选中/已检查/待检查数须一并查看；`semantic_status` 仍是旧研究提议阶段状态。
+- 任务输入 v2/v3 去除重复身份元数据，有知识对齐的能力上下文才进入模型，未知项仍留在 P1/alignment，
+  并保存未发送数量；不是删除未知能力。v3 明确比较岗位责任而非已完成履历；v1/v2 保留原读取语义，
+  旧产物不补写空 object_check，不升级为 v3 已检查。历史读取不调用模型。
+
+本地优先级清单 `source.json` 包含 `repository/revision/license/files`，files 必须恰为
+`config.json/tokenizer.json/model.onnx` 的 SHA；路径和字节经校验，ONNX 仅 CPU 推理，不联网。
+目前适配 id2label 为 entailment/neutral/contradiction 的 XLM-R ONNX；分数仅是 priority。
+
+生成模型清单可显式设 `prompt_format=qwen3-instruct`；旧清单默认 qwen3-no-thinking。
+Instruct 模板不注入思考标签或 no_think 指令，禁用上下文滚动，超长/截断输出按失败保留。
+本轮使用 [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507) 的
+[Unsloth GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF)
+revision `a06e946bb6b655725eafa393f4a9745d460374c9`、Q4_K_M、Apache-2.0；字节 SHA 为
+`3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`。
+模型和数据产物留在私有目录；效果、失败、DEV 分母与真实 CI 写在 Issue #63，不能仅据新契约声称业务通过。

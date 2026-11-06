@@ -7,8 +7,14 @@ import pytest
 from app.job_analysis.foundation.inputs import digest
 from app.job_analysis.knowledge.attribution import read_attribution
 from app.job_analysis.knowledge.storage import save_result
-from test_knowledge_context import execute
+from test_knowledge_context import execute as current_context
 from test_knowledge_roles import analysis_with_duties
+
+
+def execute(value, **kwargs):
+    # Preserve the already-published v3 history semantics. Current proposal
+    # isolation is exercised in test_knowledge_task_comparison.py.
+    return current_context(value, **kwargs).model_copy(update={"explanation_version": "context-work-attribution-3"})
 
 
 def binding():

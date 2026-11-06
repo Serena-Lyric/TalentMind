@@ -45,6 +45,9 @@ NUMBERED = re.compile(r"(?:岗位|职位)([一二三1-3])[：:]")
 def read_attribution(path: Path | str) -> AttributionResult:
     """Read historical results against their embedded facts, definitions and rules."""
     value = read_result(path)
+    if value.get("schema_version") == "m2-role-attribution-3":
+        from .task_models import TaskAttributionResult
+        return TaskAttributionResult.model_validate(value)
     if value.get("schema_version") == "m2-role-attribution-2":
         from .work_context_models import ContextAttributionResult
         return ContextAttributionResult.model_validate(value)
@@ -98,7 +101,15 @@ def _axis(candidates, values=None, reason="仅表示当前版本中的有界机�
 
 def attribute_roles(analysis: dict, knowledge: LoadedSnapshot, policy: BoundPolicy,
                     candidate_projection: CandidateProjectionBinding | None = None, *,
-                    method="bounded", local_model=None) -> AttributionResult:
+                    method="bounded", local_model=None, task_retriever=None, pairs_per_role=1) -> AttributionResult:
+    if method == "evidence":
+        if local_model is None or task_retriever is None:
+            raise ValueError("task evidence method needs explicit local model and retriever")
+        from .task_comparison import start_comparison, compare_selected
+        context = attribute_roles(analysis, knowledge, policy, candidate_projection, method="context")
+        return compare_selected(start_comparison(context), task_retriever, local_model, pairs_per_role)
+    if task_retriever is not None:
+        raise ValueError("task retriever requires evidence method")
     if method == "context":
         from .work_context import contextualize
         result = contextualize(attribute_roles(analysis, knowledge, policy, candidate_projection))
