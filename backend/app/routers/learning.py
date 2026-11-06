@@ -27,20 +27,20 @@ _EVIDENCE_MAX = 110
 
 
 class LearningPathRequest(BaseModel):
-    job_id: int
+    job_id: int = Field(gt=0)
     resume_skills: list[str] = Field(default_factory=list)
 
 
 def _list(value: Any) -> list[str]:
     if isinstance(value, list):
-        return [str(item) for item in value if str(item).strip()]
+        return [item.strip() for item in value if isinstance(item, str) and item.strip()]
     if not value:
         return []
     try:
         parsed = json.loads(value)
     except (TypeError, json.JSONDecodeError):
         return []
-    return _list(parsed)
+    return _list(parsed) if isinstance(parsed, list) else []
 
 
 def _job(db, job_id: int):
@@ -77,7 +77,10 @@ def _skill_meta(name: str) -> tuple[str, list[str]]:
 
 
 def _canonical_skills(values: list[str]) -> dict[str, str]:
-    return {str(value): to_canonical(str(value)) for value in values if str(value).strip()}
+    unique = {}
+    for value in _list(values):
+        unique.setdefault(to_canonical(value), value)
+    return {raw: canonical for canonical, raw in unique.items()}
 
 
 def _evidence_map(db, row: Any) -> dict[str, str]:
@@ -91,12 +94,16 @@ def _evidence_map(db, row: Any) -> dict[str, str]:
     if not row_sk or not row_sk["skills"]:
         return {}
     try:
-        items = json.loads(row_sk["skills"])
+        items = row_sk["skills"] if isinstance(row_sk["skills"], list) else json.loads(row_sk["skills"])
     except (TypeError, json.JSONDecodeError):
         return {}
     out: dict[str, str] = {}
+    if not isinstance(items, list):
+        return out
     for item in items:
-        canonical = str(item.get("canonical_name") or "").strip().lower()
+        if not isinstance(item, dict):
+            continue
+        canonical = to_canonical(str(item.get("canonical_name") or ""))
         evidence = str(item.get("evidence") or "").strip()
         if canonical and evidence:
             out.setdefault(canonical, evidence)
@@ -112,7 +119,7 @@ def _gap_item(
     evidence_map: dict[str, str],
 ) -> dict:
     """构造一条缺口技能及其针对性建议（全部字段有真实数据出处，不编造）。"""
-    category, aliases = _skill_meta(name)
+    category, aliases = _skill_meta(canonical)
     display = aliases[0] if aliases else name
     bridge: list[str] = []
     if category and category != "其他":
@@ -124,7 +131,7 @@ def _gap_item(
     if not aliases and category == "其他" and not evidence:
         text += "；技能词典未收录该写法，建议按岗位职责描述与真实项目实践补足"
     if bridge:
-        text += f"；你可基于已掌握的同类技能（{'、'.join(bridge[:3])}）顺延补齐"
+        text += f"；可对照简历提到的同类技能（{'、'.join(bridge[:3])}）安排练习"
     if evidence:
         shown = evidence if len(evidence) <= _EVIDENCE_MAX else evidence[:_EVIDENCE_MAX] + "…"
         text += f"；岗位依据：{shown}"
@@ -140,6 +147,8 @@ def _gap_item(
         "evidence": evidence,
         "bridge_skills": bridge,
         "suggestion": text,
+        "practice": f"围绕{display}完成一个与目标岗位相关的最小练习，记录步骤、结果和遇到的问题。",
+        "completion_criteria": f"能独立复现{display}练习，解释关键选择，并提供代码、操作记录或项目实例；如已有经历，可先补充证据。",
     }
 
 _BASE_CATEGORIES = {"编程语言", "数据库"}
@@ -175,7 +184,7 @@ def build_learning_path(
     evidence_map = evidence_map or {}
     resume_set = {to_canonical(skill) for skill in resume_skills if str(skill).strip()}
     required_map = _canonical_skills(required)
-    bonus_map = _canonical_skills(bonus)
+    bonus_map = {n: c for n, c in _canonical_skills(bonus).items() if c not in set(required_map.values())}
 
     # 简历技能按类别归档（用于"同类别衔接"建议）
     resume_by_category: dict[str, set[str]] = defaultdict(set)
@@ -188,9 +197,15 @@ def build_learning_path(
         resume_by_category[cat].add(canonical)
 
     mastered_required = [n for n, c in required_map.items() if c in resume_set]
-    missing_required = [n for n, c in required_map.items() if c not in resume_set]
+    missing_required = [n for n, c in required_map.items() if c not in resume_set and _skill_meta(c)[0] != '软技能']
     mastered_bonus = [n for n, c in bonus_map.items() if c in resume_set]
-    missing_bonus = [n for n, c in bonus_map.items() if c not in resume_set]
+    missing_bonus = [n for n, c in bonus_map.items() if c not in resume_set and _skill_meta(c)[0] != '软技能']
+    verification = [
+        {"name": n, "category": "软技能", "priority": priority, "status": "needs_verification",
+         "reason": "简历未提及，不能据此判断缺乏该能力", "suggestion": "请核实实际经历，可补充具体情境、采取的行动与结果。"}
+        for mapping, priority in ((required_map, 'high'), (bonus_map, 'medium'))
+        for n, c in mapping.items() if c not in resume_set and _skill_meta(c)[0] == '软技能'
+    ]
 
     def gap_item(name: str, canonical: str, priority: str, reason: str) -> dict:
         return _gap_item(name, canonical, priority, reason, resume_by_category, evidence_map)
@@ -231,7 +246,8 @@ def build_learning_path(
         })
 
     missing = required_gaps + bonus_gaps
-    at_standard = not missing
+    requirements_available = bool(required_map or bonus_map)
+    at_standard = requirements_available and not missing and not verification
     mastered = mastered_required + mastered_bonus
     return {
         "job_id": str(job_id),
@@ -240,15 +256,16 @@ def build_learning_path(
         "category": category,
         "mastered_skills": mastered,
         "missing_skills": missing,
+        "verification_skills": verification,
         "core_skills": [
-            {"name": s, "category": _skill_meta(s)[0], "priority": "high", "reason": "岗位必备技能",
-             "status": "completed" if required_map[s] in resume_set else "not_started"}
-            for s in required
+            {"name": s, "category": _skill_meta(c)[0], "priority": "high", "reason": "岗位必备技能",
+             "status": "completed" if c in resume_set else ("needs_verification" if _skill_meta(c)[0] == '软技能' else "not_started")}
+            for s, c in required_map.items()
         ],
         "bonus_skills": [
-            {"name": s, "category": _skill_meta(s)[0], "priority": "medium", "reason": "岗位加分技能",
-             "status": "completed" if bonus_map[s] in resume_set else "not_started"}
-            for s in bonus
+            {"name": s, "category": _skill_meta(c)[0], "priority": "medium", "reason": "岗位加分技能",
+             "status": "completed" if c in resume_set else ("needs_verification" if _skill_meta(c)[0] == '软技能' else "not_started")}
+            for s, c in bonus_map.items()
         ],
         "stages": stages,
         "overview": {
@@ -257,6 +274,8 @@ def build_learning_path(
             "missing_required": len(missing_required),
             "missing_bonus": len(missing_bonus),
             "at_standard": at_standard,
+            "requirements_available": requirements_available,
+            "needs_verification": len(verification),
         },
         "source": "job_definition.required_skills + bonus_skills + job_skill.evidence",
     }

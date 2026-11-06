@@ -1,2 +1,6 @@
 # B3-5 definition provenance hashes must survive checkout on every platform.
 docs/PRODUCT_DECISIONS.md text eol=lf
+backend/app/job_analysis/canonical_catalog/sources/*.txt text eol=lf
+# Immutable knowledge and policy bytes are verified against committed SHA-256 manifests.
+backend/app/job_analysis/knowledge/catalog/** text eol=lf
+backend/app/job_analysis/knowledge/policies/** text eol=lf

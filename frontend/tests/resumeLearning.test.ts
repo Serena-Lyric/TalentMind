@@ -1,0 +1,104 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { parse, compileScript } from 'vue/compiler-sfc'
+import ts from 'typescript'
+import * as vue from 'vue'
+
+function component(name: string, api: Record<string, any>) {
+  const store = vue.reactive<any>({ profile: { skills: [] }, matchResult: { target_job_id: '1' }, recommendedJobs: [{ id: '1' }, { id: '2' }], parseQuality: 0, fileName: 'old.txt',
+    setParsed(profile: any, matchResult: any, recommendedJobs: any[], parseQuality: number, fileName: string) { Object.assign(this, { profile, matchResult, recommendedJobs, parseQuality, fileName }) },
+    clear() { this.profile = null; this.matchResult = null; this.recommendedJobs = []; this.fileName = '' },
+  })
+  const route = vue.reactive({ query: { job_id: '1' } })
+  const mounted: Function[] = [], unmounted: Function[] = []
+  const messages: string[] = []
+  const source = readFileSync(resolve(import.meta.dirname, `../src/${name === 'ResumeDemo' ? 'views' : 'components'}/${name}.vue`), 'utf8')
+  const compiled = compileScript(parse(source).descriptor, { id: 'resume-learning-test' }).content
+  const code = ts.transpileModule(compiled, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
+  const module = { exports: {} as any }
+  const require = (id: string) => {
+    if (id === 'vue') return { ...vue, onMounted: (fn: Function) => mounted.push(fn), onUnmounted: (fn: Function) => unmounted.push(fn) }
+    if (id === 'vue-router') return { useRoute: () => route, useRouter: () => ({ push() {} }) }
+    if (id === '../store/resume') return { useResumeStore: () => store }
+    if (id.startsWith('../api/')) return api
+    if (id === 'element-plus') return { ElMessage: { success: (s: string) => messages.push(s), error: (s: string) => messages.push(s) } }
+    if (id === '@element-plus/icons-vue') return {}
+    throw new Error(id)
+  }
+  new Function('require', 'module', 'exports', code)(require, module, module.exports)
+  const scope = vue.effectScope()
+  const state = scope.run(() => module.exports.default.setup({}, { expose() {} }))
+  return { state, route, store, messages, mounted: () => Promise.all(mounted.map(fn => fn())), stop() { unmounted.forEach(fn => fn()); scope.stop() } }
+}
+
+const tick = async () => { await vue.nextTick(); await Promise.resolve(); await Promise.resolve() }
+
+test('已解析但技能为空的简历仍能生成路径', async () => {
+  let calls = 0
+  const page = component('LearningRoadmap', { generateLearningPath: async () => { calls++; return { job_id: '1' } } })
+  try { await page.mounted(); await tick(); assert.equal(calls, 1); assert.equal(page.state.hasResume.value, true) } finally { page.stop() }
+})
+
+test('切换岗位只接受最新路径，清空简历立即清空结果', async () => {
+  const pending: { job: string; resolve: Function }[] = []
+  const page = component('LearningRoadmap', { generateLearningPath: ({ job_id }: any) => new Promise(resolve => pending.push({ job: job_id, resolve })) })
+  try {
+    page.store.profile = { skills: ['python'] }
+    void page.mounted(); await tick()
+    page.route.query.job_id = '2'; await tick()
+    const newer = pending.find(p => p.job === '2')
+    assert.ok(newer)
+    newer.resolve({ job_id: '2' }); await tick()
+    for (const old of pending.filter(p => p.job === '1')) old.resolve({ job_id: '1' })
+    await tick(); assert.equal(page.state.path.value.job_id, '2')
+    page.store.clear(); await tick(); assert.equal(page.state.path.value, null)
+  } finally { page.stop() }
+})
+
+test('生成失败显示可重试错误，不永久显示正在生成', async () => {
+  const page = component('LearningRoadmap', { generateLearningPath: async () => { throw new Error('请求失败') } })
+  try { page.store.profile = { skills: ['python'] }; await page.mounted(); await tick(); assert.ok(page.state.error.value); assert.equal(page.state.generating.value, false) } finally { page.stop() }
+})
+
+test('路由中的非推荐岗位不能复用简历生成路径', async () => {
+  let calls = 0
+  const page = component('LearningRoadmap', { generateLearningPath: async () => { calls++; return {} } })
+  try { await page.mounted(); await tick(); calls = 0; page.route.query.job_id = '999'; await tick(); assert.equal(calls, 0); assert.equal(page.state.path.value, null); assert.ok(page.state.error.value) } finally { page.stop() }
+})
+
+test('较早上传迟到不覆盖新文件，失败保持原文件名', async () => {
+  const pending: { resolve: Function; reject: Function }[] = []
+  const page = component('ResumeDiagnosis', { uploadResume: () => new Promise((resolve, reject) => pending.push({ resolve, reject })) })
+  try {
+    await page.mounted()
+    const first = page.state.handleFile(new File(['one'], 'one.txt'))
+    const second = page.state.handleFile(new File(['two'], 'two.txt'))
+    pending[1].resolve({ profile: { name: 'two', skills: [] }, parseQuality: 0 }); await second
+    pending[0].resolve({ profile: { name: 'one', skills: [] } }); await first
+    assert.equal(page.store.profile.name, 'two'); assert.equal(page.store.fileName, 'two.txt'); assert.equal(page.store.parseQuality, 0)
+    const failed = page.state.handleFile(new File(['bad'], 'bad.txt')); pending[2].reject(new Error('bad')); await failed
+    assert.equal(page.state.fileName.value, 'two.txt')
+  } finally { page.stop() }
+})
+
+test('重置后迟到上传不能恢复已清除的简历', async () => {
+  let finish!: Function
+  const page = component('ResumeDiagnosis', { uploadResume: () => new Promise(resolve => { finish = resolve }) })
+  try {
+    const upload = page.state.handleFile(new File(['one'], 'one.txt'))
+    page.state.resetDiagnosis(); finish({ profile: { skills: ['python'] } }); await upload
+    assert.equal(page.store.profile, null); assert.equal(page.state.parsed.value, false)
+  } finally { page.stop() }
+})
+
+test('预览保留多段教育和工作经历，不捏造技能分', () => {
+  const page = component('ResumeDemo', {})
+  try {
+    page.store.profile = { skills: ['python'], education_history: [{ school: '学校甲', degree: '本科' }, { school: '学校乙', degree: '硕士' }], work_experience: [{ company: '演示公司', description: ['负责测试'] }] }
+    assert.equal(page.state.resume.value.education.length, 2)
+    assert.equal(page.state.resume.value.works[0].company, '演示公司')
+    assert.equal(page.state.resume.value.skills.details['已识别技能'].level, undefined)
+  } finally { page.stop() }
+})

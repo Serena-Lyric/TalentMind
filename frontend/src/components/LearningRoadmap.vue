@@ -1,5 +1,5 @@
 <template>
-  <section class="learning-roadmap panel" v-loading="loading">
+  <section class="learning-roadmap panel" v-loading="generating">
     <span class="learning-planet-companion" aria-hidden="true"></span>
     <div class="roadmap-header">
       <div><h2>技能学习路径</h2><p>学习目标来自简历自动匹配结果，点击推荐岗位后自动生成对应路径。</p></div>
@@ -8,19 +8,19 @@
 
     <aside v-if="!hasResume || !selectedJobId" class="skill-recommendation-bubble" aria-label="技能推荐概述">
       <div class="bubble-title"><el-icon><MagicStick /></el-icon><b>技能推荐概述</b></div>
-      <p>系统会对照简历技能、目标岗位要求与 JD 证据，标出已掌握能力、必备与加分技能缺口，并按优先级整理成可执行的学习建议。</p>
+      <p>系统对照简历中提到的技能、岗位要求与 JD 证据，整理待核实项目及学习建议。文本命中不代表能力水平，未提及也不代表不会。</p>
     </aside>
 
     <div v-if="!hasResume" class="roadmap-empty compact">
       <div class="empty-symbol"><el-icon><Document /></el-icon></div>
       <h3>请先完成简历解析</h3>
-      <p>解析简历后系统会自动给出至少 3 个岗位推荐；从推荐卡片进入即可绑定学习目标。</p>
+      <p>解析简历后系统会按目录数据推荐最多 3 个岗位；从推荐卡片进入即可绑定学习目标。</p>
       <el-button class="btn-soft" @click="router.push('/resume')">前往简历解析</el-button>
     </div>
 
     <template v-else>
       <div class="roadmap-config">
-        <div class="config-status"><span class="status-dot"></span><div><small>当前简历</small><strong>{{ resumeStore.fileName || '最近一次解析结果' }}</strong><p>解析完成度 {{ resumeStore.parseQuality ? resumeStore.parseQuality + '%' : '—' }}</p></div></div>
+        <div class="config-status"><span class="status-dot"></span><div><small>当前简历</small><strong>{{ resumeStore.fileName || '最近一次解析结果' }}</strong><p>字段覆盖率 {{ resumeStore.parseQuality }}%（非准确率）</p></div></div>
         <div class="selected-target"><small>自动匹配目标岗位</small><strong>{{ path?.job_title || '等待选择推荐岗位' }}</strong><em>{{ path?.job_name_en || '' }}<span v-if="path?.category"> · {{ path.category }}</span></em></div>
       </div>
 
@@ -35,18 +35,24 @@
         <div v-if="path">
           <div class="summary-grid">
             <div><span>岗位</span><strong>{{ path.job_title }}</strong></div>
-            <div><span>已掌握</span><strong class="green-text">{{ path.overview ? path.overview.mastered_required + path.overview.mastered_bonus : path.mastered_skills.length }} 项</strong></div>
+            <div><span>简历已提及</span><strong class="green-text">{{ path.overview ? path.overview.mastered_required + path.overview.mastered_bonus : path.mastered_skills.length }} 项</strong></div>
             <div><span>待学习</span><strong class="orange-text">{{ path.missing_skills.length }} 项</strong></div>
             <div><span>数据来源</span><strong>岗位技能目录 + JD 证据</strong></div>
           </div>
 
           <div v-if="path.overview?.at_standard" class="at-standard">
             <el-icon><CircleCheck /></el-icon>
-            <div><strong>当前已达标</strong><p>该岗位的必备与加分技能均已命中当前简历，可直接投递；建议在真实项目中持续巩固，并关注岗位加分项以提升竞争力。</p></div>
+            <div><strong>岗位技能均有文本命中</strong><p>必备与加分项均已在简历中提及。仍需结合项目证据核实熟练程度，不能据此认定已满足全部岗位要求。</p></div>
           </div>
 
-          <div v-if="path.mastered_skills.length" class="skill-overview">
-            <div class="skill-panel"><div class="panel-title"><el-icon><CircleCheck /></el-icon><b>已掌握技能</b><el-tag type="success" size="small">{{ path.mastered_skills.length }}</el-tag></div><div class="skill-tags"><el-tag v-for="skill in path.mastered_skills" :key="skill" type="success" effect="plain">{{ skill }}</el-tag><span v-if="!path.mastered_skills.length" class="muted">暂无直接命中技能</span></div></div>
+          <el-alert v-if="path.overview?.requirements_available === false" title="该岗位暂缺技能要求，无法生成可靠的学习路径。请补充岗位数据后重试。" type="info" :closable="false" />
+          <div v-if="path.verification_skills?.length" class="suggestions">
+            <h3>待核实能力</h3>
+            <article v-for="item in path.verification_skills" :key="item.name" class="suggestion-card"><strong>{{ item.name }}</strong><p>{{ item.reason }}。{{ item.suggestion }}</p></article>
+          </div>
+
+          <div class="skill-overview">
+            <div class="skill-panel"><div class="panel-title"><el-icon><CircleCheck /></el-icon><b>简历已提及技能</b><el-tag type="success" size="small">{{ path.mastered_skills.length }}</el-tag></div><div class="skill-tags"><el-tag v-for="skill in path.mastered_skills" :key="skill" type="success" effect="plain">{{ skill }}</el-tag><span v-if="!path.mastered_skills.length" class="muted">暂无直接命中技能</span></div></div>
             <div class="skill-panel"><div class="panel-title"><el-icon><Warning /></el-icon><b>岗位技能缺口</b><el-tag type="warning" size="small">{{ path.missing_skills.length }}</el-tag></div><div class="skill-tags"><el-tag v-for="skill in path.missing_skills" :key="skill.name" type="warning" effect="plain">{{ skill.display_name || skill.name }}</el-tag><span v-if="!path.missing_skills.length" class="muted">当前没有待学习技能</span></div></div>
           </div>
 
@@ -59,7 +65,7 @@
                 <el-tag size="small" :type="item.priority === 'high' ? 'danger' : 'warning'" effect="plain">{{ item.priority === 'high' ? '必备缺口' : '加分缺口' }}</el-tag>
               </div>
               <p class="suggestion-text">{{ item.suggestion }}</p>
-              <div v-if="item.bridge_skills?.length" class="bridge-line">简历衔接：已掌握 {{ item.bridge_skills.join('、') }}，可顺延补齐</div>
+              <div v-if="item.bridge_skills?.length" class="bridge-line">简历提到的同类技能：{{ item.bridge_skills.join('、') }}</div>
               <div v-if="item.evidence" class="evidence-line">JD 依据：{{ item.evidence }}</div>
             </article>
           </div>
@@ -75,6 +81,8 @@
                     <li v-for="skill in stage.skills" :key="skill.name">
                       <div class="step-head"><b>{{ skill.display_name || skill.name }}</b><el-tag size="small" effect="plain">{{ skill.category }}</el-tag></div>
                       <p v-if="skill.suggestion" class="step-tip">{{ skill.suggestion }}</p>
+                      <p v-if="skill.practice" class="step-tip">练习：{{ skill.practice }}</p>
+                      <p v-if="skill.completion_criteria" class="step-tip">完成条件：{{ skill.completion_criteria }}</p>
                     </li>
                   </ol>
                 </div>
@@ -82,14 +90,15 @@
             </div>
           </div>
         </div>
-        <div v-else class="roadmap-empty"><div class="empty-symbol"><el-icon><MagicStick /></el-icon></div><h3>正在生成学习路径</h3><p>学习目标已锁定为自动匹配岗位，请稍候。</p></div>
+        <div v-else-if="error" class="roadmap-empty"><h3>学习路径暂不可用</h3><p>{{ error }}</p><el-button @click="generatePath">重试</el-button><el-button @click="router.push('/resume')">返回岗位推荐</el-button></div>
+        <div v-else class="roadmap-empty"><div class="empty-symbol"><el-icon><MagicStick /></el-icon></div><h3>{{ generating ? '正在生成学习路径' : '等待生成学习路径' }}</h3><p>学习目标来自当前简历的岗位推荐。</p></div>
       </template>
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { CircleCheck, Document, MagicStick, Warning } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
@@ -99,25 +108,36 @@ import { useResumeStore } from '../store/resume'
 const router = useRouter()
 const route = useRoute()
 const resumeStore = useResumeStore()
-const loading = ref(false)
 const generating = ref(false)
-const selectedJobId = ref(String(route.query.job_id || route.query.job || resumeStore.matchResult?.target_job_id || ''))
+const selectedJobId = computed(() => String(route.query.job_id || route.query.job || resumeStore.matchResult?.target_job_id || ''))
 const path = ref<LearningPath | null>(null)
-const hasResume = computed(() => Boolean(resumeStore.profile?.skills?.length))
+const hasResume = computed(() => Boolean(resumeStore.profile))
+const error = ref('')
+let generation = 0
 
 async function generatePath() {
+  const request = ++generation
+  path.value = null
+  error.value = ''
+  generating.value = false
   if (!hasResume.value || !selectedJobId.value) return
+  if (!resumeStore.recommendedJobs.some(job => String(job.id) === selectedJobId.value)) {
+    error.value = '此岗位不在当前简历推荐中，请返回简历页重新选择。'
+    return
+  }
   generating.value = true
   try {
-    path.value = await generateLearningPath({ job_id: selectedJobId.value, resume_skills: resumeStore.profile.skills || [] })
+    const result = await generateLearningPath({ job_id: selectedJobId.value, resume_skills: [...(resumeStore.profile.skills || [])] })
+    if (request !== generation) return
+    path.value = result
     ElMessage.success('学习路径已生成')
-  } catch { ElMessage.error('学习路径生成失败') } finally { generating.value = false }
+  } catch (cause: any) {
+    if (request === generation) error.value = cause?.message || '学习路径生成失败，请重试。'
+  } finally { if (request === generation) generating.value = false }
 }
 
-onMounted(async () => {
-  loading.value = true
-  try { if (hasResume.value && selectedJobId.value) await generatePath() } finally { loading.value = false }
-})
+watch([selectedJobId, () => resumeStore.profile, () => resumeStore.recommendedJobs], () => { void generatePath() }, { immediate: true, deep: true, flush: 'sync' })
+onUnmounted(() => { generation++ })
 </script>
 
 <style scoped>

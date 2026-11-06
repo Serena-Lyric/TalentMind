@@ -26,6 +26,8 @@ export interface ResumeProfile {
   education_major?: string
   education_degree?: string
   education_period?: string
+  education_history?: { school?: string; major?: string; degree?: string; start_date?: string; end_date?: string }[]
+  work_experience?: { company: string; position: string; start_date: string; end_date: string; description: string[] }[]
 }
 
 export interface RecommendedJob {
@@ -75,7 +77,7 @@ export interface SkillDimension {
  * POST /api/resume/upload
  * 上传简历文件进行解析
  *
- * 入参：FormData (file 字段，支持 PDF/DOC/DOCX)
+ * 入参：FormData (file 字段，支持 PDF/DOCX/UTF-8 TXT，最大 10MB)
  * 响应示例：
  * {
  *   code: 200,

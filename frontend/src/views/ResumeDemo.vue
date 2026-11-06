@@ -48,17 +48,13 @@
             <span class="title-icon">📚</span>
             教育经历
           </h2>
-          <div class="education-item">
+          <div v-for="(edu, index) in resume.education" :key="index" class="education-item">
             <div class="edu-header">
               <div class="edu-left">
-                <h3>{{ resume.education.school }}</h3>
-                <span class="major">{{ resume.education.major }} · {{ resume.education.degree }}</span>
+                <h3>{{ edu.school || '未识别学校' }}</h3>
+                <span class="major">{{ edu.major }} · {{ edu.degree }}</span>
               </div>
-              <div class="edu-right">{{ resume.education.duration }}</div>
-            </div>
-            <div class="courses">
-              <span class="label">主修课程：</span>
-              <span>{{ resume.education.courses.join('、') }}</span>
+              <div class="edu-right">{{ [edu.start_date, edu.end_date].filter(Boolean).join(' - ') }}</div>
             </div>
           </div>
         </div>
@@ -73,13 +69,19 @@
             <div v-for="(detail, dim) in resume.skills.details" :key="dim" class="skill-item">
               <div class="skill-header">
                 <span class="skill-name">{{ dim }}</span>
-                <el-progress :percentage="detail.level" :stroke-width="6" :show-text="false" color="#2F6FCE" />
-                <span class="skill-level">{{ detail.level }}分</span>
               </div>
               <div class="skill-tags">
                 <el-tag v-for="item in detail.items" :key="item" size="small" effect="plain">{{ item }}</el-tag>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div v-if="resume.works.length" class="resume-section">
+          <h2 class="section-title">工作经历</h2>
+          <div v-for="(work, index) in resume.works" :key="index" class="project-item">
+            <div class="project-header"><div class="project-left"><h3>{{ work.company }} {{ work.position }}</h3></div><div class="project-right">{{ [work.start_date, work.end_date].filter(Boolean).join(' - ') }}</div></div>
+            <ul class="project-list"><li v-for="(line, i) in work.description" :key="i">{{ line }}</li></ul>
           </div>
         </div>
 
@@ -153,14 +155,14 @@ const resume = computed<any>(() => {
       jobIntention: p.role || '—',
       phone: p.phone || '', email: p.email || '', location: p.location || '', gender: p.gender || '',
     },
-    education: {
+    education: p.education_history?.length ? p.education_history : [{
       school: p.education_school || p.education || '—',
-      major: p.education_major || '', degree: p.education_degree || '', duration: p.education_period || '',
-      courses: [],
-    },
+      major: p.education_major || '', degree: p.education_degree || '', start_date: p.education_period || '', end_date: '',
+    }],
+    works: p.work_experience || [],
     skills: {
       details: p.skills && p.skills.length
-        ? { '已识别技能': { level: 80, items: p.skills } }
+        ? { '已识别技能': { items: p.skills } }
         : {},
     },
     projects: (p.projects || []).map((pr: any) => ({ name: pr.name || '项目实践', duration: pr.duration || '', techStack: pr.tech_stack || '', responsibilities: pr.responsibilities || [] })),

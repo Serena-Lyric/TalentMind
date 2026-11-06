@@ -14,6 +14,7 @@ class LoadedSnapshot:
     path: Path
     snapshot: KnowledgeSnapshot
     sha256: str
+    raw: bytes | None = None
 
 
 def load_snapshot(path: Path | str) -> LoadedSnapshot:
@@ -35,4 +36,4 @@ def load_snapshot(path: Path | str) -> LoadedSnapshot:
         if "digest" in str(exc):
             raise
         raise ValueError("invalid knowledge snapshot") from None
-    return LoadedSnapshot(root, snapshot, sha256)
+    return LoadedSnapshot(root, snapshot, sha256, raw)

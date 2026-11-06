@@ -10,6 +10,7 @@ from ..knowledge.catalog import load_snapshot
 from ..understanding.storage import read_run
 from .service import apply_batch
 from .storage import CandidateStore
+from .suggestions import check_suggestion
 
 
 def _analysis(path):
@@ -22,9 +23,9 @@ def _analysis(path):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description="P3 offline work-candidate lifecycle (private JSON output)")
+    parser = argparse.ArgumentParser(description="P3/P4 offline work-candidate research (private JSON output)")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("init", "apply", "show", "history", "jd", "source"):
+    for name in ("init", "apply", "show", "history", "jd", "source", "suggestion"):
         command = commands.add_parser(name)
         command.add_argument("--state", type=Path, required=True)
         if name in {"show", "jd"}:
@@ -39,8 +40,11 @@ def build_parser():
             command.add_argument("--analysis", type=Path, action="append", default=[])
             command.add_argument("--knowledge", type=Path, required=True)
         if name == "source":
-            command.add_argument("--kind", choices=["analysis", "knowledge", "alignment", "review"], required=True)
+            command.add_argument("--kind", choices=["analysis", "knowledge", "alignment", "review", "comparison"], required=True)
             command.add_argument("--sha256", required=True)
+        if name == "suggestion":
+            command.add_argument("--id", required=True)
+            command.add_argument("--baseline", type=Path, required=True, help="JSON file containing the exact binding object")
     return parser
 
 
@@ -61,6 +65,8 @@ def main():
                 result = dict(schema_version="m2-work-history-1", history=store.history(args.candidate))
             elif args.command == "source":
                 result = store.source(args.kind, args.sha256)
+            elif args.command == "suggestion":
+                result = check_suggestion(store, args.id, parse_json(args.baseline.read_text(encoding="utf-8-sig")))
             else:
                 state = store.read(args.revision)
                 sources = [sha for sha in state["analysis_sha256s"]

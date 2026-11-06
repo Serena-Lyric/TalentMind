@@ -1,0 +1,308 @@
+{
+  "schema_version": "m2-role-policy-1",
+  "revision": "role-attribution-2",
+  "knowledge_sha256": "242addd0e210b99e1b3508bfba10b54b689eaa2f90078b71273ea7c85fed2d75",
+  "family_source": "docs/PRODUCT_DECISIONS.md M2-45..47; families-v2: confirmed family identifiers only; role mappings are Agent hypotheses",
+  "roles": [
+    {
+      "role_id": "ref-software-development",
+      "family": "software_engineering",
+      "canonical_candidate": true,
+      "composite_reference": false,
+      "frames": [
+        {
+          "reference_id": "resp-software-develop",
+          "actions": [
+            "开发",
+            "研发",
+            "编写",
+            "实现",
+            "构建",
+            "修改",
+            "设计"
+          ],
+          "objects": [
+            "软件服务",
+            "软件系统",
+            "业务服务",
+            "订单服务",
+            "后端接口",
+            "API接口",
+            "应用程序",
+            "软件模块",
+            "程序",
+            "代码"
+          ]
+        },
+        {
+          "reference_id": "resp-software-needs",
+          "actions": [
+            "分析",
+            "理解"
+          ],
+          "objects": [
+            "用户需求",
+            "软件需求",
+            "开发需求"
+          ]
+        },
+        {
+          "reference_id": "resp-software-correct",
+          "actions": [
+            "修正",
+            "修改",
+            "优化"
+          ],
+          "objects": [
+            "软件错误",
+            "软件性能",
+            "程序错误"
+          ]
+        }
+      ],
+      "boundary_frames": [],
+      "deliveries": [
+        "应用",
+        "软件",
+        "服务",
+        "模块",
+        "程序",
+        "接口"
+      ],
+      "adaptation_note": "Agent 根据引用任务添加中文动作、对象及交付词表；并非 O*NET 原版文本、同义确认或人审真值。 设计动作直接对应已引用Task21667的design，不新增市场职业定义。"
+    },
+    {
+      "role_id": "ref-data-warehousing",
+      "family": "data_ai",
+      "canonical_candidate": true,
+      "composite_reference": false,
+      "frames": [
+        {
+          "reference_id": "resp-warehouse-process",
+          "actions": [
+            "设计",
+            "开发",
+            "建设",
+            "搭建",
+            "构建",
+            "实现"
+          ],
+          "objects": [
+            "ETL数据管道",
+            "ETL管道",
+            "ETL流程",
+            "数据管道",
+            "数据仓库",
+            "数据抽取流程"
+          ]
+        },
+        {
+          "reference_id": "resp-warehouse-quality",
+          "actions": [
+            "核验",
+            "验证",
+            "检查"
+          ],
+          "objects": [
+            "仓库数据质量",
+            "数据仓库质量"
+          ]
+        }
+      ],
+      "boundary_frames": [],
+      "deliveries": [
+        "数据仓库",
+        "数据集",
+        "数据管道",
+        "ETL流程"
+      ],
+      "adaptation_note": "Agent 根据引用任务添加中文动作、对象及交付词表；并非 O*NET 原版文本、同义确认或人审真值。"
+    },
+    {
+      "role_id": "ref-business-intelligence",
+      "family": "data_ai",
+      "canonical_candidate": true,
+      "composite_reference": false,
+      "frames": [
+        {
+          "reference_id": "resp-bi-report",
+          "actions": [
+            "分析",
+            "生成",
+            "编制",
+            "制作"
+          ],
+          "objects": [
+            "业务指标",
+            "经营指标",
+            "业务数据",
+            "财务数据",
+            "业务分析报告",
+            "商业智能报告"
+          ]
+        },
+        {
+          "reference_id": "resp-bi-tools",
+          "actions": [
+            "开发",
+            "创建",
+            "构建",
+            "设计"
+          ],
+          "objects": [
+            "商业智能系统",
+            "BI服务",
+            "商业智能工具"
+          ]
+        },
+        {
+          "reference_id": "resp-bi-maintain",
+          "actions": [
+            "维护",
+            "更新",
+            "管理"
+          ],
+          "objects": [
+            "商业智能工具",
+            "商业智能平台",
+            "商业智能系统",
+            "BI平台",
+            "BI 平台",
+            "BI 系统",
+            "BI系统"
+          ]
+        }
+      ],
+      "boundary_frames": [],
+      "deliveries": [
+        "商业智能报告",
+        "商业智能分析报告",
+        "业务分析报告",
+        "指标分析报告",
+        "BI服务",
+        "业务指标"
+      ],
+      "adaptation_note": "Agent 根据引用任务添加中文动作、对象及交付词表；并非 O*NET 原版文本、同义确认或人审真值。 新版依据Task16139补维护/更新工作方面；不从普通平台维护推断BI职业。"
+    },
+    {
+      "role_id": "p0-ref-programming",
+      "family": null,
+      "canonical_candidate": false,
+      "composite_reference": false,
+      "frames": [
+        {
+          "reference_id": "resp-understand-design",
+          "actions": [
+            "理解",
+            "分析"
+          ],
+          "objects": [
+            "开发需求",
+            "模块设计",
+            "设计内容"
+          ]
+        },
+        {
+          "reference_id": "resp-write-design-doc",
+          "actions": [
+            "形成",
+            "编写",
+            "撰写",
+            "输出"
+          ],
+          "objects": [
+            "模块设计文档",
+            "设计文档"
+          ]
+        },
+        {
+          "reference_id": "resp-write-program",
+          "actions": [
+            "编写",
+            "修改",
+            "开发",
+            "实现",
+            "编码"
+          ],
+          "objects": [
+            "程序",
+            "代码"
+          ]
+        }
+      ],
+      "boundary_frames": [],
+      "deliveries": [
+        "程序",
+        "应用"
+      ],
+      "adaptation_note": "复用 P0 粗粒度参照；该上位参照不能单独区分软件、嵌入式等大类，family保持未决。多动作的调试并核验责任尚无完整匹配规则，保留定义但不把单个调试词当覆盖。 新版将代码实现/编码及设计文档输出作为原任务的中文方面适配；仍为有界候选而非已确认同义关系。"
+    },
+    {
+      "role_id": "p0-ref-network-operations",
+      "family": "infrastructure_operations",
+      "canonical_candidate": false,
+      "composite_reference": false,
+      "frames": [
+        {
+          "reference_id": "resp-network-config",
+          "actions": [
+            "管理",
+            "配置"
+          ],
+          "objects": [
+            "网络运行配置",
+            "网络配置"
+          ]
+        },
+        {
+          "reference_id": "resp-network-monitor",
+          "actions": [
+            "监测",
+            "监控",
+            "管理"
+          ],
+          "objects": [
+            "网络性能"
+          ]
+        },
+        {
+          "reference_id": "resp-network-optimize",
+          "actions": [
+            "优化"
+          ],
+          "objects": [
+            "网络运行",
+            "网络"
+          ]
+        },
+        {
+          "reference_id": "resp-network-fault",
+          "actions": [
+            "定位",
+            "排除",
+            "排查"
+          ],
+          "objects": [
+            "网络故障"
+          ]
+        }
+      ],
+      "boundary_frames": [],
+      "deliveries": [
+        "网络可用性",
+        "网络性能"
+      ],
+      "adaptation_note": "复用 P0 粗粒度参照，未将其发布为中国市场标准岗位；边界仍未决。"
+    }
+  ],
+  "track_terms": [
+    "Java",
+    "Go",
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "SQL",
+    "Kubernetes"
+  ],
+  "scope_limitation": "只检查五个候选工作参照，未覆盖全部中文技术岗位；全量检查当前目录不代表市场召回。中文规则未覆盖的改写、部分职责和未配置边界均保留缺口；不证明新职业成立。"
+}

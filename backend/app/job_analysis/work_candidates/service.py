@@ -9,6 +9,8 @@ from ..foundation.inputs import check_public, digest
 from ..knowledge.alignment import align_analysis
 from .models import Batch
 from .retrieval import retrieve
+from .evolution import evolve_candidates, evidence_changes
+from .suggestions import structural_suggestions
 
 
 def algorithm_version():
@@ -17,7 +19,7 @@ def algorithm_version():
              root / "baseline/contract.py", root / "foundation/inputs.py", root / "foundation/store.py",
              root / "semantics/models.py", root / "understanding/storage.py"}
     dependencies = {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(files)}
-    return dict(id="p3-work-research", revision="1", sha256=digest(dependencies), dependencies=dependencies)
+    return dict(id="p4-work-research", revision="1", sha256=digest(dependencies), dependencies=dependencies)
 
 
 def _claim(store, reference):
@@ -130,9 +132,9 @@ def apply_batch(store, request, analyses, knowledge):
         knowledge_ref = store.put_source("knowledge", knowledge.snapshot.model_dump())
         changed = set()
         searches = []
-        # All automatic comparisons read baseline core evidence, never this batch's revisions/members.
+        # All comparisons read the same effective old projection, never this batch's revisions/members.
         for sha, analysis in sorted(analyses.items()):
-            search = retrieve(store, analysis, baseline["candidates"])
+            search = retrieve(store, analysis, baseline["candidates"], relations=baseline["relations"])
             for match in search["matches"]:
                 cid = match["candidate_id"]
                 ids = sorted({pair["duty_id"] for pair in match["pairs"]})
@@ -196,7 +198,7 @@ def apply_batch(store, request, analyses, knowledge):
                                             core_work=op["core_work"], description_nature="machine_hypothesis",
                                             checked_candidate_ids=sorted(baseline["candidates"]),
                                             competing_candidate_ids=sorted({m["candidate_id"] for a, _ in referenced
-                                                                          for m in retrieve(store, a, baseline["candidates"])["matches"]}),
+                                                                          for m in retrieve(store, a, baseline["candidates"], relations=baseline["relations"])["matches"]}),
                                             unresolved=["完整工作同组语义未验证", "来源独立性未验证"], members=[])
             for sha in sorted({r["analysis_sha256"] for r in op["core_work"]}):
                 analysis = store.source("analysis", sha)
@@ -222,6 +224,9 @@ def apply_batch(store, request, analyses, knowledge):
             candidate["version"] += 1
             candidate["members"] = sorted(rid for rid, rel in state["relations"].items()
                                            if rel["candidate_id"] == cid and rel["state"] not in {"withdrawn", "rejected_proposal"})
+        algorithm = algorithm_version()
+        evolution = evolve_candidates(store, baseline, state, knowledge, algorithm)
+        state["structural_suggestions"] = structural_suggestions(state)
         identities, contents = set(), {}
         for rel in state["relations"].values():
             if rel["state"] in {"withdrawn", "rejected_proposal"}:
@@ -244,11 +249,12 @@ def apply_batch(store, request, analyses, knowledge):
                                     "new_analysis_same_identity" if (a["namespace"], a["jd_id"]) in seen_identities else
                                     "new_jd_identity") for sha, a in analyses.items()}
         state["report"] = dict(batch_id=command.batch_id, baseline=baseline["binding"],
-                               algorithm=algorithm_version(), operation_version=command.operation_version,
+                               algorithm=algorithm, operation_version=command.operation_version, evolution=evolution,
                                knowledge=dict(id=knowledge.snapshot.id, revision=knowledge.snapshot.revision,
                                               source_sha256=knowledge.sha256, stored_sha256=knowledge_ref),
                                alignments=alignment_refs, observations=sorted(analyses), searches=searches,
                                observation_nature=observation_nature,
+                               evidence_changes=evidence_changes(store, baseline, analyses),
                                inputs={sha: {k: a[k] for k in ("namespace", "jd_id", "input_sha256", "input_version", "analyzer",
                                                                 "model", "prompt", "configuration", "outcome", "coverage", "semantic_review")}
                                        for sha, a in sorted(analyses.items())}, reassessment_reasons=reassessment,

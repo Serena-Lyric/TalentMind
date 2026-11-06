@@ -1,0 +1,4 @@
+# Optional local task priority model. Ordinary CLI/tests do not import these.
+onnxruntime==1.31.1
+tokenizers==0.22.2
+numpy==2.4.6

@@ -372,7 +372,7 @@ def extract_skills(text: str, enable_fuzzy: bool = True) -> list:
     for skill in all_skills:
         if skill.isascii():
             # 英文技能使用正则匹配
-            pattern = r'\b' + re.escape(skill) + r'\b'
+            pattern = r'(?<![A-Za-z0-9_+#])' + re.escape(skill) + r'(?![A-Za-z0-9_+#])'
             if re.search(pattern, spaced, re.IGNORECASE):
                 found_skills.add(skill)
         else:
@@ -383,7 +383,7 @@ def extract_skills(text: str, enable_fuzzy: bool = True) -> list:
     # 方法2: 同义词匹配
     for short_form, standard_form in SYNONYMS.items():
         if short_form != standard_form:  # 避免自我映射
-            pattern = r'\b' + re.escape(short_form) + r'\b'
+            pattern = r'(?<![A-Za-z0-9_+#])' + re.escape(short_form) + r'(?![A-Za-z0-9_+#])'
             if re.search(pattern, text_lower):
                 found_skills.add(standard_form)
 
@@ -407,12 +407,12 @@ def extract_skills(text: str, enable_fuzzy: bool = True) -> list:
             ('缓存', '缓存'), ('消息队列', '消息队列'), ('负载均衡', '负载均衡'),
         ]
         for fuzzy, standard in fuzzy_skills:
-            pattern = r'\b' + re.escape(fuzzy) + r'\b'
+            pattern = r'(?<![A-Za-z0-9_+#])' + re.escape(fuzzy) + r'(?![A-Za-z0-9_+#])'
             if re.search(pattern, text_lower):
                 found_skills.add(standard)
 
     # 去重并按类别排序
-    return list(found_skills)
+    return sorted(found_skills, key=str.casefold)
 
 
 _CATEGORY_LOWER: list = []

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import io
 import json
-import random
+import re
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +23,7 @@ router = APIRouter()
 JOB_SOURCES = ("boss", "zhaopin", "liepin", "linkedin", "hn")
 PLATFORM_LABELS = {"boss": "BOSS", "zhaopin": "智联", "liepin": "猎聘", "linkedin": "LinkedIn", "hn": "Hacker News"}
 _REPO_ROOT = Path(__file__).resolve().parents[3]
+_RESUME_MAX_BYTES = 10 * 1024 * 1024
 
 
 def _parse_json_list(value: Any) -> list:
@@ -208,20 +209,38 @@ def _extract_file_text(filename: str, data: bytes) -> str:
             return "\n".join((page.extract_text() or "") for page in pdf.pages)
     if name.endswith(".docx"):
         import docx
+        from docx.table import Table
+        from docx.text.paragraph import Paragraph
+        from zipfile import ZipFile
+        with ZipFile(io.BytesIO(data)) as archive:
+            if sum(entry.file_size for entry in archive.infolist()) > 40 * 1024 * 1024:
+                raise ValueError("DOCX 解压内容过大")
         doc = docx.Document(io.BytesIO(data))
-        lines = [para.text for para in doc.paragraphs]
-        # 模板简历常把正文放在表格中，段落提取会漏掉（2026-09-04）
-        for table in doc.tables:
-            for row in table.rows:
-                cells = [cell.text.strip() for cell in row.cells]
-                if any(cells):
-                    lines.append(" | ".join(c for c in cells if c))
-                    lines.extend(c for c in cells if c)
+        lines = []
+
+        def read_body(parent):
+            container = parent.element.body if isinstance(parent, docx.document.Document) else parent._tc
+            seen = set()
+            for child in container.iterchildren():
+                if child.tag.endswith('}p'):
+                    lines.append(Paragraph(child, parent).text)
+                elif child.tag.endswith('}tbl'):
+                    for row in Table(child, parent).rows:
+                        for cell in row.cells:
+                            if cell._tc not in seen:
+                                seen.add(cell._tc)
+                                read_body(cell)
+
+        read_body(doc)
         return "\n".join(lines)
     if name.endswith(".doc"):
-        import mammoth
-        return mammoth.extract_raw_text(io.BytesIO(data)).value
-    return data.decode("utf-8", errors="replace")
+        raise ValueError("旧版 DOC 请先另存为 DOCX 或 PDF")
+    if not name.endswith(".txt"):
+        raise ValueError("仅支持 PDF、DOCX、TXT")
+    content = data.decode("utf-8-sig")
+    if any(ord(c) < 32 and c not in '\t\n\r' for c in content):
+        raise ValueError("文本文件包含二进制控制字符")
+    return content
 
 
 def _resume_skills(content: str) -> list[str]:
@@ -234,20 +253,36 @@ def _resume_skills(content: str) -> list[str]:
 @router.post("/resume/upload")
 async def resume_upload(file: UploadFile | None = File(None), content: str = Form(""), target_job_id: str = Form("")):
     if file is not None:
-        raw = await file.read()
+        raw = await file.read(_RESUME_MAX_BYTES + 1)
+        if len(raw) > _RESUME_MAX_BYTES:
+            raise BizError(4002, "文件超过 10MB 上限")
+        if Path(file.filename or '').suffix.lower() == '.doc':
+            raise BizError(4002, "旧版 DOC 请先另存为 DOCX 或 PDF")
+        if Path(file.filename or '').suffix.lower() not in {'.pdf', '.docx', '.txt'}:
+            raise BizError(4002, "仅支持 PDF、DOCX、TXT 文件")
         try:
             content = (content + "\n" + _extract_file_text(file.filename or "", raw)).strip()
         except Exception as exc:
-            raise BizError(4002, f"文件解析失败: {exc}") from exc
+            raise BizError(4002, "文件解析失败，请使用可读取的 PDF、DOCX 或 UTF-8 文本") from exc
+    if len(content.encode('utf-8')) > _RESUME_MAX_BYTES:
+        raise BizError(4002, "简历内容超过 10MB 上限")
     if not content.strip():
-        raise BizError(4001, "简历内容为空")
+        raise BizError(4001, "未提取到简历文字；扫描件请先转为可复制文字的文件")
     parsed = parse_resume(content) or {}
     info = parsed.get("personal_info", {}) or {}
-    resume_skills = _resume_skills(content)
+    resume_skills = list(dict.fromkeys(to_canonical(s) for s in parsed.get('skills', [])))
     edu_list = parsed.get("education") or []
     works = parsed.get("work_experience") or []
-    first_edu = edu_list[0] if edu_list else {}
-    latest_work = works[0] if works else {}
+    degree_order = {'博士': 5, '硕士': 4, '本科': 3, '大专': 2, '高中': 1}
+    first_edu = max(edu_list, key=lambda e: degree_order.get(e.get('degree'), 0), default={})
+    def work_recency(work: dict) -> tuple:
+        def year_month(value: str) -> tuple[int, int]:
+            parts = re.fullmatch(r'(\d{4})[./](\d{1,2})', value or '')
+            return (int(parts[1]), int(parts[2])) if parts else (0, 0)
+        return (work.get('end_date') == '至今', year_month(work.get('end_date', '')),
+                year_month(work.get('start_date', '')))
+
+    latest_work = max(works, key=work_recency, default={})
     exp_years = info.get("experience_years")
 
     def _text(value: Any) -> str:
@@ -280,6 +315,8 @@ async def resume_upload(file: UploadFile | None = File(None), content: str = For
         "projects": projects,
         "honors": honors,
         "self_evaluation": self_evaluation,
+        "education_history": edu_list,
+        "work_experience": works,
         "phone": _text(info.get("phone")), "email": _text(info.get("email")),
         "location": _text(info.get("location")), "gender": _text(info.get("gender")),
         "age": info.get("age"),
@@ -305,8 +342,8 @@ async def resume_upload(file: UploadFile | None = File(None), content: str = For
         title = str(row.get("job_name") or "未命名岗位")
         if str(row["id"]) in seen_ids:
             continue
-        required = [str(item).lower() for item in _parse_json_list(row.get("required_skills"))]
-        bonus = [str(item).lower() for item in _parse_json_list(row.get("bonus_skills"))]
+        required = list(dict.fromkeys(to_canonical(item) for item in _parse_json_list(row.get("required_skills")) if isinstance(item, str) and item.strip()))
+        bonus = list(dict.fromkeys(to_canonical(item) for item in _parse_json_list(row.get("bonus_skills")) if isinstance(item, str) and item.strip() and to_canonical(item) not in required))
         job_skills = list(dict.fromkeys(required + bonus))
         result = quick_match_weighted(resume_skills, required, bonus)
         sources = _parse_json_list(row.get("source"))
@@ -316,33 +353,29 @@ async def resume_upload(file: UploadFile | None = File(None), content: str = For
                            "platform_label": "/".join(PLATFORM_LABELS.get(str(source), str(source)) for source in sources),
                            "score": raw_score, "raw_score": raw_score, "display_score": raw_score,
                            "matched": result.get("matched_skills", []),
-                           "missing": [{"name": skill, "level": "high" if skill in required else "medium", "tip": "建议结合岗位职责进行学习"} for skill in result.get("unmatched_job_skills", [])],
+                           "missing": [{"name": skill, "level": "high" if skill in required else "medium", "tip": "简历未提及，请先核实实际经历，再决定是否学习或补充说明"} for skill in result.get("unmatched_job_skills", [])],
                            "skills": job_skills, "collected_at": str(row.get("collected_at") or ""),
                            "source_jd_count": int(row.get("source_jd_count") or 0)})
         seen_ids.add(str(row["id"]))
     candidates.sort(key=lambda item: (-item["score"], item["title"]))
     threshold_candidates = [item for item in candidates if item["raw_score"] >= 90]
     recommended = (threshold_candidates[:3] if len(threshold_candidates) >= 3 else candidates[:3])
-    # 展示分口径：真实分 ≥90 用真实分；否则在 90–100 区间取两位随机展示分（raw_score 仍保留真实计算结果）
+    # 兼容旧响应字段，展示分始终使用实际规则计算分。
     for item in recommended:
-        if item["raw_score"] >= 90:
-            item["display_score"] = float(item["raw_score"])
-        else:
-            item["display_score"] = round(random.uniform(90.0, 100.0), 2)
-        item["score"] = item["display_score"]
-        item["is_score_floor"] = item["raw_score"] < 90
-        item["display_randomized"] = item["raw_score"] < 90
+        item["is_score_floor"] = False
+        item["display_randomized"] = False
     # 新前端不传 target_job_id；旧客户端传入时仍返回对应主诊断，推荐列表保持自动计算。
     target_candidate = next((item for item in candidates if item["id"] == target_job_id.strip()), None) if target_job_id.strip() else None
     best = target_candidate or (recommended[0] if recommended else None)
     match_result = {"score": best["display_score"] if best else 0, "raw_score": best["raw_score"] if best else 0,
-                    "is_score_floor": bool(best and best["raw_score"] < 90),
-                    "display_randomized": bool(best and best["raw_score"] < 90), "matched": best["matched"] if best else [],
+                    "is_score_floor": False,
+                    "display_randomized": False, "matched": best["matched"] if best else [],
                     "missing": best["missing"] if best else [], "strengths": resume_skills,
                     "target_job": best["title"] if best else "", "target_job_en": best.get("name_en", "") if best else "",
                     "target_job_id": best["id"] if best else "", "platform": best["platform"] if best else ""}
+    coverage = [bool(profile['name']), bool(profile['phone'] or profile['email']), bool(edu_list), bool(works or projects), bool(resume_skills)]
     return ok({"profile": profile, "matchResult": match_result, "recommendedJobs": recommended,
-               "parseQuality": min(98, 92 + min(6, len(resume_skills))), "recommendationThreshold": 90,
+               "parseQuality": round(sum(coverage) / len(coverage) * 100), "parseQualityBasis": "field_coverage", "recommendationThreshold": 90,
                "thresholdCandidates": len(threshold_candidates), "recommendationFloorApplied": any(item.get("display_randomized") for item in recommended)})
 
 

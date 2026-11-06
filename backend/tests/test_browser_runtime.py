@@ -315,6 +315,11 @@ def test_login_frame_over_existing_cards_blocks_access():
 
 def test_os_query_ignores_renderer_processes_and_uses_one_listener_inventory(monkeypatch):
     b=runtime()
+    if b.os.name != 'nt':
+        from types import SimpleNamespace
+        # This fixture tests process/listener evidence, with the native OS boundary faked.
+        monkeypatch.setattr(b, 'os', SimpleNamespace(name='nt'))
+        monkeypatch.setattr(b, '_windows_argv', lambda command: command.split())
     rows=[{'pid':1,'command':'msedge.exe --remote-debugging-port=0 --user-data-dir=C:/private',
            'listeners':[{'port':19444,'address':'127.0.0.1'}]},
           {'pid':2,'command':'msedge.exe --type=renderer --remote-debugging-port=0 --user-data-dir=C:/private','listeners':[]}]

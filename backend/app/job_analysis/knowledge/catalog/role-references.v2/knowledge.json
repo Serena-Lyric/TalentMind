@@ -1,0 +1,718 @@
+{
+  "schema_version": "m2-knowledge-1",
+  "id": "role-references",
+  "revision": "role-references-2",
+  "purpose": "P2-2 受限职责参考；P0 国内参照和 O*NET 31.0 中文适配，不是正式岗位目录",
+  "created_on": "2026-11-05",
+  "sources": [
+    {
+      "id": "src-python-docs",
+      "title": "The Python Tutorial (Chinese documentation)",
+      "uri": "https://docs.python.org/zh-cn/3.14/tutorial/index.html",
+      "document_version": "Python 3.14.10 documentation; retrieved web bytes 2026-11-04",
+      "retrieved_on": "2026-11-04",
+      "license_id": "PSF-2.0",
+      "license_url": "https://docs.python.org/zh-cn/3.14/license.html",
+      "use_constraint": "Use only short cited excerpts; attribution and PSF terms apply; no full documentation redistribution.",
+      "sha256": "a6c562621b42513d6bf472eab16b98b120ba6eb309fd410cbb911fd00b26b7cc"
+    },
+    {
+      "id": "src-mdn-javascript",
+      "title": "JavaScript | MDN Web Docs",
+      "uri": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript",
+      "document_version": "Web page bytes retrieved 2026-11-04; Last-Modified 2026-11-03T01:03:47Z",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC-BY-SA-2.5",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "use_constraint": "Mozilla Contributors; reuse requires attribution and ShareAlike terms; this catalog stores only short excerpts.",
+      "sha256": "d00343728ccef41208ded60a31349bf5a72df6f3776f3b34f44396085bf4072d"
+    },
+    {
+      "id": "src-mdn-typescript",
+      "title": "TypeScript - MDN Web Docs Glossary",
+      "uri": "https://developer.mozilla.org/zh-CN/docs/Glossary/TypeScript",
+      "document_version": "Web page bytes retrieved 2026-11-04; no independent release number in the page",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC-BY-SA-2.5",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "use_constraint": "Mozilla Contributors; reuse requires attribution and ShareAlike terms; this catalog stores only short excerpts.",
+      "sha256": "f560436808b628927ef0d7f5780d9aff75eac585294d4cb32728ea548fc77f54"
+    },
+    {
+      "id": "src-kubernetes",
+      "title": "Kubernetes 概述",
+      "uri": "https://kubernetes.io/zh-cn/docs/concepts/overview/",
+      "document_version": "Page metadata dateModified 2026-06-18; retrieved web bytes 2026-11-04",
+      "retrieved_on": "2026-11-04",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://git.k8s.io/website/LICENSE",
+      "use_constraint": "The Kubernetes Authors; documentation distributed under CC BY 4.0; this catalog stores only short excerpts.",
+      "sha256": "92c2726ef377dd95eaae38e2d0e0c067763fb75c71da9cc49b6bd74768ada0c1"
+    },
+    {
+      "id": "src-role-programming",
+      "title": "计算机程序设计员（三级）职业技能等级认定指导手册",
+      "uri": "https://www.softline.org.cn/Attachment/Files?n=%E9%99%84%E4%BB%B61%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E5%91%98-%E6%8C%87%E5%AF%BC%E6%89%8B%E5%86%8C-3%E7%BA%A7.pdf&p=2024%2F09%2F09%2F453fec04-c0ae-49ee-8e16-d80df9e473a1.pdf",
+      "document_version": "2024-09-09 publication path; source body has no independent edition number; fixed download from p0-role-references-1",
+      "retrieved_on": "2026-10-28",
+      "license_id": "LICENSE-UNVERIFIED",
+      "license_url": "https://www.softline.org.cn/",
+      "use_constraint": "No explicit reuse licence was located. Keep only the pre-existing candidate summary and short locator; do not redistribute the PDF or claim formal adoption.",
+      "sha256": "8223e1c0952f6db9f483ff3d0ec21dcbb5c4ca2d0d3058c446ddea7893a50220"
+    },
+    {
+      "id": "src-role-network",
+      "title": "信息通信网络运行管理员国家职业技能标准",
+      "uri": "https://chinajob.mohrss.gov.cn/upload/resources/jnbzpdf/4ccc6a76ab6420078cc004.pdf",
+      "document_version": "2019 published edition; fixed download from p0-role-references-1",
+      "retrieved_on": "2026-10-28",
+      "license_id": "LICENSE-UNVERIFIED",
+      "license_url": "https://chinajob.mohrss.gov.cn/",
+      "use_constraint": "No explicit open-content reuse licence was established for automated redistribution. Keep only the pre-existing candidate summary and locator; do not redistribute the PDF.",
+      "sha256": "c27243f9630d1e485b69f3ff0b3e95957d08b01e4dd8f72d7a3b74c910716b61"
+    },
+    {
+      "id": "src-onet-task-statements",
+      "title": "O*NET® 31.0 Database: task_statements",
+      "uri": "https://www.onetcenter.org/dl_files/database/db_31_0_json/task_statements.json",
+      "document_version": "O*NET 31.0; fixed download 2026-11-05",
+      "retrieved_on": "2026-11-05",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "use_constraint": "USDOL/ETA O*NET 31.0 Database, CC BY 4.0. TalentMind translated, summarized and added Chinese comparison patterns. USDOL/ETA has not approved, endorsed or tested these modifications. Occupation codes are source identities, not Chinese market ground truth.",
+      "sha256": "d48d985c2bcf39a8760c9ffac599cd12309d597d564856e4bb3e9759ee948545"
+    },
+    {
+      "id": "src-onet-occupation-data",
+      "title": "O*NET® 31.0 Database: occupation_data",
+      "uri": "https://www.onetcenter.org/dl_files/database/db_31_0_json/occupation_data.json",
+      "document_version": "O*NET 31.0; fixed download 2026-11-05",
+      "retrieved_on": "2026-11-05",
+      "license_id": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "use_constraint": "USDOL/ETA O*NET 31.0 Database, CC BY 4.0. TalentMind translated, summarized and added Chinese comparison patterns. USDOL/ETA has not approved, endorsed or tested these modifications. Occupation codes are source identities, not Chinese market ground truth.",
+      "sha256": "8eec5d2449c0b96a90fca0f67184b3bf76c15b3549c4f145adb48c3ae55f52f8"
+    }
+  ],
+  "concepts": [
+    {
+      "id": "concept-python",
+      "name": "Python",
+      "definition": "一种易于学习、功能强大的通用编程语言，提供高级数据结构、面向对象编程、动态类型和解释器执行能力。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-python-docs",
+          "locator": "Python Tutorial, first introduction paragraph",
+          "quote": "Python 是一门易于学习、功能强大的编程语言。它提供了高效的高级数据结构，还能简单有效地面向对象编程。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-javascript",
+      "name": "JavaScript",
+      "definition": "具有函数优先特性的轻量级、解释型或即时编译型编程语言，支持多种编程范式。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [
+        {
+          "term": "JS",
+          "scope": "MDN defines the abbreviation as JavaScript on this exact page.",
+          "evidence": [
+            {
+              "source_id": "src-mdn-javascript",
+              "locator": "Page description, first sentence",
+              "quote": "JavaScript（JS）是一种具有函数优先特性的轻量级、解释型或者说即时编译型的编程语言。"
+            }
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "src-mdn-javascript",
+          "locator": "Page description, first sentence",
+          "quote": "JavaScript（JS）是一种具有函数优先特性的轻量级、解释型或者说即时编译型的编程语言。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-typescript",
+      "name": "TypeScript",
+      "definition": "为JavaScript添加静态类型检查的编程语言，保留独立身份，不等同JavaScript。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-mdn-typescript",
+          "locator": "Page description",
+          "quote": "TypeScript 是一个为 JavaScript 添加静态类型检查的编程语言。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-kubernetes",
+      "name": "Kubernetes",
+      "definition": "用于管理容器化工作负载和服务的可移植、可扩展开源平台，支持声明式配置和自动化。",
+      "category": "technical_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-kubernetes",
+          "locator": "Overview page description",
+          "quote": "Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "concept-container-orchestration",
+      "name": "容器编排",
+      "definition": "围绕容器化工作负载与服务进行部署、伸缩和运行管理的专业能力；不等同任何单一产品。",
+      "category": "professional_skill",
+      "maturity": "candidate",
+      "aliases": [],
+      "evidence": [
+        {
+          "source_id": "src-kubernetes",
+          "locator": "Overview page description",
+          "quote": "Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。"
+        }
+      ],
+      "approval_source": null
+    }
+  ],
+  "relations": [
+    {
+      "source_id": "concept-typescript",
+      "target_id": "concept-javascript",
+      "kind": "narrower_than",
+      "basis": "TypeScript adds static type checking to JavaScript; this preserves separate identities and does not assert substitutability.",
+      "evidence": [
+        {
+          "source_id": "src-mdn-typescript",
+          "locator": "Page description",
+          "quote": "TypeScript 是一个为 JavaScript 添加静态类型检查的编程语言。"
+        }
+      ]
+    },
+    {
+      "source_id": "concept-kubernetes",
+      "target_id": "concept-container-orchestration",
+      "kind": "related_to",
+      "basis": "Kubernetes is one platform used for containerized workload management; the concepts remain distinct and non-substitutable.",
+      "evidence": [
+        {
+          "source_id": "src-kubernetes",
+          "locator": "Overview page description",
+          "quote": "Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。"
+        }
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "id": "p0-ref-programming",
+      "name": "程序设计工作参照",
+      "definition_version": "p0-role-1",
+      "maturity": "candidate",
+      "goals": [
+        "交付满足功能需求的计算机或移动终端应用程序"
+      ],
+      "responsibilities": [
+        {
+          "id": "resp-understand-design",
+          "text": "理解开发需求及模块设计内容",
+          "anchors": [
+            [
+              "理解",
+              "分析"
+            ],
+            [
+              "开发需求",
+              "模块设计",
+              "设计内容"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-programming",
+              "locator": "P0 role reference; core duty 1",
+              "quote": "理解开发需求及模块设计内容"
+            }
+          ]
+        },
+        {
+          "id": "resp-write-design-doc",
+          "text": "形成模块设计文档",
+          "anchors": [
+            [
+              "形成",
+              "编写",
+              "撰写"
+            ],
+            [
+              "模块设计文档",
+              "设计文档"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-programming",
+              "locator": "P0 role reference; core duty 2",
+              "quote": "形成模块设计文档"
+            }
+          ]
+        },
+        {
+          "id": "resp-write-program",
+          "text": "编写与修改程序",
+          "anchors": [
+            [
+              "编写",
+              "修改",
+              "开发"
+            ],
+            [
+              "程序",
+              "代码"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-programming",
+              "locator": "P0 role reference; core duty 3",
+              "quote": "编写与修改程序"
+            }
+          ]
+        },
+        {
+          "id": "resp-debug-verify",
+          "text": "调试代码并核验模块功能",
+          "anchors": [
+            [
+              "调试"
+            ],
+            [
+              "核验",
+              "验证"
+            ],
+            [
+              "模块",
+              "功能"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-programming",
+              "locator": "P0 role reference; core duty 4",
+              "quote": "调试代码并核验模块功能"
+            }
+          ]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": [
+        "仅作为应用程序设计与编制工作的粗粒度参照",
+        "语言和框架不是本参照划分职责的依据"
+      ],
+      "unresolved_boundaries": [
+        "尚未界定后端、前端、平台、嵌入式及算法工程之间的市场岗位边界",
+        "不将一般程序设计责任推导为所有系统运维或教学职责均被覆盖",
+        "来源的技能等级考核要求不自动成为企业招聘条件"
+      ],
+      "evidence": [
+        {
+          "source_id": "src-role-programming",
+          "locator": "P0 candidate role summary",
+          "quote": "程序设计工作参照"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "p0-ref-network-operations",
+      "name": "信息通信网络运行工作参照",
+      "definition_version": "p0-role-1",
+      "maturity": "candidate",
+      "goals": [
+        "保持信息通信网络运行并改善网络性能"
+      ],
+      "responsibilities": [
+        {
+          "id": "resp-network-config",
+          "text": "管理网络运行配置",
+          "anchors": [
+            [
+              "管理",
+              "配置"
+            ],
+            [
+              "网络运行配置",
+              "网络配置"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-network",
+              "locator": "P0 role reference; core duty 1",
+              "quote": "管理网络运行配置"
+            }
+          ]
+        },
+        {
+          "id": "resp-network-monitor",
+          "text": "监测和管理网络性能",
+          "anchors": [
+            [
+              "监测",
+              "监控",
+              "管理"
+            ],
+            [
+              "网络性能",
+              "性能"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-network",
+              "locator": "P0 role reference; core duty 2",
+              "quote": "监测和管理网络性能"
+            }
+          ]
+        },
+        {
+          "id": "resp-network-optimize",
+          "text": "优化网络运行",
+          "anchors": [
+            [
+              "优化"
+            ],
+            [
+              "网络运行",
+              "网络"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-network",
+              "locator": "P0 role reference; core duty 3",
+              "quote": "优化网络运行"
+            }
+          ]
+        },
+        {
+          "id": "resp-network-fault",
+          "text": "定位并排除网络故障",
+          "anchors": [
+            [
+              "定位",
+              "排除",
+              "排查"
+            ],
+            [
+              "网络故障",
+              "故障"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-role-network",
+              "locator": "P0 role reference; core duty 4",
+              "quote": "定位并排除网络故障"
+            }
+          ]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": [
+        "来源是人社部与工信部制定的信息通信网络运行管理员国家职业技能标准",
+        "用于比较网络运行责任，不能凭Linux或网络工具名直接归类"
+      ],
+      "unresolved_boundaries": [
+        "尚未确认与SRE、DevOps、应用运维及信息安全岗位的精确职责边界",
+        "定义未覆盖数据库或业务主数据维护，不代表有明确排除证据",
+        "仅有网络相关经验不证明当前承担网络交付责任"
+      ],
+      "evidence": [
+        {
+          "source_id": "src-role-network",
+          "locator": "P0 candidate role summary",
+          "quote": "信息通信网络运行工作参照"
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "ref-software-development",
+      "name": "软件开发工作参照",
+      "definition_version": "onet31-cn-adaptation-1",
+      "maturity": "candidate",
+      "goals": [
+        "交付可运行的软件或应用，满足用户功能需求"
+      ],
+      "responsibilities": [
+        {
+          "id": "resp-software-develop",
+          "text": "设计、开发或修改软件系统",
+          "anchors": [
+            [
+              "开发",
+              "研发",
+              "编写",
+              "实现",
+              "构建",
+              "修改"
+            ],
+            [
+              "软件服务",
+              "软件系统",
+              "业务服务",
+              "订单服务",
+              "后端接口",
+              "API接口",
+              "应用程序",
+              "软件模块",
+              "程序",
+              "代码"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-1252.00; Task ID 21667; updated 2025-08-01",
+              "quote": "Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design."
+            }
+          ]
+        },
+        {
+          "id": "resp-software-needs",
+          "text": "分析用户需求和软件需求",
+          "anchors": [
+            [
+              "分析",
+              "理解"
+            ],
+            [
+              "用户需求",
+              "软件需求",
+              "开发需求"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-1252.00; Task ID 21662; updated 2025-08-01",
+              "quote": "Analyze user needs and software requirements to determine feasibility of design within time and cost constraints."
+            }
+          ]
+        },
+        {
+          "id": "resp-software-correct",
+          "text": "修正软件错误、改善接口和性能",
+          "anchors": [
+            [
+              "修正",
+              "修改",
+              "优化"
+            ],
+            [
+              "软件错误",
+              "软件性能",
+              "程序错误"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-1252.00; Task ID 21670; updated 2025-08-01",
+              "quote": "Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance."
+            }
+          ]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": [
+        "来源支持的 Agent 中文职责摘要；仅比较列出的任务，不等于完整职业定义",
+        "技术语言不拆成不同标准岗位"
+      ],
+      "unresolved_boundaries": [
+        "中国市场映射未经独立人工验证",
+        "未摘录任务与相邻职业边界未穷尽；未匹配不构成排除"
+      ],
+      "evidence": [
+        {
+          "source_id": "src-onet-occupation-data",
+          "locator": "O*NET 31.0; 15-1252.00; Description",
+          "quote": "Research, design, and develop computer and network software or specialized utility programs. Analyze user needs and develop software solutions, applying principles and techniques of computer science, engineering, and mathematical analysis. Update software or enhance existing software capabilities. May work with computer hardware engineers to integrate hardware and software systems, and develop specifications and performance requirements. May maintain databases within an application area, working individually or coordinating database development as part of a team."
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "ref-data-warehousing",
+      "name": "数据仓储工作参照",
+      "definition_version": "onet31-cn-adaptation-1",
+      "maturity": "candidate",
+      "goals": [
+        "交付数据抽取转换加载流程、数据仓库及数据质量结果"
+      ],
+      "responsibilities": [
+        {
+          "id": "resp-warehouse-process",
+          "text": "开发数据仓库处理流程，包含来源、加载、转换和抽取",
+          "anchors": [
+            [
+              "设计",
+              "开发",
+              "建设",
+              "搭建",
+              "构建",
+              "实现"
+            ],
+            [
+              "ETL数据管道",
+              "ETL管道",
+              "ETL流程",
+              "数据管道",
+              "数据仓库",
+              "数据抽取流程"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-1243.01; Task ID 16132; updated 2018-08-01",
+              "quote": "Develop data warehouse process models, including sourcing, loading, transformation, and extraction."
+            }
+          ]
+        },
+        {
+          "id": "resp-warehouse-quality",
+          "text": "核验仓库数据的结构、准确性或质量",
+          "anchors": [
+            [
+              "核验",
+              "验证",
+              "检查"
+            ],
+            [
+              "仓库数据质量",
+              "数据仓库质量"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-1243.01; Task ID 16121; updated 2018-08-01",
+              "quote": "Verify the structure, accuracy, or quality of warehouse data."
+            }
+          ]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": [
+        "来源支持的 Agent 中文职责摘要；仅比较列出的任务，不等于完整职业定义",
+        "技术语言不拆成不同标准岗位"
+      ],
+      "unresolved_boundaries": [
+        "中国市场映射未经独立人工验证",
+        "未摘录任务与相邻职业边界未穷尽；未匹配不构成排除"
+      ],
+      "evidence": [
+        {
+          "source_id": "src-onet-occupation-data",
+          "locator": "O*NET 31.0; 15-1243.01; Description",
+          "quote": "Design, model, or implement corporate data warehousing activities. Program and configure warehouses of database information and provide support to warehouse users."
+        }
+      ],
+      "approval_source": null
+    },
+    {
+      "id": "ref-business-intelligence",
+      "name": "商业智能分析工作参照",
+      "definition_version": "onet31-cn-adaptation-1",
+      "maturity": "candidate",
+      "goals": [
+        "交付用于业务决策的分析报告、业务指标或商业智能工具"
+      ],
+      "responsibilities": [
+        {
+          "id": "resp-bi-report",
+          "text": "生成汇总业务、财务或经济数据的报告",
+          "anchors": [
+            [
+              "分析",
+              "生成",
+              "编制",
+              "制作"
+            ],
+            [
+              "业务指标",
+              "经营指标",
+              "业务数据",
+              "财务数据",
+              "业务分析报告",
+              "商业智能报告"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-2051.01; Task ID 16150; updated 2024-08-01",
+              "quote": "Generate standard or custom reports summarizing business, financial, or economic data for review by executives, managers, clients, and other stakeholders."
+            }
+          ]
+        },
+        {
+          "id": "resp-bi-tools",
+          "text": "创建商业智能工具或系统及相关输出",
+          "anchors": [
+            [
+              "开发",
+              "创建",
+              "构建",
+              "设计"
+            ],
+            [
+              "商业智能系统",
+              "BI服务",
+              "商业智能工具"
+            ]
+          ],
+          "evidence": [
+            {
+              "source_id": "src-onet-task-statements",
+              "locator": "O*NET 31.0; 15-2051.01; Task ID 16144; updated 2024-08-01",
+              "quote": "Create business intelligence tools or systems, including design of related databases, spreadsheets, or outputs."
+            }
+          ]
+        }
+      ],
+      "boundaries": [],
+      "known_scope": [
+        "来源支持的 Agent 中文职责摘要；仅比较列出的任务，不等于完整职业定义",
+        "技术语言不拆成不同标准岗位"
+      ],
+      "unresolved_boundaries": [
+        "中国市场映射未经独立人工验证",
+        "未摘录任务与相邻职业边界未穷尽；未匹配不构成排除"
+      ],
+      "evidence": [
+        {
+          "source_id": "src-onet-occupation-data",
+          "locator": "O*NET 31.0; 15-2051.01; Description",
+          "quote": "Produce financial and market intelligence by querying data repositories and generating periodic reports. Devise methods for identifying data patterns and trends in available information sources."
+        }
+      ],
+      "approval_source": null
+    }
+  ]
+}

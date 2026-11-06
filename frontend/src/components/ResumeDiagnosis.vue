@@ -1,5 +1,5 @@
 <template>
-  <section class="diagnosis-page">
+  <section class="diagnosis-page" v-loading="uploading">
     <div class="page-title">
       <div>
         <h1>简历上传诊断</h1>
@@ -7,7 +7,7 @@
       </div>
       <div class="title-actions">
         <el-button @click="fileInput?.click()"><el-icon><UploadFilled /></el-icon>上传简历</el-button>
-        <input ref="fileInput" type="file" accept=".pdf,.doc,.docx,.txt" style="display:none" @change="onFileChange" />
+        <input ref="fileInput" type="file" accept=".pdf,.docx,.txt" style="display:none" @change="onFileChange" />
         <el-button @click="goToPreview"><el-icon><View /></el-icon>预览简历</el-button>
       </div>
     </div>
@@ -18,14 +18,14 @@
         <aside class="resume-copy-bubble" aria-label="简历解析说明">
           <span class="upload-badge">简历解析</span>
           <h2>上传简历，开始能力诊断</h2>
-          <p>支持 PDF、DOC、DOCX、TXT 格式。系统将提取教育、经历和技能信息，并自动匹配完整岗位目录。</p>
+          <p>支持可复制文字的 PDF、DOCX、UTF-8 TXT。旧版 DOC 请先另存为 DOCX。系统提取教育、经历和技能信息，并按岗位目录推荐。</p>
           <div class="privacy-line"><span>✓</span> 文件仅用于本次本地诊断，不会存储或对外共享</div>
         </aside>
       </div>
-      <el-upload drag :auto-upload="false" :show-file-list="false" accept=".pdf,.doc,.docx,.txt" :on-change="handleFile" class="resume-upload">
+      <el-upload drag :auto-upload="false" :show-file-list="false" accept=".pdf,.docx,.txt" :on-change="handleFile" class="resume-upload">
         <el-icon class="upload-illustration"><UploadFilled /></el-icon>
         <div class="el-upload__text">将 PDF / Word 简历拖到这里<br/><em>或点击选择文件</em></div>
-        <template #tip><div class="el-upload__tip">支持最大 10MB 的 PDF、DOC、DOCX、TXT 文件</div></template>
+        <template #tip><div class="el-upload__tip">支持最大 10MB 的 PDF、DOCX、TXT 文件；扫描件请先转为文字</div></template>
       </el-upload>
     </section>
 
@@ -33,7 +33,7 @@
       <div class="parse-success">
         <span class="success-icon">✓</span>
         <div class="success-main"><b>{{ fileName }}</b><span>解析完成 · 已提取 {{ profile.skills.length }} 项技能</span></div>
-        <span class="parse-quality-badge">{{ parseQuality }}%</span>
+        <span class="parse-quality-badge" title="姓名、联系方式、教育、经历、技能五类字段的识别覆盖率，不代表准确率">字段覆盖率 {{ parseQuality }}%</span>
         <el-button text type="primary" @click="resetDiagnosis">重新上传</el-button>
       </div>
 
@@ -63,6 +63,14 @@
         </aside>
 
         <div class="split-main">
+          <section v-if="profile.education_history?.length" class="m-module">
+            <h4 class="m-head">教育经历</h4>
+            <div v-for="(edu, i) in profile.education_history" :key="'edu' + i" class="exp-list"><b>{{ edu.school || '未识别学校' }}</b><span>{{ [edu.major, edu.degree, edu.start_date, edu.end_date].filter(Boolean).join(' · ') }}</span></div>
+          </section>
+          <section v-if="profile.work_experience?.length" class="m-module">
+            <h4 class="m-head">工作经历</h4>
+            <div v-for="(work, i) in profile.work_experience" :key="'work' + i" class="exp-list"><b>{{ work.company }} {{ work.position }}</b><span>{{ [work.start_date, work.end_date].filter(Boolean).join(' - ') }}</span><ul><li v-for="(line, j) in work.description" :key="j">{{ line }}</li></ul></div>
+          </section>
           <template v-if="(profile.projects && profile.projects.length) || (profile.honors && profile.honors.length)">
             <section class="m-module" v-if="profile.projects && profile.projects.length">
               <h4 class="m-head">项目经历 <em>{{ profile.projects.length }}</em></h4>
@@ -85,8 +93,8 @@
       </article>
 
       <section class="panel recommendations-panel">
-        <div class="panel-head"><div><h3>自动匹配岗位</h3><p>系统已遍历完整岗位目录，固定展示至少 3 个推荐结果；点击卡片即可为对应岗位生成学习路径。</p></div><el-tag type="success" effect="plain">{{ recommendedJobs.length }} 个岗位</el-tag></div>
-        <div v-if="recommendedJobs.length" class="recommendation-grid"><article v-for="(job, index) in recommendedJobs" :key="job.id" class="recommendation-card"><div class="recommendation-title"><div><small>推荐 {{ index + 1 }}</small><strong>{{ job.title }}</strong><em>{{ job.name_en || '' }}</em></div><el-tag size="small" effect="plain">{{ job.category || job.platform_label }}</el-tag></div><div class="recommendation-score"><b>{{ scoreText(job.score) }}%</b><span>展示匹配度</span></div><p>已匹配 {{ job.matched.length }} 项技能<span v-if="job.missing.length">，待补 {{ job.missing.length }} 项</span></p><el-button text class="recommendation-link" @click="selectRecommendation(job)">按此岗位生成学习路径<el-icon><ArrowRight /></el-icon></el-button></article></div>
+        <div class="panel-head"><div><h3>自动匹配岗位</h3><p>按岗位技能与简历文本的加权命中率推荐最多 3 个岗位；分数不代表能力水平或录用概率。点击卡片生成学习路径。</p></div><el-tag type="success" effect="plain">{{ recommendedJobs.length }} 个岗位</el-tag></div>
+        <div v-if="recommendedJobs.length" class="recommendation-grid"><article v-for="(job, index) in recommendedJobs" :key="job.id" class="recommendation-card"><div class="recommendation-title"><div><small>推荐 {{ index + 1 }}</small><strong>{{ job.title }}</strong><em>{{ job.name_en || '' }}</em></div><el-tag size="small" effect="plain">{{ job.category || job.platform_label }}</el-tag></div><div class="recommendation-score"><b>{{ scoreText(job.score) }}%</b><span>技能文本匹配度</span></div><p>已命中 {{ job.matched.length }} 项技能<span v-if="job.missing.length">，未提及 {{ job.missing.length }} 项</span></p><el-button text class="recommendation-link" @click="selectRecommendation(job)">按此岗位生成学习路径<el-icon><ArrowRight /></el-icon></el-button></article></div>
         <div v-else class="recommendation-empty">当前暂无可计算岗位，请先确认岗位目录已导入。</div>
       </section>
     </section>
@@ -94,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import type { UploadFile } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { ArrowRight, UploadFilled, View } from '@element-plus/icons-vue'
@@ -111,6 +119,8 @@ const profile = ref<any>({ name: '', role: '', experience: '', education: '', co
 const matchResult = ref<any>(null)
 const recommendedJobs = ref<RecommendedJob[]>([])
 const parseQuality = ref(0)
+const uploading = ref(false)
+let uploadGeneration = 0
 
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement
@@ -118,33 +128,40 @@ function onFileChange(event: Event) {
   input.value = ''
 }
 
-const ALLOWED_EXTS = ['pdf', 'doc', 'docx', 'txt']
+const ALLOWED_EXTS = ['pdf', 'docx', 'txt']
 const MAX_SIZE = 10 * 1024 * 1024
 
 async function handleFile(file: File | UploadFile) {
   const rawFile = file instanceof File ? file : file.raw
   if (!(rawFile instanceof File)) return ElMessage.error('未读取到有效的简历文件')
   const ext = (rawFile.name.split('.').pop() || '').toLowerCase()
-  if (!ALLOWED_EXTS.includes(ext)) return ElMessage.error('仅支持 PDF / DOC / DOCX / TXT 文件')
+  if (!ALLOWED_EXTS.includes(ext)) return ElMessage.error('仅支持 PDF / DOCX / TXT；旧版 DOC 请先转换')
   if (rawFile.size > MAX_SIZE) return ElMessage.error('文件超过 10MB 上限')
-  fileName.value = rawFile.name
+  const request = ++uploadGeneration
+  uploading.value = true
   try {
     const data = await uploadResume(rawFile)
+    if (request !== uploadGeneration) return
+    fileName.value = rawFile.name
     profile.value = data.profile || profile.value
     matchResult.value = data.matchResult || null
     recommendedJobs.value = Array.isArray(data.recommendedJobs) ? data.recommendedJobs : []
-    parseQuality.value = Number(data.parseQuality || 92)
+    parseQuality.value = Number(data.parseQuality ?? 0)
     parsed.value = true
     resumeStore.setParsed(profile.value, matchResult.value, recommendedJobs.value, parseQuality.value, fileName.value)
     ElMessage.success('简历解析成功，已生成自动岗位推荐')
   } catch (error: any) {
-    ElMessage.error(error?.message || '简历解析失败')
+    if (request === uploadGeneration) ElMessage.error(error?.message || '简历解析失败')
+  } finally {
+    if (request === uploadGeneration) uploading.value = false
   }
 }
 
 function scoreText(value: number | string | undefined) { const n = Number(value || 0); return Number.isFinite(n) ? n.toFixed(2) : '—' }
 
 function resetDiagnosis() {
+  uploadGeneration++
+  uploading.value = false
   parsed.value = false
   matchResult.value = null
   recommendedJobs.value = []
@@ -173,10 +190,11 @@ onMounted(() => {
   profile.value = resumeStore.profile
   matchResult.value = resumeStore.matchResult
   recommendedJobs.value = resumeStore.recommendedJobs || []
-  parseQuality.value = resumeStore.parseQuality || 92
+  parseQuality.value = resumeStore.parseQuality ?? 0
   fileName.value = resumeStore.fileName || '最近一次简历'
   parsed.value = true
 })
+onUnmounted(() => { uploadGeneration++ })
 </script>
 
 <style scoped>
