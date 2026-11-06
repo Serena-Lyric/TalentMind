@@ -68,6 +68,158 @@ function deferred() {
 const tick = async () => { await vue.nextTick(); for (let i = 0; i < 6; i++) await Promise.resolve() }
 function addSkill(state: any, name: string) { state.startAddSkill(); state.newSkill.value = name; state.confirmAddSkill() }
 
+function persistentJobs() {
+  const stored = new Map([['A', job('A')], ['B', job('B')]])
+  const writes: { id: string; finish: (error?: Error, commit?: boolean) => void }[] = []
+  const api = {
+    getJobDetail: (id: string) => structuredClone(stored.get(id)),
+    updateJob: (id: string, payload: any) => {
+      const submitted = JSON.parse(JSON.stringify(payload)) // 与 HTTP JSON 提交一致，冻结提交时内容。
+      return new Promise((resolve, reject) => {
+        writes.push({ id, finish(error, commit = !error) {
+          if (commit) stored.set(id, { ...stored.get(id)!, ...submitted, skills: [...submitted.required_skills, ...submitted.bonus_skills] })
+          if (error) reject(error); else resolve({ success: true })
+        } })
+      })
+    },
+  }
+  return { stored, writes, api }
+}
+
+for (const transition of ['close-reopen', 'A-B-A']) {
+  test(`同岗位跨会话不允许逆序PUT导致服务端与已保存界面分歧：${transition}`, async () => {
+    const db = persistentJobs()
+    const view = component(db.api)
+    try {
+      await view.state.openDetail(job('A')); addSkill(view.state, 'SQL')
+      const first = view.state.saveSkills()
+      if (transition === 'A-B-A') await view.state.openDetail(job('B'))
+      else view.state.detailVisible.value = false
+      const reopening = view.state.openDetail(job('A')); await tick()
+      addSkill(view.state, 'Java')
+      const second = view.state.saveSkills(); await tick()
+      // 故意让获准的后写先落库，再让前写落库，不能只检查旧响应是否回填 UI。
+      if (db.writes[1]) db.writes[1].finish()
+      await second
+      db.writes[0].finish(); await first; await reopening
+      assert.ok(view.state.skillDirty.value || JSON.stringify(db.stored.get('A')!.skills) === JSON.stringify(view.state.detailSkills.value), '界面不能宣称已保存却与服务端最后落库内容不同')
+      assert.equal(db.writes.length, 1)
+      assert.deepEqual(view.state.detailSkills.value, ['Python', 'Java'])
+      assert.equal(view.state.detailReady.value, false)
+      assert.ok(view.state.detailError.value)
+      await view.state.discardAndReload(); addSkill(view.state, 'Java')
+      const finalSave = view.state.saveSkills(); db.writes[1].finish(); await finalSave
+      assert.deepEqual(db.stored.get('A')!.skills, ['Python', 'SQL', 'Java'])
+      assert.deepEqual(view.state.detailSkills.value, db.stored.get('A')!.skills)
+      assert.equal(view.state.skillDirty.value, false)
+    } finally { view.stop() }
+  })
+}
+
+test('A在途保存不阻止B保存，返回A必须等待前写后再取详情基线', async () => {
+  const db = persistentJobs()
+  const view = component(db.api)
+  try {
+    await view.state.openDetail(job('A')); addSkill(view.state, 'SQL')
+    const first = view.state.saveSkills()
+    await view.state.openDetail(job('B')); addSkill(view.state, 'Go')
+    const other = view.state.saveSkills()
+    assert.deepEqual(db.writes.map(write => write.id), ['A', 'B'])
+    db.writes[1].finish(); await other
+    const reopening = view.state.openDetail(job('A')); await tick()
+    assert.equal(view.calls.filter(call => call.method === 'getJobDetail' && call.args[0] === 'A').length, 1, '前写结束前不能取得旧基线并开放保存')
+    assert.equal(view.state.savingSkills.value, true)
+    db.writes[0].finish(); await first; await reopening
+    assert.deepEqual(view.state.detailSkills.value, ['Python', 'SQL'])
+    assert.equal(view.state.detailReady.value, true)
+    assert.equal(view.state.savingSkills.value, false)
+    assert.deepEqual(db.stored.get('B')!.skills, ['Python', 'Go'])
+  } finally { view.stop() }
+})
+
+for (const committed of [false, true]) {
+  test(`前写报错后重开会话重新核对实际基线且保留草稿，服务端已写=${committed}`, async () => {
+    const db = persistentJobs()
+    const view = component(db.api)
+    try {
+      await view.state.openDetail(job('A')); addSkill(view.state, 'SQL')
+      const first = view.state.saveSkills()
+      view.state.detailVisible.value = false
+      const reopening = view.state.openDetail(job('A')); addSkill(view.state, 'Java')
+      db.writes[0].finish(new Error('synthetic response failure'), committed)
+      await first; await reopening
+      assert.deepEqual(view.state.detailJob.value.skills, committed ? ['Python', 'SQL'] : ['Python'])
+      assert.deepEqual(view.state.detailSkills.value, ['Python', 'Java'])
+      assert.equal(view.state.skillDirty.value, true)
+      assert.equal(view.state.detailReady.value, !committed)
+      assert.equal(view.state.savingSkills.value, false)
+      assert.equal(view.messages.length, 0)
+      if (!committed) {
+        const retry = view.state.saveSkills(); db.writes[1].finish(); await retry
+        assert.deepEqual(db.stored.get('A')!.skills, ['Python', 'Java'])
+      }
+    } finally { view.stop() }
+  })
+}
+
+test('前写完成后的详情回读未完成时仍不可保存，迟到回读保留编辑草稿', async () => {
+  const db = persistentJobs()
+  const readback = deferred()
+  let reads = 0
+  const view = component({ ...db.api, getJobDetail: (id: string) => ++reads === 1 ? db.api.getJobDetail(id) : readback.promise })
+  try {
+    await view.state.openDetail(job('A')); addSkill(view.state, 'SQL')
+    const first = view.state.saveSkills()
+    view.state.detailVisible.value = false
+    const reopening = view.state.openDetail(job('A')); await tick()
+    assert.equal(reads, 1)
+    db.writes[0].finish(); await first; await tick()
+    addSkill(view.state, 'Java'); await view.state.saveSkills()
+    assert.equal(db.writes.length, 1)
+    assert.equal(view.state.detailReady.value, false)
+    readback.resolve(db.api.getJobDetail('A')); await reopening
+    assert.deepEqual(view.state.detailSkills.value, ['Python', 'Java'])
+    assert.equal(view.state.detailReady.value, false)
+  } finally { view.stop() }
+})
+
+test('更早会话的GET旧基线迟到不能解除当前会话的在途写保护', async () => {
+  const db = persistentJobs()
+  const obsolete = deferred()
+  let reads = 0
+  const view = component({ ...db.api, getJobDetail: (id: string) => ++reads === 1 ? obsolete.promise : db.api.getJobDetail(id) })
+  try {
+    const abandoned = view.state.openDetail(job('A'))
+    view.state.detailVisible.value = false
+    await view.state.openDetail(job('A')); addSkill(view.state, 'SQL')
+    const first = view.state.saveSkills()
+    view.state.detailVisible.value = false
+    const reopening = view.state.openDetail(job('A')); addSkill(view.state, 'Java')
+    obsolete.resolve(job('A')); await abandoned
+    await view.state.saveSkills()
+    assert.equal(db.writes.length, 1)
+    assert.equal(view.state.detailReady.value, false)
+    assert.equal(view.state.savingSkills.value, true)
+    db.writes[0].finish(); await first; await reopening
+    assert.deepEqual(view.state.detailJob.value.skills, ['Python', 'SQL'])
+    assert.deepEqual(view.state.detailSkills.value, ['Python', 'Java'])
+    assert.equal(view.state.detailReady.value, false)
+  } finally { view.stop() }
+})
+
+test('等待前写的详情会话关闭或卸载后不再回读或触发消息', async () => {
+  const db = persistentJobs()
+  const view = component(db.api)
+  await view.state.openDetail(job('A')); addSkill(view.state, 'SQL')
+  const first = view.state.saveSkills()
+  view.state.detailVisible.value = false
+  const reopening = view.state.openDetail(job('A'))
+  view.stop()
+  db.writes[0].finish(); await first; await reopening
+  assert.equal(view.calls.filter(call => call.method === 'getJobDetail').length, 1)
+  assert.equal(view.messages.length, 0)
+})
+
 test('详情倒序返回只更新当前岗位，关闭后重开同岗位使用新会话', async () => {
   const pending = [deferred(), deferred(), deferred(), deferred()]
   let index = 0

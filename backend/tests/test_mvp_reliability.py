@@ -24,6 +24,81 @@ def upload(data, name="jobs.csv"):
     return UploadFile(filename=name, file=io.BytesIO(data))
 
 
+@pytest.fixture
+def import_http(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.middleware import register_exception_handlers
+
+    saved = []
+    monkeypatch.setattr(mvp, "create_job", lambda payload: saved.append(payload))
+    app = FastAPI()
+    register_exception_handlers(app)
+    app.include_router(mvp.router, prefix="/api")
+    with TestClient(app) as client:
+        yield client, saved
+
+
+@pytest.mark.parametrize("format", ["json", "csv"])
+@pytest.mark.parametrize("field,value", [
+    ("required_skills", [1]),
+    ("core_duties", {"private-key": "PRIVATE_VALUE"}),
+    ("quality", "PRIVATE_VALUE"),
+    ("is_emerging", "PRIVATE_VALUE"),
+    ("evolution", {"private-key": float("inf")}),
+    ("job_name", "PRIVATE_VALUE" * 20),
+    ("quality", 1e100),
+    ("core_duties", "PRIVATE_VALUE" * 6000),
+    ("collected_at", "PRIVATE_VALUE"),
+    ("updated_at", "0999-12-31 23:59:59"),
+], ids=["list", "text-type", "float-type", "bool-type", "json-infinity", "name-length", "float-range", "text-range", "date-format", "date-range"])
+def test_import_http_identifies_bad_record_and_field_without_values(import_http, format, field, value):
+    client, saved = import_http
+    first = {"job_name": "private-first"}
+    second = {"job_name": "private-second", field: value}
+    if format == "json":
+        raw = json.dumps([first, second]).encode()
+    else:
+        # CSV scalar columns are strings; invalid text-type uses an invalid JSON list field instead.
+        if field == "core_duties" and isinstance(value, dict):
+            field, value = "scenarios", [value]
+            second = {"job_name": "private-second", field: value}
+        buf = io.StringIO()
+        writer = csv.DictWriter(buf, fieldnames=list(dict.fromkeys(["job_name", field])))
+        writer.writeheader()
+        writer.writerow(first)
+        writer.writerow({key: json.dumps(val) if isinstance(val, (list, dict)) else val for key, val in second.items()})
+        raw = buf.getvalue().encode("utf-8-sig")
+    response = client.post("/api/jobs/import", files={"file": (f"jobs.{format}", raw)})
+    body = response.json()
+    assert response.status_code == 200
+    assert body["code"] == 4001
+    assert "第 2 条记录" in body["message"]
+    assert field in body["message"]
+    assert "PRIVATE_VALUE" not in response.text
+    assert "private-key" not in response.text
+    assert "private-first" not in response.text
+    assert "private-second" not in response.text
+    assert saved == []
+
+
+@pytest.mark.parametrize("name,raw,kind", [
+    ("jobs.csv", b"\xffPRIVATE_VALUE", "UTF-8"),
+    ("jobs.json", b'[{"job_name":"PRIVATE_VALUE"},', "JSON"),
+    ("jobs.json", b'{"PRIVATE_VALUE": 1}', "JSON"),
+    ("jobs.csv", b'job_name\n"PRIVATE_VALUE', "CSV"),
+    ("jobs.csv", b'PRIVATE_VALUE\nvalue\n', "CSV"),
+])
+def test_import_http_file_errors_do_not_claim_a_record_or_echo_content(import_http, name, raw, kind):
+    client, saved = import_http
+    response = client.post("/api/jobs/import", files={"file": (name, raw)})
+    body = response.json()
+    assert body["code"] == 4001
+    assert kind in body["message"]
+    assert "条记录" not in body["message"]
+    assert "PRIVATE_VALUE" not in response.text
+    assert saved == []
+
+
 def test_slow_upload_keeps_health_responsive_and_session_on_worker(monkeypatch):
     entered = threading.Event()
     stages = []

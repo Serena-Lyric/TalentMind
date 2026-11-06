@@ -14,7 +14,7 @@
 
 同一工作区按文件独占；仅主代理操作暂存、提交、推送，不合并 master。每组先定向测试，再由未参与该部分实施的代理交叉审查；发现问题交原负责人处理。最终统一提交后执行后端全仓非 integration、前端完整测试/类型检查/构建及跨模块验收，推送后追踪同一 head CI。
 
-## 定向回归与交叉审查
+## 首轮定向回归与交叉审查（6905ca5）
 
 - 后端在 `backend` 执行 `.venv/Scripts/python.exe -m pytest tests/test_mvp_reliability.py tests/test_neo4j_lifecycle.py tests/test_resume_learning_repair.py tests/test_upload_contract.py tests/test_file_parser_reliability.py -q`：**77 passed**、735 条依赖弃用警告、退出 0。全部服务显式指向端口 1；受限沙箱的 asyncio socketpair 挂起尝试已终止，不计业务通过/失败。
 - 前端在 `frontend` 执行 `node --experimental-strip-types --test tests/jobs.test.ts tests/pagePanels.test.ts tests/resumeLearning.test.ts`：**36 passed**、退出 0；本地 `node node_modules/vue-tsc/bin/vue-tsc.js --noEmit` 退出 0。锁文件安装 `pnpm install --frozen-lockfile` 成功，退出 0，未改锁文件。
@@ -23,6 +23,17 @@
 - 合成 HTTP SQLite 验收覆盖创建 ID 对应真实行、岗位技能更新、CSV 导出再导入和错误后行零新增。finally 精确删除唯一 `job_name` 夹具并断言计数 0，旁置哨兵计数仍 1；再精确清理哨兵后总计 0，释放独立内存引擎。
 
 上述是提交前定向证据，不代替最终固定 head 的统一回归与 GitHub CI；最终数字和链接在 PR 证据评论发布，避免报告自身改动使验证 SHA 漂移。
+
+## PR #72 独立复审后的定向收口
+
+[独立复审](https://github.com/Serena-Lyric/TalentMind/pull/72#pullrequestreview-5805340536) 对 `6905ca5` 确认既有核心工程修复与五项 CI，另发现两项缺口；后续仅修以下范围，最新固定 head/统一验证以 [PR #72](https://github.com/Serena-Lyric/TalentMind/pull/72) 的复审证据为准，不复用首轮数字。
+
+- R1（P1）：关闭重开同一岗位会允许并发 PUT，旧服务端写入可覆盖较新的已保存技能。前端负责岗位级在途写顺序、新会话基线核对与草稿保护，回归同时断言实际持久状态和页面保存状态。
+- R2（P2）：导入全文件预校验已保证字段错误零写入，但固定 HTTP 错误丢失记录/字段定位。后端补安全的记录序号、白名单字段名及文件级错误区分，禁止回显原始记录；不改变校验范围或逐行事务。
+
+前后端仍按原文件归属独占修改，主代理统一提交和验证，在原两条 review thread 回复修复证据，保留 ChatGPT 独立复审与合并授权流程。
+
+修复已落实在 `Jobs.vue` 与 `mvp.py`，对应测试各新增 8 / 25 项。R1 以岗位 ID 保存跨弹窗在途 Promise，重开等待旧写结束再 GET，保持草稿、冲突保护和不同岗位并发；R2 只返回安全记录序号及模型字段名，文件级错误单独提示，未改变准入与事务。未参与实施的代理只读交叉审查四个源码/测试文件，未发现新增阻断项。主代理提交前复跑后端 `test_mvp_reliability.py test_upload_contract.py test_resume_learning_repair.py`：**92 passed**，前端 `jobs.test.ts pagePanels.test.ts resumeLearning.test.ts`：**44 passed**，均退出 0；类型检查通过。最终固定 head 的全仓/构建/CI 证据另在 #72 更新。
 
 ## 验证与安全边界
 

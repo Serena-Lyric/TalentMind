@@ -12,7 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Body, File, Form, Query, UploadFile
 from fastapi.responses import Response as FastResponse
 from starlette.concurrency import run_in_threadpool
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
@@ -513,22 +513,27 @@ async def import_jobs(file: UploadFile = File(...)):
 
 def _import_jobs(raw: bytes, filename: str):
     import csv
+    index = 0
+    field = "结构"
+    file_error = "导入文件编码无效，请使用 UTF-8 编码"
     try:
         content = raw.decode("utf-8-sig")
         is_json = filename.lower().endswith(".json") or content.lstrip().startswith("[")
+        file_error = "JSON 文件语法无效，请检查文件格式" if is_json else "CSV 文件语法无效，请检查引号与列格式"
         if is_json:
             rows = json.loads(content)
             if not isinstance(rows, list):
-                raise ValueError("JSON 顶层必须为数组")
+                raise BizError(4001, "JSON 文件顶层必须为记录数组")
         else:
             reader = csv.DictReader(io.StringIO(content), strict=True)
             if not reader.fieldnames or not {"job_name", "title"}.intersection(reader.fieldnames):
-                raise ValueError("CSV 缺少 job_name 或 title 列")
+                raise BizError(4001, "CSV 表头缺少 job_name 或 title 列")
             if len(set(reader.fieldnames)) != len(reader.fieldnames):
-                raise ValueError("CSV 存在重复列名")
+                raise BizError(4001, "CSV 表头存在重复列名")
             rows = list(reader)
         payloads = []
         for index, row in enumerate(rows, start=1):
+            field = "结构"
             if not isinstance(row, dict) or None in row:
                 raise ValueError(f"第 {index} 行结构无效")
             item = dict(row)
@@ -549,17 +554,22 @@ def _import_jobs(raw: bytes, filename: str):
                 if item.get(field) is None or item.get(field) == "":
                     item[field] = default
             if not is_json and isinstance(item["evolution"], str):
+                field = "evolution"
                 item["evolution"] = json.loads(item["evolution"])
             payload = JobPayload(**item)
+            field = "job_name"
             payload.job_name = payload.job_name.strip()
             if not payload.job_name or len(payload.job_name) > 128:
                 raise ValueError(f"第 {index} 行 job_name 必须为 1–128 个字符")
+            field = "quality"
             if not math.isfinite(payload.quality) or abs(payload.quality) > 3.4028234663852886e38:
                 raise ValueError(f"第 {index} 行 quality 超出 FLOAT 范围")
+            field = "core_duties"
             if len(payload.core_duties.encode("utf-8")) > 65535:
                 raise ValueError(f"第 {index} 行 core_duties 超出 TEXT 字节上限")
             # MySQL JSON rejects non-finite numbers, including nested overflow from 1e999.
-            json.dumps(payload.model_dump(), ensure_ascii=False, allow_nan=False).encode("utf-8")
+            for field, value in payload.model_dump().items():
+                json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
             for field in ("collected_at", "updated_at", "first_seen"):
                 value = getattr(payload, field)
                 if value:
@@ -570,8 +580,14 @@ def _import_jobs(raw: bytes, filename: str):
                         raise ValueError(f"第 {index} 行 {field} 超出 DATETIME 范围")
                     setattr(payload, field, parsed.isoformat(sep=" "))
             payloads.append(payload)
+    except ValidationError as exc:
+        # Only schema-owned top-level names are public; nested keys and input values stay private.
+        field = next((error["loc"][0] for error in exc.errors(include_input=False, include_context=False)
+                      if error["loc"] and error["loc"][0] in JobPayload.model_fields), "结构")
+        raise BizError(4001, f"第 {index} 条记录的 {field} 无效，请检查字段类型") from exc
     except (ValueError, TypeError, csv.Error) as exc:
-        raise BizError(4001, "导入文件格式或字段无效，请检查 UTF-8 编码、岗位名称、列表及日期") from exc
+        message = f"第 {index} 条记录的 {field} 无效，请检查字段格式或存储范围" if index else file_error
+        raise BizError(4001, message) from exc
     # Preserve per-row commits; validate the whole file before any database write.
     for payload in payloads:
         create_job(payload)
