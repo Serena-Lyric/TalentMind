@@ -357,12 +357,14 @@ revision `a06e946bb6b655725eafa393f4a9745d460374c9`、Q4_K_M、Apache-2.0；字�
 
 ### 源绑定工作解释
 
-`--method work` 使用 `m2-role-attribution-4/source-bound-work-comparison-1`，其余显式本地
+`--method work` 使用 `m2-role-attribution-4/source-bound-work-comparison-2`，其余显式本地
 模型、检索器和预算参数与 evidence 相同。原文、参考任务和目标领域由程序绑定，模型只解释源工作，
 不负责重新生成引文。此路径用于检验 evidence 路径的引用生成失败及语义错配；旧路径与旧结果仍可读取。
 
 - `source_evidence/reference_evidence` 保留真实出处；发送的 `work_texts` 排除已识别为他人、条件等
   非当前职责片段，必要时另存 `model_source_evidence`。教学仍作为实际工作比较，不能当作本人编程。
+  输入 v2 同时提供完整 `source_context/scope_context`，独立条件、主体和历史控制头在同一职责内
+  跨换行或分离引用仍约束后续工作，不能因裁剪限定语而升级。旧输入 v1 不被重新解释或补写字段。
 - 目标输入包含绑定定义的 goals、known_scope、未决边界及已有动作/对象示例。它们限定目标任务，
   不补成源岗位事实；通用系统不能因此被假定为 BI 系统。词面优先级可使用这些版本化示例，
   `definition-context-task-budget-1` 仍只控制检查顺序，不作支持依据。

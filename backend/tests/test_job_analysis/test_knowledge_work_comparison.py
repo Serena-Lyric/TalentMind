@@ -179,3 +179,23 @@ def test_public_work_method_runs_selected_pairs_and_reads_without_models(tmp_pat
     save_result(tmp_path / "result", result.model_dump())
     monkeypatch.setattr(Model, "complete_json", lambda *args: pytest.fail("historical read called a model"))
     assert read_attribution(tmp_path / "result").model_dump() == result.model_dump()
+
+
+@pytest.mark.parametrize("header,scope", [("如果项目批准：", "conditional"),
+    ("能力允许的话可以延伸", "conditional"), ("客户负责：", "other_actor"), ("过去职责：", "historical")])
+@pytest.mark.parametrize("split_citations", [False, True])
+def test_governing_header_survives_newlines_and_separate_citations(header, scope, split_citations):
+    from app.job_analysis.foundation.inputs import InputRecord
+    from test_knowledge_alignment import evidence
+    body = "开发软件系统并输出设计文档"
+    value = analysis_with_duties([header + "\n" + body])
+    if split_citations:
+        row = InputRecord.from_row(value["namespace"], value["input_row"])
+        value["claims"][0]["evidence"] = [evidence(row, header), evidence(row, body)]
+    result = compare(value=value)
+    assert all(u.scope == scope for u in result.work_units)
+    assert result.task_assessments[0].state == "unresolved"
+    assert not result.work_candidates
+    from app.job_analysis.knowledge.work_comparison import work_input_v2
+    view = work_input_v2(result, "d1", "p0-ref-programming", "resp-write-design-doc")["model_input"]
+    assert any(header in text for text in view["source_context"])

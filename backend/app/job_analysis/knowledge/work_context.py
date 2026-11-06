@@ -87,6 +87,22 @@ def work_units(analysis):
                     "context_only" if kind == "context" else "unexplained",
                     reason="P2对原引用片段的局部解释；P1事实与重要性不改写，未命中参照不证明新职业。",
                 ))
+    # A standalone controlling heading can govern later cited lines even when
+    # P1 saves the heading and task as separate evidence. Newlines are not a
+    # change of actor/time/modality. Keep saved historical units unchanged.
+    for claim_id, field in {(u.claim_id, u.evidence.field) for u in result}:
+        governing = None
+        for unit in sorted((u for u in result if u.claim_id == claim_id and u.evidence.field == field),
+                           key=lambda u: (u.evidence.start, u.evidence.end)):
+            quote = unit.evidence.quote.strip()
+            if re.match(r"(?:本人|本岗位|当前|本次)(?:负责|承担|职责)", quote):
+                governing = None
+            if governing is not None and unit.scope == "affirmed":
+                unit.scope = governing
+                unit.reference_status = "not_asserted_work"
+            actor_free = re.sub(r"开发团队|团队|客户|供应商|他人|公司", "", quote)
+            if unit.scope != "affirmed" and (quote.endswith(("：", ":")) or not re.search(PREDICATES, actor_free)):
+                governing = unit.scope
     return result
 
 
