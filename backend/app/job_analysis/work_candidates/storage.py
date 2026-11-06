@@ -42,7 +42,7 @@ class CandidateStore:
                         self.conn.execute(f"CREATE TRIGGER {table}_{operation} BEFORE {operation} ON {table} "
                                           "BEGIN SELECT RAISE(ABORT,'immutable P3 history'); END")
                 initial = dict(schema_version="m2-work-state-1", registry_id=uuid4().hex, revision=0,
-                               candidates={}, relations={}, analysis_sha256s=[], report={}, formal_roles=[],
+                               candidates={}, relations={}, analysis_sha256s=[], report={}, formal_roles=[], content_groups=[],
                                counts=dict(linked_jd_identities=0, unique_content_groups=0,
                                            independent_evidence=None, vacancies=None))
                 self.append("registry-init", digest({}), initial)
