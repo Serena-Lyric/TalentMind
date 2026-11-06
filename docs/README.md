@@ -31,7 +31,7 @@
 
 | 范围 | 计划与审核依据 |
 |---|---|
-| M2 新底座（按总表维护阶段状态） | [P0～P6 总计划及各段入口](superpowers/plans/2026-10-28-m2-core-delivery-plan.md)；[ChatGPT 交付审核标准](superpowers/specs/2026-10-28-m2-delivery-review-standard.md) |
+| M2 新底座（按总表维护阶段状态） | [P0～P6 总计划及各段入口](superpowers/plans/2026-10-28-m2-core-delivery-plan.md)；[P5/P6 连续实施任务](superpowers/plans/2026-11-07-m2-integrated-delivery.md)；[独立运行/恢复/消费者契约](../backend/app/job_analysis/delivery/README.md)；[ChatGPT 交付审核标准](superpowers/specs/2026-10-28-m2-delivery-review-standard.md) |
 
 ## 近期阶段验收（最多五份）
 

@@ -32,7 +32,7 @@ def draft(root):
 def test_repository_draft_covers_eight_families_and_empty_release():
     from app.job_analysis.canonical_catalog.models import validate_catalog, load_json
     from app.job_analysis.role_classification.proposals.models import FAMILY_VERSIONS
-    value, refs = validate_catalog(load_json(ASSETS / 'candidates.v1.json'), ROOT)
+    value, refs = validate_catalog(load_json(ASSETS / 'candidates.v2.json'), ROOT)
     families = [c['family_id'] for c in value['candidates']]
     assert set(families) == set(FAMILY_VERSIONS['families-v3'])
     assert len({families.count(f) for f in families}) > 1
@@ -109,7 +109,48 @@ def test_nine_product_rules_documented():
 
 def test_shipped_source_hash_matches_a_fresh_LF_checkout(area):
     from app.job_analysis.canonical_catalog.models import validate_catalog, load_json
+    catalog = load_json(ASSETS / 'candidates.v2.json')
+    for ref in (c['definition_basis'][0] for c in catalog['candidates']):
+        path = area / ref['path']
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes((ROOT / ref['path']).read_bytes().replace(b'\r\n', b'\n'))
+    assert validate_catalog(catalog, area)[0]['revision'] == 'draft-source-v2'
+
+
+def test_original_catalog_replays_against_its_frozen_source_without_reapproval(area):
+    from app.job_analysis.canonical_catalog.models import validate_catalog, load_json
+    original = load_json(ASSETS / 'candidates.v1.json')
+    current = load_json(ASSETS / 'candidates.v2.json')
+    raw = (ROOT / current['candidates'][0]['definition_basis'][0]['path']).read_bytes()
     (area / 'docs').mkdir()
-    raw = (ROOT / 'docs/PRODUCT_DECISIONS.md').read_bytes().replace(b'\r\n', b'\n')
     (area / 'docs/PRODUCT_DECISIONS.md').write_bytes(raw)
-    assert validate_catalog(load_json(ASSETS / 'candidates.v1.json'), area)[0]['revision'] == 'draft-v1'
+    old, _ = validate_catalog(original, area)
+    new, _ = validate_catalog(current, ROOT)
+    assert old['revision'] == 'draft-v1'
+    assert old['candidates'][0]['definition_basis'][0]['sha256'] == hashlib.sha256(raw).hexdigest()
+    for a, b in zip(old['candidates'], new['candidates']):
+        assert {k:v for k,v in a.items() if k != 'definition_basis'} == {k:v for k,v in b.items() if k != 'definition_basis'}
+    (area / 'docs/PRODUCT_DECISIONS.md').write_bytes(raw + b'changed')
+    with pytest.raises(ValueError, match='source hash or quote mismatch'):
+        validate_catalog(original, area)
+
+
+def test_old_and_new_catalog_snapshots_replay_after_live_source_changes(area):
+    from app.job_analysis.canonical_catalog.models import load_json
+    from app.job_analysis.canonical_catalog.store import CatalogStore
+    from app.job_analysis.canonical_catalog.runner import execute, replay
+    current = load_json(ASSETS / 'candidates.v2.json')
+    frozen = (ROOT / current['candidates'][0]['definition_basis'][0]['path']).read_bytes()
+    (area / 'docs').mkdir()
+    old_source = area / 'docs/PRODUCT_DECISIONS.md'
+    old_source.write_bytes(frozen)
+    with CatalogStore(area / 'catalog.db') as store:
+        old = execute(store, ASSETS / 'candidates.v1.json', area)
+        new = execute(store, ASSETS / 'candidates.v2.json', ROOT)
+        old_source.write_bytes(b'new live decisions')
+        assert replay(store, old['run_id']) == old
+        assert replay(store, new['run_id']) == new
+        assert old['catalog']['revision'] == 'draft-v1'
+        assert new['catalog']['revision'] == 'draft-source-v2'
+        assert not old['formal_admitted'] and not new['formal_admitted']
+        assert old['formal_jobs'] == new['formal_jobs'] == []

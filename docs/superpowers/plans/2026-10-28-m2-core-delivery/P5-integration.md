@@ -4,6 +4,8 @@
 
 **目标：** 使用者通过实际入口完成单条/小批分析、解释、候选与演化读取，停止/失败后不丢历史，下游能依据稳定契约消费结果。
 
+本轮按 [#69](https://github.com/Serena-Lyric/TalentMind/issues/69) 与 P6 连续开发，不再要求本段后另行申请开工。实际入口、消费者字段、复用及恢复命令维护在 [delivery README](../../../../backend/app/job_analysis/delivery/README.md)；选择独立 CLI，不改旧工作台 API，不要求 M3。审核状态仍只维护总表，功能实现与真实语义效果分开。
+
 ## 最小阅读与输入
 
 - [总计划](../2026-10-28-m2-core-delivery-plan.md)、[审核标准](../../specs/2026-10-28-m2-delivery-review-standard.md)、[设计 §3.2、§7～§9](../../specs/2026-10-28-m2-analysis-candidate-design.md)、前段接口与交接。

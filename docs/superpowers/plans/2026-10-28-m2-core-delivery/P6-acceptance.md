@@ -4,6 +4,8 @@
 
 **目标：** 用可复核的中文证据说明 M2 当前真正做到什么、效果如何、哪些仍不可靠，并让 ChatGPT 对完整交付给出明确结论。
 
+本轮按 [#69](https://github.com/Serena-Lyric/TalentMind/issues/69) 与 P5 连续实施。已有权限内完成受控 DEV/缓存回放、评价工具、固定技能词典提及基线及错误归因；缺独立 HOLD/人审或新模型调用许可只阻塞对应检验。真实同组/演化方向分母为零时记不可计算，不能勾选本页全部效果通过；#63 保留。运行方式与评价 suite 契约见 [delivery README](../../../../backend/app/job_analysis/delivery/README.md)，实际数量与固定 head 证据只在 #69/总表维护。
+
 ## 最小阅读与输入
 
 - [总计划](../2026-10-28-m2-core-delivery-plan.md)、[审核标准全文](../../specs/2026-10-28-m2-delivery-review-standard.md)、P0 基准清单及 P1～P5 审核结论/实际 master SHA。

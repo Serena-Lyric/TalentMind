@@ -8,6 +8,8 @@ P2-1 独立知识对齐、候选治理、岗位比较与候选画像入口：[kn
 
 P3/P4 独立工作组合候选、跨批证据、自动研究解释与纠正入口：[work_candidates](work_candidates/README.md)。复用已合并 P1/P2-1，提供 SQLite 只追加版本和离线 CLI；自动解释供后续批次比较，结构建议无可信确认时不生效。研究关联不等于已确认工作同组，P2-2 真实语义仍未通过。阶段状态见总进度表。
 
+新底座统一执行、历史消费与恢复入口：[delivery](delivery/README.md)。独立 CLI 实际调用 P1→P2-1→P3/P4，显式输入/知识/处理器，提供 run 绑定的私有结果及 DEV 评价；不依赖正式服务。以下旧工作台尚未切换到新契约，不能据旧页面判定新入口已接入 UI。
+
 ## 真实历史语料改进与人工复核（2026-10-22）
 
 独立分支 `codex/m2-real-analysis-20261022` 保留既有 A/B1/B2/B2.2/B3 编排，在相同主集 120、留出集 60 冻结输入上完成 `v9` 功能主运行和 `v10`～`v12` 审查复核，最终审查收口版本为 `v12`。旧 run 与 `v3`～`v12` 均保留，不覆盖冻结输入或历史报告。
@@ -44,7 +46,7 @@ API：`GET sources/runs`、`POST runs`、`GET runs/{id}`、`GET runs/{id}/items/
 
 ## 阶段 B3-5：八类候选目录与逐项人工准入
 
-依据 [Issue #18](https://github.com/Serena-Lyric/TalentMind/issues/18)、产品 M2-52～60，新包 `canonical_catalog/` 独立于 B3-2/B3-4 的 JD 候选治理。`candidates.v1.json` 是八类 **19 个 AI 草案**，所有规范名、精确定义及别名均 `unconfirmed`。定义依据是产品规则的精确引文与原字节摘要，表示起草依据，不证明用户已经认可具体定义；嵌入式、系统软件、交付、硬件等细节尤须逐项讨论。草案非等量，可扩展，无市场数量/级别/熟练度推断。`release.empty.v1.json` 正式目录始终为空。
+依据 [Issue #18](https://github.com/Serena-Lyric/TalentMind/issues/18)、产品 M2-52～60，新包 `canonical_catalog/` 独立于 B3-2/B3-4 的 JD 候选治理。`candidates.v2.json` 是八类 **19 个 AI 草案**，所有规范名、精确定义及别名均 `unconfirmed`。定义依据是产品规则的精确引文与原字节摘要，表示起草依据，不证明用户已经认可具体定义；嵌入式、系统软件、交付、硬件等细节尤须逐项讨论。草案非等量，可扩展，无市场数量/级别/熟练度推断。`release.empty.v1.json` 正式目录始终为空。
 
 | family | 草案稳定 ID（待审） |
 |---|---|
@@ -64,7 +66,7 @@ API：`GET sources/runs`、`POST runs`、`GET runs/{id}`、`GET runs/{id}/items/
 工作目录 backend；使用已安装 requirements 的 Python，显式指定本工作树根作来源根。CLI 不加载旧 .env，不读正式 JD，也不调用模型。所有输出和 SQLite 放仓库内 `data/local/` 或独立仓库外目录。
 
 ```powershell
-python -m app.job_analysis.canonical_catalog run --catalog app/job_analysis/canonical_catalog/candidates.v1.json --source-root .. --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/snapshots
+python -m app.job_analysis.canonical_catalog run --catalog app/job_analysis/canonical_catalog/candidates.v2.json --source-root .. --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/snapshots
 python -m app.job_analysis.canonical_catalog review --snapshot <snapshot_id> --event <review.json> --source-root <source_root> --state ../data/local/m2-b35/state.db
 python -m app.job_analysis.canonical_catalog export --snapshot <snapshot_id> --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/reviews
 python -m app.job_analysis.canonical_catalog export --snapshot <snapshot_id> --manifest <release-manifest.json> --source-root <source_root> --state ../data/local/m2-b35/state.db --output ../data/local/m2-b35/proposals
@@ -75,7 +77,7 @@ python -m app.job_analysis.canonical_catalog replay --artifact <artifact_id> --s
 
 `source` 为 `{path, sha256, quote}`，path 是显式 source_root 下 POSIX 相对路径，拒绝越界（含 symlink/junction 解析）、错误 hash/引文。review 的引文须含 candidate ID、完整 candidate_sha256 和 snapshot_id，不能用一般产品原则或旧版本记录代替。程序冻结来源原字节与输入 JSON，再按同一字节解析，重放不依赖原文件继续存在。**这只验证结构和字节，不验证署名身份、语义或授权真实性。**
 
-候选依据的产品文档通过根 `.gitattributes` 固定 LF 检出，保证 Windows/Linux 使用同一原字节摘要。以后更新产品文档须显式维护新候选版本/来源，旧 SQLite 快照仍按原字节 replay；其他源码字节变化按依赖摘要保守生成新版本。
+当前 `candidates.v2.json`（`draft-source-v2`）只改变来源绑定，引用 `canonical_catalog/sources/product-decisions.26deedc6.txt` 的不可变原字节；SHA 为 `20988bf8…`，来自 Git `26deedc6f47d9a01d88d7094ba6de4dc311933e4`。这份文件是历史引用证据，不是现行产品规则。19 项定义/候选状态未改变，也未获新的批准。`.gitattributes` 固定该证据 LF。旧 `candidates.v1.json` 原样保留，需用上述历史字节重建其 `docs/PRODUCT_DECISIONS.md` 来源；已保存 SQLite 快照直接 replay 自带的冻结字节，不依赖现行产品文件，不跨版本继承批准。
 
 独立 `c35-release-manifest-1` 输入如下（占位符须来自实际快照与审核记录；本轮没有真实逐项批准，不提供已批准样例）：
 

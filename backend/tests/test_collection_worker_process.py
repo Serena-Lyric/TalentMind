@@ -56,7 +56,10 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
         'platform_access': {'boss': {'can_collect': True, 'access_state': 'public_accessible'}}})
     monkeypatch.setattr(control, '_worker_environment', os.environ.copy)
     pid_file = tmp_path / 'synthetic-pid'
-    script = f'import os,time; from pathlib import Path; Path({str(pid_file)!r}).write_text(str(os.getpid())); print("sleep worker ready",flush=True); time.sleep(60)'
+    # Existence signals a fully written PID, including under a busy full-suite run.
+    script = (f'import os,time; from pathlib import Path; p=Path({str(pid_file)!r}); '
+              'temporary=p.with_suffix(".tmp"); temporary.write_text(str(os.getpid())); temporary.replace(p); '
+              'print("sleep worker ready",flush=True); time.sleep(60)')
     workers = []
     def spawn(args, **kwargs):
         process = worker_process.spawn([sys.executable, '-u', '-c', script], **kwargs)
@@ -87,3 +90,4 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
             worker_process.close(process)
             process.wait(timeout=5)
         pid_file.unlink(missing_ok=True)
+        pid_file.with_suffix('.tmp').unlink(missing_ok=True)
