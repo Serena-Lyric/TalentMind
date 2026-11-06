@@ -42,7 +42,8 @@ Interfaces：`init/apply/show/history/jd/source` 命令；manifest 显式输入�
 
 - [x] 先写并运行跨子进程两批及纠正/恢复测试，确认 CLI 缺失；实现入口，测试事务中硬退出和提交后重试。
 - [x] 运行相关 P0/P1/P2-1 回归、离线全套与编译；核查 SQLite 仅临时实例、夹具 teardown，未接正式数据库。全套两项旧目录哈希失败及基线复现直接报告 #65，不改写旧草案版本。
-- [ ] 更新正式使用契约/状态，按 verification-before-completion 和 requesting-code-review 做最终复核；提交、推送独立 PR，等待真实 CI；在 #65 报告固定 head/分母/限制，交 ChatGPT 审核，不合并。
+- [x] 更新正式使用契约/状态，按 verification-before-completion 和 requesting-code-review 做最终复核；提交、推送独立 [PR #66](https://github.com/Serena-Lyric/TalentMind/pull/66)，真实 CI、固定 head、分母、限制与开发报告直接见 #65。内部复核不代替 ChatGPT 产品验收，不合并。
+- [ ] ChatGPT 在固定 head 独立审核，负责人决定是否合并；P2-2 不因本段工程交付自动通过，P4/P5 不自动启动。
 
 **目标：** 形成可持续研究的工作组合假设，能够跨运行关联新 JD、保留反对/未决证据及稳定身份，不把一次分类失败变成临时日志。
 
