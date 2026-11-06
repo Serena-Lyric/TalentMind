@@ -16,6 +16,13 @@ jobs:
   offline-regression:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      MYSQL_URL: mysql+pymysql://synthetic:synthetic@127.0.0.1:1/m2_offline
+      NEO4J_URI: bolt://127.0.0.1:1
+      NEO4J_USER: synthetic
+      NEO4J_PASSWORD: synthetic
+      REDIS_URL: redis://127.0.0.1:1/15
+      OPENAI_API_KEY: offline-not-a-real-key
     defaults:
       run:
         working-directory: backend
