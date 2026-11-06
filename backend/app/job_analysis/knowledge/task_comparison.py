@@ -6,7 +6,7 @@ import re
 from ..foundation.inputs import canonical, digest, parse_json
 from .task_models import (TaskAttributionResult, TaskAssessment, TaskProposal, TaskSelection,
     PairJudgment, ObjectJudgment, ObjectCheck, CheckedWorkCandidate, pair_input_v1, pair_input_v2,
-    pair_input_v3, object_input_v1, pair_identity, expected_pair_state)
+    pair_input_v3, object_input_v1, pair_identity, expected_pair_state, same_task_source_group)
 from .work_evidence import evidence_slice
 
 LIMITATION = "语义分数与词面覆盖只决定检查优先级，不是支持概率；每角色先语义首位、再词面首位、余量按语义顺序，未检查对保留，不代表被排除。"
@@ -90,9 +90,9 @@ def format_pair_prompt(value):
         + canonical(value))
 
 
-def _locate(claim, quote):
+def _occurrences(claim, quote):
     if not quote:
-        return None
+        return []
     found = {}
     for evidence in claim.evidence:
         start = evidence.quote.find(quote)
@@ -100,7 +100,31 @@ def _locate(claim, quote):
             ev = evidence_slice(evidence, start, start + len(quote))
             found[(ev.field, ev.start, ev.end)] = ev
             start = evidence.quote.find(quote, start + 1)
-    return next(iter(found.values())) if len(found) == 1 else None
+    return list(found.values())
+
+
+def _locate_pair(result, claim, judgment, version):
+    actions = _occurrences(claim, judgment.source_action)
+    objects = _occurrences(claim, judgment.source_object)
+    if len(actions) == len(objects) == 1:
+        return actions[0], objects[0]
+    candidates = []
+    for action in actions:
+        for obj in objects:
+            group = same_task_source_group(claim, action, obj, version, with_range=True)
+            if not group:
+                continue
+            touched = [u for u in result.work_units if u.claim_id == claim.id and u.evidence.field == action.field
+                       and (u.evidence.start < action.end and action.start < u.evidence.end
+                            or u.evidence.start < obj.end and obj.start < u.evidence.end)]
+            if touched and all(u.scope == "affirmed" and u.kind == "work" for u in touched):
+                candidates.append((group, action, obj))
+    if candidates and len({group for group, _, _ in candidates}) == 1:
+        disjoint = [p for p in candidates if p[1].end <= p[2].start or p[2].end <= p[1].start]
+        _, action, obj = min(disjoint or candidates,
+            key=lambda p: (max(p[1].end, p[2].end)-min(p[1].start, p[2].start), p[1].start, p[2].start))
+        return action, obj
+    return (actions[0] if len(actions) == 1 else None, objects[0] if len(objects) == 1 else None)
 
 
 def _input_factory(result):
@@ -117,6 +141,24 @@ def object_prompt(value):
         "功能用途不同填different，不明填unknown。只输出relation和一句reason。\nDATA_JSON\n" + canonical(value))
 
 
+def pair_response_schema():
+    schema = PairJudgment.model_json_schema()
+    order = ["source_action", "source_object", "reference_action", "reference_object", "reason",
+             "action_relation", "object_relation", "execution_relation"]
+    schema["properties"] = {name: schema["properties"][name] for name in order}
+    schema["required"] = order
+    schema["properties"]["reason"]["maxLength"] = 160
+    return schema
+
+
+def object_response_schema():
+    schema = ObjectJudgment.model_json_schema()
+    schema["properties"] = {name: schema["properties"][name] for name in ["reason", "relation"]}
+    schema["required"] = ["reason", "relation"]
+    schema["properties"]["reason"]["maxLength"] = 120
+    return schema
+
+
 def _assessment(result, claim_id, role_id, reference_id, raw, binding, prompt_format, elapsed_seconds,
                 object_response=None, object_elapsed_seconds=0.0):
     factory = _input_factory(result)
@@ -127,10 +169,10 @@ def _assessment(result, claim_id, role_id, reference_id, raw, binding, prompt_fo
     except (ValueError, TypeError):
         judgment = None
     prompt = pair_prompt(result, claim_id, role_id, reference_id)
+    action, obj = _locate_pair(result, claim, judgment, source["schema_version"]) if judgment else (None, None)
     item = TaskAssessment(id=pair_identity(claim_id, role_id, reference_id), claim_id=claim_id,
         role_id=role_id, reference_id=reference_id, state="failed", reason_code="invalid_pair_response",
-        judgment=judgment, source_action_evidence=_locate(claim, judgment.source_action) if judgment else None,
-        source_object_evidence=_locate(claim, judgment.source_object) if judgment else None,
+        judgment=judgment, source_action_evidence=action, source_object_evidence=obj,
         reference_evidence=source["reference"]["evidence"], binding=binding, prompt_format=prompt_format,
         input_json=canonical(source), prompt=prompt, prompt_sha256=digest(prompt), response=raw,
         response_sha256=digest(raw) if raw is not None else None, elapsed_seconds=float(elapsed_seconds))
@@ -182,7 +224,7 @@ def compare_selected(result, ranker, model, pairs_per_role=1):
         started = time.monotonic()
         try:
             raw = model.complete_json(pair_prompt(result, pair.claim_id, pair.role_id, pair.reference_id),
-                                      PairJudgment.model_json_schema())
+                                      pair_response_schema())
         except (OSError, ValueError, subprocess.TimeoutExpired):
             raw = None
         preview = _assessment(result, pair.claim_id, pair.role_id, pair.reference_id, raw,
@@ -191,7 +233,7 @@ def compare_selected(result, ranker, model, pairs_per_role=1):
         if preview.reason_code == "object_check_not_run":
             object_started = time.monotonic()
             try:
-                object_raw = model.complete_json(object_prompt(object_input_v1(preview)), ObjectJudgment.model_json_schema())
+                object_raw = model.complete_json(object_prompt(object_input_v1(preview)), object_response_schema())
             except (OSError, ValueError, subprocess.TimeoutExpired):
                 object_raw = None
             object_elapsed = time.monotonic()-object_started

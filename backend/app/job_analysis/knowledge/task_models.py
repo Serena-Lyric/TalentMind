@@ -103,7 +103,7 @@ _ACTIONS_V1 = "设计|开发|编写|修改|实现|构建|维护|管理|生成|�
 _ACTIONS_V2 = _ACTIONS_V1 + "|研发"
 
 
-def same_task_source_group(claim, first, second, version):
+def same_task_source_group(claim, first, second, version, with_range=False):
     if first.field != second.field:
         return False
     actions = _ACTIONS_V1 if version == "task-pair-input-1" else _ACTIONS_V2
@@ -122,9 +122,9 @@ def same_task_source_group(claim, first, second, version):
             spans.append((source.start+start, source.start+split.start()))
             start = split.end()
         spans.append((source.start+start, source.end))
-        if any(begin <= min(first.start, second.start) and max(first.end, second.end) <= end
-               for begin, end in spans):
-            return True
+        for begin, end in spans:
+            if begin <= min(first.start, second.start) and max(first.end, second.end) <= end:
+                return (source.field, begin, end) if with_range else True
     return False
 
 

@@ -269,3 +269,44 @@ def test_reference_quotes_can_use_the_bound_original_task_source():
                                           reference_object="software systems"))
     assert result.task_assessments[0].state == "machine_supported"
     assert any("software systems" in e.quote for e in result.task_assessments[0].reference_evidence)
+
+
+def test_runtime_preserves_requested_schema_order_for_evidence_before_decision(tmp_path, monkeypatch):
+    import subprocess
+    from pathlib import Path
+    from app.job_analysis.knowledge.local_semantics import load_local_model, file_digest
+    from app.job_analysis.foundation.inputs import digest
+    (tmp_path / "model.gguf").write_bytes(b"synthetic-model")
+    (tmp_path / "runtime").write_bytes(b"synthetic-runtime")
+    runtime = {"runtime": file_digest(tmp_path / "runtime")}
+    b = binding()
+    b.update(model_sha256=file_digest(tmp_path / "model.gguf"), runtime_sha256=digest(runtime))
+    config = dict(schema_version="m2-local-model-1", binding=b, model_file="model.gguf", runtime_file="runtime", runtime_files=runtime)
+    (tmp_path / "manifest.json").write_text(json.dumps(config))
+    captured = []
+    def external_runtime(args, **kwargs):
+        schema = json.loads(Path(args[args.index("--json-schema-file")+1]).read_text(encoding="utf-8"))
+        captured.extend(schema["properties"])
+        return subprocess.CompletedProcess(args, 0, '{"source_text":"实际片段","decision":"unknown"} [end of text]', '')
+    monkeypatch.setattr("app.job_analysis.knowledge.local_semantics.subprocess.run", external_runtime)
+    model = load_local_model(tmp_path / "manifest.json")
+    raw = model.complete_json("synthetic", dict(type="object", properties=dict(
+        source_text=dict(type="string"), decision=dict(type="string")), required=["source_text", "decision"]))
+    assert captured == ["source_text", "decision"]
+    assert json.loads(raw)["source_text"] == "实际片段"
+
+
+def test_repeated_action_quote_can_be_located_jointly_with_its_object():
+    result = compare_one(analysis_with_duties(["对软件模块进行方案设计，输出设计文档"]),
+        pair_response(source_action="设计", source_object="软件模块", reference_action="设计"))
+    assert result.task_assessments[0].state == "machine_supported"
+    evidence = result.task_assessments[0].source_action_evidence
+    source = result.source_analysis.input_row[evidence.field]
+    assert evidence.start == source.index("设计")
+
+
+def test_repeated_quotes_across_distinct_work_groups_remain_ambiguous():
+    result = compare_one(analysis_with_duties(["编写软件系统说明书；编写软件系统实现代码"]),
+                         pair_response(source_action="编写", source_object="软件系统"))
+    assert result.task_assessments[0].state != "machine_supported"
+    assert not result.work_candidates

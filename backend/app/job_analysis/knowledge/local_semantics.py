@@ -1,6 +1,7 @@
 """Explicit, hash-bound local llama.cpp inference. No network or model download."""
 from dataclasses import dataclass
 import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -70,7 +71,9 @@ class LocalModel:
             packed = ("<|im_start|>system\n你是严谨的岗位工作比较助手。只输出JSON。<|im_end|>\n"
                       "<|im_start|>user\n" + instruction + "<|im_end|>\n<|im_start|>assistant\n" + suffix)
             (directory / "prompt.txt").write_text(packed, encoding="utf-8")
-            (directory / "schema.json").write_text(canonical(schema), encoding="utf-8")
+            # llama.cpp's grammar follows property order. Sorting keys would
+            # make the model decide labels before producing requested evidence.
+            (directory / "schema.json").write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")
             env = {k: v for k, v in os.environ.items() if not k.startswith(("LLAMA_", "HF_"))}
             done = subprocess.run([
                 str(_local(self.root, config.runtime_file)), "--model", str(_local(self.root, config.model_file)),
