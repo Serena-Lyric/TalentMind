@@ -30,7 +30,7 @@ P3/P4 独立工作组合候选、跨批证据、自动研究解释与纠正入�
 - `POST /api/m2/runs/{run_id}/items/{ordinal}/review`，请求包含 `decision`（`accepted` / `rejected` / `needs_followup`）、`reviewer`、`note`、当前 `machine_sha256`。
 - `GET /api/m2/runs/{run_id}/reviews/export`，导出已审核条目的冻结原文、机器结果、全部人工事件和当前人工决定。
 
-真实审核人尚未提交任何主集/留出集结论，因此不计算真实 precision/recall，不把候选升级为正式需求或标准岗位。逐条私有对照、正式数据哈希和限制见 [阶段报告](../../../docs/review/M2-real-analysis-2026-10-22.md)。
+真实审核人尚未提交任何主集/留出集结论，因此不计算真实 precision/recall，不把候选升级为正式需求或标准岗位。逐条私有对照、当时的正式数据哈希和限制见 [2026-10-22 历史阶段报告](https://github.com/Serena-Lyric/TalentMind/blob/7f3c4a87f613dad7ca71a16bfdd9aa4230ffca8f/docs/review/M2-real-analysis-2026-10-22.md)，不作为当前实时统计。
 
 ## 本地产品工作台（2026-10-21）
 

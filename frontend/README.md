@@ -53,6 +53,8 @@ pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
+构建环境固定为 Node.js `24.15.0`、pnpm `11.5.1`（`packageManager`）。`pnpm run typecheck` 单独检查类型；`pnpm run build` 先检查类型再生成静态 `dist`。`pnpm start` / `pnpm run build:open` 完成同一构建后打开本地预览；`pnpm run serve` 仅预览已有构建（`127.0.0.1:4173`），不提供独立 Node 后端。前端 CI 以锁文件安装后运行完整测试和该构建入口。
+
 开发端口为 `18080`，默认将 `/api` 代理到 `http://127.0.0.1:18000`，可通过 `VITE_PROXY_TARGET` 覆盖；可通过 `VITE_API_BASE_URL` 覆盖请求基址。
 
 ## 约束

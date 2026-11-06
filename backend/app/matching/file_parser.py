@@ -50,7 +50,7 @@ class DOCXParser(FileParser):
     """Word (.docx) 文件解析器"""
 
     def __init__(self):
-        self.docx = None
+        self.docx_module = None
         try:
             from docx import Document
             self.docx_module = Document
@@ -85,6 +85,7 @@ class DOCParser(FileParser):
 
     def __init__(self):
         self.textract = None
+        self.has_antiword = False
         # 尝试导入 textract
         try:
             import textract
@@ -111,6 +112,7 @@ class DOCParser(FileParser):
                 return text.decode('utf-8', errors='ignore') if isinstance(text, bytes) else str(text)
             except Exception as e:
                 print(f"[警告] textract解析失败: {e}")
+                self.has_antiword = self._check_antiword()
 
         # 尝试使用 antiword
         if self.has_antiword:
@@ -208,7 +210,8 @@ class ResumeFileParser:
         lines = text.split('\n')
         merged_lines = []
 
-        for i, line in enumerate(lines):
+        line_iterator = iter(enumerate(lines))
+        for i, line in line_iterator:
             if not line:
                 merged_lines.append(line)
                 continue
@@ -218,6 +221,7 @@ class ResumeFileParser:
                 next_line = lines[i + 1]
                 if next_line and not next_line.startswith(' ') and len(next_line) > 20:
                     merged_lines.append(line + ' ' + next_line)
+                    next(line_iterator, None)
                     continue
 
             merged_lines.append(line)
