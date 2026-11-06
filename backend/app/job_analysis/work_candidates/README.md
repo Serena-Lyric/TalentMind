@@ -1,6 +1,6 @@
-# P3 工作组合候选生命周期
+# P3/P4 工作组合候选与自动研究演化
 
-独立离线入口，依赖已合并的 P1 `m2-semantic-0.2` 与 P2-1 知识快照，**不依赖 Draft PR #64**。授权及验收分账见 [Issue #65](https://github.com/Serena-Lyric/TalentMind/issues/65)，阶段状态仅在[总计划](../../../../docs/superpowers/plans/2026-10-28-m2-core-delivery-plan.md#3-分段地图与当前进度)维护。
+独立离线入口，依赖已合并的 P1 `m2-semantic-0.2` 与 P2-1 知识快照，**不依赖 Draft PR #64**。P3 授权/验收见 [#65](https://github.com/Serena-Lyric/TalentMind/issues/65)，P4 自主实施边界见 [#67](https://github.com/Serena-Lyric/TalentMind/issues/67)；阶段状态仅在[总计划](../../../../docs/superpowers/plans/2026-10-28-m2-core-delivery-plan.md#3-分段地图与当前进度)维护。
 
 ## 运行
 
@@ -41,7 +41,7 @@ SHA 由 `foundation.inputs.digest(value)` 计算，**分析对象 SHA 与输入 
 
 候选 ID 是显式稳定身份，与标题/描述内容无关。只有调用方明确提供具体工作证据和研究问题才执行 `create`；不会因分类失败、技能未知或多职位广告自动制造候选/vacancy。新建前记录已检查的基线候选及有字面线索的竞争候选。`core_work` 只引用不可变 P1 claim，至少有一项 duty；P1 五态、程度、条件、组合、证据及 `machine_unreviewed` 完整保留。
 
-每批对基线候选的原核心证据执行**字面工作检索**（职责文本二元字符交集，至少两项交集；按最大交集排序，最多十个，显示截断和检查范围）。标题、要求技能、P2-2 结果和新描述不作为比较依据。工作目标、对象及作用域需进一步独立验证，字面交集不证明它们相同。相同技术的异责任可能被检索命中，等价改写也可能漏检；这不是同组算法或经校准语义分数。结果始终为 `pending_review`，包含 duty 对照、基线代表关系摘要和反对/撤回关系的引用，可继续检查其来源。无可用职责与检索无命中分别表达；没有关系不表示已排除该候选。
+每批对基线候选的**有效研究证据**执行字面工作检索（职责文本二元字符交集，至少两项交集；按最大交集排序，最多十个，显示截断和检查范围）。P4 使用冻结 `research.comparison_work`；没有研究投影的 P3 旧快照从其冻结有效关系回源，不回落可能已撤回的种子。有效投影为空时也不回落旧种子。标题、要求技能、P2-2 结果和摘要文字不作为比较依据。工作目标、对象及作用域需进一步独立验证，字面交集不证明它们相同。相同技术的异责任可能被检索命中，等价改写也可能漏检；这不是同组算法或经校准语义分数。结果始终为 `pending_review`，包含 duty 对照、实际基线研究 SHA/版本/引用、代表关系摘要和反对/撤回关系的引用，可继续检查其来源。无可用职责与检索无命中分别表达；没有关系不表示已排除该候选。
 
 | 性质 | 表达与限制 |
 |---|---|
@@ -61,7 +61,7 @@ SHA 由 `foundation.inputs.digest(value)` 计算，**分析对象 SHA 与输入 
 - `link`：`candidate_id, analysis_sha256, work_ids, reason`。候选必须在批次基线，分析必须是本批输入，至少引用实际 duty；一个 JD 可以分别关联多个候选。已有关系只能 `correct`，不能通过重复 link 覆盖。
 - `correct`：`relation_id, expected_sha256, decision, reason, verification`。decision 为 `corroborates/weakens/rejects/withdraw`。expected 是**旧关系完整对象**摘要；纠正需绑定基线旧关系，不会读取半批新状态。普通机器支持仍 pending；反证为 disputed，拒绝/撤回分别保留。可附 `counterevidence:[WorkRef]`，保留可回源的削弱依据。
 - `correct.replacement`（可选）：`{analysis_sha256,work_ids}`，必须是本批同 namespace/JD 的新分析，至少有 duty。旧分析进入 superseded，新旧均可读。不能借替换更换 JD 身份。批内出现新分析但未明确替换时，旧关系保留，`pending_analysis_sha256s/needs_reassessment` 提醒重评，不自动选一个“更正确”版本。
-- `describe`：`candidate_id, expected_version, description, research_question, unresolved, reason`。只修改机器解释及疑点，不修改 core_work、不使用描述扩大检索范围。完整共同职责重归纳属于后续 P4，此处没有偷做自动演化。
+- `describe`：`candidate_id, expected_version, description, research_question, unresolved, reason`。兼容 P3 的显式研究标签/问题/备注修改，不修改种子 core_work、不使用文字扩大检索范围。P4 当前自动解释独立位于 `research`；下游读取它，不能把旧标签当自动修订结果。
 
 所有关系创建/显式操作完成后，统一核对该 JD 截至本版已观察的分析，其他未明确 superseded 的版本均列为 pending；create/link 不能清空已存在的版本疑点。`analysis_selection=unreviewed_representative` 表示用于定位的代表分析，不表示其优于 pending 版本。种子引用同 JD 多版本时只保留一个确定性代表及全部竞争版本，不按最后写入覆盖；不同候选上的替代判断互不传递。
 
@@ -74,12 +74,12 @@ Python 入口为 `CandidateStore(path, create=False)` 上下文管理器及 `app
 | 输出版本 | 稳定字段/语义 |
 |---|---|
 | `m2-work-state-1` | `binding={registry_id,revision,sha256}` 指向整批不可变快照；`candidates`、`relations` 按 ID 查询；`analysis_sha256s` 为截至该版已观察的原分析摘要 |
-| candidate | `id,version,status,maturity,core_work,description_nature,members,competing_candidate_ids,unresolved`；版本在有效成员/依据/解释变更时每批最多加一 |
+| candidate | `id,version,status,maturity,core_work,description_nature,members,competing_candidate_ids,unresolved`；P4 新增 `research` 有效机器解释（见下节）；版本在有效成员/依据/解释变更时每批最多加一 |
 | relation | `id,candidate_id,namespace,jd_id,analysis_sha256,work_ids,baseline,state,source_binding,semantic_validation,human_confirmation,formal_identity`；ID 绑定候选与来源 JD 身份；pending/superseded 分开 |
 | state.report | 本批 `baseline,algorithm,operation_version,knowledge,inputs,alignments,observations,searches,reassessment_reasons,change_nature`；包括 P1 的输入/处理器/覆盖版本，P2-1 原始知识摘要与存储对象摘要分别保留 |
 | `m2-work-history-1` | 候选每次实际变化的 `binding,candidate`；用其 revision 取整批关系截面 |
 | `m2-work-jd-1` | 指定历史版内 JD 的全部观察分析摘要、当前关系及 binding；未分析/无关联仍可见，不是 vacancy 数 |
-| source | `analysis/knowledge/alignment/review` 的冻结原对象；读取不执行当前模型或规则 |
+| source | `analysis/knowledge/alignment/review/comparison` 的冻结原对象；读取不执行当前模型或规则 |
 
 SQLite `sources` 内容寻址、`batches` 只追加完整快照，UPDATE/DELETE/REPLACE 由触发器保护。`BEGIN IMMEDIATE` 和整批 binding 防止并发提交过时判断；同批自动线索和显式操作只读取同一基线。提交前退出由 SQLite 回滚，提交后输出丢失可按 batch ID 精确重试；不存在从半批状态继续的路径。读取时校验对象摘要；历史读取不重新运行算法。
 
@@ -92,3 +92,38 @@ python -m pytest tests/test_job_analysis/test_work_candidates.py tests/test_job_
 ```
 
 合成测试使用 pytest 临时目录与独立库，包含真实 CLI 子进程、两批读回、反证/撤回、同批快照、转载/重跑、多候选/链条、部分/目录空、过时基线/并发、来源保护、提交前/后强退。真实人审同组分母为零，不能由这些测试推导真实语义准确率；P2-2 的真实语义仍留待 #63。测试完成的数量、持久化演示与 CI 证据直接报告在 #65。
+
+## P4 自动有效研究解释
+
+`apply` 无需新增开关/人工接受步骤：先完成冻结旧基线上的所有比较和关系操作，再自动回读当前及历史关系引用的 P1 原对象，构造 `m2-work-research-1`。本批新投影只用于后续批次；整个事务失败则不产生半版。
+
+| 字段 | 消费语义 |
+|---|---|
+| `research.version/description/nature/status` | 当前有效、自动生效的 `machine_hypothesis`；按具体职责范围去重描述，详细映射仍逐成员保留。`version/effective_hypothesis_sha256` 标识有效解释；来源投影精确版本由整批 binding 和完整 research SHA 标识。`disputed/no_active_basis/observing` 与候选稳定身份分开；不代表人审或正式岗位 |
+| `comparison_work` | 当前可用的局部职责引用。只将关系选定范围用于**待研究检索**；disputed、撤回/拒绝和未选择分析版本不参与。不沿检索命中传递同组真值 |
+| `shared_statements` | 所有当前适用成员完整、且无未选职责时的逐字职责交集；相同规范正文的转载不构成多个内容组。仅记录不同内容组都有这句话，不称语义共同核心或独立支持。不同语言栈不改变职责文本比较；等价改写可能没有逐字交集 |
+| `member_explanations` | 当前每个关系的完整目标/对象/职责原 claim（含引文）、选定/未选职责、P1 coverage/outcome、分析器/模型/提示配置、疑点、反证、知识对齐和岗位比较摘要。partial 的有效局部可参与检索，但不能冒充完整共同范围 |
+| `historical_relations/historical_explanations` | 所有曾影响该候选的确切关系及原成员在当前知识下的比较；只供检查，不复活旧成员。原时点的解释仍从对应 `show --revision` 读取 |
+| `controlled_support_relation_ids/semantic_validation/independent_support` | 受控支持逐关系单列；开放工作语义验证仍 `not_run`，独立支持始终 null，外部 reviewer 材料不认证人审。转载内容组不等于来源独立性 |
+| `report.evolution` | 本批冻结基线、旧/实际生效研究 SHA、版本、增删职责引用及改变/不改变原因。`applied` 表示有效解释改变，`evidence_updated` 表示源投影改变。相同观察重放不增加版本；新身份转载保留新关系/来源审计（P3 candidate 版本可变），有效解释不重复演化 |
+| `report.evidence_changes/reassessment_reasons` | 新观察、原文内容、分析器/模型/提示变化与知识变化分账；同 JD 多版本保留竞争，不自动选最新。知识变化即使没有新 JD 也重新比较原成员；`change_nature` 始终研究重解释，不能据此计算需求或市场演化 |
+
+这里有价值的自动变化是**有界研究范围、逐字共同陈述、成员覆盖/疑点及归类解释**，不是开放中文语义归纳已获验证。相同 Java 可产生误检索待审线索；同责不同表述可能漏检；显式 link/更正仍是可执行入口，真实误/漏同组准确率留待 #63。撤回错误关联会自动收窄解释、撤除有效引用，不删除原文。机器描述中的引文仍需按完整原文审查目标/对象/成果，不能把存在引文当语义通过。
+
+`structural_suggestions`（`m2-work-suggestion-1`）提供 `review_split/review_overlap/review_role`，各自绑定候选完整 SHA/版本、全部关系摘要、源引用与竞争解释。无逐字交集只是检查范围的理由，不证明必须拆分；共享局部同源职责不证明应合并。候选/测试岗位比较的 supported 只触发建议，不作正式归属。缺目录不生成新职业身份；新职业确认/正式发布没有写入入口。
+
+当前环境没有可信人工身份链；所有建议为 `unconfirmed`、`formal_effect=false`，不接受任何 reviewer 字符串授予确认。`suggestion` 仅只读检查当前整批与确切主体版本；过期拒绝，需重新读取新建议，不把旧决定套用新版本：
+
+```powershell
+# binding.json 仅包含 show 返回的 binding 对象（registry_id/revision/sha256）
+python -m app.job_analysis.work_candidates suggestion --state ../data/local/m2-p4/state.db --id <建议ID> --baseline ../data/local/m2-p4/binding.json
+python -m app.job_analysis.work_candidates source --state ../data/local/m2-p4/state.db --kind comparison --sha256 <member_explanations中的role_comparison_sha256>
+
+# 全新私有输出目录；每个 apply/show/retry 均使用真实 CLI 子进程
+python -m app.job_analysis.work_candidates.demo --output ../data/local/m2-p4/demo-new --knowledge app/job_analysis/knowledge/catalog/backend-foundations.v1
+python -m pytest tests/test_job_analysis/test_work_evolution.py tests/test_job_analysis/test_work_evolution_cli.py -q
+```
+
+永久合成演示保留六批请求/输出、输入、SQLite、命令退出码、源摘要和文件 manifest；再次使用相同输出目录拒绝覆盖。它检验两条初始证据、新局部职责自动生效、下一批实际读取、相似链保留待审、反证/撤回收窄、重复无修订、旧版读回和精确重试。演示输出为有意保留的复核资产，pytest 临时夹具仍按唯一目录 finally 清理；不接触生产库。当前只面向小规模离线研究，逐候选回读历史的成本未做规模化验收。
+
+P4 固定 base/head、实际命令/分母、私有持久化产物和真实 CI 直接报告 [#67](https://github.com/Serena-Lyric/TalentMind/issues/67) 与独立 PR；真实语义人审分母为 0、准确率未验证，不能以合成测试数替代。
