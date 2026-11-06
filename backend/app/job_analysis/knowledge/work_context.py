@@ -8,15 +8,27 @@ from .work_evidence import AUXILIARY, CLAUSES, STATEMENTS, CONDITION, PREDICATES
 
 # These are grammatical scope guards, not job-specific synonyms. Unhandled
 # discourse remains a documented limitation; model similarity cannot waive them.
-NEGATED = re.compile(r"无需|无须|禁止|避免|不(?!同|断|少|仅|变|可或缺)|未(?!来)")
+NEGATED = re.compile(r"无需|无须|禁止|避免|不(?!同|断|少|仅|变|可或缺|限于)|未(?!来)")
 HISTORY = re.compile(r"曾经|过去|经验|经历|熟悉|掌握|精通|了解")
 OTHER = re.compile(r"(?:客户|他人|供应商|公司|其他.{0,6}|开发团队|团队)(?:负责|承担|完成)"
                    r"|(?:由|让|交给|委托|要求|安排)(?:客户|他人|供应商|开发团队|团队)")
 INSTRUCTION = re.compile(r"介绍|讲解|讲授|培训|教学|授课|演示|销售.{0,8}(?:课程|软件)")
-CONTEXT = re.compile(r"^\s*(?:以便|以满足|从而|确保|为.{0,30}提供|旨在|使得)")
+CONTEXT = re.compile(r"^\s*(?:以便|以满足|从而|确保|为.{0,30}?提供|旨在|使得)")
 LINK = re.compile(r"以便|以满足|从而|确保|为了|用于|为.{0,30}提供")
 COORDINATED_WORK = re.compile(r"(?<!参)(?:并且|并|以及|同时|另外|此外|和|与|及)(?=\s*(?:负责|承担)|\s*(?:协助|辅助)?(?:"
     + PREDICATES + r"|制定|编制|组织|开展|进行|接待|采购|沟通|跟进|协调|实施|测试))")
+
+
+def _other_actor(text):
+    for match in OTHER.finditer(text):
+        cooperation = re.search(r"(?:协助|辅助|配合)(?P<target>[^，,；;。:：\n]{0,12})$", text[:match.start()])
+        target = cooperation["target"] if cooperation else ""
+        if match.group().endswith("完成") and cooperation and not (LINK.search(target) or re.search(
+                r"负责|承担|完成|要求|安排|委托|交给|由|让|之后|然后|随后|后$|而|但|却|不过|同时|另外|旨在|使得|供$",
+                target)):
+            continue
+        return True
+    return False
 
 
 def scope_of(evidence, row):
@@ -40,8 +52,7 @@ def scope_of(evidence, row):
     if HISTORY.search(history_context):
         return "historical"
     actor_context = local if explicit_self else before
-    if any(not (match.group().endswith("完成") and re.search(r"(?:协助|辅助|配合)\s*$", actor_context[:match.start()]))
-           for match in OTHER.finditer(actor_context)):
+    if _other_actor(actor_context):
         return "other_actor"
     if (INSTRUCTION.search(local if independent else before) or re.search(r"的(?:课程|教学|培训|介绍|讲解|演示)", evidence.quote)
             or re.search(r"(?:软件系统|软件服务|应用程序|代码|程序|软件)(?:开发|设计)?(?:相关|的)?(?:课程|教材|培训|教程)", evidence.quote)):
@@ -58,8 +69,11 @@ def work_units(analysis):
         for ev in claim.evidence:
             parts = []
             for clause in CLAUSES.finditer(ev.quote):
+                context_prefix = CONTEXT.match(clause.group())
                 start = clause.start()
                 for split in COORDINATED_WORK.finditer(clause.group()):
+                    if context_prefix and split.start() < context_prefix.end():
+                        continue  # Coordinated recipients before "提供" belong to one context.
                     end = clause.start() + split.start()
                     # Coordinated predicates before their first object share it.
                     if re.fullmatch(r"(?:\s|负责|承担|和|与|并|及|" + PREDICATES + r")+", ev.quote[start:end]):

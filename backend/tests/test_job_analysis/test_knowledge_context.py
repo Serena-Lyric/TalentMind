@@ -92,6 +92,32 @@ def test_later_condition_does_not_retroactively_cancel_independent_work():
     assert any(u.scope == "conditional" for u in result.work_units)
 
 
+@pytest.mark.parametrize("inclusive", ["包括不限于", "包括但不限于", "不限于"])
+def test_inclusive_task_lists_do_not_negate_actual_responsibility(inclusive):
+    result = execute(analysis_with_duties(["本岗位负责的工作" + inclusive + "开发软件系统、编写程序"]))
+    assert all(u.scope == "affirmed" for u in result.work_units)
+    assert comparison(result).supports
+
+
+def test_coordinated_recipients_in_purpose_clause_remain_one_context_unit():
+    result = execute(analysis_with_duties(["编写需求摘要，为运维与测试提供参考"]))
+    assert any(u.kind == "context" and u.evidence.quote == "为运维与测试提供参考" for u in result.work_units)
+    assert not any(u.kind == "work" and u.evidence.quote in {"为运维", "测试提供参考"} for u in result.work_units)
+
+
+def test_independent_work_after_a_purpose_clause_is_still_checked():
+    result = execute(analysis_with_duties(["为运维与测试提供参考并开发软件系统"]))
+    assert any(u.kind == "context" and u.evidence.quote == "为运维与测试提供参考" for u in result.work_units)
+    assert any(u.kind == "work" and u.evidence.quote == "开发软件系统" for u in result.work_units)
+    assert comparison(result).supports
+
+
+def test_later_provide_verb_does_not_extend_an_earlier_purpose_prefix():
+    result = execute(analysis_with_duties(["为运维提供说明并开发提供检索服务的软件系统"]))
+    assert any(u.kind == "work" and u.evidence.quote == "开发提供检索服务的软件系统" for u in result.work_units)
+    assert comparison(result).supports
+
+
 def test_catalog_gap_preserves_auditable_work_and_marks_unconfigured_axes():
     result = execute(analysis_with_duties(["负责制定课程计划"]), empty=True)
     assert result.retrieval.status == "empty_catalog"
