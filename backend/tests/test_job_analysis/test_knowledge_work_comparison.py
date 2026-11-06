@@ -199,3 +199,29 @@ def test_governing_header_survives_newlines_and_separate_citations(header, scope
     from app.job_analysis.knowledge.work_comparison import work_input_v2
     view = work_input_v2(result, "d1", "p0-ref-programming", "resp-write-design-doc")["model_input"]
     assert any(header in text for text in view["source_context"])
+
+
+@pytest.mark.parametrize("header,body,scope", [
+    ("如果项目批准：", "本人负责开发软件系统", "conditional"),
+    ("如果项目批准：", "当前负责开发软件系统", "conditional"),
+    ("过去职责：", "本人负责开发软件系统", "historical"),
+    ("过去职责：", "当前负责开发软件系统", "affirmed"),
+    ("客户负责：", "本人负责开发软件系统", "affirmed"),
+    ("禁止以下工作：", "本人负责开发软件系统", "negated"),
+])
+def test_changing_actor_does_not_cancel_a_governing_condition_or_past_time(header, body, scope):
+    result = execute(analysis_with_duties([header + "\n" + body]))
+    assert result.work_units[-1].scope == scope
+
+
+@pytest.mark.parametrize("header,scope", [("如果项目批准：", "conditional"), ("禁止以下工作：", "negated"),
+                                        ("过去职责：", "historical")])
+def test_inner_actor_heading_cannot_replace_outer_condition_or_prohibition(header, scope):
+    result = execute(analysis_with_duties([header + "\n客户负责：\n需求确认\n本人负责开发软件系统"]))
+    assert result.work_units[-1].scope == scope
+    assert result.primary_role_id is None
+
+
+def test_explicit_current_work_can_end_history_and_other_actor_headers():
+    result = execute(analysis_with_duties(["过去职责：\n客户负责：\n当前负责开发软件系统"]))
+    assert result.work_units[-1].scope == "affirmed"

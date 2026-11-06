@@ -91,18 +91,21 @@ def work_units(analysis):
     # P1 saves the heading and task as separate evidence. Newlines are not a
     # change of actor/time/modality. Keep saved historical units unchanged.
     for claim_id, field in {(u.claim_id, u.evidence.field) for u in result}:
-        governing = None
+        governing = set()
         for unit in sorted((u for u in result if u.claim_id == claim_id and u.evidence.field == field),
                            key=lambda u: (u.evidence.start, u.evidence.end)):
             quote = unit.evidence.quote.strip()
             if re.match(r"(?:本人|本岗位|当前|本次)(?:负责|承担|职责)", quote):
-                governing = None
-            if governing is not None and unit.scope == "affirmed":
-                unit.scope = governing
-                unit.reference_status = "not_asserted_work"
+                governing.discard("other_actor")
+            if re.match(r"(?:当前|本次)(?:负责|承担|职责)", quote):
+                governing.discard("historical")
             actor_free = re.sub(r"开发团队|团队|客户|供应商|他人|公司", "", quote)
             if unit.scope != "affirmed" and (quote.endswith(("：", ":")) or not re.search(PREDICATES, actor_free)):
-                governing = unit.scope
+                governing.add(unit.scope)
+            scopes = governing | {unit.scope}
+            unit.scope = next(s for s in ("conditional", "negated", "historical", "other_actor", "instructional", "affirmed") if s in scopes)
+            if unit.scope != "affirmed":
+                unit.reference_status = "not_asserted_work"
     return result
 
 
