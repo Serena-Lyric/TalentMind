@@ -274,3 +274,17 @@ def test_live_prompt_change_cannot_reuse_or_relabel_loaded_dependencies(area, mo
         with pytest.raises(ValueError, match='loaded dependencies changed'):
             asyncio.run(execute(store, 'two', request(store), load_snapshot(KNOWLEDGE), processor=Fixture([])))
         assert store.read('one') == old
+
+
+def test_truncated_processor_result_keeps_valid_facts_without_complete_reuse(area):
+    Store, execute, _ = api()
+    completion = response(draft())
+    completion.finish_reason = 'length'
+    with Store(area / 'delivery', create=True) as store:
+        result = asyncio.run(execute(store, 'one', request(store), load_snapshot(KNOWLEDGE), processor=Fixture([completion])))
+        item = result['items'][0]
+        assert result['counts']['partial'] == 1
+        assert item['p1']['execution']['status'] == 'truncated'
+        assert len(item['analysis']['claims']) == 2
+        assert item['p1_complete'] is False
+        assert item['analysis']['coverage']['duties']['status'] == 'partial'

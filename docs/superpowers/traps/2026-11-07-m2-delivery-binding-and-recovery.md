@@ -29,3 +29,5 @@
 干净 Windows worktree 还重现了已发布 P2-1 `knowledge.json` 被 autocrlf 转换后与 manifest 摘要不符。按不可变资产路径固定 LF 检出，而不是修改 manifest/归一化后再校验。必须验证真正的新检出，原工作目录恰好为 LF 的绿色测试不能证明跨平台可重放。
 
 首次全仓 Linux CI 的 Windows 浏览器查询测试虽替换了进程查询，仍进入真实 Windows 平台门禁。该单测在非 Windows 时补齐 OS/无引号合成 argv 边界替身，保持完整输出断言；Windows 仍走真实原生 argv 解析。不能为了离线测试削弱浏览器生产门禁，也不跳过该断言。
+
+Windows 全仓高负载下，即使 PID 已原子发布，短暂文件共享占用仍可能让读取报 PermissionError。就绪条件改为限时内成功读到合法数字；只重试尚未可读的测试夹具，不吞超时或生命周期断言。单次定向绿色不能替代并行负载下的完整复验。

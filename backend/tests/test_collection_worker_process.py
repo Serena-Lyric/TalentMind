@@ -72,9 +72,16 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
         control._START_THREAD.join(2)
         process = workers[0]
         deadline = time.monotonic() + 3
-        while not pid_file.exists() and time.monotonic() < deadline:
-            time.sleep(.01)
-        assert int(pid_file.read_text()) != process.pid
+        child_pid = None
+        while time.monotonic() < deadline:
+            try:
+                child_pid = int(pid_file.read_text())
+            except (FileNotFoundError, PermissionError, ValueError):
+                time.sleep(.01)
+            else:
+                break
+        assert child_pid is not None, 'worker did not publish a readable numeric PID'
+        assert child_pid != process.pid
         result = control.stop_task(run['run_id'])
         assert result['stopped'] is True
         assert process.poll() is not None
