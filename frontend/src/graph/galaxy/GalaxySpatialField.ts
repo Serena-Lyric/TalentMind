@@ -1,11 +1,12 @@
 import { DEPTH_VERSION } from './spatialLayout.ts'
 
-export const GALAXY_FIELD_VERSION='node-field-v1'
+export const GALAXY_FIELD_VERSION='local-arm-field-v3'
 export interface FieldInput {
  layoutVersion:string;snapshotHash:string;seed:number;viewSize:number
  positions:ReadonlyArray<{id:string;x:number;y:number;z:number}>
 }
 export interface GalaxySpatialField {
+ input:FieldInput
  version:string;seed:number;nodeCount:number;bounds:{minX:number;maxX:number;minZ:number;maxZ:number}
  sample:(base:number[],random:()=>number,kind:string)=>number[]
 }
@@ -33,17 +34,33 @@ function build(input:FieldInput):GalaxySpatialField {
   }
   return result
  }
- const density=blur(blur(mass,dx,'x'),dz,'z'),elevation=blur(blur(height,dx,'x'),dz,'z'),cdf=new Float64Array(density.length)
- let total=0
- for(let i=0;i<cdf.length;i++){total+=density[i];cdf[i]=total}
- return {version:GALAXY_FIELD_VERSION,seed:input.seed,nodeCount:points.length,bounds,
-  sample(base,random,kind){
-   // Display density only. The untouched base component keeps sparse graphs continuous.
-   if(!points.length||kind==='field'||random()>=(kind==='core'?.25:.55))return base
-   const target=random()*total
-   let lo=0,hi=cdf.length-1
-   while(lo<hi){const mid=(lo+hi)>>>1;if(cdf[mid]<target)lo=mid+1;else hi=mid}
-   return [bounds.minX+(lo%SIZE+random())*dx,elevation[lo]/density[lo]+(random()-.5)*6,bounds.minZ+(Math.floor(lo/SIZE)+random())*dz]
+ const density=blur(blur(mass,dx,'x'),dz,'z'),elevation=blur(blur(height,dx,'x'),dz,'z')
+ let peak=0
+ for(const value of density)peak=Math.max(peak,value)
+ function sampleGrid(data:Float64Array,x:number,z:number) {
+  const ix=Math.floor(x),iz=Math.floor(z),fx=x-ix,fz=z-iz
+  let value=0
+  for(let a=0;a<2;a++)for(let b=0;b<2;b++){
+   const px=Math.max(0,Math.min(SIZE-1,ix+a)),pz=Math.max(0,Math.min(SIZE-1,iz+b))
+   value+=data[pz*SIZE+px]*(a?fx:1-fx)*(b?fz:1-fz)
+  }
+  return value
+ }
+ return {input,version:GALAXY_FIELD_VERSION,seed:input.seed,nodeCount:points.length,bounds,
+  sample(base,_random,kind){
+   if(!points.length||kind==='field'||kind==='core')return base
+   const x=(base[0]-bounds.minX)/dx-.5,z=(base[2]-bounds.minZ)/dz-.5
+   if(x<0||z<0||x>=SIZE-1||z>=SIZE-1)return base
+   const local=sampleGrid(density,x,z)
+   if(local<=peak*.001)return base
+   // Follow the local density gradient with a bounded displacement. Every layer
+   // retains the same arm spine, including the low-density regions between nodes.
+   const strength=Math.min(1,local/(peak*.08))
+   const gradientX=(sampleGrid(density,x+1,z)-sampleGrid(density,x-1,z))/(2*dx*local)
+   const gradientZ=(sampleGrid(density,x,z+1)-sampleGrid(density,x,z-1))/(2*dz*local)
+   const lift=Math.max(-3,Math.min(3,sampleGrid(elevation,x,z)/local-base[1]))
+   return [base[0]+Math.tanh(gradientX*SIGMA)*2.5*strength,
+    base[1]+lift*.15*strength,base[2]+Math.tanh(gradientZ*SIGMA)*2.5*strength]
   },
  }
 }
@@ -61,6 +78,6 @@ export function createGalaxySpatialFieldCache() {
    field=build({...input,positions});key=next;builds++;return field
   },
   clear(){key='';field=null},
-  stats:()=>({version:GALAXY_FIELD_VERSION,entries:field?1:0,builds,hits,nodeCount:field?.nodeCount??0,grid:SIZE,sigma:SIGMA,baseWeight:.45,nodeWeight:.55,coreNodeWeight:.25}),
+  stats:()=>({version:GALAXY_FIELD_VERSION,entries:field?1:0,builds,hits,nodeCount:field?.nodeCount??0,grid:SIZE,sigma:SIGMA,maxPlanarShift:2.5,maxVerticalShift:.45}),
  }
 }

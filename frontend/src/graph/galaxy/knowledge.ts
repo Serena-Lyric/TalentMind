@@ -1,4 +1,7 @@
 import * as THREE from 'three'
+import { Line2 } from 'three/addons/lines/Line2.js'
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js'
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import type { GraphNode, GraphEdge } from '../../api/graph'
 import type { Bounds } from '../nebulaEdges'
 import { createStarSprites, starAppearance, placeStarLabels, type StarLabel } from '../starPresentation'
@@ -24,13 +27,23 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
  const lineGeometry=new THREE.BufferGeometry()
  const lineMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:false,
   uniforms:{focus:{value:-1},selected:{value:0}},
-  vertexShader:`attribute vec3 tint;attribute float sourceIndex;varying vec3 color;varying float edgeId;
-   void main(){color=tint;edgeId=sourceIndex;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:`uniform float focus,selected;varying vec3 color;varying float edgeId;
-   void main(){float emphasis=1.-step(.25,abs(edgeId-focus));float alpha=focus>=0.?mix(.045,.95,emphasis):mix(.16,.27,selected);gl_FragColor=vec4(color,alpha);}`})
+  vertexShader:`attribute vec3 tint;attribute float sourceIndex,progress;varying vec3 color;varying float edgeId,along;
+   void main(){color=tint;edgeId=sourceIndex;along=progress;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform float focus,selected;varying vec3 color;varying float edgeId,along;
+   void main(){float emphasis=1.-step(.25,abs(edgeId-focus));float alpha=focus>=0.?mix(.045,.95,emphasis):mix(.16,.30,selected);alpha*=.65+.35*sin(along*3.14159265);gl_FragColor=vec4(color,alpha);}`})
  const lines=new THREE.LineSegments(lineGeometry,lineMaterial);lines.frustumCulled=false;lines.renderOrder=1;group.add(lines)
+ // Three.js fat-line implementation keeps the inspected relation readable at any zoom.
+ const focusGeometry = new LineGeometry()
+ const focusMaterial = new LineMaterial({ linewidth: 2.5, vertexColors: true, transparent: true, opacity: .9, depthTest: false, depthWrite: false })
+ const focusLine = new Line2(focusGeometry, focusMaterial)
+ focusLine.visible = false
+ focusLine.frustumCulled = false
+ focusLine.renderOrder = 2
+ group.add(focusLine)
+ let focusKey: GraphEdge | undefined
  function disposePoints(){for(const layer of pointLayers){group.remove(layer.object);layer.object.geometry.dispose();(layer.object.material as THREE.Material).dispose()}pointLayers.length=0;textures.forEach(t=>t.dispose());textures.length=0}
  function setData(nextNodes:GraphNode[],nextEdges:GraphEdge[],layout:LayoutNode[]) {
+  focusLine.visible = false; focusKey = undefined
   lineGeometry.dispose();lineGeometry.setDrawRange(0,0)
   for(const name of Object.keys(lineGeometry.attributes))lineGeometry.deleteAttribute(name)
   disposePoints();nodes=nextNodes;edges=nextEdges;meta=new Map(layout.map(n=>[n.id,n]));positions.clear();byId.clear();bounds.clear();projection.clear();metrics.clear();planKey='';edgeKey='';dataRevision++
@@ -40,9 +53,9 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
    const data=transitionDust(positions);dustCount=data.count
    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.position,3));geometry.setAttribute('phase',new THREE.BufferAttribute(data.phase,1))
    const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-    uniforms:{height:{value:800},dpr:{value:1}},
+    uniforms:{height:{value:800},dpr:{value:1},strength:{value:semantic?.04:1}},
     vertexShader:`attribute float phase;uniform float height,dpr;varying float tint;void main(){tint=phase;vec4 p=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*p;gl_PointSize=clamp(height*.22/max(1.,-p.z),.6,2.8)*dpr;}`,
-    fragmentShader:`varying float tint;void main(){float r=length(gl_PointCoord-.5)*2.;float a=exp(-r*r*3.)*${semantic?'.095':'.15'};if(r>1.)discard;gl_FragColor=vec4(mix(vec3(.34,.43,.73),vec3(.63,.46,.8),tint),a);}`})
+    fragmentShader:`uniform float strength;varying float tint;void main(){float r=length(gl_PointCoord-.5)*2.;float a=exp(-r*r*3.)*${semantic?'.095':'.15'}*strength;if(r>1.)discard;gl_FragColor=vec4(mix(vec3(.34,.43,.73),vec3(.63,.46,.8),tint),a);}`})
    dust=new THREE.Points(geometry,material);dust.frustumCulled=false;group.add(dust)
   }
   for(const edge of edges){const curve=relationCurve(edge,positions);bounds.set(edge,new THREE.Box3().setFromPoints([curve.v0,curve.v1,curve.v2]))}
@@ -80,7 +93,14 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
  function update(canvas:HTMLCanvasElement,state:{activeKinds:Set<string>;selectedId?:string;focusIds:Set<string>;priority:Set<string>;matches:Set<string>;hoveredId:string|null;focusedEdge?:GraphEdge;panels:Bounds[];showDerived:boolean;derived:GraphEdge[];stellarPreset?:StellarType}) {
   const start=performance.now(),ctx=canvas.getContext('2d')!,width=canvas.clientWidth,height=canvas.clientHeight,dpr=window.devicePixelRatio||1,scale=rig.scale
   const visibleIds=visibleKnowledgeIds(nodes,meta,scale,state.priority)
-  if(dust){const material=dust.material as THREE.ShaderMaterial;material.uniforms.height.value=height;material.uniforms.dpr.value=Math.min(dpr,1.5)}
+  if(dust){
+   const material=dust.material as THREE.ShaderMaterial
+   material.uniforms.height.value=height
+   material.uniforms.dpr.value=Math.min(dpr,1.5)
+   // The node-local haze becomes useful in close inspection. At galaxy scale it
+   // otherwise produces bright disconnected clouds on top of the spiral disk.
+   material.uniforms.strength.value=semantic?.035+.965*(1-Math.exp(-scale*scale*.6)):1
+  }
   const key=`${dataRevision}:${[...state.activeKinds]}:${state.selectedId}:${scale<.35?0:scale<.9?1:2}:${[...state.priority]}:${!state.selectedId?rig.revision:0}`
   if(planKey!==key){
    planKey=key
@@ -90,6 +110,20 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
   const plan=lastPlan!,highlight=new Set(state.focusedEdge?[state.focusedEdge.source,state.focusedEdge.target]:[])
   const derived=state.showDerived?derivedSpatialEdges(state.derived,byId,visibleIds,state.activeKinds):[]
   buildLines([...plan.edges,...derived]);lineMaterial.uniforms.focus.value=state.focusedEdge?.sourceIndex??-1;lineMaterial.uniforms.selected.value=state.selectedId?1:0
+  const focused = state.focusedEdge && plan.edges.includes(state.focusedEdge) ? state.focusedEdge : undefined
+  focusLine.visible = Boolean(focused)
+  focusMaterial.resolution.set(width, height)
+  if (focused && focused !== focusKey) {
+   const samples = relationCurve(focused, positions).getPoints(48)
+   const palette = semantic ? knowledgeColors : colors
+   const source = new THREE.Color(palette[byId.get(focused.source)!.kind])
+   const target = new THREE.Color(palette[byId.get(focused.target)!.kind])
+   focusGeometry.dispose()
+   focusGeometry.setPositions(samples.flatMap(point => point.toArray()))
+   focusGeometry.setColors(samples.flatMap((_, index) => source.clone().lerp(target, index / 48).toArray()))
+   focusLine.computeLineDistances()
+  }
+  focusKey = focused
   projection.clear()
   // Project once, then evaluate the continuous occupancy field. No density-based culling.
   const projected=new Map<string,ReturnType<GalaxyCamera['project']>>()
@@ -106,7 +140,7 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
     const related=Boolean(state.selectedId&&state.focusIds.has(node.id))
     const appearance=starAppearance(node.kind,localScale,selected,matched,hovered||related)
     if(stellar){appearance.radius=stellarSize(localScale,selected,maxPointSize,Math.min(dpr,1.5)).radius;appearance.outline=selected||hovered||matched||related;appearance.label=appearance.label||selected}
-    const pickRadius=appearance.radius,occupancy=density.get(node.id)||0,clarity=densityAppearance(occupancy,selected||hovered||matched||related)
+    const pickRadius=appearance.radius,occupancy=density.get(node.id)||0,clarity=densityAppearance(occupancy,selected||hovered||matched||related,scale)
     if(semantic){appearance.radius*=({job:.9,skill:.68,industry:.82}[node.kind])*clarity.radius;if(clarity.radius<.97)compressed++;maxDensity=Math.max(maxDensity,occupancy)}
     const visible=p.visible
     layer.radius[i]=visible?appearance.radius:0;layer.outline[i]=appearance.outline?1:0
@@ -145,7 +179,7 @@ export function createSpatialKnowledge(rig:GalaxyCamera,stellar=true,version:'p2
  return {group,setData,update,positions,setPointLimit:(value:number)=>{maxPointSize=value},
   pick:(x:number,y:number)=>pickProjected(projection.values(),x,y),
   projected:(id:string)=>projection.get(id),
-  dispose(){disposePoints();disposeDust();lineGeometry.dispose();lineMaterial.dispose();sprites.clear();positions.clear();bounds.clear();projection.clear();metrics.clear()},
+  dispose(){disposePoints();disposeDust();lineGeometry.dispose();lineMaterial.dispose();focusGeometry.dispose();focusMaterial.dispose();sprites.clear();positions.clear();bounds.clear();projection.clear();metrics.clear()},
  }
 }
 export type SpatialKnowledge=ReturnType<typeof createSpatialKnowledge>

@@ -1,5 +1,5 @@
 <template>
-  <section ref="rootRef" class="nebula-page">
+  <section ref="rootRef" class="nebula-page" :aria-busy="loading || (!rendererReady && !webglError && !loadError)" :data-first-frame-ms="firstFrameMs">
     <canvas ref="galaxyRef" class="galaxy-background" aria-hidden="true"></canvas>
     <header class="nebula-header">
       <div class="nebula-title"><span>岗位星云图谱</span><b>· Career Nebula</b></div>
@@ -19,7 +19,7 @@
       <div class="nebula-search">
         <el-icon><Search /></el-icon>
         <input v-model="searchKeyword" placeholder="输入岗位或技能..." @keydown.enter="onSearchEnter" />
-        <button v-if="searchKeyword" type="button" @click="searchKeyword = ''">×</button>
+        <button v-if="searchKeyword" type="button" aria-label="清空图谱搜索" @click="searchKeyword = ''">×</button>
       </div>
       <p v-if="searchKeyword" class="search-hint">{{ searchMatches.length ? `找到 ${searchMatches.length} 个节点` : '没有匹配节点' }}</p>
       <div v-if="searchKeyword.trim()" class="nebula-search-nav">
@@ -54,14 +54,14 @@
       </div>
       <div class="nebula-tools">
         <button type="button" @click="resetView"><el-icon><Refresh /></el-icon>重置视图</button>
-        <button type="button" @click="loadGraph"><el-icon><RefreshRight /></el-icon>刷新数据</button>
+        <button type="button" @click="loadGraph(true)"><el-icon><RefreshRight /></el-icon>刷新数据</button>
       </div>
       <div v-if="savedView" class="nebula-tools">
         <button type="button" @click="returnToView">返回原视角</button>
       </div>
       <details class="snapshot-note technical-info"><summary>技术信息 / 版本与诊断</summary>
       <p class="snapshot-note">{{ realMode ? '已有真实 JD 的独立版本，非实时数据库' : '已核验历史交接快照' }}<br />非新版标准岗位目录</p>
-      <p v-if="nodeFieldMode" class="snapshot-note">node-field-v1：背景分布由原旋臂与知识坐标平滑混合。节点位置不变，星尘不表达职业分类或社区。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
+      <p v-if="nodeFieldMode" class="snapshot-note">局部旋臂场 v3：知识密度轻微牵引附近星尘。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · seed 42<br />{{ realMode ? '仅无冲突、无条件的明确必备/加分单项参与相似计算；其余陈述仍保留。' : 'layout-v1 · PR32@377e9b8。' }}只用于候选空间布局，不映射八大职业大类。</p></details>
       <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
@@ -77,7 +77,7 @@
 
     <div ref="canvasWrapRef" class="nebula-canvas-wrap">
       <canvas ref="canvasRef" tabindex="0" aria-label="知识银河，左拖旋转，右拖平移，滚轮缩放" @contextmenu.prevent @click="onCanvasClick" @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp" @pointerleave="onPointerLeave" @wheel="onWheel"></canvas>
-      <div v-if="loading" class="nebula-state"><el-icon class="is-loading"><Loading /></el-icon><span>正在加载图谱数据...</span></div>
+      <div v-if="(loading || !rendererReady) && !webglError && !loadError" class="nebula-state" role="status"><el-icon class="is-loading"><Loading /></el-icon><span>{{ loading ? '正在读取图谱与布局…' : '正在准备图谱首帧…' }}</span></div>
       <div v-else-if="!graphData.nodes.length" class="nebula-state"><el-icon><DataAnalysis /></el-icon><span>{{ loadError || "暂无图谱数据" }}</span><a href="#/graph?graphRenderer=legacy">旧 Canvas 回退</a></div>
     </div>
 
@@ -145,7 +145,7 @@ import { nodeAppearance, selectLabels, type LabelCandidate } from '../graph/nebu
 import { starAppearance, createStarSprites, paintStar, placeStarLabels } from '../graph/starPresentation'
 import { planRelations, fanControls, curveIntersects } from '../graph/relationReadability'
 import { comparisonSettings } from '../graph/comparisonView'
-import { cameraKey, type GalaxyCamera, type CameraState } from '../graph/galaxy/camera'
+import { cameraKey, createGalaxyCamera, type GalaxyCamera, type CameraState } from '../graph/galaxy/camera'
 import type { SpatialKnowledge } from '../graph/galaxy/knowledge'
 import { stellarProfile, stellarNames, STELLAR_TYPES, type StellarType } from '../graph/galaxy/stellarAppearance'
 import { knowledgeProfile } from '../graph/galaxy/visualSemantics'
@@ -204,6 +204,9 @@ const derivedSummary = ref('')
 const levelSummary = ref('')
 const connectionPage = ref(0)
 const loading = ref(false)
+const rendererReady = ref(false)
+const firstFrameMs = ref<number | null>(null)
+const mountedAt = performance.now()
 const graphData = shallowRef<GraphData>({ nodes: [], edges: [], stats: { totalNodes: 0, totalEdges: 0, added: 0, removed: 0, changed: 0 } })
 const searchKeyword = ref('')
 const searchIndex = ref(-1)
@@ -646,13 +649,14 @@ async function stepSearch(direction: 1 | -1) {
   draw()
   measureInteraction('search-next',interactionStart)
 }
-async function loadGraph() {
+async function loadGraph(refresh = false) {
   const generation = ++loadGeneration
+  rendererReady.value = false
   loading.value = true
   loadError.value = ''
   try {
     const realResult = realMode ? await loadRealGraph(query.get('m2Run'),query.get('m2Graph')) : null
-    const result = realResult || await loadHistoricalGraph()
+    const result = realResult || await loadHistoricalGraph(refresh)
     const data = result.graph
     if (generation !== loadGeneration) return
     if(realResult){realSources.value=realResult.sources;realManifest.value=realResult.manifest}
@@ -729,10 +733,21 @@ onMounted(async () => {
   loadGraph()
   window.addEventListener('keydown',cameraKeydown);window.addEventListener('keyup',cameraKeyup);window.addEventListener('blur',clearCameraKeys);window.addEventListener('compositionstart',compositionStart);window.addEventListener('compositionend',compositionEnd);document.addEventListener('visibilitychange',clearCameraKeys)
   try {
-    const {createGalaxyBackground}=await import('../graph/galaxy/background')
+    const [{createGalaxyBackground},knowledgeModule]=await Promise.all([
+      import('../graph/galaxy/background'),
+      spatialMode ? import('../graph/galaxy/knowledge') : Promise.resolve(null),
+    ])
     if(disposed||!galaxyRef.value)return
-    if(spatialMode){const {createSpatialKnowledge}=await import('../graph/galaxy/knowledge');if(disposed)return;cameraRig.value=(await import('../graph/galaxy/camera')).createGalaxyCamera();spatialKnowledge=createSpatialKnowledge(cameraRig.value,stellarMode,semanticMode?'p25':'p24');if(graphData.value.nodes.length)spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)}
-    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial,pointLimit:spatialKnowledge.setPointLimit}:undefined})
+    if(knowledgeModule){
+      cameraRig.value=createGalaxyCamera()
+      spatialKnowledge=knowledgeModule.createSpatialKnowledge(cameraRig.value,stellarMode,semanticMode?'p25':'p24')
+      if(graphData.value.nodes.length){
+        spatialKnowledge.setData(graphData.value.nodes,graphData.value.edges,artifact.value!.nodes)
+      }
+    }
+    galaxy=createGalaxyBackground(galaxyRef.value,()=>transform,()=>{webglError.value=true},{visual,frozen:comparison.frozen,diagnostics:debug,onFrame:()=>{
+      if(!loading.value&&!loadError.value&&!webglError.value){rendererReady.value=true;firstFrameMs.value ??= Math.round(performance.now()-mountedAt)}
+    },spatial:cameraRig.value&&spatialKnowledge?{rig:cameraRig.value,group:spatialKnowledge.group,frame:flushSpatial,pointLimit:spatialKnowledge.setPointLimit}:undefined})
     syncSpatialField()
     resizeCanvas()
     if(cameraRig.value)fitGraph()

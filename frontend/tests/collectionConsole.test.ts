@@ -7,6 +7,67 @@ import { parse } from 'vue/compiler-sfc'
 import { collectionComponent } from './helpers/collectionComponent.ts'
 import type { CollectionTask } from '../src/api/collection.ts'
 
+test('任务失败提示合并重复原因并解释数据库结构阻塞', () => {
+  const page = collectionComponent()
+  try {
+    const message = page.state.taskIssue({ stop_reason: 'identity_schema_migration_required', last_error: 'identity_schema_migration_required' })
+    assert.match(message, /数据库缺少身份字段/)
+    assert.equal(message.split('identity_schema_migration_required').length, 2)
+    assert.equal(page.state.taskIssue({ stop_reason: 'first', last_error: 'second' }), 'first · second')
+    assert.equal(page.state.taskIssue({}), '')
+  } finally { page.stop() }
+})
+
+test('准备后调整数量保留就绪状态并按最新数量启动', async () => {
+  const page = collectionComponent()
+  try {
+    await page.mounted()
+    await page.state.prepareBrowser()
+    page.state.configForm.max_jobs = 3
+    page.state.configForm.detail_limit = 2
+    assert.equal(page.state.canStart.value, true)
+    await page.state.startTask()
+    const payload = page.calls.find(call => call.method === 'startCollection')!.args[0]
+    assert.equal(payload.max_jobs, 3)
+    assert.equal(payload.detail_limit, 2)
+    assert.equal(page.calls.filter(call => call.method === 'prepareCollection').length, 1)
+  } finally { page.stop() }
+})
+
+test('准备中改数量不丢弃同目标响应，非法数量仍禁止启动', async () => {
+  let finish!: (value: any) => void
+  const page = collectionComponent({ prepareCollection: () => new Promise(resolve => { finish = resolve }) })
+  try {
+    await page.mounted()
+    const pending = page.state.prepareBrowser()
+    page.state.configForm.max_jobs = 2
+    finish({ access_state: 'public_accessible', can_collect: true, cdp: { reachable: true } })
+    await pending
+    assert.equal(page.state.canStart.value, true)
+    page.state.configForm.detail_limit = 0
+    await page.state.startTask()
+    assert.equal(page.calls.some(call => call.method === 'startCollection'), false)
+    page.state.configForm.detail_limit = 1
+    assert.equal(page.state.canStart.value, true)
+    page.state.configForm.keywords = ['Java']
+    assert.equal(page.state.canStart.value, false)
+  } finally { page.stop() }
+})
+
+test('空列表标题的详情证据可查看，仍显示身份拒绝而非入库成功', async () => {
+  const row = { job_title: '合成岗位', list_title: '', detail_title: '合成岗位', title_source: 'detail', outcome: 'rejected', rejection_reason: 'missing_list_title', identity_status: 'unknown', jd_pool_id: null }
+  const page = collectionComponent()
+  try {
+    await page.mounted()
+    await page.state.openRaw(row)
+    assert.equal(page.state.eventRecord.value.title_source, 'detail')
+    assert.equal(page.state.resultText(row), '未入库：关联未核验')
+    assert.match(page.state.rejectionText(row.rejection_reason), /关联校验未通过/)
+    assert.doesNotMatch(page.state.rejectionText(row.rejection_reason), /未取得列表标题|标题获取失败/)
+    assert.equal(page.calls.some(call => call.method === 'getCollectionRaw'), false)
+  } finally { page.stop() }
+})
+
 test('准备搜索目标只读展示，不再生成普通外链', () => {
   const filename = resolve(import.meta.dirname, '../src/views/Collection.vue')
   const root = parse(readFileSync(filename, 'utf8')).descriptor.template!.ast!

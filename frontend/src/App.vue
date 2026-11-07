@@ -57,7 +57,7 @@
 
       <section class="page-main" :class="{ 'page-main--graph': isGraphRoute }">
         <router-view v-slot="{ Component }">
-          <transition name="page-fade" mode="out-in">
+          <transition :name="isGraphRoute ? 'graph-entry' : 'page-fade'" mode="out-in">
             <component :is="Component" @immersive-change="graphImmersive = $event" />
           </transition>
         </router-view>

@@ -2,11 +2,11 @@
 export const CONFIG = {
   seed: 261018, radius: 100,
   particles: { dust: 110000, mist: 44000, core: 48000, stars: 10000, field: 2200 },
-  spiral: { winding: 4.8, width: 0.19, diskScale: 22, thickness: 2.3 },
+  spiral: { winding: 3.6, width: 0.20, diskScale: 22, thickness: 2.6 },
   camera: { distance: 245, min: 24, max: 520, phi: 0.86, theta: 0.18, fov: 43, panRate: 0.32, zoomRate: 0.65 },
   motion: { initial: 0.15, min: 0, max: 2, amplitude: 0.28 },
   render: { dpr: 1.5, bloomStrength: 0.34, bloomRadius: 0.45, bloomThreshold: 0.85, exposure: 1.05 },
-  layers: { dust: [0.16, 0.48], mist: [1.45, 0.09], core: [0.28, 0.28], stars: [0.23, 0.8], field: [0.2, 0.22] },
+  layers: { dust: [0.16, 0.34], mist: [2.1, 0.060], core: [0.28, 0.15], stars: [0.23, 0.70], field: [0.2, 0.18] },
   maxSprite: { dust: 5, mist: 10, core: 6, stars: 5, field: 3 },
 };
 

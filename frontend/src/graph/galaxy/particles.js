@@ -2,11 +2,46 @@ import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { generateParticles } from './generate.js';
 
-export function createDust(scene, crisp = false) {
+export function createDust(scene, crisp = false, options = {}) {
   const layers = [];
   let currentField = null;
+  let worker = null, scheduled = null, generation = 0, disposed = false, pending = false, buildMs = 0;
+  const asynchronous = options.asynchronous === true;
+  const kinds = Object.keys(CONFIG.particles);
+  function install(points, data) {
+    points.geometry.dispose();
+    for (const [name, size] of [['position', 3], ['color', 3], ['scale', 1], ['phase', 1]]) {
+      points.geometry.setAttribute(name === 'position' ? name : `a${name}`, new THREE.BufferAttribute(data[name], size));
+    }
+    points.geometry.setDrawRange(0, data.count);
+  }
+  function schedule(field) {
+    const request = ++generation;
+    clearTimeout(scheduled);
+    worker?.terminate();
+    worker = null;
+    pending = true;
+    scheduled = setTimeout(() => {
+      if (disposed || request !== generation) return;
+      try {
+        worker = new Worker(new URL('./particleWorker.ts', import.meta.url), { type: 'module' });
+        let received = 0;
+        worker.onmessage = ({ data }) => {
+          if (disposed || request !== generation) return;
+          install(layers[kinds.indexOf(data.kind)], data.particles);
+          buildMs = data.elapsedMs;
+          if (++received === kinds.length) { pending = false; worker.terminate(); worker = null; }
+        };
+        worker.onerror = () => {
+          if (disposed || request !== generation) return;
+          pending = false; worker?.terminate(); worker = null; options.onError?.();
+        };
+        worker.postMessage({ input: field?.input ?? null });
+      } catch { pending = false; options.onError?.(); }
+    }, 0);
+  }
   for (const kind of Object.keys(CONFIG.particles)) {
-    const data = generateParticles(kind), geometry = new THREE.BufferGeometry();
+    const data = asynchronous ? { position: new Float32Array(), color: new Float32Array(), scale: new Float32Array(), phase: new Float32Array(), count: 0 } : generateParticles(kind), geometry = new THREE.BufferGeometry();
     for (const [name, size] of [['position', 3], ['color', 3], ['scale', 1], ['phase', 1]]) geometry.setAttribute(name === 'position' ? name : `a${name}`, new THREE.BufferAttribute(data[name], size));
     const [size, opacity] = CONFIG.layers[kind];
     const material = new THREE.ShaderMaterial({
@@ -40,12 +75,15 @@ export function createDust(scene, crisp = false) {
         }`,
     });
     const points = new THREE.Points(geometry, material); points.frustumCulled = false;
+    geometry.setDrawRange(0, data.count);
     scene.add(points); layers.push(points);
   }
+  if (asynchronous) schedule(null);
   return {
     setField(field) {
       if (field === currentField) return;
       currentField = field;
+      if (asynchronous) { schedule(field); return; }
       layers.forEach((points, index) => {
         const data = generateParticles(Object.keys(CONFIG.particles)[index], field);
         points.geometry.dispose();
@@ -55,5 +93,7 @@ export function createDust(scene, crisp = false) {
     update(clock) { for (const points of layers) points.material.uniforms.clock.value = clock; },
     resize(height, dpr) { layers.forEach((points, index) => { points.material.uniforms.pixels.value = height * dpr; points.material.uniforms.maxPixels.value = Object.values(CONFIG.maxSprite)[index] * dpr;points.material.uniforms.pixelRatio.value=dpr; }); },
     count: Object.values(CONFIG.particles).reduce((sum, value) => sum + value, 0),
+    stats: () => ({ pending, buildMs, asynchronous }),
+    dispose() { disposed = true; generation++; clearTimeout(scheduled); worker?.terminate(); worker = null; },
   };
 }

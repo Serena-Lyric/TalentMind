@@ -95,6 +95,9 @@ export interface CollectionPreparation extends CollectionAccess {
 export interface CollectionResult {
   source?: string
   job_title: string
+  list_title?: string | null
+  detail_title?: string | null
+  title_source?: 'list' | 'detail' | null
   source_detail?: string | null
   crawled_at?: string | null
   raw_text?: string | null

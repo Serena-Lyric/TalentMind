@@ -21,7 +21,10 @@ export function screenDensity(points:Iterable<{id:string;x:number;y:number}>) {
  for(const p of input){let density=0;weights(p.x,p.y,(key,w)=>{density+=(grid.get(key)||0)*w});result.set(p.id,density)}
  return result
 }
-export function densityAppearance(density:number,protectedStar:boolean) {
+export function densityAppearance(density:number,protectedStar:boolean,scale=1) {
  const clarity=1/(1+.22*Math.max(0,density-1))
- return protectedStar?{radius:1,halo:.85,opacity:1}:{radius:.72+.28*clarity,halo:.14+.86*clarity,opacity:.68+.32*clarity}
+ const macro=Math.exp(-(Math.max(0,scale)**2)*3)
+ const closeOpacity=.68+.32*clarity
+ const opacity=closeOpacity+(Math.max(.04,clarity*clarity)-closeOpacity)*macro
+ return protectedStar?{radius:1,halo:.85,opacity:1}:{radius:.72+.28*clarity,halo:.14+.86*clarity,opacity}
 }

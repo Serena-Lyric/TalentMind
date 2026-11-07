@@ -1,9 +1,36 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { adaptSnapshot, validateBinding, visibleKnowledgeIds, sha256LF } from '../src/graph/historicalSnapshot.ts'
+import { adaptSnapshot, validateBinding, visibleKnowledgeIds, sha256LF, loadHistoricalGraph } from '../src/graph/historicalSnapshot.ts'
 
 const snapshot = JSON.parse(readFileSync(new URL('../../exchange/m3/graph.json', import.meta.url), 'utf8'))
+
+test('历史快照复访复用已验证输入，显式刷新重读且失败后可重试', async t => {
+  const graphText = readFileSync(new URL('../../exchange/m3/graph.json', import.meta.url), 'utf8')
+  const layoutText = readFileSync(new URL('../../exchange/m3/overlays/p2-1-layout.json', import.meta.url), 'utf8')
+  const previous = Object.getOwnPropertyDescriptor(globalThis, '__GRAPH_LAYOUT_SHA256_LF__')
+  Object.defineProperty(globalThis, '__GRAPH_LAYOUT_SHA256_LF__', { configurable: true, value: await sha256LF(layoutText) })
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, '__GRAPH_LAYOUT_SHA256_LF__', previous)
+    else delete (globalThis as any).__GRAPH_LAYOUT_SHA256_LF__
+  })
+  let calls = 0, broken = false
+  t.mock.method(globalThis, 'fetch', async (url: string) => {
+    calls++
+    return { ok: !broken, text: async () => url.endsWith('layout.json') ? layoutText : graphText }
+  })
+  const first = await loadHistoricalGraph(true)
+  first.graph.nodes[0].label = 'changed-in-first-view'
+  const second = await loadHistoricalGraph()
+  assert.equal(calls, 2)
+  assert.notEqual(second.graph.nodes[0].label, first.graph.nodes[0].label)
+  broken = true
+  await assert.rejects(loadHistoricalGraph(true))
+  broken = false
+  const recovered = await loadHistoricalGraph()
+  assert.equal(calls, 6)
+  assert.equal(recovered.graph.nodes.length, 7845)
+})
 test('摘要验证不支持普通 HTTP LAN 时明确报错，不悄悄跳过校验',async()=>{
   await assert.rejects(sha256LF('test',null),/localhost.*HTTPS/)
 })

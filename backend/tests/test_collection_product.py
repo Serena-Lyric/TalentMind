@@ -511,6 +511,23 @@ def test_rejected_dom_event_keeps_temporary_source_identity():
     assert result['observation_key'] == 'zhaopin:card-0'
 
 
+def test_missing_list_title_displays_detail_evidence_without_changing_rejection():
+    event = dict(event='detail', platform='zhaopin',
+                 job={'url': 'dom://zhaopin/title-test', 'title': ''},
+                 detail={'title': '合成开发岗位', 'description': '负责合成服务开发'},
+                 rejection='missing_list_title', identity_status='unknown', content_eligible=True)
+    control._parse_log_line('title-test', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+    result = control.get_results('title-test')[0]
+    assert result['job_title'] == '合成开发岗位'
+    assert result['list_title'] == ''
+    assert result['detail_title'] == '合成开发岗位'
+    assert result['title_source'] == 'detail'
+    assert result['rejection_reason'] == 'missing_list_title'
+    assert result['outcome'] == 'rejected'
+    assert result['identity_status'] == 'unknown'
+    assert result['jd_pool_id'] is None
+
+
 def test_raw_adds_requirements_and_preserves_stored_duties(monkeypatch):
     import app.db.mysql as mysql
     body = '岗位职责：来源职责\n任职要求：Python\n福利待遇：五险'

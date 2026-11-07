@@ -2,11 +2,20 @@
   <div class="page graph-page"><LegacyGraph v-if="route.query.graphRenderer === 'legacy'" /><GraphPanorama v-else :panels-hidden="panelsHidden" :immersive="immersive" /></div>
 </template>
 <script setup lang="ts">
-import GraphPanorama from '../components/GraphPanorama.vue'
-import LegacyGraph from '../components/LegacyGraph.vue'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { defineAsyncComponent, h, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { graphShortcut } from '../graph/graphShortcut'
+
+const GraphPanorama = defineAsyncComponent({
+  loader: () => import('../components/GraphPanorama.vue'),
+  delay: 0,
+  loadingComponent: { render: () => h('div', { class: 'graph-loading', role: 'status' }, '正在准备星云图谱…') },
+  errorComponent: { render: () => h('div', { class: 'graph-loading', role: 'alert' }, [
+    h('span', '图谱模块加载失败，请刷新页面重试。'),
+    h('a', { href: '#/graph?graphRenderer=legacy' }, '打开兼容视图'),
+  ]) },
+})
+const LegacyGraph = defineAsyncComponent(() => import('../components/LegacyGraph.vue'))
 
 const emit = defineEmits<{ (event: 'immersive-change', value: boolean): void }>()
 const route = useRoute()
@@ -38,5 +47,7 @@ onUnmounted(() => {
 <style scoped>
 .graph-page { max-width: 1600px; height: calc(100vh - 36px); height: calc(100dvh - 36px); min-height: 620px; margin: 0 auto; }
 .graph-page :deep(.nebula-page) { height: 100%; min-height: inherit; }
+.graph-page :deep(.graph-loading) { min-height: inherit; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #c5d3ed; background: radial-gradient(ellipse at center, #152641, #080b17 65%); border-radius: 14px; }
+.graph-page :deep(.graph-loading a) { color: #9cc5ff; }
 @media (max-width: 800px) { .graph-page { min-height: 560px; } }
 </style>

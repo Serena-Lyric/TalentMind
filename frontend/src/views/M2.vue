@@ -361,6 +361,10 @@ onUnmounted(() => { disposed = true; ++runRequest; ++itemRequest; if (timer !== 
 </style>
 <style scoped>
 .review-dimension{border-top:1px dashed #d8e5eb;padding:18px 0;margin-top:18px}
+.selection-grid { row-gap: 18px; }
+.selection-grid > * { min-width: 0; }
+@media (max-width: 1500px) { .selection-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .selection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .review-dimension h3{margin-bottom:10px}
 .review-label-grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}
 .additional-family{max-width:360px;margin-bottom:12px}

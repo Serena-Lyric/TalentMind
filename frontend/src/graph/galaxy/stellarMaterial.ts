@@ -64,8 +64,12 @@ export function createKnowledgeStellarMaterial(kind:number,color:string) {
     float detail=smoothstep(2.,12.,coreRadius),texture=.72;
     texture+=detail*(grain(vec3(body*19.,phase*91.))-.5)*.22;
     texture+=detail*sin(body.y*19.+phase*13.+sin(body.x*9.)*.5)*.06;
-    float light=.36+.64*pow(z,.65);
-    vec3 surface=mix(typeColor,vec3(.85,.91,1.),.08+.22*z)*light*texture;
+    vec3 normal=normalize(vec3(body,z));
+    vec3 lightDirection=normalize(vec3(-.45,.6,1.));
+    float light=.28+.72*max(0.,dot(normal,lightDirection));
+    float rim=pow(1.-z,3.)*.30;
+    float specular=pow(max(0.,dot(normal,normalize(lightDirection+vec3(0.,0.,1.)))),28.)*.48;
+    vec3 surface=typeColor*(light*texture+rim)+vec3(.86,.94,1.)*specular;
     float corona=exp(-max(0.,length(q)-.7)*4.2)*smoothstep(.62,1.05,length(q))*.16*haze;
     corona*=1.-smoothstep(1.65,2.5,length(q));
     // Small opposing rays distinguish skills even without color; no random pulsar identity.

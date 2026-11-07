@@ -78,7 +78,7 @@
       <div class="task-context"><span>平台：{{ platformText(currentTask.platform) }}</span><span>关键词：{{ currentTask.current_keyword || '—' }}</span><span>城市：{{ currentTask.current_city || '—' }}</span><span>开始：{{ formatTime(currentTask.started_at) }}</span></div>
       <div class="count-grid"><div v-for="item in progressItems" :key="item.key"><strong>{{ item.value }}</strong><span>{{ item.label }}</span></div></div>
       <p class="hint">“—”表示尚无可信计数；详情尝试、详情取得、完整 JD 与实际入库分别计数。</p>
-      <el-alert v-if="currentTask.stop_reason || currentTask.last_error" :title="[currentTask.stop_reason, currentTask.last_error].filter(Boolean).join(' · ')" type="warning" :closable="false" show-icon />
+      <el-alert v-if="taskIssue(currentTask)" :title="taskIssue(currentTask)" type="warning" :closable="false" show-icon />
     </section>
 
     <section class="panel results-panel">
@@ -87,10 +87,10 @@
       <el-table v-loading="resultsLoading" :data="results" stripe empty-text="本轮暂无结果事件" style="width:100%">
         <el-table-column prop="job_title" label="岗位" min-width="180" show-overflow-tooltip />
         <el-table-column label="来源" width="100"><template #default="{ row }">{{ platformText(row.source) }}</template></el-table-column>
-        <el-table-column label="处理结果" width="110"><template #default="{ row }">{{ outcomeText(row.outcome) }}</template></el-table-column>
+        <el-table-column label="处理结果" min-width="180"><template #default="{ row }">{{ resultText(row) }}</template></el-table-column>
         <el-table-column label="身份" width="105"><template #default="{ row }"><el-tag effect="plain">{{ identityText(row.identity_status) }}</el-tag></template></el-table-column>
         <el-table-column label="jd_pool ID" width="110"><template #default="{ row }">{{ row.jd_pool_id ?? '—' }}</template></el-table-column>
-        <el-table-column prop="rejection_reason" label="拒绝 / 失败原因" min-width="180" show-overflow-tooltip />
+        <el-table-column label="未入库 / 失败原因" min-width="180" show-overflow-tooltip><template #default="{ row }">{{ rejectionText(row.rejection_reason) }}</template></el-table-column>
         <el-table-column label="采集时间" width="180"><template #default="{ row }">{{ formatTime(row.crawled_at) }}</template></el-table-column>
         <el-table-column label="正文与来源" width="120" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="openRaw(row)">查看原文</el-button></template></el-table-column>
       </el-table>
@@ -126,16 +126,18 @@
         <h3>任务日志 · {{ selectedTask.log_status || '未知' }}</h3><pre class="raw-text">{{ selectedTask.raw_log_tail?.join('\n') || '暂无可读取日志' }}</pre>
         <h3>该任务结果</h3><el-alert v-if="historyResultsError" :title="historyResultsError" type="error" :closable="false" />
         <el-table v-loading="historyLoading" :data="historyResults" empty-text="该任务无结果事件">
-          <el-table-column prop="job_title" label="岗位" min-width="170" /><el-table-column label="结果" width="100"><template #default="{ row }">{{ outcomeText(row.outcome) }}</template></el-table-column><el-table-column prop="rejection_reason" label="原因" min-width="150" /><el-table-column label="原文" width="85"><template #default="{ row }"><el-button link type="primary" @click="openRaw(row)">查看</el-button></template></el-table-column>
+          <el-table-column prop="job_title" label="岗位" min-width="170" /><el-table-column label="结果" min-width="180"><template #default="{ row }">{{ resultText(row) }}</template></el-table-column><el-table-column label="原因" min-width="150" show-overflow-tooltip><template #default="{ row }">{{ rejectionText(row.rejection_reason) }}</template></el-table-column><el-table-column label="原文" width="85"><template #default="{ row }"><el-button link type="primary" @click="openRaw(row)">查看</el-button></template></el-table-column>
         </el-table>
       </template>
     </el-drawer>
     <el-drawer v-model="showRaw" title="来源与完整正文" size="min(760px, 95vw)">
       <template v-if="eventRecord">
         <h3>{{ eventRecord.job_title || '未取得岗位标题' }}</h3>
-        <div class="source-meta"><span>来源：{{ platformText(eventRecord.source) }}</span><span>结果：{{ outcomeText(eventRecord.outcome) }}</span><span>jd_pool ID：{{ eventRecord.jd_pool_id ?? '—' }}</span><span>采集时间：{{ formatTime(eventRecord.crawled_at) }}</span></div>
+        <p v-if="eventRecord.title_source === 'detail'" class="hint">JD 标题已取得，来源：职位详情页。</p>
+        <p v-if="eventRecord.list_title && eventRecord.detail_title && eventRecord.list_title !== eventRecord.detail_title" class="hint">列表标题：{{ eventRecord.list_title }}；详情标题：{{ eventRecord.detail_title }}</p>
+        <div class="source-meta"><span>来源：{{ platformText(eventRecord.source) }}</span><span>结果：{{ resultText(eventRecord) }}</span><span>jd_pool ID：{{ eventRecord.jd_pool_id ?? '—' }}</span><span>采集时间：{{ formatTime(eventRecord.crawled_at) }}</span></div>
         <p class="source-detail">来源地址：<a v-if="sourceUrl(eventRecord.source_detail)" :href="sourceUrl(eventRecord.source_detail)" target="_blank" rel="noopener noreferrer">{{ eventRecord.source_detail }}</a><span v-else>{{ eventRecord.source_detail || '未取得' }}</span></p>
-        <el-alert v-if="eventRecord.rejection_reason" :title="eventRecord.rejection_reason" type="warning" :closable="false" />
+        <el-alert v-if="eventRecord.rejection_reason" :title="rejectionText(eventRecord.rejection_reason)" type="warning" :closable="false" />
         <h3>该任务取得的原文</h3><pre class="raw-text">{{ eventRecord.raw_text || '该事件未取得正文' }}</pre>
         <h3>原始库完整正文</h3>
         <div v-loading="rawLoading" class="raw-db">
@@ -194,7 +196,8 @@ const availableCities = computed(() => selectedPlatform.value?.cities || [])
 const keyword = computed({ get: () => configForm.keywords[0] || '', set: (value: string) => { configForm.keywords = value.trim() ? [value] : [] } })
 const cityCode = computed({ get: () => configForm.cities[0]?.code || '', set: (code: string) => { const city = availableCities.value.find(item => item.code === code); configForm.cities = city ? [{ ...city }] : [] } })
 watch(() => configForm.platform, () => { configForm.cities = [] }, { flush: 'sync' })
-watch(() => JSON.stringify([configForm.platform, configForm.keywords, configForm.cities, configForm.pages, configForm.detail_limit, configForm.max_jobs]), () => {
+// 准备绑定搜索目标与浏览器连接；采集数量由 configValid 单独校验。
+watch(() => JSON.stringify([configForm.platform, configForm.keywords.map(value => value.trim()), configForm.cities.map(city => city.code), configForm.cdp_endpoint, configForm.user_data_dir]), () => {
   browserRequest++
   preparedFor.value = null
   preparation.value = null
@@ -258,6 +261,19 @@ function accessReasonText(reason: string) {
 }
 function outcomeText(value?: string | null) { return ({ inserted: '新增入库', updated: '更新入库', skipped: '跳过', rejected: '拒绝', failed: '失败', complete: '完整 JD' } as Record<string, string>)[value || ''] || value || '未记录' }
 function identityText(value?: string | null) { return ({ verified: '身份已验证', pending: '身份待审', unknown: '身份未知' } as Record<string, string>)[value || ''] || '身份未知' }
+function resultText(row: CollectionResult) {
+  return row.outcome === 'rejected' && row.rejection_reason === 'missing_list_title'
+    ? '未入库：关联未核验' : outcomeText(row.outcome)
+}
+function taskIssue(task: Pick<CollectionTask, 'stop_reason' | 'last_error'>) {
+  return [...new Set([task.stop_reason, task.last_error].filter(Boolean))].map(reason => rejectionText(reason)).join(' · ')
+}
+function rejectionText(reason?: string | null) {
+  if (!reason) return ''
+  if (reason === 'identity_schema_migration_required') return '数据库缺少身份字段，本次未能入库。需完成获授权的数据库升级后再采集（identity_schema_migration_required）'
+  const label = ({ missing_list_title: '本次采集的列表—详情关联校验未通过：缺少列表侧标题记录。此状态仅说明关联证据不足', missing_detail_title: '未取得详情标题，无法核对岗位身份', title_mismatch: '列表与详情标题不一致', panel_not_updated: '详情面板未更新，可能仍是上一岗位', panel_unstable: '详情面板未稳定', panel_changed_during_capture: '读取期间详情发生变化', empty_detail: '未取得详情正文', truncated_description: '详情正文被截断' } as Record<string, string>)[reason]
+  return label ? `${label}（${reason}）` : reason
+}
 function sourceUrl(value?: string | null) { try { const url = new URL(value || ''); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : undefined } catch { return undefined } }
 function errorText(error: unknown) {
   const response = (error as { response?: { data?: { detail?: unknown; message?: unknown } } } | null)?.response?.data
@@ -428,7 +444,7 @@ h3 { margin-top: 24px; font-size: 15px; }
 .stats-grid span { font-size: 12px; color: var(--muted); }
 .stats-grid strong { display: block; font-size: 22px; margin-top: 8px; }
 .mono { font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
-.raw-text { padding: 16px; background: #f7f8fa; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.8 inherit; }
+.raw-text { padding: 16px; background: #f7f8fa; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 14px; line-height: 1.8; max-height: 60vh; overflow: auto; }
 .raw-db { min-height: 70px; }
 .source-detail { overflow-wrap: anywhere; font-size: 13px; line-height: 1.7; }
 .source-detail a { color: #547fae; }

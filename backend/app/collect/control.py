@@ -383,12 +383,19 @@ def get_results(run_id: str) -> list[dict[str, Any]]:
             if not key:
                 continue
             item = items.setdefault(key, dict(source=event.get('platform'), job_title=job.get('title'),
+                list_title=job.get('title') or '', detail_title=None,
+                title_source='list' if job.get('title') else None,
                 source_detail=job.get('url') or key, crawled_at=event.get('observed_at'), raw_text=None, duties=None, requirements=None,
                 quality=None, rejection_reason=None, outcome='listed', jd_pool_id=None,
                 identity_status='unknown', content_eligible=None, identity_evidence=None,
                 observation_key=job.get('_observation_key')))
             if kind == 'detail':
                 detail = event.get('detail') or {}
+                detail_title = str(detail.get('title') or '').strip()
+                item['detail_title'] = detail_title or None
+                # 展示回退不回写列表证据，也不改变身份准入结果。
+                if not item.get('list_title') and detail_title:
+                    item.update(job_title=detail_title, title_source='detail')
                 item.update(raw_text=detail.get('description'), rejection_reason=event.get('rejection'),
                             outcome='rejected' if event.get('rejection') else 'complete',
                             identity_status=event.get('identity_status') or 'unknown',

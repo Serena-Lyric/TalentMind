@@ -16,7 +16,7 @@ import type { GalaxyCamera } from './camera'
 import { createKnowledge } from './p1a2Knowledge.js'
 import { createGalaxySpatialFieldCache, type FieldInput } from './GalaxySpatialField'
 
-export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void, options:{visual:VisualVariant;frozen:boolean;diagnostics?:boolean;spatial?:{rig:GalaxyCamera;group:THREE.Group;frame:(delta:number)=>void;pointLimit?:(value:number)=>void}}={visual:'p22',frozen:false}) {
+export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transform, onFailure:()=>void, options:{visual:VisualVariant;frozen:boolean;diagnostics?:boolean;onFrame?:()=>void;spatial?:{rig:GalaxyCamera;group:THREE.Group;frame:(delta:number)=>void;pointLimit?:(value:number)=>void}}={visual:'p22',frozen:false}) {
   const renderer = new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'})
   renderer.info.autoReset=false
   const gl=renderer.getContext(),pointSizeRange=Array.from(gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as Float32Array)
@@ -27,7 +27,7 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
   fixedCamera.position.z=700
   const camera=options.spatial?.rig.displayCamera??fixedCamera
   const dustGroup=new THREE.Group();scene.add(dustGroup)
-  const dust=createDust(dustGroup,options.visual==='p22')
+  const dust=createDust(dustGroup,options.visual==='p22',{asynchronous:true,onError:onFailure})
   const fieldCache=createGalaxySpatialFieldCache()
   let fieldBuildMs=0,particleBuildMs=0,fieldBinding:Pick<FieldInput,'snapshotHash'|'layoutVersion'|'seed'|'viewSize'>|null=null
   // Fixed tilted disk: same transform as #28 knowledge Canvas, no orbit or auto-flight.
@@ -70,7 +70,7 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
     dust.update(options.frozen?0:clock)
     knowledge?.resize(700*unit,Math.min(devicePixelRatio||1,CONFIG.render.dpr))
     renderer.info.reset()
-    try {composer.render()} catch {stopped=true;cancelAnimationFrame(frame);onFailure()}
+    try {composer.render();options.onFrame?.()} catch {stopped=true;cancelAnimationFrame(frame);onFailure()}
     renderSamples.push(performance.now()-start);if(renderSamples.length>600)renderSamples.shift()
   }
   const lost=(event:Event)=>{event.preventDefault();stopped=true;cancelAnimationFrame(frame);onFailure()}
@@ -94,7 +94,7 @@ export function createGalaxyBackground(canvas:HTMLCanvasElement, view:()=>Transf
       if(referenceNodes!==nodes){disposeObjects(referenceGroup);referenceGroup.clear();knowledge=createKnowledge(referenceGroup,{nodes:nodes.map(n=>({id:n.id,type:n.kind==='job'?0:n.kind==='skill'?2:3,position:[n.point.x/30,-n.point.y/30,0]})),edges:[]});referenceNodes=nodes}
       knowledge.filter({nodeIds:ids,edgeIndices:[]});knowledge.select(selected)
     },
-    stats:()=>({spatialField:{...fieldCache.stats(),binding:fieldBinding,fieldBuildMs,particleBuildMs},frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),heap:heap(),resources:{...renderer.info.memory,calls:renderer.info.render.calls},particles:dust.count,pointSizeRange,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:options.spatial?'perspective':'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
-    dispose(){stopped=true;cancelAnimationFrame(frame);fieldCache.clear();canvas.removeEventListener('webglcontextlost',lost);disposeObjects(scene);composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose();if(options.diagnostics)console.info('nebula-disposed',JSON.stringify({...renderer.info.memory,frameCancelled:true}))}
+    stats:()=>({spatialField:{...fieldCache.stats(),binding:fieldBinding,fieldBuildMs,particleBuildMs},particleWorker:dust.stats(),frames:percentiles(samples),renderSubmissionMs:percentiles(renderSamples),heap:heap(),resources:{...renderer.info.memory,calls:renderer.info.render.calls},particles:dust.count,pointSizeRange,visual:options.visual,frozen:options.frozen,clock:options.frozen?0:clock,dpr:renderer.getPixelRatio(),fixedProjection:options.spatial?'perspective':'orthographic',referenceKnowledge:knowledge?.counts(),renderer:renderer.capabilities.isWebGL2?'WebGL2':'WebGL'}),
+    dispose(){stopped=true;cancelAnimationFrame(frame);dust.dispose();fieldCache.clear();canvas.removeEventListener('webglcontextlost',lost);disposeObjects(scene);composer.passes.forEach(pass=>pass.dispose());composer.dispose();renderer.dispose();if(options.diagnostics)console.info('nebula-disposed',JSON.stringify({...renderer.info.memory,frameCancelled:true}))}
   }
 }

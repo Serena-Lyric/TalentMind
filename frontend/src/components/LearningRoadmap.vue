@@ -400,4 +400,18 @@ onUnmounted(() => { generation++ })
 }
 /* 交互小行星使用独立装饰层 */
 .learning-roadmap::after, .learning-roadmap::before { display: none; }
+/* 为原有装饰保留独立空间，避免覆盖操作和目标岗位。 */
+.roadmap-header { padding-right: 170px; min-height: 154px; flex-wrap: wrap; }
+.roadmap-header > div { min-width: 0; }
+.roadmap-header p { line-height: 1.7; }
+.learning-planet-companion { top: 18px; right: 22px; width: 144px; height: 138px; }
+.learning-planet-companion::before { width: 160px; height: 160px; }
+.roadmap-config { flex-wrap: wrap; }
+.config-status, .selected-target { min-width: 0; overflow-wrap: anywhere; }
+.summary-grid > div { min-width: 0; overflow-wrap: anywhere; }
+.suggestion-head { flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .roadmap-header { padding-right: 0; padding-top: 140px; }
+  .selected-target { text-align: left; }
+}
 </style>

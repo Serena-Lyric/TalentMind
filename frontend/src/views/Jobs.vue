@@ -45,8 +45,8 @@
         <el-table-column label="当前技能" min-width="300"><template #default="{ row }"><div class="skill-tags"><el-tag v-for="skill in row.skills.slice(0, 6)" :key="skill" size="small" effect="plain">{{ skill }}</el-tag><span v-if="row.skills.length > 6" class="more-skill">+{{ row.skills.length - 6 }}</span><span v-if="!row.skills.length" class="muted">暂无技能</span></div></template></el-table-column>
         <el-table-column label="更新时间" width="170"><template #default="{ row }">{{ formatTime(row.updated) }}</template></el-table-column>
         <el-table-column label="操作" width="110" fixed="right"><template #default="{ row }"><el-button text class="detail-link" @click="openDetail(row)">查看详情</el-button></template></el-table-column>
+        <template #empty><div v-if="!loading && !listError" class="table-empty"><el-icon><Document /></el-icon><p>没有找到匹配的岗位定义</p><el-button class="btn-soft" @click="resetFilters">清除筛选</el-button></div></template>
       </el-table>
-      <div v-if="!jobs.length && !loading && !listError" class="table-empty"><el-icon><Document /></el-icon><p>没有找到匹配的岗位定义</p><el-button class="btn-soft" @click="resetFilters">清除筛选</el-button></div>
       <div class="pagination-wrap"><el-pagination :current-page="page" :page-size="pageSize" :total="total" :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" background small @current-change="changePage" @size-change="changePageSize" /></div>
     </section>
 

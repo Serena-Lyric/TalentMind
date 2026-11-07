@@ -24,7 +24,7 @@
       </div>
       <el-upload drag :auto-upload="false" :show-file-list="false" accept=".pdf,.docx,.txt" :on-change="handleFile" class="resume-upload">
         <el-icon class="upload-illustration"><UploadFilled /></el-icon>
-        <div class="el-upload__text">将 PDF / Word 简历拖到这里<br/><em>或点击选择文件</em></div>
+        <div class="el-upload__text">将 PDF、DOCX 或 TXT 简历拖到这里<br/><em>或点击选择文件</em></div>
         <template #tip><div class="el-upload__tip">支持最大 10MB 的 PDF、DOCX、TXT 文件；扫描件请先转为文字</div></template>
       </el-upload>
     </section>

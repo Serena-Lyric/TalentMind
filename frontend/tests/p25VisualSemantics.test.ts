@@ -36,9 +36,28 @@ test('投影密度连续跨越网格边界，平移和微小缩放不闪变，�
  assert.ok(Math.abs(a.get('0')-b.get('0'))<.1)
  assert.equal(JSON.stringify(points),before)
  const dense=densityAppearance(a.get('0'),false),isolated=densityAppearance(1,false),protectedStar=densityAppearance(a.get('0'),true)
+ const macro=densityAppearance(40,false,.1),near=densityAppearance(40,false,2)
+ assert.ok(macro.opacity>0&&macro.opacity<near.opacity)
+ assert.equal(densityAppearance(40,true,.1).opacity,1)
  assert.ok(dense.halo<isolated.halo);assert.ok(dense.radius>0);assert.ok(dense.opacity>0)
  assert.equal(protectedStar.radius,1);assert.ok(protectedStar.halo>dense.halo)
  assert.equal(screenDensity(Array.from({length:7845},(_,i)=>({id:String(i),x:0,y:0}))).size,7845)
+})
+
+test('Three.js宽线仅强调当前可见原关系，过滤和换数据清除旧焦点',t=>{
+ const {app,layer,state}=setup(t)
+ const nodes=[{id:'j',kind:'job',label:'岗位'},{id:'s',kind:'skill',label:'技能'}]
+ const edge={source:'j',target:'s',kind:'REQUIRES',sourceIndex:0}
+ layer.setData(nodes,[edge],nodes.map((n,i)=>({id:n.id,x:i*20,y:0,degree:2})))
+ layer.update(app.state.canvasRef.value,{...state,selectedId:'j',focusedEdge:edge})
+ const line=layer.group.children.find((child:any)=>child.isLine2)
+ assert.equal(line.visible,true)
+ assert.equal(line.material.linewidth,2.5)
+ assert.equal(line.geometry.getAttribute('instanceStart').count,48)
+ layer.update(app.state.canvasRef.value,{...state,selectedId:'j',focusedEdge:edge,activeKinds:new Set(['job'])})
+ assert.equal(line.visible,false)
+ layer.setData([],[],[])
+ assert.equal(line.visible,false)
 })
 
 test('真实GPU线geometry从source到target连续插值，反向边与派生层保持方向/身份',t=>{

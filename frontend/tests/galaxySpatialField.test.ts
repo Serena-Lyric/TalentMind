@@ -10,13 +10,24 @@ import { Group, Points } from 'three'
 const input=(x=60)=>({layoutVersion:'layout-test',snapshotHash:'snapshot-test',seed:261018,viewSize:200,
  positions:Array.from({length:71},(_,i)=>({id:`n${i}`,x:x+i%7,y:4,z:-20+Math.floor(i/7)}))})
 
-test('full background distribution follows moved nodes, retains an extended spiral and fixed particle budget',()=>{
+test('节点场只对旋臂做有界局部扰动，核心和远处粒子保持稳定',()=>{
+ const field=createGalaxySpatialFieldCache().get(input(60))!
+ for(const base of [[55,2,-17],[65,-2,-14],[-90,3,80]]){
+  const point=field.sample(base,()=>.1,'dust')
+  assert.ok(Math.abs(point[0]-base[0])<=2.5)
+  assert.ok(Math.abs(point[2]-base[2])<=2.5)
+  assert.ok(Math.abs(point[1]-base[1])<=.45+1e-12)
+  assert.deepEqual(field.sample(base,()=>.1,'core'),base)
+ }
+ assert.deepEqual(field.sample([-90,3,80],()=>.1,'dust'),[-90,3,80])
+})
+
+test('局部节点场保留连续旋臂与固定粒子数量',()=>{
  const cache=createGalaxySpatialFieldCache(),a=generateParticles('dust',cache.get(input(60))),b=generateParticles('dust',cache.get(input(-60)))
- const mean=(array:Float32Array)=>array.reduce((s,v,i)=>s+(i%3===0?v:0),0)/(array.length/3)
- assert.ok(mean(a.position)>25);assert.ok(mean(b.position)<-25)
+ assert.notDeepEqual(a.position,b.position)
  assert.equal(a.count,110000);assert.equal(b.count,a.count)
  const extended=Array.from(a.position).filter((_,i)=>i%3===0).filter(x=>x<0).length
- assert.ok(extended>10000,'base arms must survive a sparse off-center graph')
+ assert.ok(extended>40000,'sparse off-center data must not relocate half of the galaxy')
  assert.deepEqual(generateParticles('field',cache.get(input(60))),generateParticles('field'))
 })
 

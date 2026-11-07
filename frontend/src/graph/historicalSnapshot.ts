@@ -54,9 +54,8 @@ export async function loadHistoricalSnapshot() {
   if (graph.nodes.length !== 7845 || graph.edges.length !== 11412) throw new Error('Unexpected historical snapshot count')
   return {text,graph}
 }
-export async function loadHistoricalGraph() {
-  const {text,graph}=await loadHistoricalSnapshot()
-  const response=await fetch('/graph-artifacts/layout.json')
+async function readHistoricalGraph() {
+  const [{text,graph},response]=await Promise.all([loadHistoricalSnapshot(),fetch('/graph-artifacts/layout.json')])
   if(!response.ok)throw new Error('Candidate layout unavailable')
   const layoutText=await response.text()
   const hash=await sha256LF(layoutText)
@@ -64,4 +63,18 @@ export async function loadHistoricalGraph() {
   const artifact=JSON.parse(layoutText)
   await validateBinding(text,artifact,graph)
   return {graph,artifact:artifact as LayoutArtifact}
+}
+
+let historicalCache: ReturnType<typeof readHistoricalGraph> | null = null
+
+export async function loadHistoricalGraph(refresh = false) {
+  if (refresh || !historicalCache) historicalCache = readHistoricalGraph()
+  const request = historicalCache
+  try {
+    // Each mounted view owns its mutable projection of the verified snapshot.
+    return structuredClone(await request)
+  } catch (error) {
+    if (historicalCache === request) historicalCache = null
+    throw error
+  }
 }
