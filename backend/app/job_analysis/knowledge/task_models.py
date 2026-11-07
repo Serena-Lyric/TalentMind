@@ -312,6 +312,8 @@ class TaskAttributionResult(ContextAttributionResult):
 
 
 def validate_task_selection(result, by_id, eligible_scopes=("affirmed",), priority_method="dual-priority-task-budget-1"):
+    if priority_method != 'claim-diverse-task-budget-1' and result.task_selection.pairs_per_role > 3:
+        raise ValueError('historical role budget cannot exceed 3')
     ids = [p.id for p in result.task_selection.proposals]
     if len(set(ids)) != len(ids) or any(p.id != pair_identity(p.claim_id, p.role_id, p.reference_id)
                                      for p in result.task_selection.proposals):

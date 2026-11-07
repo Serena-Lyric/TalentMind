@@ -69,3 +69,11 @@ def test_business_report_does_not_supply_bi_system_creation():
         "d1", "ref-business-intelligence", "resp-bi-tools", first(), second(), binding(), "qwen3-instruct", 1, 1)
     assert out.task_assessments[0].state == "unresolved"
     assert out.task_assessments[0].reason_code == "source_guard_functional_domain_unestablished"
+
+
+def test_old_work_result_cannot_claim_new_expanded_budget():
+    from app.job_analysis.knowledge.work_comparison import WorkComparisonResult
+    old = start_work_comparison(execute(analysis_with_duties(['开发软件'])), version=2).model_dump()
+    old['task_selection']['pairs_per_role'] = 4
+    with pytest.raises(ValueError, match='historical role budget'):
+        WorkComparisonResult.model_validate(old)
