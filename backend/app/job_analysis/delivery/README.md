@@ -42,7 +42,7 @@ python -m app.job_analysis.delivery resume --state ../data/local/m2-delivery/sta
 
 CLI 原始 JD 可用 `--replay recorded.json`，文件为 `{"schema_version":"m2-recorded-processor-1","runs":["<primary目录>","<audit目录>"]}`。各目录先验证 P1 manifest；可给 primary/audit 子目录，也可给包含 primary_run/audit_attempt 的标准完整 P1 目录，记录器会递归读取。只有**完全相同请求摘要**才能取得回包。缺缓存返回 `not_run`，不调用网络，也不以相近请求替代。不同模型配置分开运行；缓存内容摘要纳入处理器版本，metadata 标记 `cached_recompile/network_requests=0`。这是真实执行当前 P1 编译与审计代码，不能称为 fresh 模型运行。Python 接入 CloudProcessor 只是已有能力，实际发送真实文本/产生费用仍须对应授权。
 
-`operations` 沿用 [P3/P4 契约](../work_candidates/README.md)：create/link/correct/describe 均支持显式输入；请求的 `research_sources` 默认false，网页置true时还会为每个来源核心职责生成独立create研究种子（ID绑定原分析SHA与claim），只作来源假设，不自动同组，引用真实分析 SHA 与 claim ID。初次 raw JD 可先无操作完成理解，再从私有结果取确切分析创建有依据的研究假设。检索、知识解释和研究投影自动执行；没有独立中文同组判断器，不会自动把标题/技能相近认作同一工作组合。每日研究修订不要求人工逐条批准；关键结构/正式归属/发布仍没有可信确认写入路径。
+`operations` 沿用 [P3/P4 契约](../work_candidates/README.md)：create/link/correct/describe 均支持显式输入；请求的 `research_sources` 默认false，网页置true时还会为每个来源核心职责生成独立create研究种子（ID绑定原分析SHA与claim），只作来源假设，不自动同组，引用真实分析 SHA 与 claim ID。初次 raw JD 可先无操作完成理解，再从私有结果取确切分析创建有依据的研究假设。检索、知识解释和研究投影自动执行；有界源职责比较检查逐成员直接局部支持，不把标题/技能相近认作同一工作组合；开放中文同组仍未独立验收。每日研究修订不要求人工逐条批准；关键结构/正式归属/发布仍没有可信确认写入路径。
 
 ## 消费契约 `m2-delivery-result-1`
 
@@ -54,7 +54,7 @@ CLI 原始 JD 可用 `--replay recorded.json`，文件为 `{"schema_version":"m2
 | `items[].p1/input_mode/reuse/observation` | 原 P1 完整执行、实际输入模式和复用来源；当前观察时间与原分析时间分开 |
 | `items[].skill_candidates/knowledge_projection` | 本次实际观察的技能候选与有效知识投影，含证据/争议/状态及版本；随后被alignment消费，历史不重读当前registry |
 | `alignment/roles` | P2-1 候选知识成熟度、精确技能对齐、有限岗位比较、覆盖及具体原因；不等于正式岗位归属 |
-| `role_assignment` | `unavailable/p2_2_not_validated`，明确 #63 缺口，不伪造完整解释 |
+| `role_assignment` | 新运行实际调用 `build_delivery_research` 保存 `m2-role-research-1`：有界局部支持、未覆盖职责、四轴候选与知识缺口；完成只表示离线解释已执行，`primary_role_id=null`、正式身份不可用。失败独立记录，不抹掉已完成对齐；旧 unavailable 结果原样可读 |
 | `items[].status/counts` | complete、partial、unknown、failed、not_run 分账，分母是本次 items；完整指 P1 五个适用维度及集成执行，不是人工语义验收。classification 的 not_run 仍原样存在 |
 | `stage_results` | 取消/中断前已提交的 primary/audit 诊断；不冒充整项/候选已完成，重试会只追加新阶段 |
 | `work` | 确切 P3/P4 binding、候选、研究版本、来源引用、未决/反证及结构建议；null 表示候选阶段未完成，不能回落当前 head |
@@ -98,3 +98,14 @@ demo 是七批真实 CLI：新增职责供后批消费、显式反证收窄、�
 [#41](https://github.com/Serena-Lyric/TalentMind/issues/41) 的运行/人工/正式状态分离、原文作用域和证据边界继续适用；本入口保留这些状态，P0 DEV 是另外的受控参照。原 32 项草稿没有因新入口实现而获得签审，原 120/60 结果、B/C 旧空间/竞赛排期不自动成为本轮新依赖，也不标为本次完成。独立原始草稿复核及市场代表性仍需单独材料。
 
 [#47](https://github.com/Serena-Lyric/TalentMind/issues/47) 的“执行完成、复核优先级、正式批准分离”和外发默认关闭边界仍适用。新入口已经分开执行与知识状态；Jev 专属 adapter、优先审核队列和真实 API 效果/成本没有实现或验收。旧指定模型试点/直接 master 开发建议不作为新底座依赖；将来若仍需要辅助分流，单独核对必要性、输入范围、官方接口及费用授权，本轮不借它确认工作同组或正式发布。
+
+
+## 候选维护与故障恢复
+
+工作台“候选维护”读取当前私有 registry，与所选运行快照分开。工作候选 `GET /delivery/candidates/work?revision=N` 返回确切版本、关系摘要与服务器保存的来源；`POST /delivery/candidates/work/batches` 只接收 link/correct/describe。基线、候选版本、旧关系 SHA 均校验；维护只应用显式操作，关闭自动关联应用，避免操作 A 同时修改 B/C。浏览器不能提供正式复核凭据。输入必须引用已保存 P1，不接受任意 JSON 分析。
+
+技能候选 `GET /delivery/candidates/skills/{id}?version=N` 返回该版证据。当前版带当前投影，历史版 `projection=null`，不冒充旧 run 的投影。`POST /delivery/candidates/skills/{id}/actions` 接收 request_id、expected_version、action 和原因：mark_disputed 需要不同解释，withdraw 为整体撤回，revise 必须选择 `eligible_new_evidence`。新证据来自已挂载只读历史或当前已保存分析，且同解释、尚未绑定；runner 已 observe 的证据不会再被列为新来源。没有适用证据时明确禁用修订，不改变自动 observe 为等待人工。
+
+维护与运行共用 DeliveryStore 的 OS 写租约；未完成运行阻止维护，未完成维护阻止冻结新运行。工作批次复用事务幂等，技能写入先保存意图、原子发布版本、再保存完整响应；相同 ID/相同输入重试返回原响应，不重复产生版本，过期写入返回 HTTP 409。`GET /delivery/candidates/pending` 可在浏览器刷新后读取未完成命令，用户核对后通过 `/pending/{id}/resume` 恢复原命令。此恢复不是新审批流程，也不使用新输入覆盖旧命令。
+
+岗位研究绑定本次知识原始字节、策略文件摘要及实现依赖；规则的局部支持不等于模型 fresh 推理或整岗判定。模型实验的原回包重校验、固定 pair fresh 与 delivery 离线研究分别记录，不能混合为准确率。

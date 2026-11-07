@@ -15,6 +15,7 @@ from ..knowledge.candidates import CandidateRegistry
 from ..knowledge.catalog import LoadedSnapshot
 from ..knowledge.models import validate_snapshot
 from ..knowledge.roles import compare_roles
+from ..knowledge.research_summary import build_delivery_research
 from ..understanding.core import LOADED_DEPENDENCIES, PROMPT_PATH
 from ..understanding.runtime import understand
 from ..work_candidates.models import Binding, Create, Link, Correct, Describe
@@ -61,6 +62,8 @@ def dependencies():
     root = Path(__file__).parents[1]
     return dict(p1=LOADED_DEPENDENCIES, prompt_sha256=hashlib.sha256(PROMPT_PATH.read_bytes()).hexdigest(),
                 downstream=algorithm_version(),
+                role_policies={p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                               for p in sorted((root / 'knowledge/policies').glob('role-attribution.v*.json'))},
                 reused_helpers={name: hashlib.sha256((root / name).read_bytes()).hexdigest()
                                 for name in ('foundation/runner.py', 'product/workflow.py')},
                 delivery=digest({p.name: hashlib.sha256(p.read_bytes()).hexdigest()
@@ -120,7 +123,7 @@ def _result(store, run_id, saved, items, work, status):
                 stage_results=store.stages(run_id),
                 knowledge=dict(sha256=saved['knowledge']['sha256']),
                 semantic_review='machine_unreviewed', market_accuracy=None,
-                work_semantics='bounded_literal_research_only', formal_role_assignment='not_available',
+                work_semantics='bounded_task_research_unreviewed', formal_role_assignment='not_available',
                 privacy='local_private_contains_source_text')
 
 
@@ -138,7 +141,7 @@ async def resume(store, run_id, *, processor=None, stop=None, output=None):
     raw = bytes.fromhex(saved['knowledge']['raw_hex'])
     if hashlib.sha256(raw).hexdigest() != saved['knowledge']['sha256']:
         raise ValueError('frozen knowledge digest mismatch')
-    knowledge = LoadedSnapshot(Path('.'), validate_snapshot(parse_json(raw.decode('utf-8'))), saved['knowledge']['sha256'])
+    knowledge = LoadedSnapshot(Path('.'), validate_snapshot(parse_json(raw.decode('utf-8'))), saved['knowledge']['sha256'], raw)
     items = store.item_results(run_id)
     for index, source in enumerate(saved['request']['items']):
         ensure_loaded()
@@ -180,7 +183,7 @@ async def resume(store, run_id, *, processor=None, stop=None, output=None):
         item = dict(index=index, namespace=record.namespace, jd_id=record.jd_id, observation=record.observation,
                     input_sha256=record.fingerprint, analysis=analysis, analysis_sha256=digest(analysis), p1=p1,
                     status=status, p1_key=key, p1_complete=is_complete, reuse=reuse,
-                    role_assignment=dict(status='unavailable', reason='p2_2_not_validated'),
+                    role_assignment=dict(status='not_run', reason='role_research_pending'),
                     input_mode='controlled_analysis' if source['analysis'] is not None else
                                'historical_p1_run' if source['p1'] is not None else 'processor_execution')
         try:
@@ -199,6 +202,14 @@ async def resume(store, run_id, *, processor=None, stop=None, output=None):
             # Preserve P1, and never serialize provider or private source exception text.
             item.update(alignment=None, roles=None, interpretation_status='failed', reason='knowledge_interpretation_failed')
             if status == 'complete': item['status'] = 'partial'
+        try:
+            item['role_assignment'] = build_delivery_research(analysis, knowledge,
+                candidate_projection=projection if item['interpretation_status'] == 'completed' else None)
+        except Exception:
+            item['role_assignment'] = dict(status='failed', reason='role_research_failed',
+                source_analysis_sha256=digest(analysis), knowledge_sha256=knowledge.sha256,
+                semantic_review='machine_unreviewed')
+            if item['status'] == 'complete': item['status'] = 'partial'
         checkpoint('before_item_commit')
         store.append(run_id, 'item', item)
         items[index] = item

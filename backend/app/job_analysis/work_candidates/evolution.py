@@ -5,6 +5,7 @@ import re
 from ..foundation.inputs import digest
 from ..knowledge.alignment import align_analysis
 from ..knowledge.roles import compare_roles
+from .retrieval import compare_work
 
 
 def _normal(text):
@@ -28,6 +29,15 @@ def _member(store, relation, knowledge):
     comparison = compare_roles(analysis, knowledge).model_dump()
     comparison_sha = store.put_source("comparison", comparison)
     alignment_sha = store.put_source("alignment", align_analysis(analysis, knowledge).model_dump())
+    duties = [c for c in work if c["kind"] == "duty"]
+    scope = dict(
+        selected_duty_ids=sorted(c["id"] for c in duties if c["id"] in relation["work_ids"]),
+        auxiliary_duty_ids=sorted(c["id"] for c in duties if c.get("core") is False),
+        uncovered_core_duty_ids=sorted(c["id"] for c in duties if c.get("core") is True and c["id"] not in relation["work_ids"]),
+        unknown_importance_duty_ids=sorted(c["id"] for c in duties if c.get("core") is None),
+        uncovered_duty_ids=sorted(c["id"] for c in duties if c["id"] not in relation["work_ids"]),
+        bounded_work_checks=[dict(claim_id=c["id"], comparison=compare_work(c, c, analysis, analysis)) for c in duties],
+        whole_group_confirmed=False)
     return dict(relation_id=relation["id"], relation_sha256=digest(relation), namespace=analysis["namespace"],
                 jd_id=analysis["jd_id"], analysis_sha256=sha, input_sha256=analysis["input_sha256"],
                 selected_work_ids=sorted(set(relation["work_ids"])), work_context=work,
@@ -38,9 +48,38 @@ def _member(store, relation, knowledge):
                 pending_analysis_sha256s=relation["pending_analysis_sha256s"],
                 superseded_analysis_sha256s=relation["superseded_analysis_sha256s"],
                 counterevidence=relation.get("last_correction", {}).get("counterevidence", []),
+                discovery=relation.get("discovery", {"kind": "legacy_unspecified"}), semantic_scope=scope,
                 role_comparison_sha256=comparison_sha, alignment_sha256=alignment_sha,
                 role_explanations=comparison["comparisons"], role_scope=comparison["retrieval_scope"],
                 analyzer_versions={k: analysis[k] for k in ("analyzer", "model", "prompt", "configuration")})
+
+
+def _semantic_common(store, members):
+    """Every selected work pair needs direct support, never a connected-component merge."""
+    scopes = [[(c, store.source('analysis', m['analysis_sha256'])) for c in m["work_context"] if c["kind"] == "duty" and c.get("core") is not False
+               and c["id"] in m["selected_work_ids"]] for m in members]
+    if not scopes or any(not scope for scope in scopes):
+        return []
+    result = []
+    for anchor in scopes[0]:
+        selected = [anchor]
+        comparisons = []
+        for scope in scopes[1:]:
+            match = None
+            for candidate in scope:
+                checks = [compare_work(candidate[0], prior[0], candidate[1], prior[1]) for prior in selected]
+                if all(check["state"] == "supported" for check in checks):
+                    match = candidate
+                    comparisons.extend(checks)
+                    break
+            if match is None:
+                break
+            selected.append(match)
+        if len(selected) == len(scopes) and all(compare_work(c, c, a, a)["state"] == "supported" for c, a in selected):
+            result.append(dict(text=anchor[0]["text"], references=[dict(analysis_sha256=m["analysis_sha256"], claim_id=c[0]["id"])
+                               for m, c in zip(members, selected)], comparisons=comparisons,
+                               nature="bounded_semantic_local_overlap_not_group_confirmation"))
+    return result
 
 
 def _project(store, baseline, state, cid, knowledge, policy):
@@ -66,6 +105,12 @@ def _project(store, baseline, state, cid, knowledge, policy):
                    references=[dict(analysis_sha256=m["analysis_sha256"], claim_id=d[key]["id"])
                                for m, d in zip(eligible, by_member)],
                    nature="literal_overlap_not_semantic_confirmation") for key in sorted(common)]
+    semantic_shared = _semantic_common(store, eligible) if len(contents) > 1 else []
+    shared_refs = {(r["analysis_sha256"], r["claim_id"]) for s in semantic_shared for r in s["references"]}
+    for member in members:
+        member["semantic_scope"]["member_specific_duty_ids"] = sorted(c["id"] for c in member["work_context"]
+            if c["kind"] == "duty" and c["id"] in member["selected_work_ids"]
+            and (member["analysis_sha256"], c["id"]) not in shared_refs)
     historical = {digest(r): r for r in relations}
     if cid in baseline["candidates"]:
         for item in store.history(cid):
@@ -92,6 +137,12 @@ def _project(store, baseline, state, cid, knowledge, policy):
                    else "研究假设暂停：没有当前可比较的工作依据；历史与反证仍保留")
     if shared:
         description += "。当前逐字共同陈述（未确认语义共同核心）：" + "；".join(s["text"] for s in shared)
+    if semantic_shared:
+        description += "。有界语义共同工作（仅局部、未确认整岗同组）：" + "；".join(s["text"] for s in semantic_shared)
+    if any(m["semantic_scope"]["auxiliary_duty_ids"] for m in members):
+        description += "。辅助职责单列，不作为共同核心扩张依据"
+    if any(m["semantic_scope"]["uncovered_core_duty_ids"] for m in members):
+        description += "。存在未覆盖核心职责，见逐成员差异与未覆盖范围"
     if any(m["eligibility"] == "disputed" for m in members):
         description += "。存在反证关系，不能扩充共同职责解释该成员"
     return dict(schema_version="m2-work-research-1", nature="machine_hypothesis", policy=policy,
@@ -99,13 +150,14 @@ def _project(store, baseline, state, cid, knowledge, policy):
                 else "observing" if selected else "no_active_basis",
                 description=description, scope_descriptions=scopes, comparison_work=_difference(selected, []),
                 comparison_nature="local_evidence_retrieval_not_group_confirmation",
-                shared_statements=shared, member_explanations=members,
+                shared_statements=shared, semantic_shared_statements=semantic_shared,
+                whole_group_confirmed=False, member_explanations=members,
                 historical_relations=[dict(sha256=s, relation=r) for s, r in sorted(historical.items())],
                 historical_explanations=[_member(store, r, knowledge) for _, r in sorted(historical.items())],
                 knowledge=dict(id=knowledge.snapshot.id, revision=knowledge.snapshot.revision, sha256=knowledge.sha256),
                 content_groups=[dict(content_sha256=s, relation_ids=sorted(ids), source_independence="unknown")
                                 for s, ids in sorted(contents.items())],
-                semantic_validation="not_run", independent_support=None, human_confirmation="not_confirmed",
+                semantic_validation="bounded_machine_comparison", independent_support=None, human_confirmation="not_confirmed",
                 controlled_support_relation_ids=sorted(m["relation_id"] for m in eligible
                                                       if m["relation_state"] == "controlled_support"),
                 formal_identity=None, unresolved=sorted(set(unresolved)))
@@ -119,7 +171,8 @@ def _meaning(projection):
                 for c in m["work_context"]}
         scope = dict(work=[work[k] for k in sorted(work)],
                      selected=sorted({_normal(c["text"]) for c in m["work_context"] if c["id"] in m["selected_work_ids"]}),
-                     eligibility=m["eligibility"], validation=m["semantic_validation"],
+                     eligibility=m["eligibility"], validation="machine_unreviewed" if m["semantic_validation"] in
+                     {"not_run", "bounded_machine_comparison"} else m["semantic_validation"],
                      coverage={k: v["status"] for k, v in m["coverage"].items()},
                      analyzer_versions=m["analyzer_versions"],
                      roles=[{k: r[k] for k in ("role_id", "role_revision", "role_maturity", "judgment")}
@@ -127,6 +180,7 @@ def _meaning(projection):
         scopes[digest(scope)] = scope
     return digest(dict(scopes=[scopes[k] for k in sorted(scopes)],
                        shared_texts=[_normal(s["text"]) for s in projection["shared_statements"]],
+                       semantic_shared_texts=sorted(_normal(s["text"]) for s in projection["semantic_shared_statements"]),
                        status=projection["status"], knowledge=projection["knowledge"], policy=projection["policy"]))
 
 

@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from pathlib import Path
+from uuid import uuid4
 
 from ..foundation.inputs import canonical, check_public, parse_json
 from ..foundation.store import safe_destination
@@ -10,18 +12,29 @@ from ..foundation.store import safe_destination
 
 def save_result(path: Path | str, value: dict) -> str:
     destination = safe_destination(path)
-    destination.mkdir(parents=True, exist_ok=False)
+    if destination.exists():
+        raise FileExistsError(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
     check_public(value)
     raw = canonical(value).encode("utf-8")
+    staging = destination.parent / ('.pending-' + uuid4().hex)
+    staging.mkdir()
     try:
-        with (destination / "value.json").open("xb") as stream:
+        with (staging / "value.json").open("xb") as stream:
             stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
         sha256 = hashlib.sha256(raw).hexdigest()
-        with (destination / "manifest.json").open("x", encoding="utf-8") as stream:
+        with (staging / "manifest.json").open("x", encoding="utf-8") as stream:
             stream.write(canonical(dict(schema_version="m2-knowledge-result-manifest-1", sha256=sha256)))
-    except BaseException:
-        # Keep the partially created directory for diagnosis; never reuse it as valid.
-        raise
+            stream.flush()
+            os.fsync(stream.fileno())
+        staging.rename(destination)
+    finally:
+        if staging.exists():
+            for name in ('value.json', 'manifest.json'):
+                (staging / name).unlink(missing_ok=True)
+            staging.rmdir()
     return sha256
 
 

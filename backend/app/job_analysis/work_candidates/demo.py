@@ -93,7 +93,8 @@ def run_demo(output, knowledge):
                            research_question="相关职责能否形成有界工作组合？", core_work=core)])
     apply([b], [dict(op="link", candidate_id="work-orders", analysis_sha256=digest(b), work_ids=["d1", "d2"],
                     reason="合成序列提供待研究的具体职责范围，不认证同组")])
-    apply([c])
+    apply([c], [dict(op="link", candidate_id="work-orders", analysis_sha256=digest(c), work_ids=["d1"],
+                    reason="显式合成误关联供撤回验证；自动研究必须拒绝传递并组")])
 
     def correct(jd_id, decision):
         old = next(r for r in states[-1]["relations"].values() if r["jd_id"] == jd_id)
@@ -107,7 +108,8 @@ def run_demo(output, knowledge):
     replay = cli("historical-two", "show", "--state", state_path, "--revision", 2)
     retried = cli("exact-retry-two", *requests[1])
     head = cli("reopened-head", "show", "--state", state_path)
-    third_pairs = [p for m in states[2]["report"]["searches"][0]["matches"] for p in m["pairs"]]
+    third_search = states[2]["report"]["searches"][0]
+    third_pairs = [p for m in third_search["candidate_checks"]["work-orders"]["members"] for p in m["comparisons"]]
     used_new = any(p["core_reference"] == dict(analysis_sha256=digest(b), claim_id="d2") for p in third_pairs)
     with CandidateStore(state_path) as store:
         source_hashes = [dict(kind=k, sha256=s) for k, s in store.conn.execute("SELECT kind,sha256 FROM sources ORDER BY kind,sha256")]
@@ -118,6 +120,7 @@ def run_demo(output, knowledge):
                    research_versions=[s["candidates"]["work-orders"]["research"]["version"] for s in states],
                    bindings=[s["binding"] for s in states], source_hashes=source_hashes,
                    third_batch_used_second_effective_work=used_new,
+                   transitive_automatic_link_rejected=not third_search["matches"],
                    historical_readback=replay == states[1], exact_retry_preserved_head=retried == states[1] and head == states[-1],
                    real_human_grouping_denominator=0, real_semantic_accuracy="unverified",
                    independent_sources=None, vacancies=None, formal_roles=head["formal_roles"])

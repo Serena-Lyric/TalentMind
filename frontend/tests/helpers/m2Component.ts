@@ -21,6 +21,8 @@ export function m2Component(overrides: Record<string, any> = {}) {
   const require = (id: string) => {
     if (id === 'vue') return { ...vue, onMounted: (fn: () => any) => mounted.push(fn), onUnmounted: (fn: () => any) => unmounted.push(fn) }
     if (id === '../api/m2') return api
+    if (id === '../components/CandidateMaintenance.vue') return {}
+    if (id === '../components/RoleResearch.vue') return {}
     if (id === 'vue-router') return {useRoute:()=>({query:{}})}
     throw new Error('Unexpected module ' + id)
   }

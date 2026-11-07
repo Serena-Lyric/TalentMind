@@ -8,6 +8,7 @@ from app.response import ok
 from app.job_analysis.product import source
 from app.job_analysis.product.workflow import History
 from app.job_analysis.delivery.http_service import DeliveryService, available_inputs
+from app.job_analysis.delivery.maintenance import Maintenance, WorkCommand, SkillCommand
 from .collection import _require_local_raw
 
 
@@ -46,6 +47,41 @@ def get_delivery():
 class Selection(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
     jd_ids: list[int] = Field(min_length=1, max_length=100)
+
+
+@router.get('/delivery/candidates/work')
+def work_candidates(revision: int | None = Query(None, ge=0)):
+    return call(Maintenance(get_delivery()).work, revision)
+
+
+@router.get('/delivery/candidates/pending')
+def pending_maintenance():
+    return call(Maintenance(get_delivery()).pending)
+
+
+@router.post('/delivery/candidates/pending/{request_id}/resume')
+def resume_maintenance(request_id: str):
+    return call(Maintenance(get_delivery()).recover, request_id)
+
+
+@router.post('/delivery/candidates/work/batches')
+def maintain_work(payload: WorkCommand):
+    return call(Maintenance(get_delivery()).update_work, payload.model_dump())
+
+
+@router.get('/delivery/candidates/skills')
+def skill_candidates():
+    return call(Maintenance(get_delivery()).skills)
+
+
+@router.get('/delivery/candidates/skills/{candidate_id}')
+def skill_candidate(candidate_id: str, version: int | None = Query(None, ge=1)):
+    return call(Maintenance(get_delivery()).skill, candidate_id, version)
+
+
+@router.post('/delivery/candidates/skills/{candidate_id}/actions')
+def maintain_skill(candidate_id: str, payload: SkillCommand):
+    return call(Maintenance(get_delivery()).update_skill, candidate_id, payload.model_dump())
 
 
 @router.get('/delivery/inputs')

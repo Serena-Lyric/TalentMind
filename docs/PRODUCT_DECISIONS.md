@@ -1,5 +1,13 @@
 # TalentMind 当前产品决策
 
+## M2 恢复研发与候选维护（2026-11-07）
+
+负责人确认按 [#63](https://github.com/Serena-Lyric/TalentMind/issues/63#issuecomment-6703699048) 与 [#69](https://github.com/Serena-Lyric/TalentMind/issues/69#issuecomment-6703712797) 连续研究和开发，替代下方七页任务中“#63 继续搁置”的旧安排。检索覆盖、职责比较、四轴局部解释、跨批研究与评价继续推进；独立真值不足不阻塞已授权实现，但不能补造准确率或宣称全部验收。
+
+候选维护遵守 [#73 补充契约](https://github.com/Serena-Lyric/TalentMind/issues/73#issuecomment-6703723329)：工作候选可按来源关联、纠正、撤回与修订人工说明；技能候选支持争议、整体撤回和同一解释下的新证据修订。已绑定观察不能冒充新证据，浏览器提供的 reviewer 不构成正式确认。维护保存新版本、后批实际消费，历史运行仍绑定原版本；普通维护不改变正式职业、简历匹配或学习目标资格。
+
+本次延续已有离线、公开、受控材料及已授权模型范围，不新增 HOLD 调参、真实材料外发、收费或正式库操作权限。实现与证据见资产页和原 Issue。
+
 ## 第二阶段七页面产品完善（2026-11-07，Issue #73）
 
 负责人已确认 [Issue #73](https://github.com/Serena-Lyric/TalentMind/issues/73)，授权连续开发、自检、交叉审查和 PR；仍为本地开发中，不授权对外交付、多用户上线、合并、迁移、真实数据删除或新的外部采集/付费模型验证。

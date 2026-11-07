@@ -400,7 +400,7 @@ class CandidateRegistry:
             reason=reason,
         ))
 
-    def project(self) -> CandidateProjectionBinding:
+    def project(self, *, persist: bool = True) -> CandidateProjectionBinding:
         heads = [item for item in self._heads() if item.status in {"corroborated", "disputed"}]
         concepts = []
         for item in sorted(heads, key=lambda value: (value.normalized_term, value.candidate_id)):
@@ -435,7 +435,7 @@ class CandidateRegistry:
             stored = CandidateProjection.model_validate(read_result(path))
             if stored != projection:
                 raise ValueError("candidate projection digest collision")
-        else:
+        elif persist:
             save_result(path, projection.model_dump())
         return CandidateProjectionBinding(projection=projection, sha256=sha256)
 

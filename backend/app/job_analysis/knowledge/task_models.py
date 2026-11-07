@@ -48,10 +48,10 @@ class TaskProposal(Strict):
 
 
 class TaskSelection(Strict):
-    method: Literal["dual-priority-task-budget-1", "definition-context-task-budget-1", "explicit-given-pairs-1"] = "dual-priority-task-budget-1"
+    method: Literal["dual-priority-task-budget-1", "definition-context-task-budget-1", "claim-diverse-task-budget-1", "explicit-given-pairs-1"] = "dual-priority-task-budget-1"
     status: Literal["not_run", "ranked", "given_pairs", "empty_catalog", "no_eligible_work"]
     retriever_binding: dict
-    pairs_per_role: int = Field(ge=1, le=3)
+    pairs_per_role: int = Field(ge=1, le=1000)
     proposals: list[TaskProposal]
     selected_pair_ids: list[Text]
     checked_pair_ids: list[Text]
