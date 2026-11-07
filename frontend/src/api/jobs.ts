@@ -1,4 +1,4 @@
-import { get, post, put, del } from '../utils/request'
+import { get, put } from '../utils/request'
 
 ﻿/**
  * 岗位管理模块 API
@@ -115,18 +115,6 @@ export async function getJobDetail(id: string): Promise<Job> {
 }
 
 /**
- * POST /api/jobs
- * 新增岗位
- *
- * 入参：Omit<Job, 'id' | 'updated'>
- * 响应：{ id: string }
- */
-export async function createJob(data: Partial<Job>) {
-  
-  return post('/jobs', data)
-}
-
-/**
  * PUT /api/jobs/:id
  * 编辑岗位
  *
@@ -136,46 +124,6 @@ export async function createJob(data: Partial<Job>) {
 export async function updateJob(id: string, data: Partial<Job>) {
   
   return put(`/jobs/${id}`, data)
-}
-
-/**
- * DELETE /api/jobs/:id
- * 删除岗位
- *
- * 入参：id (路径参数)
- * 响应：{ success: boolean }
- */
-export async function deleteJob(id: string) {
-  
-  return del(`/jobs/${id}`)
-}
-
-/**
- * POST /api/jobs/batch-delete
- * 批量删除岗位
- *
- * 入参：{ ids: string[] }
- * 响应：{ deleted: number }
- */
-export async function batchDeleteJobs(ids: string[]) {
-  
-  return post('/jobs/batch-delete', { ids })
-}
-
-/**
- * POST /api/jobs/import
- * 批量导入 JD 文本
- *
- * 入参：FormData (file 字段)
- * 响应：{ imported: number, jobs: Job[] }
- */
-export async function importJobs(file: File) {
-  
-  const formData = new FormData()
-  formData.append('file', file)
-  return post('/jobs/import', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
 }
 
 /**

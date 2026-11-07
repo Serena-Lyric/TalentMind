@@ -13,7 +13,7 @@
 
 技能候选通过`CandidateRegistry.observe→CandidateRegistry.project→align_analysis`被本次统一结果实际消费；原分析与投影版本分别保存，历史不依赖当前有效head重建。网页来源研究种子仅为单来源职责假设，不表示中文同组已确认。
 
-`GET /delivery/compare?before_run=...&after_run=...`比较确切运行：同来源的原文、事实分析、知识与技能投影分层，研究候选需同registry才可比。`GET /delivery/runs/{id}/graph`冻结本次已提交结果，返回内容摘要绑定URL；artifact请求必须带该`snapshot`。快照保存在私有`graphs/<run>/<sha>/`，运行继续或服务重启不改旧快照，缺失时失败而不回落另一数据集。
+`GET /delivery/compare?before_run=...&after_run=...`比较确切运行：同来源的原文、事实分析、知识与技能投影分层，研究候选需同registry才可比。`GET /delivery/runs/{id}/graph`冻结本次已提交结果，返回内容摘要绑定URL；artifact请求必须带该`snapshot`。快照保存在私有`graphs/<run>/<sha>/`，运行继续或服务重启不改旧快照，缺失时失败而不回落另一数据集。 发布时先写同父目录唯一暂存并fsync，再原子rename；发布前中断可以同run重试。最终摘要目录已有内容只校验、不补写；旧版本残缺最终目录不能证明未发布，保留原件并明确报错。
 
 ## 执行
 
