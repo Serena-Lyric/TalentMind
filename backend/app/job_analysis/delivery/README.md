@@ -106,6 +106,10 @@ demo 是七批真实 CLI：新增职责供后批消费、显式反证收窄、�
 
 技能候选 `GET /delivery/candidates/skills/{id}?version=N` 返回该版证据。当前版带当前投影，历史版 `projection=null`，不冒充旧 run 的投影。`POST /delivery/candidates/skills/{id}/actions` 接收 request_id、expected_version、action 和原因：mark_disputed 需要不同解释，withdraw 为整体撤回，revise 必须选择 `eligible_new_evidence`。新证据来自已挂载只读历史或当前已保存分析，且同解释、尚未绑定；runner 已 observe 的证据不会再被列为新来源。没有适用证据时明确禁用修订，不改变自动 observe 为等待人工。
 
-维护与运行共用 DeliveryStore 的 OS 写租约；未完成运行阻止维护，未完成维护阻止冻结新运行。工作批次复用事务幂等，技能写入先保存意图、原子发布版本、再保存完整响应；相同 ID/相同输入重试返回原响应，不重复产生版本，过期写入返回 HTTP 409。`GET /delivery/candidates/pending` 可在浏览器刷新后读取未完成命令，用户核对后通过 `/pending/{id}/resume` 恢复原命令。此恢复不是新审批流程，也不使用新输入覆盖旧命令。
+维护与运行共用 DeliveryStore 的 OS 写租约；未完成运行阻止维护，未完成维护阻止冻结新运行。工作批次复用事务幂等。技能新请求在写入前保存目标候选、目标知识投影和完整返回结果；只有候选与投影都已发布、原manifest及内容绑定一致，恢复才可跨算法变化仅补写原回执，不调用当前 `skill/project` 或重新解释来源。任一产物尚未发布仍须匹配原算法；已发布产物损坏拒绝收尾，不重算或补写。相同 ID/相同输入重试返回原响应，不重复产生版本，过期写入返回 HTTP 409。
+
+`GET /delivery/candidates/pending` 返回未完成 `items` 及持久化的 `closed` 记录；用户核对后通过 `POST /delivery/candidates/pending/{id}/resume` 恢复原命令。旧版技能意图没有冻结完整输出时，`items[].can_close=true`；原依赖仍可恢复，无法证明原投影关联时可显式 `POST /delivery/candidates/pending/{id}/close {"reason":"结束原因"}`。此操作追加 `maintenance_closed`，返回 `status=closed_incomplete`、`candidate_version_saved` 和 `projection_binding=not_recorded`，不伪造成功回执、不删除已保存的候选、投影或事件。已结束操作不能再以恢复或原请求重试宣称成功；同原因结束重试返回原结束记录，不同原因返回409。新请求已有完整绑定不能用这个旧版结束入口绕过恢复，损坏的候选/投影也不能借此清除阻塞。
+
+以上恢复与结束不是新的正式知识审批，不使用当前表单替换原请求。后续运行可以在精确恢复或明确结束后建立新版本；旧运行仍读取当时的成果。
 
 岗位研究绑定本次知识原始字节、策略文件摘要及实现依赖；规则的局部支持不等于模型 fresh 推理或整岗判定。模型实验的原回包重校验、固定 pair fresh 与 delivery 离线研究分别记录，不能混合为准确率。
