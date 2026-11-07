@@ -54,9 +54,9 @@
 
     <section class="bottom-row">
       <div class="warm-card table-card">
-        <div class="card-head"><div><h3>岗位列表</h3><p>共 {{ filteredJobs.length }} 个在招岗位</p></div><el-input v-model="jobSearch" placeholder="搜索岗位名称..." :prefix-icon="Search" clearable style="width:200px" size="small" /></div>
+        <div class="card-head"><div><h3>岗位列表</h3><p>{{ panelState.jobs.loaded ? `共 ${jobsTotal} 个结构化岗位` : '岗位数量待加载' }}</p></div><el-input v-model="jobSearch" placeholder="搜索岗位、技能或职责" @keyup.enter="searchJobs" :prefix-icon="Search" clearable style="width:200px" size="small" /></div>
         <p v-if="panelState.jobs.loading" role="status">岗位列表加载中…</p>
-        <p v-if="panelState.jobs.error" role="alert">{{ panelState.jobs.error }}<el-button link @click="loadDashboardData">重试</el-button></p>
+        <p v-if="panelState.jobs.error" role="alert">{{ panelState.jobs.error }}<el-button link @click="loadJobs">重试</el-button></p>
         <el-table :data="pagedJobs" :empty-text="panelState.jobs.loading ? '加载中…' : panelState.jobs.error ? '岗位列表加载失败' : '暂无岗位'" style="width:100%" :header-cell-style="tblHeaderStyle" :cell-style="{ padding:'12px 0' }">
           <el-table-column prop="name" label="岗位名称" min-width="150"><template #default="{ row }"><span class="job-name">{{ row.name }}</span></template></el-table-column>
           <el-table-column prop="dept" label="部门" width="110" />
@@ -65,7 +65,7 @@
           <el-table-column prop="status" label="状态" width="90" align="center"><template #default="{ row }"><span class="status-dot" :class="row.status==='急聘'?'urgent':row.status==='招聘中'?'open':'pending'"></span>{{ row.status }}</template></el-table-column>
           <el-table-column prop="updateTime" label="更新时间" width="110" />
         </el-table>
-        <div class="tbl-pagination"><el-pagination v-model:current-page="currentPage" :page-size="pageSize" :total="filteredJobs.length" layout="total, prev, pager, next" small /></div>
+        <div class="tbl-pagination"><el-pagination :disabled="panelState.jobs.loading || !panelState.jobs.loaded" :current-page="currentPage" @current-change="changePage" :page-size="pageSize" :total="jobsTotal" :layout="panelState.jobs.loaded ? 'total, prev, pager, next' : 'prev, pager, next'" small /></div>
       </div>
 
       <div class="side-panels">
@@ -100,19 +100,19 @@ import { ref, computed, onMounted, onUnmounted, watch, reactive } from 'vue'
 import { Search, User, Document, DataAnalysis, Trophy, Plus } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { getDashboardOverview, getDashboardTrend, getSkillDistribution } from '../api/dashboard'
-import { getJobList } from '../api/jobs'
+import { usePagedJobs } from '../composables/usePagedJobs'
 
+const jobBrowser = usePagedJobs(8)
+const { jobs, total: jobsTotal, page: currentPage, keyword: jobSearch, load: loadJobs, changePage, search: searchJobs } = jobBrowser
 const panelState = reactive({
   overview: { loading: false, loaded: false, error: '' },
   trend: { loading: false, loaded: false, error: '' },
   skills: { loading: false, loaded: false, error: '' },
-  jobs: { loading: false, loaded: false, error: '' },
+  jobs: jobBrowser,
 })
 let disposed = false, requestVersion = 0
 const timeRange = ref<'day' | 'week' | 'month'>('month')
 const lineMetric = ref<'demand' | 'salary'>('demand')
-const jobSearch = ref('')
-const currentPage = ref(1)
 const pageSize = 8
 const timeOptions = [{ label: '日', value: 'day' as const }, { label: '周', value: 'week' as const }, { label: '月', value: 'month' as const }]
 const metricOptions = [{ label: '需求指数', value: 'demand' as const }, { label: '薪资水平', value: 'salary' as const }]
@@ -175,10 +175,10 @@ function getBarOption() {
   }
 }
 
-interface JobRow { id: string; name: string; dept: string; count: number; salary: string; status: string; updateTime: string }
-const allJobs = ref<JobRow[]>([])
-const filteredJobs = computed(() => jobSearch.value ? allJobs.value.filter(job => job.name.toLowerCase().includes(jobSearch.value.trim().toLowerCase())) : allJobs.value)
-const pagedJobs = computed(() => { const start = (currentPage.value - 1) * pageSize; return filteredJobs.value.slice(start, start + pageSize) })
+const pagedJobs = computed(() => jobs.value.map(job => ({
+  id: String(job.id), name: job.title, dept: job.company || '—', count: 0,
+  salary: job.salary || '—', status: job.status === 'open' ? '招聘中' : job.status || '—', updateTime: job.updated || '—',
+})))
 const tblHeaderStyle = { background: '#F8FAFB', color: '#8C8C8C', fontWeight: '500', fontSize: '12px', borderBottom: '1px solid #D9E2E7' }
 
 interface ScheduleItem { id: number; title: string; time: string; tag: string; level: 'urgent' | 'normal' | 'low' }
@@ -200,7 +200,7 @@ function handleResize() { lineChart?.resize(); barChart?.resize() }
 
 async function loadDashboardData() {
   const version = ++requestVersion
-  async function loadPanel<T>(key: keyof typeof panelState, fetch: () => Promise<T>, apply: (data: T) => void) {
+  async function loadPanel<T>(key: 'overview' | 'trend' | 'skills', fetch: () => Promise<T>, apply: (data: T) => void) {
     const state = panelState[key]
     state.loading = true; state.error = ''
     try {
@@ -229,12 +229,7 @@ async function loadDashboardData() {
       barSkills.value = dist.slice(0, 8).map(item => item.name)
       barValues.value = dist.slice(0, 8).map(item => Number(item.percentage || 0))
     }),
-    loadPanel('jobs', () => getJobList({ page: 1, page_size: 100 }), jobs => {
-      allJobs.value = (jobs?.list || []).map(job => ({
-        id: String(job.id), name: job.title, dept: job.company || '—', count: 0,
-        salary: job.salary || '—', status: job.status === 'open' ? '招聘中' : job.status || '—', updateTime: job.updated || '—',
-      }))
-    }),
+    loadJobs(),
   ])
 }
 
@@ -482,3 +477,4 @@ onUnmounted(() => { disposed = true; ++requestVersion; window.removeEventListene
   .welcome-bar { align-items: flex-start; flex-direction: column; }
 }
 </style>
+
