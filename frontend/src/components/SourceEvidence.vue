@@ -6,10 +6,10 @@
     <p>数据集 {{ record.namespace }}<br />内容指纹 {{ record.fingerprint }}</p>
     <p>采集观察时间 {{ record.observation || '未提供' }}（不是发布时间）</p>
     <p>原始来源 {{ record.payload.source_detail || '未提供' }}</p>
-    <p>筛选 {{ record.screening.validity }} / {{ record.screening.scope_status || '未判断' }}<br />{{ record.screening.reason_codes?.join('、') }}</p>
+    <p>状态 {{ record.screening.execution_status || record.screening.validity || '未提供' }} / {{ record.screening.scope_status || '归属未判断' }}<br />{{ record.screening.reason_codes?.join('、') }}</p>
     <p v-if="quote">本次关系证据：<mark>{{ quote }}</mark></p>
     <p>程序仅核对原文位置；未进行人工语义审核。岗位分类未发布。</p>
-    <details><summary>M2 五态、冲突、组合及治理完整记录</summary><pre>{{ JSON.stringify(record.governance, null, 2) }}</pre></details>
+    <details><summary>M2 五态、冲突、组合及治理完整记录</summary><pre>{{ JSON.stringify(record.analysis || record.governance, null, 2) }}</pre></details>
     <h4>原始正文</h4><pre>{{ record.payload.raw_text || '原始正文为空，未补造内容' }}</pre>
     <details><summary>全部原始字段</summary><pre>{{ JSON.stringify(record.payload, null, 2) }}</pre></details>
   </aside>

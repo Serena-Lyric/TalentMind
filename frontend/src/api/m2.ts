@@ -1,76 +1,23 @@
 import { get, post } from '../utils/request'
-
-export interface M2Selection { sources: string[]; id_min: number | null; id_max: number | null; limit: number; cohort: string }
-export interface M2Stage { status: string; reason?: string | null; run_id: string | null; version_id?: string; result?: any }
-export type M2ReviewDecision = 'accepted' | 'rejected' | 'needs_followup'
-export type M2HumanSkillState = 'required' | 'preferred' | 'mentioned' | 'not_required' | 'uncertain' | 'not_skill'
-export interface M2HumanAnnotations {
-  b1_scope: { scope_status: 'in_scope' | 'out_of_scope' | 'needs_review' | 'not_applicable'; note: string } | null
-  b2_statements: { statement_id: string; skill_ids: string[]; human_state: M2HumanSkillState; note: string }[]
-  b3_categories: { family_id: string; human_decision: M2ReviewDecision; note: string }[]
-}
-export interface M2ReviewProvenance {
-  review_id: number; event_sha256: string; reviewer: string; reviewed_at: string
-  machine_sha256: string; input_sha256: string
-}
-export interface M2EffectiveScope {
-  scope_status: 'in_scope' | 'out_of_scope' | 'needs_review' | 'not_applicable'; note: string
-  provenance: M2ReviewProvenance
-}
-export interface M2EffectiveStatement {
-  statement_id: string; skill_ids: string[]; human_state: M2HumanSkillState; note: string
-  provenance: M2ReviewProvenance
-}
-export interface M2EffectiveCategory {
-  family_id: string; human_decision: M2ReviewDecision; note: string
-  provenance: M2ReviewProvenance
-}
-export interface M2HumanReviewConflict {
-  dimension: 'b1_scope' | 'b2_statement' | 'b3_category'; key: string
-  previous: M2EffectiveScope | M2EffectiveStatement | M2EffectiveCategory
-  effective: M2EffectiveScope | M2EffectiveStatement | M2EffectiveCategory
-}
-export interface M2HumanEffective {
-  schema_version: 'm2-human-effective-1'; b1_scope: M2EffectiveScope | null
-  b2_statements: M2EffectiveStatement[]; b3_categories: M2EffectiveCategory[]
-  conflicts: M2HumanReviewConflict[]; event_count: number; annotation_event_count: number
-  legacy_review_count: number; has_dimension_truth: boolean
-}
-export interface M2HumanReview {
-  review_id: number; schema_version: 'm2-human-review-1'; run_id: string; ordinal: number; jd_id: number | string
-  input_sha256: string; machine_sha256: string; machine_status: string; decision: M2ReviewDecision
-  reviewer: string; note: string; reviewed_at: string; sha256: string; formal_truth_claim: false
-  human_annotations?: M2HumanAnnotations
-}
-export interface M2Item {
-  ordinal: number; jd_id: number | string; source: string | null; title: string | null; final_status: string; reason: string | null
-  warnings: string[]; input_sha256: string; formal_statistics_eligible: false; confirmed_demand_eligible?: false
-  identity_status?: 'verified' | 'pending' | 'unknown'; content_eligible?: boolean | null
-  identity_evidence?: Record<string, any> | null; stages: Record<string, M2Stage>
-  evidence: { matched: number; invalid: number }; input?: Record<string, any>; input_provenance?: Record<string, any>
-  machine_sha256?: string; human_review?: M2HumanReview | null; human_effective?: M2HumanEffective
-  reviews?: M2HumanReview[]
-}
-export interface M2Run {
-  run_id: string; status: string; reason: string | null; created_at: string; finished_at: string | null; parent_run_id: string | null
-  versions: { revision: string; implementation: string; adapter: string; scope: string; taxonomy: string }
-  input_sha256: string; selection: M2Selection; provenance: Record<string, any>; items: M2Item[]
-  summary: { input_total: number; finalized: number; stage_complete: number; final_counts: Record<string, number>; b1: Record<string, any>; b2: Record<string, any>; b22: Record<string, any>; b3: Record<string, any>; evidence: Record<string, any>; identity: Record<string, number>; content: Record<string, number>; review: Record<string, number> }
-  artifacts: Record<string, string>
-}
-export interface M2History { run_id: string; status: string; created_at: string; reason?: string | null }
-export interface M2Sources { total: number; sources: { source: string | null; total: number; id_min: number; id_max: number }[]; cohorts: { name: string; available: boolean; total: number; sha256?: string }[] }
-export interface M2ReviewRequest { decision: M2ReviewDecision; reviewer: string; note: string; machine_sha256: string; annotations?: M2HumanAnnotations }
-const path = (id: string) => `/m2/runs/${encodeURIComponent(id)}`
-export const getM2Sources = () => get<M2Sources>('/m2/sources')
-export const getM2Runs = () => get<M2History[]>('/m2/runs')
-export const createM2Run = (selection: M2Selection) => post<M2Run>('/m2/runs', selection, { timeout: 60000 })
-export const getM2Run = (id: string) => get<M2Run>(path(id))
-export const getM2Item = (id: string, ordinal: number) => get<M2Item>(`${path(id)}/items/${ordinal}`)
-export const startM2Run = (id: string) => post<M2Run>(`${path(id)}/start`, {})
-export const stopM2Run = (id: string) => post<M2Run>(`${path(id)}/stop`, {})
-export const replayM2Run = (id: string, revision: string) => post<M2Run>(`${path(id)}/replay`, { revision })
-export const getM2Report = (id: string) => get<M2Run>(`${path(id)}/report`, undefined, { timeout: 60000 })
-export const reviewM2Item = (id: string, ordinal: number, event: M2ReviewRequest) => post<M2Item>(`${path(id)}/items/${ordinal}/review`, event)
-export const exportM2Reviews = (id: string) => get<Record<string, any>>(`${path(id)}/reviews/export`, undefined, { timeout: 60000 })
-export const generateM2Graph = (id: string) => post<{run_id:string;url:string}>(`${path(id)}/graph`, {}, { timeout: 60000 })
+export interface Evidence { namespace:string; jd_id:string; fingerprint:string; field:string; start:number; end:number; quote:string }
+export interface Requirement { state:string; target:string; category:string|null; members:string[]; combination:string; open_set:boolean; degree:string|null; degree_polarity:string|null; condition:string|null; reason:string; scope_evidence:Evidence[] }
+export interface Claim { id:string; kind:string; text:string; evidence:Evidence[]; requirement:Requirement|null; core:boolean|null; reason:string }
+export interface Analysis { namespace:string; jd_id:string; input_row:Record<string,any>; input_sha256:string; input_version:string; analyzer:Record<string,any>; model:Record<string,any>; prompt:Record<string,any>; configuration:Record<string,any>; outcome:string; coverage:Record<string,{status:string;reason:string}>; claims:Claim[]; relations:Record<string,any>[]; semantic_review:string }
+export interface DeliveryItem { index:number; namespace:string; jd_id:string; status:string; reason?:string; analysis:Analysis|null; analysis_sha256?:string; row?:Record<string,any>; input?:Record<string,any>; alignment?:Record<string,any>|null; roles?:Record<string,any>|null; role_assignment?:Record<string,any>; skill_candidates?:Record<string,any>[]|null; knowledge_projection?:Record<string,any>|null; reuse?:Record<string,any>; observation?:string; [key:string]:any }
+export interface DeliveryRun { run_id:string; status:string; request_sha256:string; created_at?:string; reason?:string; counts:Record<string,number>; items:DeliveryItem[]; knowledge?:Record<string,any>; dependencies?:Record<string,any>; work?:Record<string,any>|null; [key:string]:any }
+export interface DeliveryHistory { run_id:string; status:string; created_at?:string; request_sha256?:string; reason?:string; [key:string]:any }
+export interface DeliveryInput { jd_id:number; id?:number; title?:string; job_title?:string; source?:string; raw_text?:string; [key:string]:any }
+const path=(id:string)=>`/m2/delivery/runs/${encodeURIComponent(id)}`
+export const getDeliveryInputs=(offset=0,limit=20)=>get<{items:DeliveryInput[];total:number}>('/m2/delivery/inputs',{offset,limit})
+export const getDeliveryRuns=()=>get<DeliveryHistory[]>('/m2/delivery/runs')
+export const createDeliveryRun=(selection:{jd_ids:number[]})=>post<DeliveryRun>('/m2/delivery/runs',selection,{timeout:60000})
+export const getDeliveryRun=(id:string)=>get<DeliveryRun>(path(id))
+export const startDeliveryRun=(id:string)=>post<DeliveryRun>(`${path(id)}/start`,{})
+export const stopDeliveryRun=(id:string)=>post<DeliveryRun>(`${path(id)}/stop`,{})
+export const resumeDeliveryRun=(id:string)=>post<DeliveryRun>(`${path(id)}/resume`,{})
+export const abandonDeliveryRun=(id:string)=>post<DeliveryRun>(`${path(id)}/abandon`,{})
+export const getDeliveryGraph=(id:string)=>get<{run_id:string;url:string}>(`${path(id)}/graph`,undefined,{timeout:60000})
+// 旧版本只读：保留原结果、原输入和审核历史，不能从此入口重新执行。
+export const getM2Runs=()=>get<DeliveryHistory[]>('/m2/runs')
+export const getM2Run=(id:string)=>get<Record<string,any>>(`/m2/runs/${encodeURIComponent(id)}`)
+export const getM2Item=(id:string,ordinal:number)=>get<Record<string,any>>(`/m2/runs/${encodeURIComponent(id)}/items/${ordinal}`)

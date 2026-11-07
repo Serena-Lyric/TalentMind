@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+import hashlib
 import json
 import math
 import re
@@ -16,9 +17,9 @@ from pydantic import BaseModel, ValidationError
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
-from app.db.neo4j import get_neo4j
 from app.matching.canonical import to_canonical
 from app.matching.matcher import quick_match_weighted
+from app.matching.requirements import requirements_version
 from app.matching.resume_parser import parse_resume
 from app.response import BizError, ok
 
@@ -89,13 +90,13 @@ def _catalog_to_item(row: dict) -> dict:
     bonus = [str(item) for item in _parse_json_list(row.get("bonus_skills"))]
     updated = row.get("updated_at") or row.get("collected_at") or ""
     return {
-        "id": str(row["id"]), "title": row.get("job_name_zh") or row.get("job_name") or "未命名岗位",
+        "id": str(row["id"]), "job_name": row.get("job_name") or "", "title": row.get("job_name_zh") or row.get("job_name") or "未命名岗位",
         "name_en": row.get("name_en") or row.get("job_name") or "", "job_name_zh": row.get("job_name_zh") or row.get("job_name") or "",
         "m2_job_id": row.get("m2_job_id") or "", "category": row.get("category") or "", "category_review": row.get("category_review") or "",
         "company": "", "city": "",
         "type": "/".join(labels) or "中文平台", "platform": sources[0] if len(sources) == 1 else "multi",
         "platform_label": "/".join(labels) or "中文平台", "source": sources,
-        "salary": "", "experience": "", "status": "open",
+        "salary": "", "experience": "", "status": "unknown", "object_type": "job_profile",
         "skills": list(dict.fromkeys(required + bonus)), "required_skills": required, "bonus_skills": bonus,
         "core_duties": row.get("core_duties") or "", "scenarios": _parse_json_list(row.get("scenarios")),
         "updated": str(updated), "collected_at": str(row.get("collected_at") or ""),
@@ -129,7 +130,7 @@ def list_jobs(keyword: str = Query(""), platform: str = Query(""), category: str
 def jobs_platform_stats():
     db = SessionLocal()
     try:
-        rows = db.execute(text("SELECT source, name_en, job_name, COALESCE(updated_at, collected_at) AS collected_at FROM job_definition")).mappings().all()
+        rows = db.execute(text("SELECT source, name_en, job_name, collected_at FROM job_definition")).mappings().all()
     finally:
         db.close()
     by_source = {source: {"count": 0, "unique_titles": set(), "latest_collected_at": None} for source in JOB_SOURCES}
@@ -149,55 +150,10 @@ def jobs_platform_stats():
                for source, item in by_source.items()])
 
 
-@router.get("/graph/jobs")
-def graph_jobs():
-    db = SessionLocal()
-    try:
-        rows = db.execute(text("SELECT id, job_name, source FROM job_definition ORDER BY job_name")).mappings().all()
-        return ok([{"value": str(row["id"]), "label": row["job_name"], "name_en": row["job_name"], "source": _parse_json_list(row["source"])} for row in rows])
-    finally:
-        db.close()
 
 
-@router.get("/graph/years")
-def graph_years():
-    return ok(["2026"])
 
 
-@router.get("/graph/data")
-def graph_data(year: str = "", focus_job: str = ""):
-    driver = get_neo4j()
-    with driver.session() as session:
-        node_recs = session.run("MATCH (n) RETURN n.node_id AS node_id, n.name AS name, labels(n) AS labels, properties(n) AS props").data()
-        edge_recs = session.run("MATCH (a)-[r]->(b) RETURN a.node_id AS source, b.node_id AS target, type(r) AS kind, properties(r) AS props").data()
-    nodes = []
-    for record in node_recs:
-        node_id = record.get("node_id") or record.get("name")
-        name = record.get("name") or node_id
-        labels = set(record.get("labels") or [])
-        props = record.get("props") or {}
-        if not node_id:
-            continue
-        if "Job" in labels:
-            sources = _parse_json_list(props.get("source"))
-            nodes.append({"id": node_id, "label": props.get("name_zh") or name, "name_en": props.get("name_en") or name, "kind": "job",
-                          "size": max(12, min(32, int(props.get("jd_count") or 18))), "color": "#4da6ff",
-                          "status": "emerging" if props.get("is_emerging") else "stable", "jobs": int(props.get("jd_count") or 1),
-                          "source": sources, "platform_label": "/".join(PLATFORM_LABELS.get(str(item), str(item)) for item in sources),
-                          "category": props.get("category") or "", "is_emerging": bool(props.get("is_emerging")),
-                          "evolution": _parse_json_object(props.get("evolution")), "core_duties": props.get("core_duties") or "",
-                          "required_skills": _parse_json_list(props.get("required_skills")), "bonus_skills": _parse_json_list(props.get("bonus_skills")),
-                          "scenarios": _parse_json_list(props.get("scenarios"))})
-        elif "Skill" in labels:
-            nodes.append({"id": node_id, "label": props.get("display_name") or name, "name_en": name, "kind": "skill",
-                          "size": max(7, min(24, int(props.get("job_count") or 8))), "color": "#2ee66b", "status": "stable",
-                          "jobs": int(props.get("job_count") or 0), "canonical_name": name})
-        elif "Industry" in labels:
-            nodes.append({"id": node_id, "label": props.get("display_name") or name, "name_en": name, "kind": "industry",
-                          "size": max(8, min(24, int(props.get("job_count") or 4))), "color": "#c77dff", "status": "stable",
-                          "jobs": int(props.get("job_count") or 0)})
-    edges = [{"source": row["source"], "target": row["target"], "kind": str(row["kind"]).lower(), **(row.get("props") or {})} for row in edge_recs if row.get("source") and row.get("target")]
-    return ok({"nodes": nodes, "edges": edges, "stats": {"totalNodes": len(nodes), "totalEdges": len(edges), "added": 0, "removed": 0, "changed": 0}})
 
 
 def _extract_file_text(filename: str, data: bytes) -> str:
@@ -360,6 +316,7 @@ def _process_resume_upload(filename: str, raw: bytes | None, content: str, targe
                            "score": raw_score, "raw_score": raw_score, "display_score": raw_score,
                            "matched": result.get("matched_skills", []),
                            "missing": [{"name": skill, "level": "high" if skill in required else "medium", "tip": "简历未提及，请先核实实际经历，再决定是否学习或补充说明"} for skill in result.get("unmatched_job_skills", [])],
+                           "requirements_version": requirements_version(_parse_json_list(row.get("required_skills")), _parse_json_list(row.get("bonus_skills"))),
                            "skills": job_skills, "collected_at": str(row.get("collected_at") or ""),
                            "source_jd_count": int(row.get("source_jd_count") or 0)})
         seen_ids.add(str(row["id"]))
@@ -372,43 +329,18 @@ def _process_resume_upload(filename: str, raw: bytes | None, content: str, targe
         item["display_randomized"] = False
     # 新前端不传 target_job_id；旧客户端传入时仍返回对应主诊断，推荐列表保持自动计算。
     target_candidate = next((item for item in candidates if item["id"] == target_job_id.strip()), None) if target_job_id.strip() else None
-    best = target_candidate or (recommended[0] if recommended else None)
+    best = target_candidate
     match_result = {"score": best["display_score"] if best else 0, "raw_score": best["raw_score"] if best else 0,
                     "is_score_floor": False,
                     "display_randomized": False, "matched": best["matched"] if best else [],
                     "missing": best["missing"] if best else [], "strengths": resume_skills,
                     "target_job": best["title"] if best else "", "target_job_en": best.get("name_en", "") if best else "",
+                    "requirements_version": best["requirements_version"] if best else "",
                     "target_job_id": best["id"] if best else "", "platform": best["platform"] if best else ""}
     coverage = [bool(profile['name']), bool(profile['phone'] or profile['email']), bool(edu_list), bool(works or projects), bool(resume_skills)]
     return ok({"profile": profile, "matchResult": match_result, "recommendedJobs": recommended,
                "parseQuality": round(sum(coverage) / len(coverage) * 100), "parseQualityBasis": "field_coverage", "recommendationThreshold": 90,
                "thresholdCandidates": len(threshold_candidates), "recommendationFloorApplied": any(item.get("display_randomized") for item in recommended)})
-
-
-@router.get("/resume/target-jobs")
-def resume_target_jobs():
-    db = SessionLocal()
-    try:
-        rows = db.execute(text("SELECT id, job_name, name_en, job_name_zh, category, source FROM job_definition ORDER BY job_name LIMIT 6000")).mappings().all()
-        return ok([{"value": str(row["id"]), "label": row.get("job_name_zh") or row["job_name"], "name_en": row.get("name_en") or row["job_name"], "category": row.get("category") or "", "score": 0, "source": _parse_json_list(row["source"])} for row in rows])
-    finally:
-        db.close()
-
-
-@router.get("/resume/skill-dimensions")
-def resume_skill_dimensions(target_job: str = Query("")):
-    db = SessionLocal()
-    try:
-        row = db.execute(text("SELECT required_skills, bonus_skills FROM job_definition WHERE id=:id"), {"id": target_job}).first()
-    finally:
-        db.close()
-    if not row:
-        return ok({"dimensions": [], "jobStandard": [], "personalAbility": []})
-    from app.matching.skill_extractor import get_skill_category
-    required = _parse_json_list(row[0]); all_skills = required + _parse_json_list(row[1])
-    categories = list(dict.fromkeys(get_skill_category(str(skill)) for skill in all_skills))[:8]
-    personal = [round(sum(1 for skill in required if get_skill_category(str(skill)) == category) / max(1, sum(1 for skill in all_skills if get_skill_category(str(skill)) == category)) * 100) for category in categories]
-    return ok({"dimensions": categories, "jobStandard": [100] * len(categories), "personalAbility": personal})
 
 
 class JobPayload(BaseModel):
@@ -473,14 +405,54 @@ def create_job(payload: JobPayload):
 
 @router.put("/jobs/{job_id}")
 def update_job(job_id: int, payload: JobPayload):
-    if not payload.job_name.strip(): raise BizError(4001, "job_name 不能为空")
+    if not payload.job_name.strip():
+        raise BizError(4001, "job_name 不能为空")
     db = SessionLocal()
     try:
-        cur=db.execute(text("""UPDATE job_definition SET job_name=:job_name, core_duties=:core_duties, required_skills=:required_skills, bonus_skills=:bonus_skills, scenarios=:scenarios, source=:source, quality=:quality, is_emerging=:is_emerging, evolution=:evolution, collected_at=:collected_at, updated_at=:updated_at WHERE id=:id"""), {"id":job_id,"job_name":payload.job_name.strip(),"core_duties":payload.core_duties,"required_skills":json.dumps(payload.required_skills,ensure_ascii=False),"bonus_skills":json.dumps(payload.bonus_skills,ensure_ascii=False),"scenarios":json.dumps(payload.scenarios,ensure_ascii=False),"source":json.dumps(payload.source,ensure_ascii=False),"quality":payload.quality,"is_emerging":int(payload.is_emerging),"evolution":json.dumps(payload.evolution,ensure_ascii=False),"collected_at":payload.collected_at or None,"updated_at":payload.updated_at or None}); db.commit();
-        if cur.rowcount==0: raise BizError(4041,"岗位不存在")
-        return ok({"success":True})
-    except Exception: db.rollback(); raise
-    finally: db.close()
+        # Serialize edits so the recorded before-state is the state actually replaced.
+        lock = " FOR UPDATE" if db.get_bind().dialect.name == "mysql" else ""
+        row = db.execute(text("SELECT * FROM job_definition WHERE id=:id" + lock), {"id": job_id}).mappings().first()
+        if not row:
+            raise BizError(4041, "岗位不存在")
+        after = payload.model_dump(exclude={"first_seen"})
+        after["job_name"] = payload.job_name.strip()
+        json_fields = {"required_skills", "bonus_skills", "scenarios", "source", "evolution"}
+        def persisted_snapshot(stored):
+            snapshot = {key: stored.get(key) for key in after}
+            for key in json_fields:
+                snapshot[key] = _parse_json_object(stored.get(key)) if key == "evolution" else _parse_json_list(stored.get(key))
+            return snapshot
+
+        before = persisted_snapshot(row)
+        params = {key: json.dumps(value, ensure_ascii=False) if key in json_fields else value for key, value in after.items()}
+        for key in ("collected_at", "updated_at"):
+            params[key] = params[key] or None
+        params["is_emerging"] = int(payload.is_emerging)
+        params["id"] = job_id
+        assignments = ", ".join(f"{key}=:{key}" for key in after)
+        db.execute(text(f"UPDATE job_definition SET {assignments} WHERE id=:id"), params)
+        # Read database-normalized values under the same lock and transaction.
+        saved = db.execute(text("SELECT * FROM job_definition WHERE id=:id"), {"id": job_id}).mappings().one()
+        after = persisted_snapshot(saved)
+        if before != after:
+            def version(value):
+                return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+            detail = {"change_nature": "profile_edit", "before": before, "after": after,
+                      "before_version": version(before), "after_version": version(after),
+                      "requirements_before_version": requirements_version(before["required_skills"], before["bonus_skills"]),
+                      "requirements_after_version": requirements_version(after["required_skills"], after["bonus_skills"])}
+            db.execute(text("""INSERT INTO job_change_log
+                (job_id, change_type, detail, source, reason, created_at, object_type)
+                VALUES (:id, 'modified', :detail, :source, :reason, :created_at, 'job')"""),
+                {"id": job_id, "detail": json.dumps(detail, ensure_ascii=False, default=str),
+                 "source": "talentmind:profile-edit/v1", "reason": "共享岗位画像人工维护；不是招聘市场变化", "created_at": datetime.now()})
+        db.commit()
+        return ok({"success": True})
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 @router.delete("/jobs/{job_id}")
@@ -592,8 +564,3 @@ def _import_jobs(raw: bytes, filename: str):
     for payload in payloads:
         create_job(payload)
     return ok({"imported": len(payloads)})
-
-
-@router.get("/graph/skill-radar")
-def graph_skill_radar(node_name: str = Query("")):
-    return ok({"dimensions": [], "values": []})

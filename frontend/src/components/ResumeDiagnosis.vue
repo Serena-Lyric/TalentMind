@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import type { UploadFile } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { ArrowRight, UploadFilled, View } from '@element-plus/icons-vue'
@@ -138,10 +138,11 @@ async function handleFile(file: File | UploadFile) {
   if (!ALLOWED_EXTS.includes(ext)) return ElMessage.error('仅支持 PDF / DOCX / TXT；旧版 DOC 请先转换')
   if (rawFile.size > MAX_SIZE) return ElMessage.error('文件超过 10MB 上限')
   const request = ++uploadGeneration
+  const session = resumeStore.revision
   uploading.value = true
   try {
     const data = await uploadResume(rawFile)
-    if (request !== uploadGeneration) return
+    if (request !== uploadGeneration || session !== resumeStore.revision) return
     fileName.value = rawFile.name
     profile.value = data.profile || profile.value
     matchResult.value = data.matchResult || null
@@ -151,9 +152,9 @@ async function handleFile(file: File | UploadFile) {
     resumeStore.setParsed(profile.value, matchResult.value, recommendedJobs.value, parseQuality.value, fileName.value)
     ElMessage.success('简历解析成功，已生成自动岗位推荐')
   } catch (error: any) {
-    if (request === uploadGeneration) ElMessage.error(error?.message || '简历解析失败')
+    if (request === uploadGeneration && session === resumeStore.revision) ElMessage.error(error?.message || '简历解析失败')
   } finally {
-    if (request === uploadGeneration) uploading.value = false
+    if (request === uploadGeneration && session === resumeStore.revision) uploading.value = false
   }
 }
 
@@ -178,9 +179,10 @@ function selectRecommendation(job: RecommendedJob) {
   matchResult.value = {
     ...(matchResult.value || {}), score: job.score, raw_score: job.raw_score ?? job.score,
     matched: job.matched, missing: job.missing, target_job: job.title,
-    target_job_en: job.name_en || job.title, target_job_id: job.id, platform: job.platform,
+    target_job_en: job.name_en || job.title, target_job_id: job.id, platform: job.platform, requirements_version: job.requirements_version,
   }
   resumeStore.setParsed(profile.value, matchResult.value, recommendedJobs.value, parseQuality.value, fileName.value)
+  resumeStore.selectTarget(String(job.id), job.requirements_version)
   ElMessage.success(`已选择「${job.title}」，正在生成学习路径`)
   router.push({ path: '/learning', query: { job_id: String(job.id) } })
 }
@@ -194,6 +196,11 @@ onMounted(() => {
   fileName.value = resumeStore.fileName || '最近一次简历'
   parsed.value = true
 })
+watch(() => resumeStore.revision, () => {
+  uploadGeneration++
+  uploading.value = false; parsed.value = false; profile.value = { skills: [] }
+  fileName.value = ''; matchResult.value = null; recommendedJobs.value = []; parseQuality.value = 0
+}, { flush: 'sync' })
 onUnmounted(() => { uploadGeneration++ })
 </script>
 

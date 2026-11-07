@@ -11,14 +11,13 @@ function deferred() {
   const promise = new Promise<any>((yes, no) => { resolve = yes; reject = no })
   return { promise, resolve, reject }
 }
-const overview = (n: number) => ({ totalJobs: n, totalResumes: 2, matchSuccess: 0, skillGaps: 0, coralBlocks: [] })
 const timeline = (id: string) => ({ job_id: id, job_title: id, records: [{ id, reason: id }], total_changes: 1, current_version: 1 })
 const flush = async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); await vue.nextTick() }
 
 function component(name: string, overrides: Record<string, any> = {}) {
   const mounted: Function[] = [], unmounted: Function[] = [], calls: any[] = [], charts: any[] = [], timers = new Map(), searchTimers = new Map()
   let timerId = 0
-  const defaults: Record<string, any> = { getDashboardOverview: overview(3), getDashboardTrend: { months: [], series: [] }, getSkillDistribution: [], getJobList: { list: [{ id: 'A', title: '岗位A' }, { id: 'B', title: '岗位B' }], total: 2 } }
+  const defaults: Record<string, any> = { getDeliveryRuns: [], getJobList: { list: [{ id: 'A', title: '岗位A' }, { id: 'B', title: '岗位B' }], total: 2 } }
   const api = new Proxy({}, { get: (_, method: string) => async (...args: any[]) => {
     calls.push({ method, args }); const value = method in overrides ? overrides[method] : defaults[method]
     if (value instanceof Error) throw value
@@ -30,6 +29,7 @@ function component(name: string, overrides: Record<string, any> = {}) {
   const require = (id: string) => {
     if (id === 'vue') return { ...vue, onMounted: (fn: Function) => mounted.push(fn), onUnmounted: (fn: Function) => unmounted.push(fn) }
     if (id.startsWith('../api/')) return api
+    if (id === 'vue-router') return { useRoute: () => ({ query: {} }) }
     if (id === '../composables/usePagedJobs') {
       const source = readFileSync(resolve(import.meta.dirname, '../src/composables/usePagedJobs.ts'), 'utf8')
       const helper = { exports: {} as any }
@@ -46,6 +46,23 @@ function component(name: string, overrides: Record<string, any> = {}) {
   const state = scope.run(() => module.exports.default.setup({}, { expose() {} }))
   return { state, calls, charts, timers, searchTimers, async search() { const pending = [...searchTimers.values()]; searchTimers.clear(); pending.forEach(fn => fn()); await flush() }, mount: async () => { for (const fn of mounted) await fn() }, stop: () => { for (const fn of unmounted) fn(); scope.stop() } }
 }
+
+test('研究版本比较保留明确选择，并拒绝旧选择的迟到响应', async () => {
+  const old = deferred()
+  const page = component('JobEvolution', { compareDeliveryRuns: (before:string, after:string) => after === 'B' ? old.promise : { before_run: before, after_run: after } })
+  try {
+    await page.state.compareResearch()
+    assert.equal(page.calls.length, 0)
+    page.state.beforeRun.value = 'A'; page.state.afterRun.value = 'B'
+    const first = page.state.compareResearch()
+    page.state.afterRun.value = 'C'; page.state.clearComparison()
+    await page.state.compareResearch()
+    old.resolve({ before_run:'A', after_run:'B' }); await first
+    assert.equal(page.state.comparison.value.after_run, 'C')
+    assert.equal(page.state.natureLabel('historical_demo'), '历史演示（非市场事实）')
+    assert.equal(page.state.differenceLabel({ available:false, changed:null }), '缺少可比结果')
+  } finally { page.stop() }
+})
 
 test('能力动态只接纳当前岗位的请求，刷新再次读取当前时间线', async () => {
   const a = deferred(), b = deferred()
@@ -75,92 +92,13 @@ test('能力动态区分失败与成功空记录并可重试，卸载后不回�
   assert.equal(late.state.timeline.value, null)
 })
 
-for (const name of ['Dashboard', 'Analytics']) {
-  const load = (state: any) => name === 'Dashboard' ? state.loadDashboardData() : state.loadData()
-  const total = (state: any) => name === 'Dashboard' ? state.statCards[0].value : state.overview.value.totalJobs
-  test(`${name} 各面板独立更新，失败保留旧数据并标错，重试恢复`, async () => {
-    let fail = false, n = 5
-    const pending = deferred()
-    const page = component(name, { getDashboardOverview: () => overview(n), getDashboardTrend: () => fail ? Promise.reject(new Error('offline')) : { months: ['2026-11'], series: [{ name: 'signal', data: [1] }] }, getSkillDistribution: pending.promise })
-    try {
-      const first = load(page.state); await flush()
-      assert.equal(total(page.state), 5)
-      pending.resolve([]); await first
-      fail = true; n = 9; await load(page.state)
-      assert.equal(total(page.state), 9)
-      assert.ok(page.state.panelState.trend.error)
-      assert.equal(page.state.panelState.trend.loaded, true)
-      assert.equal((name === 'Dashboard' ? page.state.months.value : page.state.trend.value.months)[0], '2026-11')
-      fail = false; await load(page.state)
-      assert.equal(page.state.panelState.trend.error, '')
-    } finally { page.stop() }
-  })
-  test(`${name} 迟到响应和卸载不能覆盖数据或操作已销毁图表`, async () => {
-    const old = deferred(); let request = 0
-    const page = component(name, { getDashboardOverview: () => ++request === 1 ? old.promise : overview(8) })
-    try {
-      const first = load(page.state); await load(page.state); old.resolve(overview(1)); await first
-      assert.equal(total(page.state), 8)
-    } finally { page.stop() }
-    const pending = deferred(), late = component(name, { getDashboardOverview: pending.promise })
-    const before = total(late.state), loading = load(late.state)
-    late.stop(); pending.resolve(overview(99)); await loading
-    assert.equal(total(late.state), before)
-    assert.equal(late.timers.size, 0)
-    assert.equal(late.charts.length, 0)
-  })
-  test(`${name} 首屏失败不冒充零数据，重试成功空结果后才显示空态`, async () => {
-    let fail = true
-    const page = component(name, {
-      getDashboardOverview: () => fail ? Promise.reject(new Error('offline')) : overview(0),
-      getDashboardTrend: () => fail ? Promise.reject(new Error('offline')) : { months: [], series: [] },
-      getSkillDistribution: () => fail ? Promise.reject(new Error('offline')) : [],
-      getJobList: () => fail ? Promise.reject(new Error('offline')) : { list: [], total: 0 },
-    })
-    try {
-      const pending = load(page.state)
-      assert.equal(page.state.panelState.trend.loading, true)
-      await pending
-      for (const state of Object.values(page.state.panelState) as any[]) {
-        assert.equal(state.loaded, false); assert.equal(state.loading, false); assert.ok(state.error)
-      }
-      fail = false; await load(page.state)
-      for (const state of Object.values(page.state.panelState) as any[]) {
-        assert.equal(state.loaded, true); assert.equal(state.loading, false); assert.equal(state.error, '')
-      }
-      assert.equal(total(page.state), 0)
-    } finally { page.stop() }
-  })
-  test(`${name} 已创建图表在卸载后不被迟到请求重建或更新`, async () => {
-    let pending: ReturnType<typeof deferred> | undefined
-    const page = component(name, { getDashboardTrend: () => pending ? pending.promise : { months: ['2026-11'], series: [{ name: 'signal', data: [1] }] }, getSkillDistribution: [{ name: 'SQL', count: 1, percentage: 50 }] })
-    if (name === 'Dashboard') {
-      page.state.lineChartRef.value = {}; page.state.barChartRef.value = {}; page.state.initCharts()
-    } else {
-      page.state.trendRef.value = {}; page.state.skillsRef.value = {}
-    }
-    await load(page.state)
-    assert.equal(page.charts.length, 2)
-    pending = deferred()
-    const late = load(page.state)
-    page.stop()
-    const updates = page.charts.map(chart => chart.updates)
-    pending.resolve({ months: ['2026-12'], series: [{ name: 'late', data: [3] }] }); await late
-    assert.deepEqual(page.charts.map(chart => chart.updates), updates)
-    assert.equal(page.charts.length, 2)
-    assert.ok(page.charts.every(chart => chart.disposed))
-    assert.equal(page.timers.size, 0)
-  })
-}
-
-
-for (const name of ['Dashboard', 'JobEvolution']) {
-  const getBrowser = (page: any) => name === 'Dashboard' ? page.state.jobBrowser : {
+for (const name of ['JobEvolution']) {
+  const getBrowser = (page: any) => ({
     jobs: page.state.jobs, total: page.state.total, page: page.state.page, keyword: page.state.keyword,
     loaded: page.state.jobsLoaded, loading: page.state.loading, error: page.state.jobsError,
     load: page.state.loadJobs, changePage: page.state.changePage, search: page.state.search,
-  }
-  const pageSize = name === 'Dashboard' ? 8 : 20
+  })
+  const pageSize = 20
   const fixture = (id: string) => ({ id, title: `岗位${id}` })
   test(`${name} 使用后端总数与分页，可以浏览第100项之后的岗位`, async () => {
     const page = component(name, { getJobList: (query: any) => ({ list: [fixture(String((query.page - 1) * query.page_size + 1))], total: 241 }), getJobEvolutionTimeline: (id: string) => timeline(id) })
@@ -169,8 +107,8 @@ for (const name of ['Dashboard', 'JobEvolution']) {
       const browser = getBrowser(page)
       assert.deepEqual(page.calls.find(c => c.method === 'getJobList').args[0], { keyword: '', page: 1, page_size: pageSize })
       assert.equal(browser.total.value, 241)
-      const targetPage = name === 'Dashboard' ? 14 : 6
-      const expectedId = name === 'Dashboard' ? '105' : '101'
+      const targetPage = 6
+      const expectedId = '101'
       await browser.changePage(targetPage); await flush()
       assert.equal(browser.jobs.value[0].id, expectedId)
       assert.ok(Number(browser.jobs.value[0].id) > 100)
@@ -259,16 +197,16 @@ for (const name of ['Dashboard', 'JobEvolution']) {
 
 test('翻页加载期间保留分页边界，不触发分页器回到第一页', async () => {
   const secondPage = deferred()
-  const page = component('Dashboard', {
+  const page = component('JobEvolution', {
     getJobList: (query: any) => query.page === 2 ? secondPage.promise : { list: [{ id: 'A', title: '岗位A' }], total: 241 },
   })
-  const browser = page.state.jobBrowser
+  const browser = { load: page.state.loadJobs, total: page.state.total, page: page.state.page, jobs: page.state.jobs, changePage: page.state.changePage }
   let stopPagination: (() => void) | undefined
   try {
     await browser.load()
     // 未挂载真实 Element Plus。用真实 Vue watch 复现锁定的 Element Plus 2.14.3 分页器
     // pageCountBridge 收缩时，经 currentPageBridge setter 发出 current-change 的行为。
-    stopPagination = vue.watch(() => Math.max(1, Math.ceil(browser.total.value / 8)), count => {
+    stopPagination = vue.watch(() => Math.max(1, Math.ceil(browser.total.value / 20)), count => {
       if (browser.page.value > count) void browser.changePage(count)
     })
     const pending = browser.changePage(2)

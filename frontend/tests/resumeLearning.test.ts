@@ -7,9 +7,10 @@ import ts from 'typescript'
 import * as vue from 'vue'
 
 function component(name: string, api: Record<string, any>) {
-  const store = vue.reactive<any>({ profile: { skills: [] }, matchResult: { target_job_id: '1' }, recommendedJobs: [{ id: '1' }, { id: '2' }], parseQuality: 0, fileName: 'old.txt',
+  const store = vue.reactive<any>({ revision: 0, learningTarget: null, profile: { skills: [] }, matchResult: { target_job_id: '1' }, recommendedJobs: [{ id: '1', requirements_version: 'v1' }, { id: '2', requirements_version: 'v2' }], parseQuality: 0, fileName: 'old.txt',
     setParsed(profile: any, matchResult: any, recommendedJobs: any[], parseQuality: number, fileName: string) { Object.assign(this, { profile, matchResult, recommendedJobs, parseQuality, fileName }) },
-    clear() { this.profile = null; this.matchResult = null; this.recommendedJobs = []; this.fileName = '' },
+    selectTarget(id: string, requirements_version: string) { this.learningTarget = { id, requirements_version } },
+    clear() { this.revision++; this.learningTarget = null; this.profile = null; this.matchResult = null; this.recommendedJobs = []; this.fileName = '' },
   })
   const route = vue.reactive({ query: { job_id: '1' } })
   const mounted: Function[] = [], unmounted: Function[] = []
@@ -20,9 +21,9 @@ function component(name: string, api: Record<string, any>) {
   const module = { exports: {} as any }
   const require = (id: string) => {
     if (id === 'vue') return { ...vue, onMounted: (fn: Function) => mounted.push(fn), onUnmounted: (fn: Function) => unmounted.push(fn) }
-    if (id === 'vue-router') return { useRoute: () => route, useRouter: () => ({ push() {} }) }
+    if (id === 'vue-router') return { useRoute: () => route, useRouter: () => ({ push() {}, replace(value: any) { Object.assign(route.query, value.query) } }) }
     if (id === '../store/resume') return { useResumeStore: () => store }
-    if (id.startsWith('../api/')) return api
+    if (id.startsWith('../api/')) return { getLearningJobs: async () => [], ...api }
     if (id === 'element-plus') return { ElMessage: { success: (s: string) => messages.push(s), error: (s: string) => messages.push(s) } }
     if (id === '@element-plus/icons-vue') return {}
     throw new Error(id)
@@ -125,5 +126,45 @@ for (const reject of [false, true]) {
     settle(reject ? new Error('late') : { job_id: '1' })
     await tick()
     assert.equal(JSON.stringify({ path: page.state.path.value, error: page.state.error.value, generating: page.state.generating.value, messages: page.messages }), before)
+  })
+}
+
+test('未点选目标不会从匹配第一名自动生成路径', async () => {
+  let calls = 0
+  const page = component('LearningRoadmap', { generateLearningPath: async () => { calls++; return {} } })
+  try { await tick(); calls = 0; delete (page.route.query as any).job_id; await tick(); assert.equal(calls, 0); assert.equal(page.state.selectedJobId.value, '') } finally { page.stop() }
+})
+
+test('全目录显式选择推荐外画像后携带版本生成', async () => {
+  const requests: any[] = []
+  const page = component('LearningRoadmap', {
+    getLearningJobs: async () => [{ value: '9', label: 'Other', requirements_version: 'v9', source: [] }],
+    generateLearningPath: async (request: any) => { requests.push(request); return { job_id: request.job_id, score: 20, requirements_version: request.requirements_version } },
+  })
+  try { await page.mounted(); await tick(); await page.state.chooseTarget('9'); await tick(); assert.equal(requests.at(-1).requirements_version, 'v9'); assert.equal(page.state.path.value.job_id, '9') } finally { page.stop() }
+})
+
+test('会话清除时组件仍挂载也不能接收旧上传', async () => {
+  let finish!: Function
+  const page = component('ResumeDiagnosis', { uploadResume: () => new Promise(resolve => { finish = resolve }) })
+  try { const upload = page.state.handleFile(new File(['one'], 'one.txt')); page.store.clear(); finish({ profile: { name: 'late', skills: [] } }); await upload; assert.equal(page.store.profile, null); assert.equal(page.state.parsed.value, false) } finally { page.stop() }
+})
+
+for (const transition of ['unmount', 'new-session']) {
+  test(`重算等待目录时${transition}使旧目标和导航失效`, async () => {
+    let finish!: Function
+    const page = component('LearningRoadmap', {
+      getLearningJobs: () => new Promise(resolve => { finish = resolve }),
+      generateLearningPath: async () => ({ job_id: '1' }),
+    })
+    try {
+      page.state.eligibleJobs.value = [{ value: '1', label: 'Old', requirements_version: 'old', source: [] }]
+      await tick()
+      const recomputing = page.state.recomputeCurrent()
+      if (transition === 'unmount') page.stop()
+      else { page.store.clear(); page.store.profile = { skills: ['Java'] }; page.store.recommendedJobs = [{ id: '1', requirements_version: 'new-session' }] }
+      finish([{ value: '1', label: 'Late', requirements_version: 'late', source: [] }]); await recomputing
+      assert.equal(page.store.learningTarget, null)
+    } finally { page.stop() }
   })
 }

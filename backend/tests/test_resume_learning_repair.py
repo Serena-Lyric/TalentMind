@@ -192,7 +192,7 @@ def test_upload_to_learning_http_flow_with_isolated_sqlite(monkeypatch):
             job = uploaded['recommendedJobs'][0]
             assert job['id'] == '800001'
             assert job['matched'] == ['kubernetes']
-            response = client.post('/api/learning/generate-path', json={'job_id': job['id'], 'resume_skills': uploaded['profile']['skills']})
+            response = client.post('/api/learning/generate-path', json={'job_id': job['id'], 'resume_skills': uploaded['profile']['skills'], 'requirements_version': job['requirements_version']})
             assert response.status_code == 200
             result = response.json()['data']
             assert result['job_id'] == job['id']
@@ -205,3 +205,36 @@ def test_upload_to_learning_http_flow_with_isolated_sqlite(monkeypatch):
             db.execute(text("DELETE FROM job_definition WHERE id=800001 AND job_name='fixture-resume-learning-http'"))
             assert db.execute(text('SELECT count(*) FROM job_definition')).scalar_one() == 0
         engine.dispose()
+
+def test_catalog_profile_does_not_invent_recruitment_state():
+    item = mvp._catalog_to_item({'id': 1, 'job_name': 'fixture-profile', 'updated_at': '2026-11-07'})
+    assert item['status'] == 'unknown'
+    assert item['collected_at'] == ''
+    assert item['object_type'] == 'job_profile'
+
+
+def test_recommendation_has_version_but_no_implicit_target(monkeypatch):
+    monkeypatch.setattr(mvp, 'SessionLocal', CatalogSession)
+    result = mvp._process_resume_upload('', None, '技能：Python', '')['data']
+    assert result['matchResult']['target_job_id'] == ''
+    assert len(result['recommendedJobs'][0]['requirements_version']) == 64
+
+
+def test_learning_rejects_changed_requirements_and_returns_same_version_score(monkeypatch):
+    from fastapi import HTTPException
+    monkeypatch.setattr(mvp, 'SessionLocal', CatalogSession)
+    recommendation = mvp._process_resume_upload('', None, '技能：Python', '')['data']['recommendedJobs'][0]
+    row = CatalogSession().all()[0]
+    monkeypatch.setattr(learning, 'SessionLocal', CatalogSession)
+    monkeypatch.setattr(learning, '_job', lambda db, job_id: row)
+    result = learning.generate_learning_path(learning.LearningPathRequest(job_id=1, resume_skills=['Python'], requirements_version=recommendation['requirements_version']))['data']
+    assert result['score'] == recommendation['score']
+    assert result['requirements_version'] == recommendation['requirements_version']
+    row['bonus_skills'] = '["Git"]'
+    with pytest.raises(HTTPException) as exc:
+        learning.generate_learning_path(learning.LearningPathRequest(job_id=1, resume_skills=['Python'], requirements_version=recommendation['requirements_version']))
+    assert exc.value.status_code == 409
+
+def test_catalog_edit_keeps_storage_name_separate_from_english_label():
+    item = mvp._catalog_to_item({'id': 2, 'job_name': '数据库工程师', 'name_en': 'Database Engineer'})
+    assert item['job_name'] == '数据库工程师'

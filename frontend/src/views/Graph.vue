@@ -1,5 +1,5 @@
 <template>
-  <div class="page graph-page"><LegacyGraph v-if="route.query.graphRenderer === 'legacy'" /><GraphPanorama v-else :panels-hidden="panelsHidden" :immersive="immersive" /></div>
+  <div class="page graph-page"><GraphPanorama :panels-hidden="panelsHidden" :immersive="immersive" /></div>
 </template>
 <script setup lang="ts">
 import { defineAsyncComponent, h, onMounted, onUnmounted, ref } from 'vue'
@@ -12,10 +12,8 @@ const GraphPanorama = defineAsyncComponent({
   loadingComponent: { render: () => h('div', { class: 'graph-loading', role: 'status' }, '正在准备星云图谱…') },
   errorComponent: { render: () => h('div', { class: 'graph-loading', role: 'alert' }, [
     h('span', '图谱模块加载失败，请刷新页面重试。'),
-    h('a', { href: '#/graph?graphRenderer=legacy' }, '打开兼容视图'),
   ]) },
 })
-const LegacyGraph = defineAsyncComponent(() => import('../components/LegacyGraph.vue'))
 
 const emit = defineEmits<{ (event: 'immersive-change', value: boolean): void }>()
 const route = useRoute()

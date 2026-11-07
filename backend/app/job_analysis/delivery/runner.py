@@ -11,6 +11,7 @@ from ..baseline.contract import Strict, Text, validate_analysis
 from ..foundation.inputs import InputRecord, digest, parse_json
 from ..foundation.runner import publish
 from ..knowledge.alignment import align_analysis
+from ..knowledge.candidates import CandidateRegistry
 from ..knowledge.catalog import LoadedSnapshot
 from ..knowledge.models import validate_snapshot
 from ..knowledge.roles import compare_roles
@@ -46,6 +47,7 @@ class Request(Strict):
     baseline: Binding
     items: list[Item] = Field(min_length=1)
     operations: list[Annotated[Create | Link | Correct | Describe, Field(discriminator='op')]]
+    research_sources: bool = False
 
     @model_validator(mode='after')
     def identities(self):
@@ -182,7 +184,15 @@ async def resume(store, run_id, *, processor=None, stop=None, output=None):
                     input_mode='controlled_analysis' if source['analysis'] is not None else
                                'historical_p1_run' if source['p1'] is not None else 'processor_execution')
         try:
-            item['alignment'] = align_analysis(analysis, knowledge).model_dump()
+            # Observe the unprojected facts, so an existing candidate cannot hide
+            # fresh evidence. Governance never reopens withdrawn/disputed heads.
+            registry = CandidateRegistry(store.root / 'skill-candidates')
+            alignment = align_analysis(analysis, knowledge)
+            observed = registry.observe(analysis, alignment)
+            projection = registry.project()
+            item['skill_candidates'] = [record.model_dump() for record in observed]
+            item['knowledge_projection'] = projection.model_dump()
+            item['alignment'] = align_analysis(analysis, knowledge, candidate_projection=projection).model_dump()
             item['roles'] = compare_roles(analysis, knowledge).model_dump()
             item['interpretation_status'] = 'completed'
         except Exception:
@@ -199,9 +209,30 @@ async def resume(store, run_id, *, processor=None, stop=None, output=None):
         store.append(run_id, 'progress', result)
         return result
     analyses = {i['analysis_sha256']: i['analysis'] for i in items.values()}
+    operations = list(saved['request']['operations'])
+    if saved['request'].get('research_sources'):
+        # Each source duty remains an independent research seed, never an automatic
+        # assertion that distinct JDs belong to the same occupation or work group.
+        current = store.candidates.read()['candidates']
+        for sha, analysis in analyses.items():
+            for claim in analysis['claims']:
+                if claim['kind'] != 'duty' or claim['core'] is not True:
+                    continue
+                candidate_id = 'source-work-' + digest([sha, claim['id']])[:24]
+                if candidate_id not in current:
+                    operations.append(dict(op='create', candidate_id=candidate_id, description=claim['text'],
+                        research_question='源职责研究：与其他职责的关系尚未确认',
+                        core_work=[dict(analysis_sha256=sha, claim_id=claim['id'])]))
     batch = dict(schema_version='m2-work-batch-1', batch_id='delivery-' + digest(run_id),
                  baseline=saved['request']['baseline'], operation_version='delivery-1',
-                 analysis_sha256s=sorted(analyses), operations=saved['request']['operations'])
+                 analysis_sha256s=sorted(analyses), operations=operations)
+    # A crash after candidate commit must retry the identical batch, not derive
+    # fewer operations from the registry that now includes that commit.
+    bound_batch = store.latest(run_id, 'candidate_batch')
+    if bound_batch is None:
+        store.append(run_id, 'candidate_batch', batch)
+    else:
+        batch = bound_batch
     checkpoint('before_candidate_commit')
     ensure_loaded()
     try:

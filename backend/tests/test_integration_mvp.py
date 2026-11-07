@@ -60,19 +60,9 @@ def test_mvp_jobs_api():
     assert isinstance(item["skills"], list)
 
 
-def test_mvp_graph_api():
-    resp = client.get("/api/graph/data")
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["code"] == 0
-    assert body["data"]["stats"]["totalNodes"] > 0
-    kinds = {n["kind"] for n in body["data"]["nodes"]}
-    assert kinds <= {"job", "skill", "industry"}
-
-
 def test_mvp_resume_upload():
     resume = "姓名：张三\n技能：Python、Django、MySQL、Redis"
-    target = client.get("/api/resume/target-jobs").json()["data"][0]
+    target = client.get("/api/learning/jobs").json()["data"][0]
     resp = client.post("/api/resume/upload", data={"content": resume, "target_job_id": target["value"]})
     assert resp.status_code == 200
     body = resp.json()
@@ -80,23 +70,9 @@ def test_mvp_resume_upload():
     assert body["data"]["profile"]["skills"]
     assert "score" in body["data"]["matchResult"]
     assert body["data"]["matchResult"]["target_job_id"] == target["value"]
-    assert len(body["data"]["recommendedJobs"]) >= 3
+    assert 0 < len(body["data"]["recommendedJobs"]) <= 3
 
-# ==================== MVP 补全接口（dashboard + jobs CRUD + import/export） ====================
-
-def test_mvp_dashboard_overview():
-    resp = client.get("/api/dashboard/overview")
-    body = resp.json()
-    assert body["code"] == 0
-    assert body["data"]["totalJobs"] > 0
-
-
-def test_mvp_dashboard_skill_distribution():
-    resp = client.get("/api/dashboard/skill-distribution")
-    body = resp.json()
-    assert body["code"] == 0
-    assert isinstance(body["data"], list)
-
+# ==================== MVP 补全接口（jobs CRUD + import/export） ====================
 
 def test_mvp_jobs_crud():
     new_id = None
@@ -125,6 +101,7 @@ def test_mvp_jobs_crud():
         if new_id is not None:
             db = SessionLocal()
             try:
+                db.execute(text("DELETE FROM job_change_log WHERE job_id = :i"), {"i": new_id})
                 db.execute(text("DELETE FROM job_definition WHERE id = :i"), {"i": new_id})
                 db.commit()
             finally:

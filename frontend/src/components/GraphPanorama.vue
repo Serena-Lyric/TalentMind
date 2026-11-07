@@ -7,12 +7,12 @@
     </header>
 
     <aside v-show="!props.panelsHidden" class="nebula-control panel-glass" tabindex="0" aria-label="图谱控制，可滚动">
-      <p class="snapshot-note">{{ realMode ? '真实 JD 隔离预览 · 规则分析待审' : '探索岗位、技能与历史场景' }}<br />单击星体显示直接关联；点击空白取消。</p>
+      <p class="snapshot-note">{{ deliveryMode ? 'M2 新版研究图 · 机器分析待审' : realMode ? '历史 JD 隔离预览 · 规则分析待审' : '探索岗位、技能与历史场景（历史交接数据）' }}<br />单击星体显示直接关联；点击空白取消。</p>
       <div v-if="realManifest" class="snapshot-note" aria-label="真实数据版本">
         <p>输入 {{ realManifest.counts?.input }} · 进入分析 {{ realManifest.counts?.eligible_jd }} · 拒绝或待审 {{ realManifest.counts?.excluded_or_pending }}</p>
-        <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 身份；非标准职业。五态来自有限规则，未作人工审核。</p>
+        <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 与研究候选分别保留身份；非正式职业。{{ deliveryMode ? '五态来自本次冻结分析，未作人工审核。' : '旧五态来自有限规则，未作人工审核。' }}</p>
         <p v-if="realManifest.m2_product">M2 run：{{ realManifest.m2_product.run_id }}<br />分析版本 {{ realManifest.m2_product.versions.revision }} · {{ realManifest.m2_product.versions.implementation.slice(0,12) }}<br />范围待复核 {{ realManifest.counts?.scope_pending }}；仅作候选证据。</p>
-        <a href="?#/graph">返回历史图谱</a>
+        <p v-if="realManifest.delivery">来源 {{realManifest.history_origin==='sequence-head-final' ? '合成连续序列（非真实市场观察）' : realManifest.history_origin==='dev-head-final' ? '受控 DEV 历史（非独立验收）' : realManifest.history_origin || '来源性质未提供'}}<br />运行 {{realManifest.delivery.run_id}}<br />请求 {{realManifest.delivery.request_sha256}}<br />研究内容 {{realManifest.delivery.result_sha256}}<br />知识 {{realManifest.delivery.knowledge_sha256}}</p><a v-if="realManifest.delivery" :href="`/#/m2?m2Run=${encodeURIComponent(realManifest.delivery.run_id)}`">返回本次工作台</a><br /><a href="?#/graph">明确切换到历史图谱</a>
         <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ identityText(record.identity_status) }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
       </div>
       <label class="nebula-label">搜索</label>
@@ -109,8 +109,8 @@
             <button v-if="connectionHidden(edge)" type="button" @click="showConnection(edge)">显示该类型并选中</button>
             <small>{{ relationName(edge.kind) }} · {{ nodeKindLabel(nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.kind || 'job') }}</small>
             <small>{{ nodeById.get(edge.source)?.label }} → {{ nodeById.get(edge.target)?.label }} · {{ edge.kind }}</small>
-            <small v-if="realMode">五态 {{ edge.raw?.state }} · 冲突 {{ edge.raw?.conflict ? '是' : '否' }} · 组合 {{ edge.raw?.relation || '单项' }}</small>
-            <button v-if="realMode" type="button" @click="traceSource(edge.raw!.source_record,edge.raw!.evidence.quote)">回溯此陈述的原始 JD</button>
+            <small v-if="realMode">状态 {{ edge.raw?.state }} · 组合 {{ edge.raw?.relation || '单项' }}<template v-if="edge.raw?.requirement"> · 成员 {{edge.raw.requirement.members.join(' / ')}} · 条件 {{edge.raw.requirement.condition || '无显式条件'}} · 程度 {{edge.raw.requirement.degree || '未声明'}} · {{edge.raw.requirement.degree_polarity || '程度极性未知'}}</template></small>
+            <button v-if="realMode" type="button" @click="traceSource(edge.raw!.source_record,edge.raw!.evidence?.quote)">回溯此陈述的原始 JD</button>
             <button class="edge-focus-button" :disabled="connectionHidden(edge)" :aria-label="`高亮原关系 ${edge.sourceIndex}`" @focus="focusRelation(edge.sourceIndex)" @blur="focusRelation(null)" @click="focusRelation(edge.sourceIndex)">高亮这条原边</button>
             <details><summary>原始关系 / 来源索引 {{ edge.sourceIndex }}</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
             <small v-if="edge.raw?.source_indices">来源索引 {{ JSON.stringify(edge.raw.source_indices) }}</small>
@@ -129,6 +129,7 @@
 </template>
 
 <script setup lang="ts">
+import { loadDeliveryGraph } from '../graph/deliverySnapshot'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { DataAnalysis, Loading, Refresh, RefreshRight, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -161,7 +162,8 @@ const query = new URLSearchParams(window.location.search)
 const legacySpaceQuery = new URLSearchParams(query)
 legacySpaceQuery.set('graphSpace','legacy')
 const legacySpaceHref = `?${legacySpaceQuery}#/graph`
-const realMode=query.get('graphDataset')==='real'
+const deliveryMode=query.get('graphDataset')==='delivery'
+const realMode=deliveryMode||query.get('graphDataset')==='real'
 const realSources=shallowRef<RealSources|null>(null),realManifest=shallowRef<RealManifest|null>(null)
 const sourceRecord=shallowRef<SourceRecord|null>(null),sourceQuote=ref('')
 function traceSource(index:number,quote=''){sourceRecord.value=realSources.value?.records[index]||null;sourceQuote.value=quote}
@@ -655,7 +657,7 @@ async function loadGraph(refresh = false) {
   loading.value = true
   loadError.value = ''
   try {
-    const realResult = realMode ? await loadRealGraph(query.get('m2Run'),query.get('m2Graph')) : null
+    const realResult = deliveryMode ? await loadDeliveryGraph(query.get('m2DeliveryRun'),query.get('m2Graph')) : realMode ? await loadRealGraph(query.get('m2Run'),query.get('m2Graph')) : null
     const result = realResult || await loadHistoricalGraph(refresh)
     const data = result.graph
     if (generation !== loadGeneration) return
@@ -758,6 +760,7 @@ onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTim
 </script>
 
 <style scoped>
+.snapshot-note { overflow-wrap:anywhere; }
 .technical-info {margin-top:16px;border-top:1px solid rgba(105,106,189,.18);padding-top:12px}.technical-info summary,.detail-section summary{cursor:pointer}.technical-info select{max-width:100%;background:#15152d;color:#dbe2ff;border:1px solid #45456b;border-radius:5px;padding:4px;margin-top:6px}
 .reference-mark {color:#ffd7a0}.layout-provenance{font-size:11px;color:#a4afcb;margin:8px 0 12px}.layout-provenance summary,.relation-audit summary{cursor:pointer}.layout-provenance p{line-height:1.6}
 .connection-list .edge-focused{background:rgba(150,190,255,.12);border-radius:6px}.connection-list .edge-focus-button{font-size:10px;color:#dfedff;text-decoration:underline;margin:4px 0}.connection-list details{font-size:10px;color:#a4afcb}.connection-list summary{cursor:pointer}

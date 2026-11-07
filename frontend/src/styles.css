@@ -558,8 +558,8 @@ body { background-size: 30px 30px; }
 
 
 /* 全站轻量卡通互动：仅装饰层，不影响数据与事件 */
-:where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card) { position: relative; }
-:where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card)::after {
+:where(.panel, .collection-status-card, .record-card, .suggestion-card) { position: relative; }
+:where(.panel, .collection-status-card, .record-card, .suggestion-card)::after {
   content: "";
   position: absolute;
   z-index: 3;
@@ -580,18 +580,18 @@ body { background-size: 30px 30px; }
   box-shadow: 0 5px 12px rgba(54, 70, 182, .12);
   transition: opacity .22s ease, transform .28s cubic-bezier(.2,.8,.2,1);
 }
-:where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card):hover::after {
+:where(.panel, .collection-status-card, .record-card, .suggestion-card):hover::after {
   opacity: .9;
   transform: translateY(-6px) rotate(9deg) scale(1.15);
   animation: tm-sprite-peek .58s ease;
 }
-:where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card):hover {
+:where(.panel, .collection-status-card, .record-card, .suggestion-card):hover {
   border-color: rgba(54, 70, 182, .17);
 }
-.analytics-kpi, .collection-status-card, .record-card, .suggestion-card {
+.collection-status-card, .record-card, .suggestion-card {
   transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
-.analytics-kpi:hover, .collection-status-card:hover, .record-card:hover, .suggestion-card:hover {
+.collection-status-card:hover, .record-card:hover, .suggestion-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 11px 24px rgba(47, 75, 91, .09);
 }
@@ -631,7 +631,7 @@ body { background-size: 30px 30px; }
 .status-icon, .kpi-icon {
   transition: transform .22s ease, box-shadow .22s ease;
 }
-.collection-status-card:hover .status-icon, .analytics-kpi:hover .kpi-icon {
+.collection-status-card:hover .status-icon {
   transform: translateY(-2px) rotate(7deg) scale(1.05);
   box-shadow: 0 8px 18px rgba(47, 75, 91, .10);
 }
@@ -653,12 +653,12 @@ body { background-size: 30px 30px; }
   100% { opacity: .75; transform: scale(1) rotate(10deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  :where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card):hover::after,
+  :where(.panel, .collection-status-card, .record-card, .suggestion-card):hover::after,
   .btn-coral:hover, .btn-soft:hover, .btn-soft-green:hover,
   .el-table__row:hover .job-title::after { animation: none; }
 }
 /* 更醒目的卡通层增强 */
-:where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card)::before {
+:where(.panel, .collection-status-card, .record-card, .suggestion-card)::before {
   content: "✦";
   position: absolute;
   z-index: 3;
@@ -671,7 +671,7 @@ body { background-size: 30px 30px; }
   transform: rotate(-8deg);
   transition: opacity .2s ease, transform .25s ease;
 }
-:where(.panel, .analytics-kpi, .collection-status-card, .record-card, .suggestion-card):hover::before {
+:where(.panel, .collection-status-card, .record-card, .suggestion-card):hover::before {
   opacity: 1;
   transform: translateY(-5px) rotate(28deg) scale(1.22);
   animation: tm-star-pop .55s ease;

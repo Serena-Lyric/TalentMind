@@ -66,7 +66,7 @@ function deferred() {
   return { promise, resolve, reject }
 }
 const tick = async () => { await vue.nextTick(); for (let i = 0; i < 6; i++) await Promise.resolve() }
-function addSkill(state: any, name: string) { state.startAddSkill(); state.newSkill.value = name; state.confirmAddSkill() }
+function addSkill(state: any, name: string) { state.startAddSkill(); state.newSkillType.value = 'required'; state.newSkill.value = name; state.confirmAddSkill() }
 
 function persistentJobs() {
   const stored = new Map([['A', job('A')], ['B', job('B')]])
@@ -449,3 +449,55 @@ test('卸载后导出迟到不再下载或报告失败', async () => {
   await downloading
   assert.equal(view.messages.length, 0)
 })
+
+test('加分项改名保持加分类型，新技能要求显式选择类型', async () => {
+  const original = { ...job('A', ['Python', 'Docker']), required_skills: ['Python'], bonus_skills: ['Docker'] }
+  const page = component({ getJobDetail: original })
+  try {
+    await page.state.openDetail(original)
+    page.state.startEditSkill(1); page.state.editValue.value = 'Kubernetes'; page.state.confirmEditSkill()
+    await page.state.saveSkills()
+    let payload = page.calls.filter(call => call.method === 'updateJob').at(-1)!.args[1]
+    assert.deepEqual(payload.required_skills, ['Python']); assert.deepEqual(payload.bonus_skills, ['Kubernetes'])
+    page.state.startAddSkill(); page.state.newSkill.value = 'Git'; page.state.confirmAddSkill()
+    assert.equal(page.state.detailSkills.value.includes('Git'), false)
+    page.state.newSkillType.value = 'bonus'; page.state.confirmAddSkill(); await page.state.saveSkills()
+    payload = page.calls.filter(call => call.method === 'updateJob').at(-1)!.args[1]
+    assert.deepEqual(payload.bonus_skills, ['Kubernetes', 'Git'])
+  } finally { page.stop() }
+})
+
+test('详情补齐的原类型沿改名身份保留，不能用过时列表把加分改为必备', async () => {
+  const pending = deferred()
+  const page = component({ getJobDetail: () => pending.promise })
+  try {
+    const opening = page.state.openDetail(job('A', ['Docker']))
+    page.state.startEditSkill(0); page.state.editValue.value = 'Kubernetes'; page.state.confirmEditSkill()
+    pending.resolve({ ...job('A', ['Docker']), required_skills: [], bonus_skills: ['Docker'] }); await opening
+    await page.state.saveSkills()
+    const payload = page.calls.find(call => call.method === 'updateJob')!.args[1]
+    assert.deepEqual(payload.required_skills, []); assert.deepEqual(payload.bonus_skills, ['Kubernetes'])
+  } finally { page.stop() }
+})
+
+for (const rename of [false, true]) {
+  test(`历史必备加分重叠技能${rename ? '改名' : '随其他编辑保存'}后保留两组成员`, async () => {
+    const original = { ...job('A', ['Python', 'Docker']), required_skills: ['Python', 'Docker'], bonus_skills: ['Docker'] }
+    const page = component({ getJobDetail: original })
+    try {
+      await page.state.openDetail(original)
+      if (rename) {
+        page.state.startEditSkill(1)
+        page.state.editValue.value = 'Kubernetes'
+        page.state.confirmEditSkill()
+      } else {
+        addSkill(page.state, 'SQL')
+      }
+      await page.state.saveSkills()
+      const payload = page.calls.find(call => call.method === 'updateJob')!.args[1]
+      assert.deepEqual(payload.required_skills, rename ? ['Python', 'Kubernetes'] : ['Python', 'Docker', 'SQL'])
+      assert.deepEqual(payload.bonus_skills, [rename ? 'Kubernetes' : 'Docker'])
+      assert.ok(page.elements('el-tag').some(node => String(node.children?.default?.()?.map((child: any) => child.children).join('')).includes('必备及加分')))
+    } finally { page.stop() }
+  })
+}

@@ -314,6 +314,7 @@ def test_create_edit_export_import_with_isolated_sqlite(monkeypatch):
             required_skills TEXT, bonus_skills TEXT, scenarios TEXT, source TEXT,
             quality FLOAT, is_emerging INTEGER, evolution TEXT,
             collected_at TEXT, updated_at TEXT)"""))
+        connection.execute(text("CREATE TABLE job_change_log (id INTEGER PRIMARY KEY, job_id INTEGER, change_type TEXT, skill_name TEXT, detail TEXT, source TEXT, reason TEXT, created_at TEXT, m2_job_id TEXT, object_type TEXT, source_jd_time TEXT)"))
         connection.execute(text("INSERT INTO job_definition (job_name) VALUES (:name)"), {"name": sentinel_name})
     monkeypatch.setattr(mvp, "SessionLocal", sessionmaker(bind=engine))
     app = FastAPI()
@@ -332,6 +333,14 @@ def test_create_edit_export_import_with_isolated_sqlite(monkeypatch):
             payload["bonus_skills"] = ["沟通", "A | B"]
             edited = client.put(f"/api/jobs/{inserted_id}", json=payload).json()
             assert edited["data"]["success"] is True
+            with engine.connect() as connection:
+                change = connection.execute(text("SELECT * FROM job_change_log WHERE job_id=:id"), {"id": inserted_id}).mappings().one()
+                detail = json.loads(change['detail'])
+                assert detail['change_nature'] == 'profile_edit'
+                assert detail['before']['required_skills'] == ['Python', '沟通']
+                assert detail['after']['bonus_skills'] == ['沟通', 'A | B']
+                assert detail['before_version'] != detail['after_version']
+                assert change['source'] == 'talentmind:profile-edit/v1'
             # The sentinel is deliberately excluded from the import, not deleted or rewritten.
             exported = client.get("/api/jobs/export").content.decode("utf-8-sig")
             rows = list(csv.DictReader(io.StringIO(exported)))
@@ -361,6 +370,8 @@ def test_create_edit_export_import_with_isolated_sqlite(monkeypatch):
     finally:
         try:
             with engine.begin() as connection:
+                connection.execute(text("DELETE FROM job_change_log WHERE job_id IN (SELECT id FROM job_definition WHERE job_name=:name)"), {"name": fixture_name})
+                assert connection.execute(text("SELECT COUNT(*) FROM job_change_log")).scalar_one() == 0
                 connection.execute(text("DELETE FROM job_definition WHERE job_name=:name"), {"name": fixture_name})
                 assert connection.execute(text("SELECT COUNT(*) FROM job_definition WHERE job_name=:name"), {"name": fixture_name}).scalar_one() == 0
                 assert connection.execute(text("SELECT COUNT(*) FROM job_definition WHERE job_name=:name"), {"name": sentinel_name}).scalar_one() == 1
@@ -368,3 +379,49 @@ def test_create_edit_export_import_with_isolated_sqlite(monkeypatch):
                 assert connection.execute(text("SELECT COUNT(*) FROM job_definition")).scalar_one() == 0
         finally:
             engine.dispose()
+
+@pytest.mark.parametrize('edit_case', ['noop', 'version_chain'])
+def test_profile_audit_uses_persisted_values_for_noop_and_version_chain(monkeypatch, edit_case):
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    engine = create_engine('sqlite://', poolclass=StaticPool)
+    assert engine.url.database is None
+    name = 'fixture-issue73-audit-' + edit_case
+    with engine.begin() as db:
+        db.execute(text('''CREATE TABLE job_definition (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, job_name TEXT, core_duties TEXT,
+            required_skills TEXT, bonus_skills TEXT, scenarios TEXT, source TEXT,
+            quality FLOAT, is_emerging INTEGER, evolution TEXT,
+            collected_at TEXT, updated_at TEXT)'''))
+        db.execute(text('''CREATE TABLE job_change_log (id INTEGER PRIMARY KEY, job_id INTEGER,
+            change_type TEXT, detail TEXT, source TEXT, reason TEXT, created_at TEXT, object_type TEXT)'''))
+    monkeypatch.setattr(mvp, 'SessionLocal', sessionmaker(bind=engine))
+    ident = None
+    try:
+        payload = mvp.JobPayload(job_name=name, required_skills=['Python'])
+        ident = int(mvp.create_job(payload)['data']['id'])
+        payload.bonus_skills = ['Git']
+        payload.collected_at = '2026-11-07T01:02:03'
+        mvp.update_job(ident, payload)
+        if edit_case == 'version_chain':
+            payload.required_skills = ['Python', 'Docker']
+            payload.is_emerging = True
+        mvp.update_job(ident, payload)
+        with engine.connect() as db:
+            logs = [json.loads(row[0]) for row in db.execute(text('SELECT detail FROM job_change_log WHERE job_id=:id ORDER BY id'), {'id': ident})]
+        if edit_case == 'noop':
+            assert len(logs) == 1
+        else:
+            assert len(logs) == 2
+            assert logs[1]['before'] == logs[0]['after']
+            assert logs[1]['before_version'] == logs[0]['after_version']
+    finally:
+        with engine.begin() as db:
+            if ident is not None:
+                db.execute(text('DELETE FROM job_change_log WHERE job_id=:id'), {'id': ident})
+                db.execute(text('DELETE FROM job_definition WHERE id=:id AND job_name=:name'), {'id':ident, 'name':name})
+            assert db.execute(text('SELECT count(*) FROM job_change_log')).scalar_one() == 0
+            assert db.execute(text('SELECT count(*) FROM job_definition')).scalar_one() == 0
+        engine.dispose()
