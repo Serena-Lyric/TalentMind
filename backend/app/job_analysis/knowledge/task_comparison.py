@@ -32,8 +32,8 @@ def start_comparison(context):
     return TaskAttributionResult.model_validate(value)
 
 
-def select_tasks(result, ranker, pairs_per_role=1, eligible_scopes=("affirmed",), definition_examples=False):
-    if not 1 <= pairs_per_role <= 3:
+def select_tasks(result, ranker, pairs_per_role=1, eligible_scopes=("affirmed",), definition_examples=False, diverse_claims=False):
+    if not 1 <= pairs_per_role <= (1000 if diverse_claims else 3):
         raise ValueError("pair budget out of range")
     eligible = {u.claim_id for u in result.work_units if u.scope in eligible_scopes and u.kind == "work"}
     claims = [c for c in result.source_claims if c.id in eligible]
@@ -61,17 +61,25 @@ def select_tasks(result, ranker, pairs_per_role=1, eligible_scopes=("affirmed",)
                          key=lambda p: (-p.retrieval_score, p.claim_id, p.reference_id))
         lexical = sorted(ordered, key=lambda p: (-p.lexical_score, p.claim_id, p.reference_id))
         priorities = ordered[:1] + lexical[:1] + ordered[1:]
+        if diverse_claims:
+            # First give each duty a chance; repeated references cannot consume
+            # its neighbours' budget. Scores still only order checks, not support.
+            unique, rest, seen = [], [], set()
+            for proposal in priorities:
+                (rest if proposal.claim_id in seen else unique).append(proposal)
+                seen.add(proposal.claim_id)
+            priorities = unique + rest
         chosen = []
         for proposal in priorities:
             if proposal.id not in chosen and len(chosen) < pairs_per_role:
                 chosen.append(proposal.id)
         selected.extend(chosen)
-    return TaskSelection(method="definition-context-task-budget-1" if definition_examples else "dual-priority-task-budget-1",
+    return TaskSelection(method="claim-diverse-task-budget-1" if diverse_claims else "definition-context-task-budget-1" if definition_examples else "dual-priority-task-budget-1",
         status="ranked" if pairs else "empty_catalog" if not result.comparisons else "no_eligible_work",
         retriever_binding=ranker.binding, pairs_per_role=pairs_per_role, proposals=proposals,
         selected_pair_ids=selected, checked_pair_ids=[], pending_selected_pair_ids=selected,
         unchecked_pair_ids=[p.id for p in proposals if p.id not in selected],
-        limitation=LIMITATION)
+        limitation=("先按职责分散检查，再检查同职责其他参照；分数仅排优先级，未查不等于不相关。" if diverse_claims else LIMITATION))
 
 
 def pair_prompt(result, claim_id, role_id, reference_id):

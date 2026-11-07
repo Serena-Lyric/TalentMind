@@ -1,4 +1,4 @@
-import { get, post } from '../utils/request'
+import { post } from '../utils/request'
 
 ﻿/**
  * 简历上传模块 API
@@ -31,6 +31,7 @@ export interface ResumeProfile {
 }
 
 export interface RecommendedJob {
+  requirements_version: string
   id: string
   title: string
   platform: string
@@ -63,12 +64,6 @@ export interface MatchResult {
   strengths: string[]
 }
 
-export interface SkillDimension {
-  name: string
-  jobStandard: number
-  personalAbility: number
-}
-
 // ============================================================
 // 接口函数
 // ============================================================
@@ -91,47 +86,9 @@ export async function uploadResume(file: File, targetJobId = '') {
   
   const formData = new FormData()
   formData.append('file', file)
-  // 后端按用户选择的目标岗位匹配；为空则遍历库内岗位取最高分
+  // 后端按用户选择的目标岗位匹配；为空仅生成推荐，不选择学习目标
   if (targetJobId) formData.append('target_job_id', targetJobId)
   return post('/resume/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
-}
-
-/**
- * GET /api/resume/skill-dimensions
- * 获取技能维度雷达图数据
- *
- * 入参：{ targetJob: string }
- * 响应示例：
- * {
- *   code: 200,
- *   data: {
- *     dimensions: ['基础技能','前端开发框架','组件与工具',...],
- *     jobStandard: [80,85,82,...],
- *     personalAbility: [85,90,88,...]
- *   }
- * }
- */
-export async function getSkillDimensions(targetJob: string) {
-  
-  return get('/resume/skill-dimensions', { targetJob })
-}
-
-/**
- * GET /api/resume/target-jobs
- * 获取可选目标岗位列表
- *
- * 入参：无
- * 响应示例：
- * {
- *   code: 200,
- *   data: [
- *     { value: 'frontend', label: '高级前端工程师', score: 87 }
- *   ]
- * }
- */
-export async function getTargetJobs() {
-  
-  return get('/resume/target-jobs')
 }

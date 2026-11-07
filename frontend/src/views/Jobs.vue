@@ -3,7 +3,7 @@
     <div class="page-title">
       <div class="title-left">
         <div class="module-mark jobs-mark"><el-icon><Files /></el-icon><span class="mark-spark">✦</span></div>
-        <div><h1>JD 岗位管理 <span class="title-star" aria-hidden="true">✦</span></h1><p>完整岗位目录：新一代与现有岗位、中文及英文来源</p></div>
+        <div><h1>岗位画像目录 <span class="title-star" aria-hidden="true">✦</span></h1><p>浏览历史岗位画像及来源；画像不代表当前招聘职位</p></div>
       </div>
       <div class="page-actions"><el-button class="btn-soft" :loading="loading || statsLoading" @click="refreshData"><el-icon><RefreshRight /></el-icon>刷新数据</el-button><el-button class="btn-soft-green" @click="exportCurrent"><el-icon><Download /></el-icon>导出岗位目录</el-button></div>
     </div>
@@ -43,14 +43,14 @@
         <el-table-column label="岗位信息" min-width="310"><template #default="{ row }"><strong class="job-title">{{ row.title }}</strong><span class="job-subtitle">{{ row.core_duties ? shortText(row.core_duties, 72) : '暂无职责摘要' }}</span></template></el-table-column>
         <el-table-column label="类型 / 来源" width="150"><template #default="{ row }"><el-tag size="small" effect="plain" :type="row.category === '新一代' ? 'success' : 'info'">{{ row.category || '岗位' }}</el-tag><small class="job-source">{{ row.platform_label || row.type || '未知来源' }}</small></template></el-table-column>
         <el-table-column label="当前技能" min-width="300"><template #default="{ row }"><div class="skill-tags"><el-tag v-for="skill in row.skills.slice(0, 6)" :key="skill" size="small" effect="plain">{{ skill }}</el-tag><span v-if="row.skills.length > 6" class="more-skill">+{{ row.skills.length - 6 }}</span><span v-if="!row.skills.length" class="muted">暂无技能</span></div></template></el-table-column>
-        <el-table-column label="更新时间" width="170"><template #default="{ row }">{{ formatTime(row.updated) }}</template></el-table-column>
+        <el-table-column label="档案更新时间" width="170"><template #default="{ row }">{{ formatTime(row.updated) }}</template></el-table-column>
         <el-table-column label="操作" width="110" fixed="right"><template #default="{ row }"><el-button text class="detail-link" @click="openDetail(row)">查看详情</el-button></template></el-table-column>
         <template #empty><div v-if="!loading && !listError" class="table-empty"><el-icon><Document /></el-icon><p>没有找到匹配的岗位定义</p><el-button class="btn-soft" @click="resetFilters">清除筛选</el-button></div></template>
       </el-table>
       <div class="pagination-wrap"><el-pagination :current-page="page" :page-size="pageSize" :total="total" :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" background small @current-change="changePage" @size-change="changePageSize" /></div>
     </section>
 
-    <el-dialog v-model="detailVisible" :title="detailJob?.title || '岗位详情'" width="760px"><div v-if="detailJob" class="detail-content"><div class="detail-meta"><el-tag effect="plain">{{ detailJob.category || '岗位' }}</el-tag><el-tag effect="plain">{{ detailJob.platform_label || detailJob.type }}</el-tag><span v-if="detailJob.name_en">英文名：{{ detailJob.name_en }}</span><span>采集时间：{{ formatTime(detailJob.collected_at || detailJob.updated) }}</span><span v-if="detailJob.experience">经验：{{ detailJob.experience }}</span></div><section><h3>岗位职责</h3><p class="duties">{{ detailJob.core_duties || '暂无岗位职责文本' }}</p></section><section><h3>技能要求</h3><p v-if="detailLoading" class="muted">{{ savingSkills ? '此岗位上一次保存尚未完成，可继续编辑，完成后将重新核对详情' : '详情加载中，可继续编辑，完整详情到齐后可保存' }}</p><el-alert v-if="detailError" :title="detailError" type="warning" :closable="false"><el-button text @click="detailConflict ? discardAndReload() : retryDetail()">{{ detailConflict ? '放弃当前编辑并重新读取' : '重试详情' }}</el-button></el-alert><div class="skill-tags"><template v-for="(skill, index) in detailSkills" :key="skill + index"><el-input v-if="editingIndex === index" v-model="editValue" size="small" class="skill-input" placeholder="修改技能名" @keyup.enter="confirmEditSkill" @keyup.esc="cancelEditSkill" @blur="confirmEditSkill" /><el-tag v-else closable effect="plain" @close="removeDetailSkill(index)" @dblclick="startEditSkill(index)">{{ skill }}</el-tag></template><span v-if="!detailSkills.length" class="muted">暂无结构化技能</span></div><div class="skill-editor"><template v-if="addingSkill"><el-input v-model="newSkill" size="small" class="skill-input" placeholder="输入技能名后回车添加" @keyup.enter="confirmAddSkill" /><button type="button" class="skill-add-btn" title="确认添加" @click="confirmAddSkill">+</button></template><button v-else type="button" class="skill-add-btn" title="添加技能" @click="startAddSkill">+</button><span v-if="skillDirty" class="muted skill-tip">技能有未保存变更</span><el-button v-if="skillDirty" size="small" type="primary" :loading="savingSkills" :disabled="!detailReady" @click="saveSkills">保存技能</el-button></div></section></div></el-dialog>
+    <el-dialog v-model="detailVisible" :title="detailJob?.title || '岗位详情'" width="760px"><div v-if="detailJob" class="detail-content"><div class="detail-meta"><el-tag effect="plain">{{ detailJob.category || '岗位' }}</el-tag><el-tag effect="plain">{{ detailJob.platform_label || detailJob.type }}</el-tag><span v-if="detailJob.name_en">英文名：{{ detailJob.name_en }}</span><span>来源采集时间：{{ formatTime(detailJob.collected_at || '') }}</span><span v-if="detailJob.experience">经验：{{ detailJob.experience }}</span></div><section><h3>岗位职责</h3><p class="duties">{{ detailJob.core_duties || '暂无岗位职责文本' }}</p></section><section><h3>技能要求</h3><el-alert title="维护将修改共享岗位画像，影响所有简历匹配与学习建议；这不是个人偏好设置。" type="warning" :closable="false" /><p v-if="detailLoading" class="muted">{{ savingSkills ? '此岗位上一次保存尚未完成，可继续编辑，完成后将重新核对详情' : '详情加载中，可继续编辑，完整详情到齐后可保存' }}</p><el-alert v-if="detailError" :title="detailError" type="warning" :closable="false"><el-button text @click="detailConflict ? discardAndReload() : retryDetail()">{{ detailConflict ? '放弃当前编辑并重新读取' : '重试详情' }}</el-button></el-alert><div class="skill-tags"><template v-for="(skill, index) in detailSkills" :key="skill + index"><el-input v-if="editingIndex === index" v-model="editValue" size="small" class="skill-input" placeholder="修改技能名" @keyup.enter="confirmEditSkill" @keyup.esc="cancelEditSkill" @blur="confirmEditSkill" /><el-tag v-else closable effect="plain" @close="removeDetailSkill(index)" @dblclick="startEditSkill(index)">{{ detailSkillTypes[skill] === 'required' ? '必备' : detailSkillTypes[skill] === 'bonus' ? '加分' : detailSkillTypes[skill] === 'both' ? '必备及加分' : '类型待核实' }} · {{ skill }}</el-tag></template><span v-if="!detailSkills.length" class="muted">暂无结构化技能</span></div><div class="skill-editor"><template v-if="addingSkill"><el-select v-model="newSkillType" placeholder="选择要求类型" size="small" style="width:130px"><el-option label="必备" value="required" /><el-option label="加分" value="bonus" /></el-select><el-input v-model="newSkill" size="small" class="skill-input" placeholder="输入技能名后回车添加" @keyup.enter="confirmAddSkill" /><button type="button" class="skill-add-btn" title="确认添加" @click="confirmAddSkill">+</button></template><button v-else type="button" class="skill-add-btn" title="添加技能" @click="startAddSkill">+</button><span v-if="skillDirty" class="muted skill-tip">技能有未保存变更</span><el-button v-if="skillDirty" size="small" type="primary" :loading="savingSkills" :disabled="!detailReady" @click="saveSkills">保存技能</el-button></div></section></div></el-dialog>
   </section>
 </template>
 
@@ -77,6 +77,16 @@ const detailJob = ref<Job | null>(null)
 const detailSkills = ref<string[]>([])
 const addingSkill = ref(false)
 const newSkill = ref("")
+const newSkillType = ref<'required' | 'bonus' | ''>('')
+type SkillRequirementType = 'required' | 'bonus' | 'both'
+const detailSkillTypes = ref<Record<string, SkillRequirementType>>({})
+const detailSkillOrigins = ref<Record<string, string>>({})
+function skillTypes(job: Job): Record<string, SkillRequirementType> {
+  const types: Record<string, SkillRequirementType> = {}
+  for (const skill of job.bonus_skills || []) types[skill] = 'bonus'
+  for (const skill of job.required_skills || []) types[skill] = ['bonus', 'both'].includes(types[skill]) ? 'both' : 'required'
+  return types
+}
 const skillDirty = ref(false)
 const pendingWrites = ref(new Map<string, Promise<void>>())
 const savingSkills = computed(() => !!detailJob.value && pendingWrites.value.has(detailJob.value.id))
@@ -154,7 +164,11 @@ async function readDetail(job: Job, session: number) {
     const loadedSkills = detail.skills || []
     if (edited && (initialSkills.length !== loadedSkills.length || loadedSkills.some(skill => !initialSkills.includes(skill)))) detailConflict.value = true
     detailJob.value = { ...job, ...detail }
-    if (!edited) detailSkills.value = [...loadedSkills]
+    if (!edited) { detailSkills.value = [...loadedSkills]; detailSkillTypes.value = skillTypes(detail); detailSkillOrigins.value = Object.fromEntries(loadedSkills.map(skill => [skill, skill])) }
+    else {
+      const loadedTypes = skillTypes(detail)
+      for (const skill of detailSkills.value) { const original = detailSkillOrigins.value[skill]; if (original && loadedTypes[original]) detailSkillTypes.value[skill] = loadedTypes[original] }
+    }
     detailReady.value = !detailConflict.value
     if (detailConflict.value) detailError.value = '完整详情与编辑前的技能不同，当前草稿已保留。为避免覆盖新数据，请放弃当前编辑并重新读取后再修改'
   } catch { if (currentDetail(session, job.id)) detailError.value = '岗位详情加载失败，重试后可保存技能' }
@@ -164,6 +178,8 @@ function openDetail(job: Job) {
   const session = ++detailSession
   detailJob.value = job
   detailSkills.value = [...(job.skills || [])]
+  detailSkillTypes.value = skillTypes(job)
+  detailSkillOrigins.value = Object.fromEntries((job.skills || []).map(skill => [skill, skill]))
   skillDirty.value = false
   addingSkill.value = false
   newSkill.value = ''
@@ -175,24 +191,21 @@ function openDetail(job: Job) {
 }
 function retryDetail() { if (detailJob.value && !detailLoading.value) return readDetail(detailJob.value, detailSession) }
 function discardAndReload() { if (detailJob.value) return openDetail(detailJob.value) }
-function startAddSkill() { newSkill.value = ""; addingSkill.value = true }
-function confirmAddSkill() { const s = newSkill.value.trim(); if (!s) return; if (!detailSkills.value.includes(s)) { detailSkills.value.push(s); skillDirty.value = true } newSkill.value = "" }
-function removeDetailSkill(index: number) { detailSkills.value.splice(index, 1); skillDirty.value = true }
+function startAddSkill() { newSkill.value = ""; newSkillType.value = ''; addingSkill.value = true }
+function confirmAddSkill() { const s = newSkill.value.trim(); if (!s) return; if (!newSkillType.value) { ElMessage.warning('请选择必备或加分类型'); return } if (!detailSkills.value.includes(s)) { detailSkills.value.push(s); detailSkillTypes.value[s] = newSkillType.value; skillDirty.value = true } newSkill.value = "" }
+function removeDetailSkill(index: number) { const [skill] = detailSkills.value.splice(index, 1); delete detailSkillOrigins.value[skill]; delete detailSkillTypes.value[skill]; skillDirty.value = true }
 function startEditSkill(index: number) { editingIndex.value = index; editValue.value = detailSkills.value[index] }
 function cancelEditSkill() { editingIndex.value = -1; editValue.value = "" }
-function confirmEditSkill() { if (editingIndex.value < 0) return; const idx = editingIndex.value; const old = detailSkills.value[idx]; const val = editValue.value.trim(); if (!val) { cancelEditSkill(); return } if (val !== old) { if (detailSkills.value.includes(val)) { ElMessage.warning("该技能已存在"); editValue.value = old; return } detailSkills.value[idx] = val; skillDirty.value = true } editingIndex.value = -1 }
+function confirmEditSkill() { if (editingIndex.value < 0) return; const idx = editingIndex.value; const old = detailSkills.value[idx]; const val = editValue.value.trim(); if (!val) { cancelEditSkill(); return } if (val !== old) { if (detailSkills.value.includes(val)) { ElMessage.warning("该技能已存在"); editValue.value = old; return } detailSkillOrigins.value[val] = detailSkillOrigins.value[old]; delete detailSkillOrigins.value[old]; detailSkillTypes.value[val] = detailSkillTypes.value[old]; delete detailSkillTypes.value[old]; detailSkills.value[idx] = val; skillDirty.value = true } editingIndex.value = -1 }
 async function saveSkills() {
   const job = detailJob.value
   if (!job || !detailVisible.value || !detailReady.value || savingSkills.value || !active) return
   const session = detailSession
   const version = editVersion
   const edited = [...detailSkills.value]
-  const oldRequired = job.required_skills || []
-  const oldBonus = job.bonus_skills || []
-  const removed = oldRequired.concat(oldBonus).filter(s => !edited.includes(s))
-  const added = edited.filter(s => !oldRequired.includes(s) && !oldBonus.includes(s))
-  const required = oldRequired.filter(s => !removed.includes(s)).concat(added)
-  const bonus = oldBonus.filter(s => !removed.includes(s))
+  if (edited.some(skill => !detailSkillTypes.value[skill])) { ElMessage.warning('存在类型待核实的技能，请先明确要求类型'); return }
+  const required = edited.filter(skill => ['required', 'both'].includes(detailSkillTypes.value[skill]))
+  const bonus = edited.filter(skill => ['bonus', 'both'].includes(detailSkillTypes.value[skill]))
   let finishWrite!: () => void
   pendingWrites.value.set(job.id, new Promise<void>(resolve => { finishWrite = resolve }))
   try {
@@ -201,6 +214,7 @@ async function saveSkills() {
     if (currentDetail(session, job.id)) {
       // 已提交基线与继续编辑的草稿分开，避免回读覆盖用户新输入。
       detailJob.value = { ...job, required_skills: required, bonus_skills: bonus, skills: edited }
+      for (const skill of edited) if (detailSkills.value.includes(skill)) detailSkillOrigins.value[skill] = skill
       if (version === editVersion) skillDirty.value = false
       ElMessage.success('技能已保存')
     }

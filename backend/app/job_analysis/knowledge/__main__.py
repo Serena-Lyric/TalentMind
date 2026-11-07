@@ -70,7 +70,7 @@ def build_parser():
         command.add_argument("--method", choices=("bounded", "context", "evidence", "work"), default="bounded")
         command.add_argument("--local-model", type=Path, help="explicit hash-bound local runtime manifest; never downloads")
         command.add_argument("--task-retriever", type=Path, help="explicit local ONNX priority manifest; evidence method only")
-        command.add_argument("--pairs-per-role", type=int, choices=(1, 2, 3), default=1)
+        command.add_argument("--pairs-per-role", type=int, default=1)
         command.add_argument("--output", required=True, type=Path)
     historical = commands.add_parser("read-attribution")
     historical.add_argument("--result", required=True, type=Path)

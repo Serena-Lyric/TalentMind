@@ -63,14 +63,15 @@ def run_demo(output, knowledge):
                     research_question='新责任是否构成可解释的局部扩展？', core_work=[dict(analysis_sha256=digest(a), claim_id='d1')])])
     apply([b], [dict(op='link', candidate_id='work-orders', analysis_sha256=digest(b), work_ids=['d1', 'd2'],
                     reason='显式合成局部扩展，不是系统已确认同组')])
-    apply([c])
+    apply([c], [dict(op='link', candidate_id='work-orders', analysis_sha256=digest(c), work_ids=['d1'],
+                    reason='显式合成误关联供撤回验证；自动研究不允许传递并组')])
     old = next(r for r in states[-1]['work']['relations'].values() if r['jd_id'] == 'new-support')
     apply([a], [dict(op='correct', relation_id=old['id'], expected_sha256=digest(old), decision='weakens',
                     reason='合成反证收窄局部扩展', verification=None,
                     counterevidence=[dict(analysis_sha256=digest(a), claim_id='d1')])])
     other = next(r for r in states[-1]['work']['relations'].values() if r['jd_id'] == 'scope-check')
     apply([a], [dict(op='correct', relation_id=other['id'], expected_sha256=digest(other), decision='withdraw',
-                    reason='撤回字面命中的未审提议', verification=None)])
+                    reason='撤回显式合成的未审提议', verification=None)])
     apply([a])
     loaded = load_snapshot(knowledge)
     updated = loaded.snapshot.model_dump()
@@ -86,18 +87,20 @@ def run_demo(output, knowledge):
     cli('read', '--state', state, '--id', 'batch-2', '--output', root / 'historical')
     old_read = json.loads((root / 'historical/batch-2.json').read_text(encoding='utf-8'))
     head = cli('head', '--state', state)['binding']
-    pairs = [p for m in states[2]['work']['report']['searches'][0]['matches'] for p in m['pairs']]
+    search = states[2]['work']['report']['searches'][0]
+    pairs = [p for m in search['candidate_checks']['work-orders']['members'] for p in m['comparisons']]
     core = dict(analysis_sha256=digest(b), claim_id='d2')
     summary = dict(batches=len(states), input_jd_identities=3,
                    research_versions=[s['work']['candidates']['work-orders']['research']['version'] for s in states],
                    third_batch_used_new_work=any(p['core_reference'] == core for p in pairs),
+                   transitive_automatic_link_rejected=not search['matches'],
                    counterevidence_narrowed_scope=core not in states[3]['work']['candidates']['work-orders']['research']['comparison_work'],
                    exact_retry_kept_head=head == states[-1]['work']['binding'], historical_readback=old_read == states[1],
                    knowledge_changed_without_p1_change=(states[-1]['items'][0]['analysis'] == a and
                        states[-1]['knowledge'] != states[-2]['knowledge']), stopped_then_resumed=states[-1]['status'] == 'completed',
                    real_human_grouping_denominator=0, real_semantic_accuracy=None, independent_sources=None, vacancies=None,
                    explicit_inputs=['create', 'link', 'correct', 'knowledge_update'],
-                   automatic=['P2-1 alignment/limited comparison', 'literal retrieval', 'research projection', 'historical replay'])
+                   automatic=['P2-1 alignment/limited comparison', 'bounded direct-member comparison', 'research projection', 'historical replay'])
     if not all(summary[k] for k in ('third_batch_used_new_work', 'counterevidence_narrowed_scope', 'exact_retry_kept_head',
                                     'historical_readback', 'knowledge_changed_without_p1_change', 'stopped_then_resumed')):
         raise ValueError('integrated sequence self-check failed')

@@ -40,13 +40,15 @@ def test_three_batches_use_effective_duties_then_withdraw_and_replay(tmp_path):
         assert all(p["core_reference"] != ref(second, "d2") for m in two["report"]["searches"][0]["matches"] for p in m["pairs"])
         assert [x["text"] for x in research(two)["shared_statements"]] == ["开发订单交易接口。"]
     with CandidateStore(path) as store:
-        three = apply(store, batch(store, "three", [third]), [third])
+        three = apply(store, batch(store, "three", [third], [dict(op="link", candidate_id="work-orders",
+                      analysis_sha256=digest(third), work_ids=["d1"], reason="显式加入用于纠正对照，不作为自动同组")]), [third])
         search = three["report"]["searches"][0]
         assert search["candidate_baselines"]["work-orders"]["research_sha256"] == digest(research(two))
-        assert any(p["core_reference"] == ref(second, "d2") for m in search["matches"] for p in m["pairs"])
+        assert any(p["core_reference"] == ref(second, "d2") for m in search["lexical_matches"] for p in m["pairs"])
+        assert search["matches"] == []  # direct comparisons reject the transitive lead
         assert relation(three, "c")["state"] == "pending_review"
         assert research(three)["shared_statements"] == []  # chain never proves a common group
-        assert research(three)["semantic_validation"] == "not_run"
+        assert research(three)["semantic_validation"] == "bounded_machine_comparison"
         four = apply(store, batch(store, "four", operations=[correction(relation(three, "b")), correction(relation(three, "c"))]))
         assert ref(second, "d2") not in research(four)["comparison_work"]
         assert "库存" not in research(four)["description"]
@@ -62,7 +64,9 @@ def test_automatic_local_scope_does_not_invent_shared_core_and_counterevidence_n
     b = duties("b", ["使用 Java 讲授编程课程。"])
     with CandidateStore(tmp_path / "s.db", create=True) as store:
         one = apply(store, batch(store, "one", [a], [create(a)]), [a])
-        two = apply(store, batch(store, "two", [b]), [b])
+        two = apply(store, batch(store, "two", [b], [dict(op="link", candidate_id="work-orders",
+                    analysis_sha256=digest(b), work_ids=["d1"], reason="显式误关联用于反证控制")]), [b])
+        assert two["report"]["searches"][0]["matches"] == []
         assert research(two)["shared_statements"] == []
         assert relation(two, "b")["state"] == "pending_review"
         assert {e["jd_id"] for e in research(two)["member_explanations"]} == {"a", "b"}
@@ -218,7 +222,8 @@ def test_suggestions_bind_exact_versions_without_trusted_confirmation(tmp_path):
     a, b = duties("a", ["使用 Java 开发订单接口。"]), duties("b", ["使用 Java 讲授编程课程。"])
     with CandidateStore(tmp_path / "s.db", create=True) as store:
         apply(store, batch(store, "one", [a], [create(a)]), [a])
-        two = apply(store, batch(store, "two", [b]), [b])
+        two = apply(store, batch(store, "two", [b], [dict(op="link", candidate_id="work-orders",
+                    analysis_sha256=digest(b), work_ids=["d1"], reason="显式误关联供拆分建议检查")]), [b])
         suggestion = next(s for s in two["structural_suggestions"] if s["kind"] == "review_split")
         checked = check_suggestion(store, suggestion["id"], two["binding"])
         assert checked["confirmation"] == "unavailable_no_trusted_identity"

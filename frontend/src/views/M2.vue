@@ -1,375 +1,93 @@
 <template>
-  <div class="m2-page">
-    <header class="m2-heading"><div><span class="eyebrow">M2 · 历史 JD 分析</span><h1>岗位分析工作台</h1><p>冻结输入，逐条分析，保留证据与未决原因。</p></div><el-button @click="refresh" :loading="refreshing">刷新任务</el-button></header>
-    <el-alert title="本地受控预览：MySQL 只读，结果保存在独立 SQLite。前端演示登录不构成生产身份授权。" type="info" :closable="false" show-icon />
-    <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon class="gap" />
-
-    <section class="m2-card gap" aria-label="选择真实 JD">
-      <h2>1. 选择并冻结输入 <small>历史库 {{ catalog?.total ?? '—' }} 条 · 本轮不采集招聘网站</small></h2>
-      <div class="selection-grid">
-        <label>输入范围<el-select v-model="cohort" aria-label="输入范围"><el-option label="历史库自选" value="history" /><el-option v-for="c in catalog?.cohorts || []" :key="c.name" :label="c.name === 'main120' ? '此前主集成员 · 120 条' : '此前留出成员 · 60 条'" :value="c.name" :disabled="!c.available" /></el-select></label>
-        <label>来源平台<el-select v-model="sources" multiple clearable placeholder="全部来源（包括异常来源）" :disabled="cohort !== 'history'" aria-label="来源平台"><el-option v-for="s in catalog?.sources.filter(s => s.source) || []" :key="s.source!" :label="`${s.source} · ${s.total}`" :value="s.source!" /></el-select></label>
-        <label>起始 JD ID<el-input-number v-model="idMin" :min="1" :controls="false" :disabled="cohort !== 'history'" placeholder="不限" aria-label="起始 JD ID" /></label>
-        <label>结束 JD ID<el-input-number v-model="idMax" :min="1" :controls="false" :disabled="cohort !== 'history'" placeholder="不限" aria-label="结束 JD ID" /></label>
-        <label>最多读取数量<el-input-number v-model="limit" :min="1" :max="5000" :disabled="cohort !== 'history'" aria-label="最多读取数量" /></label>
-        <el-button type="primary" :disabled="mutating || !catalog" @click="createRun">创建冻结任务</el-button>
-      </div>
-      <p class="muted">按 ID 升序有界读取。主集/留出选项读取此前固定成员的当前 MySQL 内容，记录与旧快照的差异；版本重放使用本任务已冻结的原始字节。</p>
+  <main class="m2-page page">
+    <header><div><h1>岗位分析工作台</h1><p>选择已有 JD，冻结输入后显式开始。机器事实、知识解释与研究候选保留各自来源和版本。</p></div><el-button :loading="refreshing" @click="refresh">刷新列表</el-button></header>
+    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+    <section class="surface">
+      <h2>选择本次输入</h2><p>已选 {{ selectedJdIds.length }} 条；选中仅确定输入，创建任务不会自动执行。</p>
+      <el-alert v-if="inputError" :title="inputError" type="error" :closable="false"><el-button text @click="changeInputPage(inputPage)">重试第 {{inputPage}} 页</el-button></el-alert>
+      <el-table v-loading="inputsLoading" :data="inputs" row-key="jd_id" stripe>
+        <el-table-column label="选择" width="68"><template #default="{row}"><el-checkbox :model-value="selectedJdIds.includes(Number(row.jd_id ?? row.id))" :aria-label="`选择 JD ${row.jd_id ?? row.id}`" @change="toggleInput(Number(row.jd_id ?? row.id))" /></template></el-table-column>
+        <el-table-column label="JD ID" width="95"><template #default="{row}">{{row.jd_id ?? row.id}}</template></el-table-column>
+        <el-table-column label="岗位原始标题" min-width="190"><template #default="{row}">{{row.title || row.job_title || '未提供标题'}}</template></el-table-column>
+        <el-table-column prop="source" label="来源" width="120" />
+        <el-table-column label="原文" width="100"><template #default="{row}"><el-button link @click="sourcePreview=row">查看原文</el-button></template></el-table-column>
+      </el-table>
+      <div class="actions"><el-pagination :current-page="inputPage" :page-size="20" :total="inputTotal" layout="prev,pager,next,total" @current-change="changeInputPage" /><el-button type="primary" :loading="mutating" :disabled="!selectedJdIds.length" @click="createRun">冻结所选输入</el-button><el-button v-if="selectedJdIds.length" @click="selectedJdIds=[]">清空选择</el-button></div>
+      <p v-if="selectedJdIds.length" class="muted">已选 ID：{{selectedJdIds.join('、')}}</p>
     </section>
-
-    <section class="m2-card gap" aria-label="分析任务">
-      <div class="section-heading"><h2>2. 显式启动分析</h2><el-select :model-value="selectedId" @change="selectRun" placeholder="选择历史任务" class="history-select" aria-label="历史任务"><el-option v-for="r in history" :key="r.run_id" :value="r.run_id" :label="`${r.created_at.slice(0,19)} · ${statusText(r.status)} · ${r.run_id.slice(0,8)}`" /></el-select></div>
+    <section class="surface">
+      <div class="actions"><h2>运行与版本</h2><el-select :model-value="selectedId" placeholder="选择新版运行" @change="selectRun"><el-option v-for="run in history" :key="run.run_id" :value="run.run_id" :label="`${run.created_at || run.run_id} · ${label(run.status)} · ${originLabel(run.history_origin)}`" /></el-select></div>
       <template v-if="selected">
-        <div class="run-meta"><code>{{ selected.run_id }}</code><el-tag :type="tagType(selected.status)">{{ statusText(selected.status) }}</el-tag><span v-if="selected.reason">原因：{{ statusText(selected.reason) }}</span></div>
-        <el-button :disabled="mutating || !['completed','completed_with_issues'].includes(selected.status)" :loading="graphLoading" @click="openGraph">生成 / 查看本次候选图谱</el-button>
-        <div class="actions"><el-button type="primary" :disabled="!canStart" :loading="mutating" @click="startRun">{{ ['stopped','interrupted','publication_failed'].includes(selected.status) ? '恢复分析' : '开始分析' }}</el-button><el-button :disabled="mutating || !['running','stopping','queued'].includes(selected.status)" @click="stopRun">停止分析</el-button><el-input v-model="revision" aria-label="重放版本" placeholder="版本，例如 v2" class="revision" /><el-button :disabled="mutating || active" @click="replayRun">创建版本重放</el-button><el-button :disabled="!selected.finished_at || mutating" @click="downloadReport">下载本地完整报告</el-button></div>
-        <p class="muted">停止在阶段边界生效；已提交结果保留。全部输出仍受规则覆盖和人工审核限制。{{ active ? '任务执行中，请勿关闭后端。' : '' }}</p>
-        <div class="stat-grid"><div><strong>{{ selected.summary.input_total }}</strong><span>输入 JD 总量</span></div><div><strong>{{ selected.summary.finalized }}</strong><span>已有最终去向</span></div><div><strong>{{ selected.summary.stage_complete }}</strong><span>四阶段已走完</span></div><div><strong>{{ selected.summary.final_counts.needs_review || 0 }}</strong><span>机器待复核</span></div><div><strong>{{ selected.summary.review?.reviewed_items || 0 }}</strong><span>人工已提交</span></div><div><strong>{{ selected.summary.review?.unreviewed_items ?? selected.summary.input_total }}</strong><span>人工未提交</span></div><div><strong>{{ selected.summary.final_counts.failed || 0 }}</strong><span>真正执行失败</span></div><div><strong>{{ selected.summary.final_counts.input_invalid || 0 }}</strong><span>输入不可解析</span></div></div>
-        <el-progress :percentage="Math.round(100 * selected.summary.finalized / selected.summary.input_total)" :stroke-width="8" />
-        <p class="metric-note">进度仅表示工程处理覆盖，不是语义准确率。B2“完整”也仅限已知别名和受支持句式；不代表开放域识别完整。</p>
-        <div class="summary-grid"><article v-for="(metrics, stage) in stageMetrics" :key="stage"><h3>{{ stageLabels[stage] }}</h3><dl><template v-for="(value, key) in metrics" :key="key"><dt>{{ metricText(String(key), String(stage)) }}</dt><dd>{{ typeof value === 'number' ? value : statusText(String(value)) }}</dd></template></dl></article></div>
-        <el-collapse><el-collapse-item title="输入、版本与本地产物" name="provenance"><p>输入 SHA-256：<code>{{ selected.input_sha256 }}</code></p><pre>{{ pretty({ versions: selected.versions, provenance: selected.provenance, artifacts: selected.artifacts, parent_run_id: selected.parent_run_id }) }}</pre></el-collapse-item></el-collapse>
-        <el-table :data="pageItems" stripe class="gap" aria-label="逐条 JD 结果"><el-table-column prop="jd_id" label="JD ID" width="90" /><el-table-column prop="source" label="来源" width="95" /><el-table-column label="身份" width="110"><template #default="{ row }"><el-tag effect="plain">{{ identityText(row.identity_status) }}</el-tag></template></el-table-column><el-table-column prop="title" label="原始标题" min-width="200" show-overflow-tooltip /><el-table-column label="机器去向" width="130"><template #default="{ row }"><el-tag :type="tagType(row.final_status)">{{ statusText(row.final_status) }}</el-tag></template></el-table-column><el-table-column label="人工审核" width="115"><template #default="{ row }">{{ statusText(row.human_review?.decision || 'unreviewed') }}</template></el-table-column><el-table-column v-for="stage in stages" :key="stage" :label="stageLabels[stage]" width="108"><template #default="{ row }">{{ statusText(row.stages[stage].status) }}</template></el-table-column><el-table-column label="证据" width="65"><template #default="{ row }">{{ row.evidence.matched }}</template></el-table-column><el-table-column label="详情" width="90" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="inspectItem(row.ordinal)">查看</el-button></template></el-table-column></el-table>
-        <el-pagination v-model:current-page="page" :page-size="20" :total="selected.items.length" layout="prev, pager, next, total" class="gap" />
-      </template><el-empty v-else description="创建冻结任务或选择历史任务，然后显式开始分析。" />
+        <p class="binding">运行 {{selected.run_id}} · {{label(selected.status)}}<br />请求摘要 {{selected.request_sha256 || '尚未生成'}}<br />知识版本 {{selected.knowledge?.sha256 || '尚未加载'}}</p>
+        <p>来源身份：{{originLabel(selected.history_origin)}}{{selected.execution_available===false ? '（只读历史）' : ''}}。每条核心职责分别形成待研究候选；自动检索不表示已确认同组。</p>
+        <el-alert v-if="selected.reason" :title="selected.reason" type="warning" :closable="false" />
+        <div class="actions"><el-button type="primary" :disabled="mutating || (!['queued','prepared'].includes(selected.status) || selected.execution_active || selected.execution_available===false)" @click="startRun">开始分析</el-button><el-button :disabled="mutating || !active || selected.execution_available===false" @click="stopRun">停止</el-button><el-button :disabled="mutating || selected.execution_active || selected.execution_available===false || !['stopped','interrupted','candidate_failed','failed'].includes(selected.status)" @click="resumeRun">恢复本次运行</el-button><el-button :disabled="mutating || active || selected.execution_available===false || ['completed','abandoned'].includes(selected.status)" @click="abandonRun">放弃此任务（保留结果）</el-button><el-button :loading="graphLoading" :disabled="!selected.items.some(item=>item.analysis)" @click="openGraph">查看本版本研究图</el-button><router-link :to="{path:'/evolution',query:{run:selected.run_id}}">查看研究历史</router-link></div>
+        <p>处理结果：<span v-for="(count,status) in selected.counts" :key="status">{{label(String(status))}} {{count}}　</span></p>
+        <el-alert title="执行完成不代表语义全部确认。部分维度缺失时，已保存事实仍可读取；研究候选不自动成为匹配目标或正式职业。" type="info" :closable="false" />
+        <el-table :data="selected.items" stripe @row-click="openItem"><el-table-column label="输入" min-width="180"><template #default="{row}">{{row.analysis?.input_row?.job_title || row.row?.job_title || row.input?.job_title || row.jd_id}}<small>{{row.namespace}} · JD {{row.jd_id}}</small></template></el-table-column><el-table-column label="状态" width="140"><template #default="{row}">{{label(row.status)}}</template></el-table-column><el-table-column label="事实 / 限制" min-width="160"><template #default="{row}">{{row.analysis ? `${row.analysis.claims.length} 条事实` : '暂无已提交事实'}}<small>{{row.reason || row.error || ''}}</small></template></el-table-column><el-table-column label="阅读" width="100"><template #default="{row}"><el-button link type="primary" @click.stop="openItem(row)">事实与证据</el-button></template></el-table-column></el-table>
+        <h3>工作候选研究</h3><p v-if="!selected.work">候选研究尚未形成可读快照，已完成事实见上方列表。</p>
+        <template v-else><p>研究版本 {{selected.work.binding?.revision ?? selected.work.revision ?? '未提供'}}；绑定 {{selected.work.binding?.sha256 || '见完整记录'}}。关联按保存的研究方法与证据阅读，不表示已确认同组。</p><details v-for="(candidate,id) in selected.work.candidates || {}" :key="id"><summary>{{candidate.description || candidate.name || candidate.label || id}} · {{label(candidate.status || 'candidate')}} · 研究版本 {{candidate.research?.version ?? '未提供'}}</summary><p>{{candidate.description}}</p><p>研究问题：{{candidate.research_question || '未提供'}}</p><p>未决：{{(candidate.unresolved || []).join('；') || '未提供独立审核结论'}}</p><details><summary>来源、研究解释与全部候选记录</summary><pre>{{pretty(candidate)}}</pre></details></details><details><summary>完整研究快照（来源、反证、未决与版本）</summary><pre>{{pretty(selected.work)}}</pre></details></template>
+        <details><summary>本次实际依赖、阶段诊断和持久化版本</summary><pre>{{pretty({dependencies:selected.dependencies,stage_results:selected.stage_results,knowledge:selected.knowledge,skill_candidates:selected.skill_candidates,knowledge_projection:selected.knowledge_projection})}}</pre></details>
+      </template><el-empty v-else description="选择已保存运行，或冻结所选 JD 创建运行。" />
     </section>
-
-    <el-drawer v-model="drawer" title="JD 原文、阶段结果与证据" size="min(100%, 1080px)" destroy-on-close>
-      <p v-if="detailLoading">正在读取本地冻结证据…</p>
-      <template v-if="detail"><div class="run-meta"><strong>JD {{ detail.jd_id }} · {{ detail.source ?? '来源缺失' }}</strong><el-tag>{{ statusText(detail.final_status) }}</el-tag><el-tag effect="plain">{{ identityText(detail.identity_status) }}</el-tag></div><h2>{{ detail.title ?? '标题缺失' }}</h2><p>处理原因：{{ statusText(detail.reason || 'pending') }}</p><p class="metric-note">正式统计资格：关闭。B1 未同时满足“有效、范围内”的输入，其后续语义仅为候选证据，不确认为独立岗位需求。</p><p class="muted">输入限制：{{ detail.warnings.map(statusText).join('；') }}</p>
-        <el-tabs v-model="detailTab">
-          <el-tab-pane label="冻结原文" name="source"><h3>来源记录</h3><pre>{{ pretty({ id: detail.jd_id, source: detail.source, source_detail: detail.input?.source_detail, identity_status: detail.identity_status, content_eligible: detail.content_eligible, identity_evidence: detail.identity_evidence, crawled_at: detail.input?.crawled_at, sha256: detail.input_sha256 }) }}</pre><h3>raw_text</h3><pre class="source-text">{{ detail.input?.raw_text ?? '缺失（SQL NULL 或字段不存在）' }}</pre><el-collapse><el-collapse-item title="其他原始字段（保留空值）"><pre>{{ pretty(detail.input) }}</pre></el-collapse-item></el-collapse></el-tab-pane>
-          <el-tab-pane v-for="stage in stages" :key="stage" :label="stageLabels[stage]" :name="stage"><p>阶段：{{ statusText(detail.stages[stage].status) }} · {{ statusText(detail.stages[stage].reason || '') }}</p><p>规则版本：<code>{{ detail.stages[stage].version_id ?? '尚未执行' }}</code></p>
-            <template v-if="stage === 'b1' && detail.stages.b1.result"><el-descriptions :column="1" border><el-descriptions-item label="有效性">{{ statusText(detail.stages.b1.result.validity) }}</el-descriptions-item><el-descriptions-item label="范围">{{ statusText(detail.stages.b1.result.scope_status || 'not_applicable') }}</el-descriptions-item><el-descriptions-item label="说明">{{ detail.stages.b1.result.explanation }}</el-descriptions-item><el-descriptions-item label="复核原因">{{ detail.stages.b1.result.review_reasons.join('；') || '无额外复核项' }}</el-descriptions-item></el-descriptions></template>
-            <template v-if="stage === 'b2' && detail.stages.b2.result?.body"><p>覆盖：{{ statusText(detail.stages.b2.result.status) }}；识别结果：{{ statusText(detail.stages.b2.result.body.outcome) }}</p><el-table :data="detail.stages.b2.result.body.statements" stripe><el-table-column label="技能" width="150"><template #default="{ row }">{{ row.skills.map((s: any) => s.name).join(' / ') }}</template></el-table-column><el-table-column label="五态" width="105"><template #default="{ row }">{{ statusText(row.state) }}</template></el-table-column><el-table-column prop="reason" label="规则原因" min-width="180" /><el-table-column prop="evidence.quote" label="原文引文" min-width="260" /></el-table><p v-if="!detail.stages.b2.result.body.statements.length">本规则未识别到技能，不代表原文没有技能。</p></template>
-            <template v-if="stage === 'b22' && detail.stages.b22.result?.body"><p>规范化技能 {{ detail.stages.b22.result.body.skills.length }}；候选 {{ detail.stages.b22.result.body.candidates.length }}；未解决片段 {{ detail.stages.b22.result.body.unresolved_fragments.length }}。候选准入关闭。</p><el-table :data="detail.stages.b22.result.body.candidates"><el-table-column prop="raw_name" label="候选原名" /><el-table-column label="审核原因"><template #default="{ row }">{{ row.review_reasons.join('；') }}</template></el-table-column><el-table-column prop="evidence.quote" label="来源证据" /></el-table></template>
-            <template v-if="stage === 'b3' && detail.stages.b3.result?.body"><p>分类状态：{{ statusText(detail.stages.b3.result.body.resolution) }}；全部待审核，标准岗位尚未发布。</p><p>原因：{{ detail.stages.b3.result.body.reasons.join('；') || '有限职责规则建议，等待人工审核' }}</p><el-table :data="detail.stages.b3.result.body.candidates"><el-table-column prop="family_id" label="职业大类候选" /><el-table-column label="职责证据"><template #default="{ row }">{{ row.clues.map((c: any) => c.evidence.quote).join('；') }}</template></el-table-column></el-table></template>
-            <h3>原文位置与审核上下文</h3><p class="muted">位置为 Python 字符索引 [start,end)，对应冻结字段；引文匹配只证明可回源，不证明语义正确。</p><div v-for="(ev, index) in evidenceRows(detail.stages[stage].result)" :key="index" class="evidence-row"><code>{{ ev.field }} [{{ ev.start }}, {{ ev.end }})</code><blockquote>{{ ev.quote }}</blockquote></div><el-empty v-if="!evidenceRows(detail.stages[stage].result).length" description="当前阶段没有可展示的原文引文；查看阶段原因。" /><el-collapse><el-collapse-item title="完整阶段 JSON（含组合、上下文、复核原因与原生运行 ID）"><pre>{{ pretty(detail.stages[stage]) }}</pre></el-collapse-item></el-collapse>
-          </el-tab-pane>
-        </el-tabs>
-        <section class="review-panel gap" aria-label="人工复核">
-          <div class="section-heading"><div><h2>人工复核</h2><p class="muted">人工结论单独追加保存，不覆盖机器预测、原文或历史报告。</p></div><el-button :disabled="!selected || !detail || reviewExporting" :loading="reviewExporting" @click="downloadReviews">导出人工审核 JSON</el-button></div>
-          <p>自动状态：<el-tag :type="tagType(detail.final_status)">{{ statusText(detail.final_status) }}</el-tag> · 最近事件决定：<el-tag effect="plain">{{ statusText(detail.human_review?.decision || 'unreviewed') }}</el-tag></p>
-          <p>机器结果摘要：<code>{{ detail.machine_sha256 || '尚未生成' }}</code></p>
-          <p class="muted">逐项有效事件 {{ detail.human_effective?.annotation_event_count || 0 }} / {{ detail.human_effective?.event_count || 0 }}；旧 JD 级事件 {{ detail.human_effective?.legacy_review_count || 0 }}。</p>
-          <el-alert v-if="hasLegacyOnlyReview" title="当前只有旧 JD 级审核决定，没有逐项人工真值；历史决定仍保留，但不会被当作 B1/B2/B3 标签。" type="warning" :closable="false" />
-          <el-alert v-else-if="!hasDimensionTruth && detail.reviews?.length" title="当前只有未带维度标签的人工事件，尚无 B1/B2/B3 有效逐项真值。" type="info" :closable="false" />
-          <div class="review-form">
-            <label>审核决定<el-select v-model="reviewDecision" placeholder="选择人工决定"><el-option label="接受机器结果" value="accepted" /><el-option label="拒绝机器结果" value="rejected" /><el-option label="需要继续核对" value="needs_followup" /></el-select></label>
-            <label>审核人<el-input v-model="reviewReviewer" maxlength="80" placeholder="必须由实际审核人填写" /></label>
-            <label class="review-note">备注<el-input v-model="reviewNote" type="textarea" :rows="3" maxlength="4000" show-word-limit placeholder="记录判断依据、需要修正的内容或待补证据" /></label>
-            <el-button type="primary" :disabled="!canSubmitReview" :loading="reviewSaving" @click="submitReview">记录人工判断</el-button>
-          </div>
-          <div class="review-dimension" aria-label="B1 范围人工标签">
-            <h3>B1 范围人工真值</h3>
-            <div v-if="detail.human_effective?.b1_scope" class="effective-result"><strong>有效：{{ statusText(detail.human_effective.b1_scope.scope_status) }}</strong><small>{{ detail.human_effective.b1_scope.note || '无备注' }}</small><small>{{ provenanceText(detail.human_effective.b1_scope.provenance) }}</small></div>
-            <div class="review-label-grid">
-              <label>人工范围判断<el-select v-model="reviewScopeStatus" clearable placeholder="未填写"><el-option label="范围内" value="in_scope" /><el-option label="范围外" value="out_of_scope" /><el-option label="范围待审" value="needs_review" /><el-option label="不适用" value="not_applicable" /></el-select></label>
-              <label>B1 依据<el-input v-model="reviewScopeNote" maxlength="1000" placeholder="仅记录人工判断依据" /></label>
-            </div>
-          </div>
-          <div class="review-dimension" aria-label="B2 技能陈述人工标签">
-            <h3>B2 技能陈述与要求状态人工真值</h3>
-            <p class="muted">机器五态与组合条件保持只读；人工列未填写时仍为“未审核”。</p>
-            <el-table v-if="b2ReviewRows.length" :data="b2ReviewRows" size="small" stripe>
-              <el-table-column prop="skill" label="机器技能" width="120" />
-              <el-table-column label="机器陈述" min-width="260"><template #default="{ row }"><span>{{ row.quote }}</span><small>{{ statusText(row.machine_state) }} · 组合 {{ row.relation || '单项' }}<template v-if="row.condition"> · 有上下文条件</template></small></template></el-table-column>
-              <el-table-column label="有效人工结果" width="230"><template #default="{ row }"><template v-if="effectiveB2Map.get(row.statement_id)"><strong>{{ statusText(effectiveB2Map.get(row.statement_id)!.human_state) }}</strong><small>{{ effectiveB2Map.get(row.statement_id)!.note || '无备注' }}</small><small>{{ provenanceText(effectiveB2Map.get(row.statement_id)!.provenance) }}</small></template><span v-else class="muted">未形成逐项真值</span></template></el-table-column>
-              <el-table-column label="新增 / 更正" width="135"><template #default="{ row }"><el-select v-model="humanStatementStates[row.key]" clearable placeholder="未填写"><el-option v-for="state in humanSkillStates" :key="state" :label="statusText(state)" :value="state" /></el-select></template></el-table-column>
-              <el-table-column label="人工依据" min-width="180"><template #default="{ row }"><el-input v-model="humanStatementNotes[row.key]" maxlength="1000" placeholder="可选" /></template></el-table-column>
-            </el-table>
-            <el-empty v-else description="当前机器结果没有可逐项标注的 B2 技能陈述。" />
-          </div>
-          <div class="review-dimension" aria-label="B3 大类候选人工标签">
-            <h3>B3 大类候选人工真值</h3>
-            <p class="muted">机器候选保持只读；可额外选择已登记大类，记录机器漏判候选。</p>
-            <label class="additional-family">补充机器漏判候选<el-select v-model="reviewAdditionalB3Family" clearable placeholder="未补充"><el-option v-for="family in familyOptions" :key="family.id" :label="family.label" :value="family.id" /></el-select></label>
-            <el-table v-if="b3ReviewRows.length" :data="b3ReviewRows" size="small" stripe>
-              <el-table-column label="大类" width="180"><template #default="{ row }">{{ row.label }}<small>{{ row.machine ? '机器候选' : '人工补充' }}</small></template></el-table-column>
-              <el-table-column prop="evidence" label="机器职责证据" min-width="280" />
-              <el-table-column label="有效人工结果" width="230"><template #default="{ row }"><template v-if="effectiveB3Map.get(row.family_id)"><strong>{{ statusText(effectiveB3Map.get(row.family_id)!.human_decision) }}</strong><small>{{ effectiveB3Map.get(row.family_id)!.note || '无备注' }}</small><small>{{ provenanceText(effectiveB3Map.get(row.family_id)!.provenance) }}</small></template><span v-else class="muted">未形成该项真值</span></template></el-table-column>
-              <el-table-column label="新增 / 更正" width="145"><template #default="{ row }"><el-select v-model="humanB3Decisions[row.family_id]" clearable placeholder="未填写"><el-option label="接受候选" value="accepted" /><el-option label="拒绝候选" value="rejected" /><el-option label="需要跟进" value="needs_followup" /></el-select></template></el-table-column>
-              <el-table-column label="人工依据" min-width="180"><template #default="{ row }"><el-input v-model="humanB3Notes[row.family_id]" maxlength="1000" placeholder="可选" /></template></el-table-column>
-            </el-table>
-          </div>
-          <el-alert v-if="detail.human_effective?.conflicts?.length" :title="`存在 ${detail.human_effective.conflicts.length} 项重复审核冲突；有效结果取最新事件，旧值和来源保留在下方历史。`" type="warning" :closable="false" />
-          <el-table v-if="detail.human_effective?.conflicts?.length" :data="detail.human_effective.conflicts" size="small" class="gap" aria-label="人工审核冲突"><el-table-column prop="dimension" label="维度" width="130" /><el-table-column prop="key" label="对象" min-width="120" /><el-table-column label="先前值" min-width="150"><template #default="{ row }">{{ conflictValue(row, 'previous') }}<small>{{ conflictProvenance(row, 'previous') }}</small></template></el-table-column><el-table-column label="最新有效值" min-width="150"><template #default="{ row }">{{ conflictValue(row, 'effective') }}<small>{{ conflictProvenance(row, 'effective') }}</small></template></el-table-column></el-table>
-          <el-alert title="审核提交只代表本机录入的自述判断，不验证人员身份，也不会把机器预测升级为已确认需求或正式岗位。" type="info" :closable="false" />
-          <el-table v-if="detail.reviews?.length" :data="detail.reviews" stripe class="gap" aria-label="人工审核历史"><el-table-column prop="reviewed_at" label="时间" min-width="180" /><el-table-column prop="reviewer" label="审核人" width="140" /><el-table-column label="决定" width="130"><template #default="{ row }">{{ statusText(row.decision) }}</template></el-table-column><el-table-column label="逐项标签" width="95"><template #default="{ row }">{{ annotationCount(row) }}</template></el-table-column><el-table-column prop="note" label="备注" min-width="220" /><el-table-column label="机器摘要" width="140"><template #default="{ row }"><code>{{ row.machine_sha256.slice(0, 12) }}…</code></template></el-table-column></el-table>
-          <el-empty v-else description="尚无人工审核事件；系统不会自动填写真值。" />
-        </section>
-      </template>
+    <section class="surface"><h2>旧版本历史（只读）</h2><p>保留原四阶段结果与人工记录的历史身份，不使用新模型重算。</p><el-select placeholder="选择历史运行" :model-value="legacyId" @change="selectLegacy"><el-option v-for="run in legacyHistory" :key="run.run_id" :value="run.run_id" :label="`${run.created_at || run.run_id} · ${label(run.status)} · ${originLabel(run.history_origin)}`" /></el-select><template v-if="legacy"><p>{{legacy.run_id}} · {{label(legacy.status)}} · 原版本 {{legacy.versions?.revision}}</p><el-table :data="legacy.items || []"><el-table-column prop="title" label="原岗位标题" /><el-table-column prop="jd_id" label="JD ID" /><el-table-column label="历史详情"><template #default="{row}"><el-button link @click="openLegacyItem(row.ordinal)">原输入、结果与审核历史</el-button></template></el-table-column></el-table><details><summary>原运行记录</summary><pre>{{pretty(legacy)}}</pre></details></template></section>
+    <CandidateMaintenance />
+    <el-drawer :model-value="!!detail" title="事实、知识解释与原文证据" size="min(1000px, 96vw)" @close="detail=null">
+      <template v-if="detail"><p>{{detail.namespace}} · JD {{detail.jd_id}} · {{label(detail.status)}}</p><template v-if="detail.analysis">
+        <p>分析 {{detail.analysis_sha256}} · 输入 {{detail.analysis.input_sha256}} · {{detail.analysis.input_version}}</p>
+        <div class="coverage"><span v-for="(value,key) in detail.analysis.coverage" :key="key"><b>{{label(String(key))}}：{{label(value.status)}}</b><small>{{value.reason}}</small></span></div>
+        <h3>原文事实与要求</h3><article v-for="claim in detail.analysis.claims" :key="claim.id" class="claim"><h4>{{label(claim.kind)}} · {{claim.text}}</h4><template v-if="claim.requirement"><p><el-tag>{{label(claim.requirement.state)}}</el-tag> {{label(claim.requirement.target)}} / {{label(claim.requirement.category || 'unknown')}}</p><p><strong>{{label(claim.requirement.combination)}}：</strong>{{claim.requirement.members.join(claim.requirement.combination==='any_of'?' 或 ':'、')}}<span v-if="claim.requirement.open_set">（开放集合，含其他选项）</span></p><p>程度：{{claim.requirement.degree || '未声明'}} · {{label(claim.requirement.degree_polarity || 'unknown')}}；条件：{{claim.requirement.condition || '无显式条件'}}</p><p>{{claim.requirement.reason}}</p></template><p>{{claim.reason}}</p><blockquote v-for="(e,index) in claim.evidence" :key="index">{{e.quote}}<small>{{e.field}} [{{e.start}}, {{e.end}}) · {{e.namespace}} / {{e.jd_id}}</small></blockquote><details v-if="claim.requirement?.scope_evidence?.length"><summary>要求作用域证据</summary><blockquote v-for="(e,index) in claim.requirement.scope_evidence" :key="index">{{e.quote}}<small>{{e.field}} [{{e.start}}, {{e.end}})</small></blockquote></details></article>
+        <el-empty v-if="!detail.analysis.claims.length" description="本次没有已保存事实；请结合各维度状态判断，不能推断原文没有要求。" />
+        <details><summary>职责与要求联系（含依据与不确定性）</summary><pre>{{pretty(detail.analysis.relations)}}</pre></details>
+        <h3>知识解释</h3><p v-if="!detail.alignment">该项知识解释未完成，原文事实仍可读。</p><article v-for="requirement in detail.alignment?.requirements || []" :key="requirement.claim_id" class="claim"><h4>事实 {{requirement.claim_id}}</h4><p v-for="(a,index) in requirement.alignments" :key="index">{{a.member}} → {{a.concept_name || '未对齐'}} · {{label(a.state)}} / {{label(a.knowledge_status)}}<small>{{a.reason}} · 知识来源 {{a.concept_source || 'unknown'}} · {{a.candidate_version_sha256 || detail.alignment?.knowledge_sha256}}</small></p></article>
+        <h3>技能候选与有效投影</h3><p>候选成熟度、争议和撤回状态不改写原 JD 要求。</p><p v-if="!Array.isArray(detail.skill_candidates)">本历史版本未记录技能候选治理结果；未按当前知识重新计算。</p><p v-else-if="!detail.skill_candidates.length">本项未生成新技能候选观察。</p><article v-for="candidate in skillCandidates" :key="candidate.candidate_id" class="claim"><h4>{{candidate.surface}} · {{label(candidate.status)}} · {{label(candidate.maturity)}} v{{candidate.version}}</h4><p>{{candidate.description}}</p><p>{{candidate.reason}}</p><p>证据质量：{{label(candidate.evidence_quality)}}；正式准入：未开放</p><details><summary>绑定观察与争议记录</summary><pre>{{pretty(candidate)}}</pre></details></article><p v-if="detail.knowledge_projection">有效知识投影 {{detail.knowledge_projection.projection?.revision}} · {{detail.knowledge_projection.sha256}}</p><details><summary>完整技能治理与投影记录</summary><pre>{{pretty({skill_candidates:detail.skill_candidates,knowledge_projection:detail.knowledge_projection})}}</pre></details><details><summary>岗位参考与归属限制</summary><pre>{{pretty({roles:detail.roles,role_assignment:detail.role_assignment})}}</pre></details>
+        <RoleResearch :research="detail.role_assignment" :claims="detail.analysis.claims" />
+        <h3>冻结原文</h3><pre>{{detail.analysis.input_row.raw_text || '原文未提供'}}</pre><details><summary>全部输入、分析版本与原始结果</summary><pre>{{pretty(detail)}}</pre></details>
+      </template><template v-else><el-alert :title="detail.reason || '尚未形成已提交分析；未执行、失败和未知均不等于没有要求。'" type="warning" :closable="false" /><pre>{{pretty(detail)}}</pre></template></template>
     </el-drawer>
-  </div>
+    <el-drawer :model-value="!!sourcePreview" title="所选来源原文" size="min(800px,95vw)" @close="sourcePreview=null"><pre>{{pretty(sourcePreview)}}</pre></el-drawer>
+    <el-drawer :model-value="!!legacyItem" title="旧版本原始结果（只读历史）" size="min(950px,96vw)" @close="legacyItem=null"><pre>{{pretty(legacyItem)}}</pre></el-drawer>
+  </main>
 </template>
-
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { createM2Run, exportM2Reviews, generateM2Graph, getM2Item, getM2Report, getM2Run, getM2Runs, getM2Sources, replayM2Run, reviewM2Item, startM2Run, stopM2Run, type M2EffectiveCategory, type M2EffectiveStatement, type M2History, type M2HumanAnnotations, type M2HumanReview, type M2HumanReviewConflict, type M2HumanSkillState, type M2Item, type M2ReviewDecision, type M2ReviewProvenance, type M2ReviewRequest, type M2Run, type M2Sources } from '../api/m2'
-
-interface B2ReviewRow {
-  key: string; skill_ids: string[]; statement_id: string; skill: string; quote: string
-  machine_state: string; relation: string | null; condition: string | null
-}
-interface B3ReviewRow {
-  family_id: string; label: string; machine: boolean; evidence: string
-}
-
-const catalog = ref<M2Sources | null>(null), history = ref<M2History[]>([]), selected = ref<M2Run | null>(null)
-const selectedId = ref(''), detail = ref<M2Item | null>(null), drawer = ref(false), detailLoading = ref(false), detailTab = ref('source')
-const sources = ref<string[]>([]), cohort = ref('history'), idMin = ref<number>(), idMax = ref<number>(), limit = ref(5), revision = ref('v1'), page = ref(1)
-const error = ref(''), refreshing = ref(false), mutating = ref(false)
-const graphLoading = ref(false)
-const reviewDecision = ref<M2ReviewDecision | ''>(''), reviewReviewer = ref(''), reviewNote = ref('')
-const reviewScopeStatus = ref<'' | 'in_scope' | 'out_of_scope' | 'needs_review' | 'not_applicable'>(''), reviewScopeNote = ref('')
-const reviewAdditionalB3Family = ref('')
-const humanStatementStates = reactive<Record<string, M2HumanSkillState | ''>>({})
-const humanStatementNotes = reactive<Record<string, string>>({})
-const humanB3Decisions = reactive<Record<string, M2ReviewDecision | ''>>({})
-const humanB3Notes = reactive<Record<string, string>>({})
-const reviewSaving = ref(false), reviewExporting = ref(false)
-const stages = ['b1','b2','b22','b3']
-const stageLabels: Record<string, string> = { b1:'B1 筛选', b2:'B2 语义', b22:'B2.2 治理', b3:'B3 候选', evidence:'证据审计', identity:'身份可信度', content:'内容资格', review:'人工复核' }
-let disposed = false, runRequest = 0, itemRequest = 0, timer: ReturnType<typeof setInterval> | undefined
-const active = computed(() => selected.value && ['running','stopping'].includes(selected.value.status))
-const canStart = computed(() => !mutating.value && selected.value && ['queued','stopped','interrupted','publication_failed'].includes(selected.value.status) && !history.value.some(r => ['running','stopping'].includes(r.status)))
-const pageItems = computed(() => selected.value?.items.slice((page.value - 1) * 20, page.value * 20) || [])
-const stageMetrics = computed(() => Object.fromEntries(['b1','b2','b22','b3','evidence','identity','content','review'].map(s => [s, (selected.value?.summary as any)?.[s] || {}])))
-const canSubmitReview = computed(() => !!detail.value?.machine_sha256 && ['completed','completed_with_issues'].includes(selected.value?.status || '') && !!reviewDecision.value && !!reviewReviewer.value.trim() && !reviewSaving.value)
-const humanSkillStates: M2HumanSkillState[] = ['required', 'preferred', 'mentioned', 'not_required', 'uncertain', 'not_skill']
-const familyOptions = [
-  { id: 'software_engineering', label: '软件研发' },
-  { id: 'test_quality_engineering', label: '测试与质量工程' },
-  { id: 'data_ai', label: '数据与人工智能' },
-  { id: 'infrastructure_operations', label: '基础设施与运维' },
-  { id: 'network_information_security', label: '网络与信息安全' },
-  { id: 'embedded_system_software', label: '嵌入式与系统软件' },
-  { id: 'technical_services_delivery', label: '技术服务与交付' },
-  { id: 'hardware_integrated_circuits', label: '硬件与集成电路' },
-]
-const b2ReviewRows = computed<B2ReviewRow[]>(() => {
-  const statements = detail.value?.stages.b2?.result?.body?.statements || []
-  const normalized = detail.value?.stages.b22?.result?.body?.skills || []
-  return statements.map((statement: any) => {
-    const skills = normalized.filter((skill: any) => (skill.statement_ids || []).includes(statement.id))
-    return {
-      key: statement.id, skill_ids: skills.map((skill: any) => skill.id), statement_id: statement.id,
-      skill: skills.map((skill: any) => skill.canonical || skill.raw_name).join(' / ')
-        || (statement.skills || []).map((skill: any) => skill.name).join(' / '),
-      quote: statement.evidence?.quote || '', machine_state: statement.state,
-      relation: statement.relation, condition: statement.condition,
-    }
-  })
-})
-const b3ReviewRows = computed<B3ReviewRow[]>(() => {
-  const candidates = detail.value?.stages.b3?.result?.body?.candidates || []
-  const rows: B3ReviewRow[] = candidates.map((candidate: any) => ({
-    family_id: candidate.family_id,
-    label: familyOptions.find(family => family.id === candidate.family_id)?.label || candidate.family_id,
-    machine: true,
-    evidence: (candidate.clues || []).map((clue: any) => clue.evidence?.quote).filter(Boolean).join('；'),
-  }))
-  const additionalFamilies = [
-    ...(detail.value?.human_effective?.b3_categories || []).map(category => category.family_id),
-    reviewAdditionalB3Family.value,
-  ]
-  for (const additional of additionalFamilies) {
-    if (additional && !rows.some(row => row.family_id === additional)) {
-      rows.push({ family_id: additional, label: familyOptions.find(family => family.id === additional)?.label || additional, machine: false, evidence: '机器未给出该大类候选；由人工补充待核。' })
-    }
-  }
-  return rows
-})
-const effectiveB2Map = computed(() => new Map<string, M2EffectiveStatement>(
-  (detail.value?.human_effective?.b2_statements || []).map(statement => [statement.statement_id, statement]),
-))
-const effectiveB3Map = computed(() => new Map<string, M2EffectiveCategory>(
-  (detail.value?.human_effective?.b3_categories || []).map(category => [category.family_id, category]),
-))
-const hasDimensionTruth = computed(() => detail.value?.human_effective?.has_dimension_truth === true)
-const hasLegacyOnlyReview = computed(() => (detail.value?.human_effective?.legacy_review_count || 0) > 0 && !hasDimensionTruth.value)
-const text: Record<string, string> = {
-  queued:'待开始', running:'执行中', stopping:'正在停止', stopped:'已停止', interrupted:'已中断，可恢复', publication_failed:'报告保存失败，可恢复', completed:'已完成', completed_with_issues:'处理结束，存在限制', pending:'待处理', saved:'已保存', blocked:'未执行', failed:'执行失败', processed:'完整处理', partial:'部分处理', needs_review:'机器待复核', input_invalid:'输入异常', required:'明确要求', preferred:'加分优先', mentioned:'仅提及', not_required:'明确不要求', uncertain:'待判断', not_skill:'非技能陈述', valid:'有效', invalid:'无效', undetermined:'待复核', not_evaluated:'未评估', not_applicable:'不适用', in_scope:'范围内', out_of_scope:'范围外', input_record_invalid:'原始字段不满足解析契约', historical_member_missing:'历史成员已不在当前库', user_requested_stop:'用户请求停止', process_interrupted:'后端进程中断', workflow_execution_failed:'编排执行失败，请检查本地服务', bounded_rules_and_pending_classification:'有限规则分析，分类/语义待人工复核', bounded_semantic_scope:'规则覆盖有限', skills_identified:'识别到技能陈述', no_recognized_skills:'本规则未识别技能', proposed:'已生成候选', unresolved:'未决', unknown:'无法分类', pending_review:'待审核', unreviewed:'人工未审核', accepted:'人工接受', rejected:'人工拒绝', needs_followup:'人工需跟进', missing_source:'来源缺失', missing_job_title:'标题缺失', missing_raw_text:'正文缺失', missing_duties:'无独立职责字段', missing_experience:'无独立经验字段', source_unrecognized:'来源未识别', historical_detail_completeness_not_verified:'历史记录的网页详情完整性未核验',
-}
-const metrics: Record<string,string> = {valid:'有效 JD',invalid:'无效 JD',undetermined:'有效性待复核',in_scope:'范围内 JD',out_of_scope:'范围外 JD',needs_review:'范围待复核 JD',not_applicable:'范围不适用 JD',not_evaluated:'未评估 JD',failed:'失败 JD',blocked:'未执行 JD',pending:'待处理 JD',running:'执行中 JD',completed:'受支持语法完整 JD',partial:'部分处理 JD',no_recognized_skills:'无已识别技能 JD',unresolved_jds:'有未决内容 JD',processed:'治理已处理 JD',candidate_jds:'有候选 JD',candidates:'候选项数',semantic_conflict_jds:'已检查的语义冲突 JD',catalog_conflict_assessment:'目录治理冲突评估',unresolved_fragments:'未解决片段数',pending_review:'待审核 JD',unable_to_classify:'无法分类 JD',outputs_with_evidence:'有原文引文的阶段输出',outputs_without_evidence:'无引文的阶段输出',matched_spans:'已匹配原文位置',invalid_spans:'位置校验异常',unparseable_jds:'不可解析 JD',statements_required:'明确要求陈述',statements_preferred:'加分优先陈述',statements_mentioned:'仅提及陈述',statements_not_required:'明确不要求陈述',statements_uncertain:'待判断陈述',total_items:'审核分母条目',reviewed_items:'人工已提交条目',unreviewed_items:'人工未提交条目'}
-function statusText(value: string) { return text[value] || value }
-function metricText(value: string, stage?: string) {
-  if (stage === 'identity') return identityText(value)
-  if (stage === 'content') return ({ eligible: '内容合格', ineligible: '内容不合格', unknown: '内容未知' } as Record<string, string>)[value] || value
-  return metrics[value] || statusText(value)
-}
-function identityText(value?: string | null) { return ({ verified: '身份已验证', pending: '身份待审', unknown: '身份未知' } as Record<string, string>)[value || ''] || '身份未知' }
-function tagType(value: string): 'danger' | 'warning' | 'success' | 'info' { return value === 'failed' ? 'danger' : ['needs_review','partial','input_invalid','completed_with_issues'].includes(value) ? 'warning' : ['processed','completed'].includes(value) ? 'success' : 'info' }
-function pretty(value: unknown) { return JSON.stringify(value, null, 2) }
-function message(e: any) { const detail = e?.response?.data?.detail; return typeof detail === 'string' ? detail : e instanceof Error ? e.message : '请求失败' }
-function evidenceRows(value: any) {
-  const found = new Map<string, any>()
-  function walk(node: any) {
-    if (!node || typeof node !== 'object') return
-    if (typeof node.quote === 'string' && typeof node.start === 'number' && typeof node.end === 'number' && node.field) found.set(JSON.stringify([node.field,node.start,node.end,node.quote]), node)
-    Object.values(node).forEach(walk)
-  }
-  walk(value); return [...found.values()]
-}
-function resetReviewAnnotations() {
-  reviewScopeStatus.value = ''; reviewScopeNote.value = ''; reviewAdditionalB3Family.value = ''
-  Object.keys(humanStatementStates).forEach(key => delete humanStatementStates[key])
-  Object.keys(humanStatementNotes).forEach(key => delete humanStatementNotes[key])
-  Object.keys(humanB3Decisions).forEach(key => delete humanB3Decisions[key])
-  Object.keys(humanB3Notes).forEach(key => delete humanB3Notes[key])
-}
-function annotationCount(review: M2HumanReview) {
-  const annotations = review.human_annotations
-  return (annotations?.b1_scope ? 1 : 0) + (annotations?.b2_statements?.length || 0) + (annotations?.b3_categories?.length || 0)
-}
-function provenanceText(provenance: M2ReviewProvenance) {
-  return `事件 #${provenance.review_id} (${provenance.event_sha256.slice(0, 12)}) · ${provenance.reviewer} · ${provenance.reviewed_at} · 机器 ${provenance.machine_sha256.slice(0, 12)}`
-}
-function conflictValue(conflict: M2HumanReviewConflict, side: 'previous' | 'effective') {
-  const value: any = conflict[side]
-  if (conflict.dimension === 'b1_scope') return statusText(value.scope_status)
-  if (conflict.dimension === 'b2_statement') return statusText(value.human_state)
-  return statusText(value.human_decision)
-}
-function conflictProvenance(conflict: M2HumanReviewConflict, side: 'previous' | 'effective') {
-  return provenanceText(conflict[side].provenance)
-}
-function saveRun(value: M2Run) {
-  selected.value = value; selectedId.value = value.run_id
-  history.value = [value, ...history.value.filter(r => r.run_id !== value.run_id)]
-}
-async function selectRun(id: string) {
-  const request = ++runRequest; ++itemRequest; selectedId.value = id; selected.value = null; detail.value = null; drawer.value = false; page.value = 1; error.value = ''
-  try { const value = await getM2Run(id); if (!disposed && request === runRequest) { selected.value = value; revision.value = value.versions.revision } }
-  catch (e) { if (!disposed && request === runRequest) error.value = message(e) }
-}
-async function refresh() {
-  if (refreshing.value || disposed) return
-  refreshing.value = true
-  const request = runRequest, id = selectedId.value
-  try {
-    const [sourceData, runs] = await Promise.all([getM2Sources(), getM2Runs()])
-    if (disposed) return
-    catalog.value = sourceData; history.value = runs
-    if (id && request === runRequest) { const value = await getM2Run(id); if (!disposed && request === runRequest && selectedId.value === id) selected.value = value }
-  } catch (e) { if (!disposed) error.value = message(e) }
-  finally { refreshing.value = false }
-}
-async function createRun() {
-  if (mutating.value) return
-  const preset = cohort.value !== 'history'
-  if (!preset && (!Number.isInteger(limit.value) || limit.value < 1 || limit.value > 5000 || (idMin.value != null && idMax.value != null && idMin.value > idMax.value))) { error.value = '请检查数量上限和 ID 范围'; return }
-  const request = ++runRequest
-  mutating.value = true; error.value = ''; ++itemRequest; detail.value = null; drawer.value = false
-  try { const value = await createM2Run({ sources: preset ? [] : sources.value, id_min: preset ? null : idMin.value ?? null, id_max: preset ? null : idMax.value ?? null, limit: preset ? cohort.value === 'main120' ? 120 : 60 : limit.value, cohort: cohort.value }); if (!disposed && request === runRequest) { saveRun(value); page.value = 1 } }
-  catch (e) { if (!disposed && request === runRequest) error.value = message(e) }
-  finally { mutating.value = false }
-}
-async function action(fn: (id: string) => Promise<M2Run>) {
-  if (!selected.value || mutating.value) return
-  const id = selected.value.run_id, request = ++runRequest
-  mutating.value = true; error.value = ''
-  try { const value = await fn(id); if (!disposed && request === runRequest && selectedId.value === id) saveRun(value) }
-  catch (e) { if (!disposed && request === runRequest) error.value = message(e) }
-  finally { mutating.value = false }
-}
-async function startRun() { if (canStart.value) await action(startM2Run) }
-async function openGraph() {
-  if (!selected.value || graphLoading.value || mutating.value || !['completed','completed_with_issues'].includes(selected.value.status)) return
-  const id = selected.value.run_id, request = runRequest
-  graphLoading.value = true; error.value = ''
-  try {
-    const graph = await generateM2Graph(id)
-    if (!disposed && request === runRequest && selectedId.value === id && graph.run_id === id) window.location.assign(graph.url)
-  } catch (e) { if (!disposed && selected.value?.run_id === id) error.value = message(e) }
-  finally { graphLoading.value = false }
-}
-async function stopRun() { await action(stopM2Run) }
-async function replayRun() { if (!active.value) await action(id => replayM2Run(id, revision.value)) }
-async function inspectItem(ordinal: number) {
-  if (!selected.value) return
-  const id = selected.value.run_id, request = ++itemRequest
-  detail.value = null; detailLoading.value = true; drawer.value = true; detailTab.value = 'source'; error.value = ''
-  reviewDecision.value = ''; reviewReviewer.value = ''; reviewNote.value = ''; resetReviewAnnotations()
-  try { const value = await getM2Item(id, ordinal); if (!disposed && request === itemRequest && selectedId.value === id) detail.value = value }
-  catch (e) { if (!disposed && request === itemRequest) error.value = message(e) }
-  finally { if (request === itemRequest) detailLoading.value = false }
-}
-async function submitReview() {
-  if (!selected.value || !detail.value || !canSubmitReview.value || !reviewDecision.value) return
-  const id = selected.value.run_id, ordinal = detail.value.ordinal, machine = detail.value.machine_sha256
-  const request = itemRequest
-  reviewSaving.value = true; error.value = ''
-  try {
-    const annotations: M2HumanAnnotations = {
-      b1_scope: reviewScopeStatus.value ? { scope_status: reviewScopeStatus.value, note: reviewScopeNote.value } : null,
-      b2_statements: b2ReviewRows.value.flatMap(row => humanStatementStates[row.key] ? [{
-        statement_id: row.statement_id, skill_ids: row.skill_ids,
-        human_state: humanStatementStates[row.key] as M2HumanSkillState,
-        note: humanStatementNotes[row.key] || '',
-      }] : []),
-      b3_categories: b3ReviewRows.value.flatMap(row => humanB3Decisions[row.family_id] ? [{
-        family_id: row.family_id,
-        human_decision: humanB3Decisions[row.family_id] as M2ReviewDecision,
-        note: humanB3Notes[row.family_id] || '',
-      }] : []),
-    }
-    const payload: M2ReviewRequest = {
-      decision: reviewDecision.value,
-      reviewer: reviewReviewer.value.trim(),
-      note: reviewNote.value,
-      machine_sha256: machine || '',
-    }
-    if (annotations.b1_scope || annotations.b2_statements.length || annotations.b3_categories.length) payload.annotations = annotations
-    const value = await reviewM2Item(id, ordinal, payload)
-    if (!disposed && request === itemRequest && selectedId.value === id && detail.value?.ordinal === ordinal) {
-      detail.value = value
-      reviewDecision.value = ''; reviewNote.value = ''; resetReviewAnnotations()
-      const refreshed = await getM2Run(id)
-      if (!disposed && request === itemRequest && selectedId.value === id) selected.value = refreshed
-    }
-  } catch (e) { if (!disposed && request === itemRequest) error.value = message(e) }
-  finally { reviewSaving.value = false }
-}
-async function downloadReviews() {
-  if (!selected.value || reviewExporting.value) return
-  const id = selected.value.run_id
-  reviewExporting.value = true; error.value = ''
-  try {
-    const value = await exportM2Reviews(id)
-    if (disposed) return
-    const url = URL.createObjectURL(new Blob([pretty(value)], { type: 'application/json;charset=utf-8' }))
-    const link = document.createElement('a'); link.href = url; link.download = `m2-reviews-${id}.json`; link.click(); URL.revokeObjectURL(url)
-  } catch (e) { if (!disposed) error.value = message(e) }
-  finally { reviewExporting.value = false }
-}
-async function downloadReport() {
-  if (!selected.value) return
-  try {
-    const report = await getM2Report(selected.value.run_id)
-    if (disposed) return
-    const url = URL.createObjectURL(new Blob([pretty(report)], { type: 'application/json;charset=utf-8' }))
-    const link = document.createElement('a'); link.href = url; link.download = `m2-${report.run_id}.json`; link.click(); URL.revokeObjectURL(url)
-  } catch (e) { if (!disposed) error.value = message(e) }
-}
-onMounted(async () => { await refresh(); if (!disposed) timer = setInterval(refresh, 2500) })
-onUnmounted(() => { disposed = true; ++runRequest; ++itemRequest; if (timer !== undefined) clearInterval(timer) })
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import CandidateMaintenance from '../components/CandidateMaintenance.vue'
+import RoleResearch from '../components/RoleResearch.vue'
+import { createDeliveryRun, getDeliveryInputs, getDeliveryRun, getDeliveryRuns, getDeliveryGraph, startDeliveryRun, stopDeliveryRun, resumeDeliveryRun, abandonDeliveryRun, getM2Runs, getM2Run, getM2Item, type DeliveryRun, type DeliveryItem, type DeliveryHistory, type DeliveryInput } from '../api/m2'
+const route=useRoute()
+const selected=ref<DeliveryRun|null>(null),selectedId=ref(''),history=ref<DeliveryHistory[]>([])
+const inputs=ref<DeliveryInput[]>([]),inputPage=ref(1),inputTotal=ref(0),selectedJdIds=ref<number[]>([]),inputError=ref(''),inputsLoading=ref(false)
+const detail=ref<DeliveryItem|null>(null),sourcePreview=ref<DeliveryInput|null>(null)
+const legacyHistory=ref<DeliveryHistory[]>([]),legacyId=ref(''),legacy=ref<Record<string,any>|null>(null),legacyItem=ref<Record<string,any>|null>(null)
+const error=ref(''),refreshing=ref(false),mutating=ref(false),graphLoading=ref(false)
+let disposed=false,epoch=0,inputEpoch=0,legacyEpoch=0,refreshEpoch=0,polling=false,timer:ReturnType<typeof setInterval>|undefined
+const skillCandidates=computed(()=>Array.isArray(detail.value?.skill_candidates)?detail.value.skill_candidates:[])
+const active=computed(()=>selected.value?.execution_active===true || ['running','stopping'].includes(selected.value?.status || ''))
+const words:Record<string,string>={queued:'待开始',abandoned:'已放弃（保留结果）',prepared:'输入已冻结，待开始',running:'执行中',stopping:'正在停止',stopped:'已停止',interrupted:'中断待恢复',completed:'处理结束',complete:'完整处理',partial:'部分结果',unknown:'未知',failed:'失败',not_run:'未执行',candidate_failed:'候选研究失败',required:'明确要求',preferred:'加分优先',mentioned:'仅提及',not_required:'明确不要求',uncertain:'待判断',single:'单项',any_of:'任选（OR）',all_of:'全部满足（AND）',unresolved:'尚未判断',goal:'工作目标',goals:'目标',object:'工作对象',objects:'对象',duty:'工作职责',duties:'职责',requirement:'要求',requirements:'要求',relations:'关联',classification:'归属',capability:'能力',experience:'经历',domain:'领域',education:'学历',tenure:'年限',certificate:'证书',technical_skill:'技术技能',professional_skill:'专业技能',engineering_practice:'工程实践',soft_skill:'软技能',affirmed:'肯定程度',negated:'否定该程度',candidate:'研究候选',test:'测试知识',formal:'正式知识',ambiguous:'歧义待研',exact_synonym:'确切名称对齐',observing:'持续观察',corroborated:'已有支持证据',disputed:'存在争议',withdrawn:'已撤回',source_independence_unverified:'来源独立性未核实',same_source_only:'仅同一来源',likely_republished:'可能转载',independent_consistent:'独立证据一致',total:'总条目'}
+function originLabel(value?:string){return ({web:'本机显式分析','sequence-head-final':'合成连续序列（非真实招聘趋势）','dev-head-final':'受控 DEV 历史分析（非独立验收）'} as Record<string,string>)[value || ''] || value || '来源性质未提供'}
+function label(value:string){return words[value] || value}
+function pretty(value:any){return JSON.stringify(value ?? null,null,2)}
+function message(e:any){return e?.response?.data?.detail || e?.message || String(e)}
+function toggleInput(id:number){selectedJdIds.value=selectedJdIds.value.includes(id)?selectedJdIds.value.filter(i=>i!==id):[...selectedJdIds.value,id]}
+async function changeInputPage(page:number){const token=++inputEpoch;inputPage.value=page;inputs.value=[];inputError.value='';inputsLoading.value=true;try{const result=await getDeliveryInputs((page-1)*20,20);if(!disposed&&token===inputEpoch){inputs.value=result.items;inputTotal.value=result.total}}catch(e){if(!disposed&&token===inputEpoch)inputError.value=`第 ${page} 页加载失败：${message(e)}`}finally{if(!disposed&&token===inputEpoch)inputsLoading.value=false}}
+async function refresh(){const token=++refreshEpoch;refreshing.value=true;await Promise.all([changeInputPage(inputPage.value),(async()=>{try{const rows=await getDeliveryRuns();if(!disposed&&token===refreshEpoch)history.value=rows}catch(e){if(!disposed&&token===refreshEpoch)error.value=message(e)}})(),(async()=>{try{const rows=await getM2Runs();if(!disposed&&token===refreshEpoch)legacyHistory.value=rows}catch(e){if(!disposed&&token===refreshEpoch)error.value=message(e)}})()]);if(!disposed&&token===refreshEpoch)refreshing.value=false}
+function invalidate(){epoch++;detail.value=null;graphLoading.value=false;error.value='';return epoch}
+async function selectRun(id:string){const token=invalidate();selectedId.value=id;selected.value=null;try{const run=await getDeliveryRun(id);if(!disposed&&token===epoch)selected.value=run}catch(e){if(!disposed&&token===epoch)error.value=message(e)}}
+async function createRun(){if(mutating.value||!selectedJdIds.value.length)return;const token=invalidate();mutating.value=true;try{const run=await createDeliveryRun({jd_ids:[...selectedJdIds.value]});if(!disposed&&token===epoch){selected.value=run;selectedId.value=run.run_id;history.value=[run,...history.value.filter(r=>r.run_id!==run.run_id)]}}catch(e){if(!disposed&&token===epoch)error.value=message(e)}finally{if(!disposed)mutating.value=false}}
+async function action(fn:(id:string)=>Promise<DeliveryRun>,statuses:string[]){if(mutating.value||!selected.value||selected.value.execution_available===false||!statuses.includes(selected.value.status))return;const token=++epoch,id=selectedId.value;mutating.value=true;error.value='';try{const run=await fn(id);if(!disposed&&token===epoch)selected.value=run}catch(e){if(!disposed&&token===epoch)error.value=message(e)}finally{if(!disposed)mutating.value=false}}
+const startRun=()=>{if(!active.value)return action(startDeliveryRun,['queued','prepared'])}
+const stopRun=()=>{if(active.value)return action(stopDeliveryRun,['prepared','running','stopping','stopped'])}
+const resumeRun=()=>{if(!active.value)return action(resumeDeliveryRun,['stopped','interrupted','candidate_failed','failed'])}
+const abandonRun=()=>{if(!active.value)return action(abandonDeliveryRun,['queued','prepared','stopped','interrupted','candidate_failed','failed'])}
+function openItem(item:DeliveryItem){detail.value=item}
+async function openGraph(){if(!selected.value||!selected.value.items.some(i=>i.analysis)&&selected.value.status!=='completed')return;const token=epoch,id=selectedId.value;graphLoading.value=true;try{const graph=await getDeliveryGraph(id);if(!disposed&&token===epoch&&selectedId.value===id){if(graph.run_id!==id)throw Error('图谱运行绑定不一致');window.location.assign(graph.url)}}catch(e){if(!disposed&&token===epoch)error.value=message(e)}finally{if(!disposed&&token===epoch)graphLoading.value=false}}
+async function selectLegacy(id:string){const token=++legacyEpoch;legacyId.value=id;legacy.value=null;legacyItem.value=null;try{const run=await getM2Run(id);if(!disposed&&token===legacyEpoch)legacy.value=run}catch(e){if(!disposed&&token===legacyEpoch)error.value=message(e)}}
+async function openLegacyItem(ordinal:number){const token=++legacyEpoch,id=legacyId.value;legacyItem.value=null;try{const item=await getM2Item(id,ordinal);if(!disposed&&token===legacyEpoch)legacyItem.value=item}catch(e){if(!disposed&&token===legacyEpoch)error.value=message(e)}}
+async function poll(){if(polling||mutating.value||!active.value||!selectedId.value)return;const token=epoch,id=selectedId.value;polling=true;try{const run=await getDeliveryRun(id);if(!disposed&&token===epoch&&id===selectedId.value){selected.value=run;if(detail.value)detail.value=run.items.find(i=>i.index===detail.value?.index)||null}}catch(e){if(!disposed&&token===epoch)error.value=message(e)}finally{polling=false}}
+onMounted(async()=>{const id=Number(route.query.jdId);if(Number.isSafeInteger(id)&&id>0)selectedJdIds.value=[id];await refresh();if(disposed)return;const run=route.query.m2Run;if(typeof run==='string'&&run)await selectRun(run);if(!disposed)timer=setInterval(poll,2500)})
+onUnmounted(()=>{disposed=true;epoch++;inputEpoch++;legacyEpoch++;refreshEpoch++;if(timer)clearInterval(timer)})
 </script>
-
 <style scoped>
-.m2-page{max-width:1600px;margin:auto;color:#18344b}.m2-heading,.section-heading,.run-meta,.actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.m2-heading{margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:1.3px;color:#397a94}h1{font-size:28px;margin:8px 0}h2{font-size:18px;margin:0 0 18px}h3{font-size:15px}p{line-height:1.7}small,.muted{font-size:12px;color:#62778a;font-weight:400}.gap{margin-top:20px}.m2-card{background:#fff;border:1px solid #dde8ee;border-radius:16px;padding:24px;box-shadow:0 4px 20px #18344b05}.selection-grid{display:grid;grid-template-columns:1.35fr 1.7fr 1fr 1fr 1fr auto;align-items:end;gap:12px}label{font-size:12px;color:#516d80;display:flex;flex-direction:column;gap:8px}label .el-select,label .el-input-number{width:100%}.history-select{width:440px;max-width:100%}.run-meta{justify-content:flex-start;margin:14px 0}.actions{justify-content:flex-start}.revision{width:135px}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}.stat-grid>div{background:#f1f7fa;border-radius:10px;padding:16px}.stat-grid strong{display:block;font-size:26px;color:#25667c}.stat-grid span{font-size:12px;color:#526e80}.metric-note{background:#fff8e8;border-left:3px solid #d3a044;padding:10px 14px;font-size:12px}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.summary-grid article{border:1px solid #e1eaf0;padding:14px;border-radius:10px}dl{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px}dd{margin:0;font-weight:600}.review-panel{border-top:1px solid #dde8ee;padding-top:22px}.review-form{display:grid;grid-template-columns:.8fr 1fr 2fr auto;align-items:end;gap:12px;margin:16px 0}.review-form .el-select,.review-form .el-input{width:100%}.review-note{grid-column:span 1}code{font-size:12px;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 Consolas,monospace;background:#f4f7fa;padding:16px;border-radius:8px;max-height:600px;overflow:auto}.source-text{font-family:inherit;font-size:14px}.evidence-row{border-bottom:1px solid #e5edf2;padding:12px 0}.evidence-row blockquote{white-space:pre-wrap;margin:8px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}@media(max-width:1100px){.selection-grid,.review-form{grid-template-columns:repeat(3,1fr)}.stat-grid,.summary-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.selection-grid,.stat-grid,.summary-grid,.review-form{grid-template-columns:repeat(2,minmax(0,1fr))}.review-note{grid-column:span 2}.m2-card{padding:16px}.summary-grid article{grid-column:span 2}}
-</style>
-<style scoped>
-.review-dimension{border-top:1px dashed #d8e5eb;padding:18px 0;margin-top:18px}
-.selection-grid { row-gap: 18px; }
-.selection-grid > * { min-width: 0; }
-@media (max-width: 1500px) { .selection-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .selection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.review-dimension h3{margin-bottom:10px}
-.review-label-grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}
-.additional-family{max-width:360px;margin-bottom:12px}
-.review-dimension .el-table small{display:block;color:#6c8191;margin-top:4px}
-.effective-result{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;padding:10px 12px;border-left:3px solid #4f91a8;background:#f1f8fa;font-size:12px}
-.effective-result small{color:#60798a;overflow-wrap:anywhere}
-@media(max-width:700px){.review-label-grid{grid-template-columns:1fr}}
+.m2-page{max-width:1300px;margin:auto;padding:28px;color:var(--text,#172735)}header,.actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}header{justify-content:space-between;margin-bottom:22px}h1{font-size:27px}h2{font-size:19px;margin:0 0 14px}h3{margin-top:24px}p{line-height:1.7}.surface{padding:22px;margin:18px 0;border:1px solid var(--line,#d9e2e7);border-radius:16px;background:var(--card,#fff)}.actions{margin:16px 0}.actions h2{margin:0}.actions .el-select{min-width:300px}.binding,pre,small{overflow-wrap:anywhere}.binding,.muted,small{color:var(--muted-strong,#69808e)}small{display:block;font-size:12px;margin-top:5px}pre{white-space:pre-wrap;line-height:1.8;font-size:13px;background:var(--card-soft,#f8fafb);padding:14px;border-radius:8px;max-height:600px;overflow:auto}details{margin:14px 0}summary{cursor:pointer;color:var(--primary,#247ca2)}.claim{padding:16px;border:1px solid var(--line,#d9e2e7);border-radius:10px;margin:16px 0}h4{margin:0 0 12px}blockquote{margin:12px 0;padding:12px 18px;border-left:3px solid #618ed2;background:rgba(78,120,180,.1);white-space:pre-wrap;line-height:1.7}.coverage{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.coverage span{border:1px solid var(--line,#d9e2e7);padding:12px;border-radius:8px}a{color:var(--primary,#247ca2)}@media(max-width:700px){.m2-page{padding:12px}.surface{padding:14px}}
 </style>

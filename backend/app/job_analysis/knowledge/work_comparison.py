@@ -13,6 +13,8 @@ from .task_models import TaskSelection, TaskProposal, pair_identity, validate_ta
 from .task_comparison import select_tasks, LIMITATION
 
 WORK_SCOPES = ("affirmed", "instructional")
+FRAME_VERSIONS = {f"source-bound-work-comparison-{v}" for v in (3, 4, 5)}
+SOURCE_CONTEXT_VERSIONS = {f"source-bound-work-comparison-{v}" for v in (4, 5)}
 
 
 class WorkInterpretation(Strict):
@@ -127,7 +129,81 @@ def work_input_v2(result, claim_id, role_id, reference_id):
 
 def _work_input(result, claim_id, role_id, reference_id):
     factory = work_input_v1 if result.explanation_version == "source-bound-work-comparison-1" else work_input_v2
-    return factory(result, claim_id, role_id, reference_id)
+    data = factory(result, claim_id, role_id, reference_id)
+    if result.explanation_version in FRAME_VERSIONS:
+        explain_work = _semantics(result).explain_work
+        data["schema_version"] = "source-bound-work-input-" + result.explanation_version.rsplit("-", 1)[1]
+        data["source_work_frames"] = [explain_work(text) for text in data["model_input"]["work_texts"]]
+    if result.explanation_version in SOURCE_CONTEXT_VERSIONS:
+        source = _source_work(result, claim_id)
+        units = source['matched_source_units']
+        data['source_work_frames'] = [u['view'] for u in units]
+        data['source_context_evidence'] = [dict(evidence=u['evidence'], context=u['context_evidence'],
+                                              governing=u['governing_evidence']) for u in units]
+        for unit in units:
+            contexts = list(unit['governing_evidence'])
+            if unit['context_restricts_quote']:
+                contexts.append(unit['context_evidence'])
+            for context in contexts:
+                if not any(context['quote'] in text for text in data['model_input']['source_context']):
+                    data['model_input']['source_context'].append(context['quote'])
+        for note in data['model_input']['scope_notes']:
+            levels = {u['importance'] for u in units if u['evidence']['quote'] in note['text']}
+            if levels == {'auxiliary'}:
+                note['importance'] = 'auxiliary'
+    return data
+
+
+def _semantics(result):
+    # Published v3 input/state bindings must retain their original interpretation.
+    from . import work_semantics, work_semantics_v1
+    return work_semantics_v1 if result.explanation_version == "source-bound-work-comparison-3" else work_semantics
+
+
+def _source_work(result, claim_id):
+    from .work_semantics import source_work
+    claim = next(c for c in result.source_claims if c.id == claim_id)
+    # Published v4 inputs used colon-only heading recovery. Historical reads must
+    # retain their exact inputs and recorded states, including known old errors.
+    return source_work(claim.model_dump(), result.source_analysis.model_dump(),
+        recover_plain_headings=result.explanation_version != "source-bound-work-comparison-4")
+
+
+def source_guard(result, item):
+    """Source facts constrain quoted work and known functional domains."""
+    semantics = _semantics(result)
+    PATTERNS, ACTION_PATTERN, explain_work = semantics.PATTERNS, semantics.ACTION_PATTERN, semantics.explain_work
+    data = _work_input(result, item.claim_id, item.role_id, item.reference_id)
+    source = [f for view in data["source_work_frames"] for f in view["frames"] if f["scope"] == "affirmed"]
+    if result.explanation_version == "source-bound-work-comparison-5" and not source and any(
+            gap['reason'] == 'uncited_action_or_object'
+            for view in data['source_work_frames'] for gap in view['gaps']):
+        return "source_guard_uncited_action_or_object"
+    if result.explanation_version in SOURCE_CONTEXT_VERSIONS and not source and any(
+            gap['reason'] == 'unrecognized_complete_object'
+            for view in data['source_work_frames'] for gap in view['gaps']):
+        return "source_guard_complete_object_unestablished"
+    target = data["model_input"]["reference_context"]
+    target_actions = {m.lastgroup for m in ACTION_PATTERN.finditer(" ".join(target["action_examples"]))}
+    examples = " ".join(target["object_examples"])
+    # Use complete noun phrases: a business-intelligence report is a report,
+    # not the BI software system named by a substring of that phrase.
+    target_objects = {f["object"] for obj in target["object_examples"]
+                      for f in explain_work("开发 " + obj)["frames"]}
+    required = next((domain for domain in ("network", "business_intelligence", "warehouse")
+                     if domain in target_objects), None)
+    if required and not any(f["object"] == required for f in source):
+        return "source_guard_functional_domain_unestablished"
+    if required and target_actions and not any(f["object"] == required and f["action"] in target_actions for f in source):
+        return "source_guard_action_unestablished"
+    if PATTERNS["software"].search(examples) and not required:
+        if target_actions & {"build", "design"} and not any(
+                f["object"] in {"software", "business_intelligence"} and f["action"] in target_actions for f in source):
+            # Only block a positive when source work has a recognized alternative;
+            # unknown vocabulary remains for the actual model comparison.
+            if source:
+                return "source_guard_direct_software_work_unestablished"
+    return None
 
 
 def work_prompts(view):
@@ -167,7 +243,10 @@ def work_state(result, item):
     one = _parsed(item.primary, WorkInterpretation)
     if one is None:
         return "failed", "primary_invalid_or_failed"
-    if not any(u.claim_id == item.claim_id and u.scope in WORK_SCOPES and u.kind == "work" for u in result.work_units):
+    eligible = any(u.claim_id == item.claim_id and u.scope in WORK_SCOPES and u.kind == "work" for u in result.work_units)
+    if result.explanation_version in SOURCE_CONTEXT_VERSIONS:
+        eligible = any(u['scope'] in WORK_SCOPES for u in _source_work(result, item.claim_id)['matched_source_units'])
+    if not eligible:
         return "unresolved", "no_eligible_source_work"
     if one.requires_unstated_context:
         return "unresolved", "unstated_context_needed"
@@ -178,6 +257,10 @@ def work_state(result, item):
     if not (one.action_relation == "same_or_specific" and one.responsibility_relation == "direct_task_aspect"
             and one.functional_object_relation == "same_or_narrower"):
         return "unresolved", "primary_relation_unknown"
+    if result.explanation_version in FRAME_VERSIONS:
+        guard = source_guard(result, item)
+        if guard:
+            return "unresolved", guard
     if item.verification is None:
         return "unresolved", "verification_not_run"
     two = _parsed(item.verification, WorkVerification)
@@ -199,6 +282,8 @@ def _candidates(result, assessments):
         role = next(r.definition for r in result.comparisons if r.role_id == item.role_id)
         levels = {u.importance for u in result.work_units if u.claim_id == item.claim_id
                   and u.scope in WORK_SCOPES and u.kind == "work"}
+        if result.explanation_version in SOURCE_CONTEXT_VERSIONS:
+            levels = {_source_work(result, item.claim_id)['importance']}
         out.append(WorkCandidate(assessment_id=item.id, role_id=item.role_id, reference_id=item.reference_id,
             claim_id=item.claim_id, family_hint=rule.family if rule else None,
             importance=next(iter(levels)) if len(levels) == 1 else "unknown", reference_maturity=role.maturity))
@@ -207,7 +292,7 @@ def _candidates(result, assessments):
 
 class WorkComparisonResult(ContextAttributionResult):
     schema_version: Literal["m2-role-attribution-4"] = "m2-role-attribution-4"
-    explanation_version: Literal["source-bound-work-comparison-1", "source-bound-work-comparison-2"] = "source-bound-work-comparison-2"
+    explanation_version: Literal["source-bound-work-comparison-1", "source-bound-work-comparison-2", "source-bound-work-comparison-3", "source-bound-work-comparison-4", "source-bound-work-comparison-5"] = "source-bound-work-comparison-2"
     task_selection: TaskSelection
     task_assessments: list[WorkAssessment]
     work_candidates: list[WorkCandidate]
@@ -235,13 +320,13 @@ class WorkComparisonResult(ContextAttributionResult):
                 raise ValueError("work state exceeds its two recorded views")
         if self.work_candidates != _candidates(self, self.task_assessments):
             raise ValueError("work candidate differs from supported source interpretation")
-        validate_task_selection(self, ids, WORK_SCOPES, "definition-context-task-budget-1")
+        validate_task_selection(self, ids, WORK_SCOPES, "claim-diverse-task-budget-1" if self.explanation_version in FRAME_VERSIONS else "definition-context-task-budget-1")
         return self
 
 
-def start_work_comparison(context):
+def start_work_comparison(context, version=5):
     data = context.model_dump()
-    data.update(schema_version="m2-role-attribution-4", explanation_version="source-bound-work-comparison-2",
+    data.update(schema_version="m2-role-attribution-4", explanation_version=f"source-bound-work-comparison-{version}",
         task_selection=dict(status="not_run", retriever_binding={}, pairs_per_role=1, proposals=[],
             selected_pair_ids=[], checked_pair_ids=[], pending_selected_pair_ids=[], unchecked_pair_ids=[], limitation=LIMITATION),
         task_assessments=[], work_candidates=[])
@@ -280,7 +365,8 @@ def add_work_response(result, claim_id, role_id, reference_id, primary_raw, veri
 
 
 def compare_source_work(result, ranker, model, pairs_per_role):
-    result.task_selection = select_tasks(result, ranker, pairs_per_role, WORK_SCOPES, definition_examples=True)
+    result.task_selection = select_tasks(result, ranker, pairs_per_role, WORK_SCOPES, definition_examples=True,
+        diverse_claims=result.explanation_version in FRAME_VERSIONS)
     proposals = {p.id: p for p in result.task_selection.proposals}
     for pair_id in result.task_selection.selected_pair_ids:
         pair = proposals[pair_id]

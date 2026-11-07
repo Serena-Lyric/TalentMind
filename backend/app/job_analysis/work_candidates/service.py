@@ -19,7 +19,7 @@ def algorithm_version():
              root / "baseline/contract.py", root / "foundation/inputs.py", root / "foundation/store.py",
              root / "semantics/models.py", root / "understanding/storage.py"}
     dependencies = {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(files)}
-    return dict(id="p4-work-research", revision="1", sha256=digest(dependencies), dependencies=dependencies)
+    return dict(id="p4-work-research", revision="2", sha256=digest(dependencies), dependencies=dependencies)
 
 
 def _claim(store, reference):
@@ -100,10 +100,11 @@ def _correct(store, operation, baseline, state, analyses):
     return cid
 
 
-def apply_batch(store, request, analyses, knowledge):
+def apply_batch(store, request, analyses, knowledge, *, automatic_retrieval=True):
     check_public(request)
     command = Batch.model_validate(request)
-    request_sha = digest(dict(request=request, knowledge_sha256=knowledge.sha256))
+    request_sha = digest(dict(request=request, knowledge_sha256=knowledge.sha256,
+                             **({} if automatic_retrieval else {'automatic_retrieval': False})))
     if set(analyses) != set(command.analysis_sha256s):
         raise ValueError("analysis input set must match batch references")
     for sha, value in analyses.items():
@@ -135,15 +136,20 @@ def apply_batch(store, request, analyses, knowledge):
         # All comparisons read the same effective old projection, never this batch's revisions/members.
         for sha, analysis in sorted(analyses.items()):
             search = retrieve(store, analysis, baseline["candidates"], relations=baseline["relations"])
-            for match in search["matches"]:
+            for match in search["matches"] if automatic_retrieval else []:
                 cid = match["candidate_id"]
                 ids = sorted({pair["duty_id"] for pair in match["pairs"]})
                 key, rel = _relation(cid, analysis, sha, ids, baseline["binding"],
-                                     "工作陈述字面交集仅作研究线索；目标、对象与完整责任关系尚未独立验证")
+                                     "逐有效成员直接职责比较支持局部研究；不确认完整工作组合或正式身份")
+                rel["discovery"] = dict(kind="automatic_bounded_semantic", baseline=baseline["binding"],
+                                         check=search["candidate_checks"][cid],
+                                         input_nature="synthetic_control" if analysis["namespace"] == "synthetic" else "observed_analysis")
+                rel["semantic_validation"] = "bounded_machine_comparison"
                 if key not in state["relations"]:
                     state["relations"][key] = rel
                     changed.add(cid)
             search["analysis_sha256"] = sha
+            search['automatic_application_enabled'] = automatic_retrieval
             search["baseline_member_relation_sha256s"] = {rid: digest(r) for rid, r in baseline["relations"].items()
                                                           if r["candidate_id"] in search["matched_candidate_ids"]}
             search["counterevidence_relation_ids"] = sorted(rid for rid, r in baseline["relations"].items()
@@ -183,6 +189,7 @@ def apply_batch(store, request, analyses, knowledge):
                 if not any(c["kind"] == "duty" for c in claims):
                     raise ValueError("link needs a concrete duty")
                 key, rel = _relation(cid, source, op["analysis_sha256"], op["work_ids"], baseline["binding"], op["reason"])
+                rel["discovery"] = dict(kind="explicit_link", baseline=baseline["binding"])
                 if key in baseline["relations"]:
                     raise ValueError("existing relation requires version-bound correct operation")
                 state["relations"][key] = rel
@@ -204,6 +211,7 @@ def apply_batch(store, request, analyses, knowledge):
                 analysis = store.source("analysis", sha)
                 ids = [r["claim_id"] for r in op["core_work"] if r["analysis_sha256"] == sha]
                 key, rel = _relation(cid, analysis, sha, ids, baseline["binding"], "显式建立的机器工作组合观察假设")
+                rel["discovery"] = dict(kind="explicit_seed", baseline=baseline["binding"])
                 # Multiple seed versions are competing interpretations, not last-write-wins facts.
                 state["relations"].setdefault(key, rel)
             changed.add(cid)

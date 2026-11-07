@@ -7,12 +7,12 @@
     </header>
 
     <aside v-show="!props.panelsHidden" class="nebula-control panel-glass" tabindex="0" aria-label="图谱控制，可滚动">
-      <p class="snapshot-note">{{ realMode ? '真实 JD 隔离预览 · 规则分析待审' : '探索岗位、技能与历史场景' }}<br />单击星体显示直接关联；点击空白取消。</p>
+      <p class="snapshot-note">{{ deliveryMode ? 'M2 新版研究图 · 机器分析待审' : realMode ? '历史 JD 隔离预览 · 规则分析待审' : '探索岗位、技能与历史场景（历史交接数据）' }}<br />单击星体显示直接关联；点击空白取消。</p>
       <div v-if="realManifest" class="snapshot-note" aria-label="真实数据版本">
         <p>输入 {{ realManifest.counts?.input }} · 进入分析 {{ realManifest.counts?.eligible_jd }} · 拒绝或待审 {{ realManifest.counts?.excluded_or_pending }}</p>
-        <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 身份；非标准职业。五态来自有限规则，未作人工审核。</p>
+        <p>版本 {{ realManifest.data_version.slice(0,12) }}<br />原 JD 与研究候选分别保留身份；非正式职业。{{ deliveryMode ? '五态来自本次冻结分析，未作人工审核。' : '旧五态来自有限规则，未作人工审核。' }}</p>
         <p v-if="realManifest.m2_product">M2 run：{{ realManifest.m2_product.run_id }}<br />分析版本 {{ realManifest.m2_product.versions.revision }} · {{ realManifest.m2_product.versions.implementation.slice(0,12) }}<br />范围待复核 {{ realManifest.counts?.scope_pending }}；仅作候选证据。</p>
-        <a href="?#/graph">返回历史图谱</a>
+        <p v-if="realManifest.delivery">来源 {{realManifest.history_origin==='sequence-head-final' ? '合成连续序列（非真实市场观察）' : realManifest.history_origin==='dev-head-final' ? '受控 DEV 历史（非独立验收）' : realManifest.history_origin || '来源性质未提供'}}<br />运行 {{realManifest.delivery.run_id}}<br />请求 {{realManifest.delivery.request_sha256}}<br />研究内容 {{realManifest.delivery.result_sha256}}<br />知识 {{realManifest.delivery.knowledge_sha256}}</p><a v-if="realManifest.delivery" :href="`/#/m2?m2Run=${encodeURIComponent(realManifest.delivery.run_id)}`">返回本次工作台</a><br /><a href="?#/graph">明确切换到历史图谱</a>
         <details><summary>查看筛选与待审账本</summary><div v-for="(record,index) in realSources?.records" :key="index"><button type="button" @click="traceSource(index)">{{ record.jd_id }} · {{ record.payload.job_title }} · {{ identityText(record.identity_status) }} · {{ record.screening.scope_status || record.screening.execution_status }}</button></div></details>
       </div>
       <label class="nebula-label">搜索</label>
@@ -64,8 +64,7 @@
       <p v-if="nodeFieldMode" class="snapshot-note">局部旋臂场 v3：知识密度轻微牵引附近星尘。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · seed 42<br />{{ realMode ? '仅无冲突、无条件的明确必备/加分单项参与相似计算；其余陈述仍保留。' : 'layout-v1 · PR32@377e9b8。' }}只用于候选空间布局，不映射八大职业大类。</p></details>
-      <a class="fallback-link" href="#/graph?graphRenderer=legacy">切换旧 Canvas</a>
-      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?graphStars=p24#/graph">P2.4恒星外观</a> · <a href="?graphSpace=legacy#/graph">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a :href="visualHref({ graphCamera: 'fixed', graphVisual: 'p21' })">P2.1视觉回退</a> · <a :href="visualHref({ graphCamera: 'fixed', graphVisual: 'p22' })">P2.2固定投影</a> · <a :href="visualHref({ graphStars: 'p23' })">P2.3星点外观</a> · <a :href="visualHref({ graphStars: 'p24' })">P2.4恒星外观</a> · <a :href="legacySpaceHref">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
       <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
       <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
         <label v-if="spatialMode && stellarMode && !semanticMode">P2.4恒星外观预设
@@ -78,10 +77,10 @@
     <div ref="canvasWrapRef" class="nebula-canvas-wrap">
       <canvas ref="canvasRef" tabindex="0" aria-label="知识银河，左拖旋转，右拖平移，滚轮缩放" @contextmenu.prevent @click="onCanvasClick" @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp" @pointerleave="onPointerLeave" @wheel="onWheel"></canvas>
       <div v-if="(loading || !rendererReady) && !webglError && !loadError" class="nebula-state" role="status"><el-icon class="is-loading"><Loading /></el-icon><span>{{ loading ? '正在读取图谱与布局…' : '正在准备图谱首帧…' }}</span></div>
-      <div v-else-if="!graphData.nodes.length" class="nebula-state"><el-icon><DataAnalysis /></el-icon><span>{{ loadError || "暂无图谱数据" }}</span><a href="#/graph?graphRenderer=legacy">旧 Canvas 回退</a></div>
+      <div v-else-if="!graphData.nodes.length" class="nebula-state"><el-icon><DataAnalysis /></el-icon><span>{{ loadError || "暂无图谱数据" }}</span><button type="button" @click="loadGraph(true)">重试当前图谱</button></div>
     </div>
 
-    <div v-if="webglError" class="renderer-error">银河渲染不可用。<a href="#/graph?graphRenderer=legacy">切换旧 Canvas</a></div>
+    <div v-if="webglError" class="renderer-error">银河渲染不可用。<button type="button" @click="reloadRenderer">重新加载当前页面</button></div>
     <aside v-if="selectedNode" v-show="!props.panelsHidden" class="nebula-detail panel-glass" tabindex="0" aria-label="节点详情，可滚动">
       <div class="detail-head">
         <div><small>{{ nodeKindLabel(selectedNode.kind) }}</small><h3>{{ selectedNode.label }}</h3><p v-if="selectedNode.name_en && selectedNode.name_en !== selectedNode.label" class="detail-en">{{ selectedNode.name_en }}</p></div>
@@ -107,10 +106,10 @@
             <button type="button" :disabled="connectionHidden(edge)" @click="selectConnection(edge)">{{ nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.label }}</button>
             <small v-if="connectionHidden(edge)">另一端类型当前隐藏；原关系仍在数据中。</small>
             <button v-if="connectionHidden(edge)" type="button" @click="showConnection(edge)">显示该类型并选中</button>
-            <small>{{ relationName(edge.kind) }} · {{ nodeKindLabel(nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.kind || 'job') }}</small>
+            <small>{{ relationName(edge) }} · {{ nodeKindLabel(nodeById.get(edge.source === selectedNode.id ? edge.target : edge.source)?.kind || 'job') }}</small>
             <small>{{ nodeById.get(edge.source)?.label }} → {{ nodeById.get(edge.target)?.label }} · {{ edge.kind }}</small>
-            <small v-if="realMode">五态 {{ edge.raw?.state }} · 冲突 {{ edge.raw?.conflict ? '是' : '否' }} · 组合 {{ edge.raw?.relation || '单项' }}</small>
-            <button v-if="realMode" type="button" @click="traceSource(edge.raw!.source_record,edge.raw!.evidence.quote)">回溯此陈述的原始 JD</button>
+            <small v-if="realMode">状态 {{ edge.raw?.state }} · 组合 {{ edge.raw?.relation || '单项' }}<template v-if="edge.raw?.requirement"> · 成员 {{edge.raw.requirement.members.join(' / ')}} · 条件 {{edge.raw.requirement.condition || '无显式条件'}} · 程度 {{edge.raw.requirement.degree || '未声明'}} · {{edge.raw.requirement.degree_polarity || '程度极性未知'}}</template></small>
+            <button v-if="realMode" type="button" @click="traceSource(edge.raw!.source_record,edge.raw!.evidence?.quote)">回溯此陈述的原始 JD</button>
             <button class="edge-focus-button" :disabled="connectionHidden(edge)" :aria-label="`高亮原关系 ${edge.sourceIndex}`" @focus="focusRelation(edge.sourceIndex)" @blur="focusRelation(null)" @click="focusRelation(edge.sourceIndex)">高亮这条原边</button>
             <details><summary>原始关系 / 来源索引 {{ edge.sourceIndex }}</summary><pre>{{ JSON.stringify(edge.raw, null, 2) }}</pre></details>
             <small v-if="edge.raw?.source_indices">来源索引 {{ JSON.stringify(edge.raw.source_indices) }}</small>
@@ -129,6 +128,7 @@
 </template>
 
 <script setup lang="ts">
+import { loadDeliveryGraph } from '../graph/deliverySnapshot'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { DataAnalysis, Loading, Refresh, RefreshRight, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -158,10 +158,14 @@ let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
-const legacySpaceQuery = new URLSearchParams(query)
-legacySpaceQuery.set('graphSpace','legacy')
-const legacySpaceHref = `?${legacySpaceQuery}#/graph`
-const realMode=query.get('graphDataset')==='real'
+function visualHref(parameters: Record<string, string>) {
+  const visualQuery = new URLSearchParams(query)
+  for (const [key, value] of Object.entries(parameters)) visualQuery.set(key, value)
+  return `?${visualQuery}${window.location.hash}`
+}
+const legacySpaceHref = visualHref({ graphSpace: 'legacy' })
+const deliveryMode=query.get('graphDataset')==='delivery'
+const realMode=deliveryMode||query.get('graphDataset')==='real'
 const realSources=shallowRef<RealSources|null>(null),realManifest=shallowRef<RealManifest|null>(null)
 const sourceRecord=shallowRef<SourceRecord|null>(null),sourceQuote=ref('')
 function traceSource(index:number,quote=''){sourceRecord.value=realSources.value?.records[index]||null;sourceQuote.value=quote}
@@ -276,7 +280,10 @@ function measureInteraction(name:string,start:number) {
 }
 const colors: Record<string, string> = { job: '#4da6ff', skill: '#2ee66b', industry: '#c77dff' }
 
-function relationName(kind:string){return kind==='HAS_SKILL_STATEMENT'?'原文技能陈述（未人工审核）':kind==='REQUIRES'?'岗位技能关联':kind==='APPLIES_TO'?'历史场景关联':kind==='RELATED_TO'?'历史岗位关联':kind}
+function relationName(edge:GraphEdge){
+  if(edge.kind==='RELATED_TO')return edge.raw?.relation==='research_hypothesis'?'研究关联（假设，未人工审核）':'历史岗位关联'
+  return edge.kind==='HAS_SKILL_STATEMENT'?'原文技能陈述（未人工审核）':edge.kind==='REQUIRES'?'岗位技能关联':edge.kind==='APPLIES_TO'?'历史场景关联':edge.kind
+}
 function nodeKindLabel(kind: GraphNode['kind']) { return kind === 'job' ? '岗位节点' : kind === 'skill' ? '技能节点' : '历史场景（旧 Industry 投影）' }
 function appearanceFor(node:GraphNode,selected=false,matched=false,hovered=false){const activeHover=hovered||(focusedEdgeIndex.value!==null&&focusedEdgeIds.value.has(node.id));return visual==='p22'?starAppearance(node.kind,transform.scale,selected,matched,activeHover):nodeAppearance(node.kind,nodeSize(node),transform.scale,selected,matched,activeHover)}
 function nodeSize(node: GraphNode) { return node.kind === 'job' ? Math.max(7, Math.min(18, (node.size || 14) * .42)) : node.kind === 'industry' ? 13 : Math.max(3.5, Math.min(8, (node.size || 8) * .32)) }
@@ -655,7 +662,7 @@ async function loadGraph(refresh = false) {
   loading.value = true
   loadError.value = ''
   try {
-    const realResult = realMode ? await loadRealGraph(query.get('m2Run'),query.get('m2Graph')) : null
+    const realResult = deliveryMode ? await loadDeliveryGraph(query.get('m2DeliveryRun'),query.get('m2Graph')) : realMode ? await loadRealGraph(query.get('m2Run'),query.get('m2Graph')) : null
     const result = realResult || await loadHistoricalGraph(refresh)
     const data = result.graph
     if (generation !== loadGeneration) return
@@ -678,6 +685,7 @@ async function loadGraph(refresh = false) {
   } }
   finally { if (generation === loadGeneration) { loading.value = false; draw() } }
 }
+function reloadRenderer(){window.location.reload()}
 // 快照只属于当前选中身份；同步失效，避免同一轮改选后展开误用旧快照。
 watch(() => selectedNode.value?.id, () => { savedView.value = null;savedCamera=null }, { flush: 'sync' })
 watch(activeKinds, async () => {
@@ -758,15 +766,15 @@ onUnmounted(() => { disposed=true;loadGeneration++;clearCameraKeys();if(statsTim
 </script>
 
 <style scoped>
+.snapshot-note { overflow-wrap:anywhere; }
 .technical-info {margin-top:16px;border-top:1px solid rgba(105,106,189,.18);padding-top:12px}.technical-info summary,.detail-section summary{cursor:pointer}.technical-info select{max-width:100%;background:#15152d;color:#dbe2ff;border:1px solid #45456b;border-radius:5px;padding:4px;margin-top:6px}
 .reference-mark {color:#ffd7a0}.layout-provenance{font-size:11px;color:#a4afcb;margin:8px 0 12px}.layout-provenance summary,.relation-audit summary{cursor:pointer}.layout-provenance p{line-height:1.6}
 .connection-list .edge-focused{background:rgba(150,190,255,.12);border-radius:6px}.connection-list .edge-focus-button{font-size:10px;color:#dfedff;text-decoration:underline;margin:4px 0}.connection-list details{font-size:10px;color:#a4afcb}.connection-list summary{cursor:pointer}
 
 .galaxy-background { position:absolute;inset:56px 0 0;width:100%;height:calc(100% - 56px);pointer-events:none; }
 .snapshot-note {font-size:11px;line-height:1.6;color:#a4afcb;margin:6px 0 12px}
-.fallback-link {display:block;color:#bcd9ff;font-size:12px;margin-bottom:16px}
 .renderer-error {position:absolute;bottom:45px;left:280px;color:#ffd19b;z-index:5}
-.nebula-state a {pointer-events:auto;color:#bcd9ff}
+.nebula-state button,.renderer-error button {pointer-events:auto;color:#bcd9ff;background:none;border:1px solid currentColor;border-radius:4px;padding:5px 10px;cursor:pointer}
 .connection-list {padding-left:22px;font-size:11px}.connection-list li{margin:8px 0}.connection-list button{background:none;border:0;color:#badcff;text-align:left;padding:0}.connection-list small{display:block;color:#99a8c8;overflow-wrap:anywhere}
 .detail-section pre {white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
 

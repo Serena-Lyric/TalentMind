@@ -138,6 +138,7 @@
         <div class="source-meta"><span>来源：{{ platformText(eventRecord.source) }}</span><span>结果：{{ resultText(eventRecord) }}</span><span>jd_pool ID：{{ eventRecord.jd_pool_id ?? '—' }}</span><span>采集时间：{{ formatTime(eventRecord.crawled_at) }}</span></div>
         <p class="source-detail">来源地址：<a v-if="sourceUrl(eventRecord.source_detail)" :href="sourceUrl(eventRecord.source_detail)" target="_blank" rel="noopener noreferrer">{{ eventRecord.source_detail }}</a><span v-else>{{ eventRecord.source_detail || '未取得' }}</span></p>
         <el-alert v-if="eventRecord.rejection_reason" :title="rejectionText(eventRecord.rejection_reason)" type="warning" :closable="false" />
+        <router-link v-if="eventRecord.jd_pool_id" :to="{path:'/m2',query:{jdId:eventRecord.jd_pool_id}}">选择此 JD 进入岗位分析（不会自动开始）</router-link>
         <h3>该任务取得的原文</h3><pre class="raw-text">{{ eventRecord.raw_text || '该事件未取得正文' }}</pre>
         <h3>原始库完整正文</h3>
         <div v-loading="rawLoading" class="raw-db">

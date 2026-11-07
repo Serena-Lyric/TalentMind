@@ -115,6 +115,7 @@ def test_integrated_permanent_demo_consumes_new_work_and_preserves_history(area)
     summary = run_demo(area / 'demo', KNOWLEDGE)
     assert summary['batches'] >= 6
     assert summary['third_batch_used_new_work'] is True
+    assert summary['transitive_automatic_link_rejected'] is True
     assert summary['counterevidence_narrowed_scope'] is True
     assert summary['exact_retry_kept_head'] is True
     assert summary['knowledge_changed_without_p1_change'] is True

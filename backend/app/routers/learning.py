@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""学习路径 API：只接受简历推荐结果传入的目标岗位 ID。
+"""学习路径 API：显式选择岗位画像，绑定其技能要求版本。
 
 2026-09-04 升级：路径阶段按"学习优先级"（必备缺口 → 加分缺口）而非技能类别硬编；
 每条缺口技能给出数据可溯源的针对性改进建议（类别/别名/JD 证据/简历同类别衔接）。
@@ -11,12 +11,14 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
 from app.matching.canonical import to_canonical
+from app.matching.matcher import quick_match_weighted
+from app.matching.requirements import requirements_version
 from app.response import BizError, ok
 
 router = APIRouter()
@@ -29,6 +31,7 @@ _EVIDENCE_MAX = 110
 class LearningPathRequest(BaseModel):
     job_id: int = Field(gt=0)
     resume_skills: list[str] = Field(default_factory=list)
+    requirements_version: str = Field(min_length=64, max_length=64)
 
 
 def _list(value: Any) -> list[str]:
@@ -286,38 +289,16 @@ def learning_jobs():
     db = SessionLocal()
     try:
         rows = db.execute(text(
-            "SELECT id, job_name, name_en, job_name_zh, category, source FROM job_definition ORDER BY job_name"
+            "SELECT id, job_name, name_en, job_name_zh, category, source, required_skills, bonus_skills FROM job_definition ORDER BY job_name"
         )).mappings().all()
         return ok([{
             "value": str(row["id"]),
+            "requirements_version": requirements_version(_list(row["required_skills"]), _list(row["bonus_skills"])),
             "label": row.get("job_name_zh") or row["job_name"],
             "name_en": row.get("name_en") or row["job_name"],
             "category": row.get("category") or "",
             "source": _list(row["source"]),
         } for row in rows])
-    finally:
-        db.close()
-
-
-@router.get("/learning/job-skills/{job_id}")
-def learning_job_skills(job_id: int):
-    db = SessionLocal()
-    try:
-        row = _job(db, job_id)
-        if not row:
-            raise BizError(4041, "岗位不存在")
-        required = _list(row["required_skills"])
-        bonus = _list(row["bonus_skills"])
-        return ok({
-            "job_id": str(row["id"]),
-            "job_title": row.get("job_name_zh") or row["job_name"],
-            "job_name_en": row.get("name_en") or row["job_name"],
-            "category": row.get("category") or "",
-            "core_skills": [{"name": name, "category": _skill_meta(name)[0], "priority": "high",
-                             "reason": "岗位必备技能", "aliases": _skill_meta(name)[1]} for name in required],
-            "bonus_skills": [{"name": name, "category": _skill_meta(name)[0], "priority": "medium",
-                              "reason": "岗位加分技能", "aliases": _skill_meta(name)[1]} for name in bonus],
-        })
     finally:
         db.close()
 
@@ -331,6 +312,9 @@ def generate_learning_path(payload: LearningPathRequest = Body(...)):
             raise BizError(4041, "岗位不存在")
         required = _list(row["required_skills"])
         bonus = _list(row["bonus_skills"])
+        version = requirements_version(required, bonus)
+        if payload.requirements_version != version:
+            raise HTTPException(status_code=409, detail="岗位要求已更新，请重新选择当前画像并重算匹配与学习路径。")
         evidence_map = _evidence_map(db, row)
     finally:
         db.close()
@@ -345,4 +329,6 @@ def generate_learning_path(payload: LearningPathRequest = Body(...)):
         resume_skills=payload.resume_skills,
         evidence_map=evidence_map,
     )
+    data["requirements_version"] = version
+    data["score"] = round(float(quick_match_weighted(payload.resume_skills, required, bonus)["total_score"]))
     return ok(data)

@@ -1,3 +1,8 @@
+import { getActivePinia } from 'pinia'
+import { useResumeStore } from '../store/resume'
+
+function clearSessionData() { if (getActivePinia()) useResumeStore().clear() }
+
 // 登录演示工具：仅前端校验，不接入后端鉴权（用于功能演示）
 export interface DemoUser { username: string; label: string }
 
@@ -27,9 +32,11 @@ export function getCurrentUser(): DemoUser | null {
 }
 
 export function setCurrentUser(user: DemoUser): void {
+  clearSessionData()
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user))
 }
 
 export function clearCurrentUser(): void {
+  clearSessionData()
   sessionStorage.removeItem(STORAGE_KEY)
 }

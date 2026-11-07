@@ -6,6 +6,9 @@
 from __future__ import annotations
 
 import json
+import hashlib
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter
@@ -28,6 +31,43 @@ def _detail(value: Any) -> Any:
         return {"value": str(value)}
 
 
+def _time(value: Any) -> str:
+    if hasattr(value, 'isoformat'):
+        return value.isoformat()
+    return str(value or '').replace(' ', 'T')
+
+
+def change_fingerprint(row) -> str:
+    """Match reviewed content, never a mutable database ID or a trend keyword."""
+    value = {key: row.get(key) or '' for key in ('m2_job_id', 'object_type', 'change_type', 'skill_name', 'reason')}
+    value.update(detail=_detail(row.get('detail')), source=_detail(row.get('source')),
+                 created_at=_time(row.get('created_at')), source_jd_time=_time(row.get('source_jd_time')))
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+@lru_cache
+def _demo_provenance():
+    return json.loads((Path(__file__).resolve().parents[1] / 'contracts/evolution-demo-provenance.json').read_text(encoding='utf-8'))
+
+
+def describe_change(row) -> dict:
+    detail = _detail(row.get('detail'))
+    detail = detail if isinstance(detail, dict) else {}
+    manifest = _demo_provenance()
+    index = manifest['records'].get(change_fingerprint(row))
+    profile = row.get('source') == 'talentmind:profile-edit/v1' and detail.get('change_nature') == 'profile_edit'
+    return {
+        'change_nature': 'historical_demo' if index is not None else 'profile_edit' if profile else 'unverified_history',
+        'provenance': {'baseline_index': index, 'baseline_sha256': manifest['baseline_sha256'], 'reference': manifest['reference']} if index is not None else None,
+        'before': detail.get('before', detail.get('old_value')),
+        'after': detail.get('after', detail.get('new_value')),
+        'comparison_available': any(key in detail for key in ('before', 'after', 'old_value', 'new_value')),
+        'previous_version': detail.get('before_version') if profile else None,
+        'version': detail.get('after_version') if profile else None,
+        'market_change_verified': False,
+    }
+
+
 @router.get("/evolution/timeline/{job_id}")
 def evolution_timeline(job_id: int):
     db = SessionLocal()
@@ -48,7 +88,7 @@ def evolution_timeline(job_id: int):
                 "job_title": job.get("job_name_zh") or job["job_name"],
                 "job_name_en": job.get("name_en") or job["job_name"],
                 "category": job.get("category") or "",
-                "version": len(records) + 1,
+                **describe_change(row),
                 "m2_job_id": row.get("m2_job_id") or "",
                 "object_type": row.get("object_type") or "skill",
                 "change_type": row["change_type"],
@@ -66,21 +106,8 @@ def evolution_timeline(job_id: int):
             "job_name_en": job.get("name_en") or job["job_name"],
             "category": job.get("category") or "",
             "records": records,
-            "current_version": len(records),
+            "current_version": None,
             "total_changes": len(records),
         })
-    finally:
-        db.close()
-
-
-@router.get("/evolution/sources/stats")
-def evolution_source_stats():
-    db = SessionLocal()
-    try:
-        rows = db.execute(text(
-            "SELECT COALESCE(NULLIF(source,''),'未标注') AS name, COUNT(*) AS count "
-            "FROM job_change_log GROUP BY COALESCE(NULLIF(source,''),'未标注') ORDER BY count DESC"
-        )).mappings().all()
-        return ok([{"name": row["name"], "count": int(row["count"])} for row in rows])
     finally:
         db.close()

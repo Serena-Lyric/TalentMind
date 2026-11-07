@@ -36,7 +36,8 @@ def request(state, name, values=(), operations=()):
 def test_cli_two_batches_correction_restart_and_versioned_readback(tmp_path):
     state = tmp_path / "state.db"
     initial = cli("init", "--state", state)
-    a, b = work(), work("two", "使用 Go 开发订单接口，保障订单服务运行。", title="平台研发")
+    a = work(text="使用 Java 开发订单接口。")
+    b = work("two", "使用 Go 实现订单接口。", title="平台研发")
     first_input = write(tmp_path / "a.json", a)
     second_input = write(tmp_path / "b.json", b)
     first = write(tmp_path / "one.json", request(initial, "one", [a], [create(a)]))

@@ -5,11 +5,9 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: '/collection' },
-    { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { title: '数据概览' } },
-    { path: '/jobs', name: 'Jobs', component: () => import('../views/Jobs.vue'), meta: { title: 'JD岗位管理' } },
+    { path: '/jobs', name: 'Jobs', component: () => import('../views/Jobs.vue'), meta: { title: '岗位画像探索' } },
     { path: '/graph', name: 'Graph', component: () => import('../views/Graph.vue'), meta: { title: '岗位星云图谱' } },
     { path: '/graph-collection', redirect: '/graph' },
-    { path: '/analytics', name: 'Analytics', component: () => import('../views/Analytics.vue'), meta: { title: '数据分析' } },
     { path: '/collection', name: 'Collection', component: () => import('../views/Collection.vue'), meta: { title: '采集模块管理' } },
     { path: '/m2', name: 'M2', component: () => import('../views/M2.vue'), meta: { title: '岗位分析工作台' } },
     { path: '/evolution', name: 'Evolution', component: () => import('../views/JobEvolution.vue'), meta: { title: '能力动态更新' } },

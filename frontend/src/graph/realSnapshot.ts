@@ -3,10 +3,10 @@ import { adaptSnapshot, sha256LF, validateBinding, type LayoutArtifact } from '.
 export interface SourceRecord {
   namespace:string; jd_id:string; fingerprint:string; payload:Record<string,any>; observation?:string|null
   identity_status?:'verified'|'pending'|'unknown'; content_eligible?:boolean|null; identity_evidence?:Record<string,any>|null
-  eligible:boolean; screening:Record<string,any>; governance:Record<string,any>|null
+  analysis?:any; analysis_sha256?:string; eligible:boolean; screening:Record<string,any>; governance:Record<string,any>|null
 }
-export interface RealSources { records:SourceRecord[] }
-export interface RealManifest { schema_version:string; data_version:string; artifacts:Record<string,string>; counts?:Record<string,any>; input_sha256?:string; m2_product?:{run_id:string;input_sha256:string;report_sha256:string;versions:Record<string,any>} }
+export interface RealSources { records:SourceRecord[]; work?:Record<string,any> }
+export interface RealManifest { history_origin?:string; schema_version:string; data_version:string; artifacts:Record<string,string>; counts?:Record<string,any>; input_sha256?:string; delivery?:{run_id:string;request_sha256:string;result_sha256:string;knowledge_sha256:string}; m2_product?:{run_id:string;input_sha256:string;report_sha256:string;versions:Record<string,any>} }
 const files = ['facts.json','sources.json','layout.json'] as const
 const encoded=(value:string)=>encodeURIComponent(value).replace(/[!'()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase())
 const jdIdentity=(record:SourceRecord)=>`jd:${encoded(record.namespace)}:${encoded(record.jd_id)}`

@@ -1,421 +1,98 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { m2Component } from './helpers/m2Component.ts'
-
-const draft = { run_id: 'a'.repeat(32), status: 'queued', items: [], versions: { revision: 'v1' }, summary: { input_total: 5, stage_complete: 0, finalized: 0, final_counts: {} } }
-
-test('候选图只从当前已完成任务显式生成，错误不导航', async () => {
-  const page = m2Component({ generateM2Graph: new Error('graph version mismatch') })
+const draft = { run_id: 'a'.repeat(32), status: 'prepared', request_sha256:'f'.repeat(64), items: [], counts: {} }
+test('翻页失败清空旧页，保持选择并从页面按钮重试失败页', async () => {
+  let fail = true
+  const page=m2Component({getDeliveryInputs:(offset:number)=>{
+    if(offset===20 && fail) throw new Error('offline')
+    return {items:[{jd_id:offset+1}],total:42}
+  }})
   try {
-    page.state.selected.value = draft
-    await page.state.openGraph()
-    assert.equal(page.calls.length, 0)
-    page.state.selected.value = { ...draft, status: 'completed_with_issues' }
-    await page.state.openGraph()
-    assert.deepEqual(page.calls[0], { method: 'generateM2Graph', args: [draft.run_id] })
-    assert.match(page.state.error.value, /version mismatch/)
-  } finally { page.stop() }
+    await page.state.changeInputPage(1);page.state.toggleInput(1)
+    await page.state.changeInputPage(2)
+    assert.deepEqual(page.state.inputs.value, [])
+    assert.equal(page.state.inputPage.value,2)
+    assert.ok(page.state.inputError.value)
+    assert.deepEqual(page.state.selectedJdIds.value,[1])
+    fail=false
+    const retry=page.elements('el-button').find(node=>JSON.stringify(node.children?.default?.()).includes('重试第'))
+    assert.ok(retry)
+    await retry.props.onClick()
+    assert.equal(page.state.inputs.value[0].jd_id,21)
+    assert.equal(page.state.inputError.value,'')
+    assert.deepEqual(page.state.selectedJdIds.value,[1])
+  } finally {page.stop()}
 })
-
-test('生成候选图期间的新建和重放会使旧导航失效', async () => {
-  let complete!: (value:any) => void
-  const page = m2Component({ generateM2Graph: () => new Promise(resolve => { complete=resolve }), createM2Run:new Promise(() => {}) })
+test('分页迟到成功或失败不覆盖新页，也不提前结束新页加载', async () => {
+  const pending:Record<number,{resolve:(value:any)=>void;reject:(reason:any)=>void}>={}
+  const page=m2Component({getDeliveryInputs:(offset:number)=>new Promise((resolve,reject)=>{pending[offset]={resolve,reject}})})
   try {
-    page.state.selected.value={...draft,status:'completed_with_issues'}
-    page.state.selectedId.value=draft.run_id
-    const graph=page.state.openGraph()
-    void page.state.createRun()
-    complete({run_id:draft.run_id,url:'/old-graph'})
-    await graph
-    assert.equal(page.state.error.value,'')
+    const first=page.state.changeInputPage(1),second=page.state.changeInputPage(2)
+    pending[0].resolve({items:[{jd_id:1}],total:42});await first
+    assert.deepEqual(page.state.inputs.value,[]);assert.equal(page.state.inputsLoading.value,true)
+    pending[20].resolve({items:[{jd_id:21}],total:42});await second
+    const third=page.state.changeInputPage(3),retry=page.state.changeInputPage(2)
+    pending[20].resolve({items:[{jd_id:22}],total:43});await retry
+    pending[40].reject(new Error('old failure'));await third
+    assert.equal(page.state.inputs.value[0].jd_id,22)
+    assert.equal(page.state.inputPage.value,2);assert.equal(page.state.inputTotal.value,43)
+    assert.equal(page.state.inputError.value,'');assert.equal(page.state.inputsLoading.value,false)
+  } finally {page.stop()}
+})
+test('新版进入和轮询不执行，显式选择后仅冻结，开始/停止/恢复独立调用', async () => {
+  const page=m2Component({createDeliveryRun:draft,startDeliveryRun:{...draft,status:'running'},stopDeliveryRun:{...draft,status:'stopped'},resumeDeliveryRun:{...draft,status:'running'}})
+  try {
+    await page.mounted(); for(const poll of page.intervals) await poll()
+    assert.equal(page.calls.some(c=>/create|start|resume/i.test(c.method)),false)
+    await page.state.createRun(); assert.equal(page.calls.some(c=>c.method==='createDeliveryRun'),false)
+    page.state.selectedJdIds.value=[12,15]; await page.state.createRun()
+    assert.deepEqual(page.calls.find(c=>c.method==='createDeliveryRun').args,[{jd_ids:[12,15]}])
+    assert.equal(page.calls.some(c=>c.method==='startDeliveryRun'),false)
+    await page.state.startRun(); await page.state.stopRun(); await page.state.resumeRun()
+    assert.ok(page.calls.some(c=>c.method==='resumeDeliveryRun'))
+  } finally {page.stop()}
+})
+test('历史改选和卸载后，迟到结果不能覆盖当前运行', async()=>{
+  let finish!:(value:any)=>void
+  const page=m2Component({getDeliveryRun:(id:string)=>id==='old'?new Promise(r=>{finish=r}):{...draft,run_id:id}})
+  try {
+    const old=page.state.selectRun('old'); await page.state.selectRun('new'); finish({...draft,run_id:'old'}); await old
+    assert.equal(page.state.selected.value.run_id,'new')
+    const pending=page.state.selectRun('old');page.stop();finish({...draft,run_id:'old'});await pending
+    assert.notEqual(page.state.selected.value?.run_id,'old')
+  } finally {page.stop()}
+})
+test('候选图失败不切换历史图，改选后旧导航失效',async()=>{
+  let finish!:(value:any)=>void
+  const page=m2Component({getDeliveryGraph:()=>new Promise(r=>{finish=r}),getDeliveryRun:{...draft,run_id:'new'}})
+  try {
+    page.state.selected.value={...draft,status:'completed'};page.state.selectedId.value=draft.run_id
+    const pending=page.state.openGraph();await page.state.selectRun('new');finish({run_id:draft.run_id,url:'/old'});await pending
     assert.deepEqual(page.navigations,[])
-  } finally { page.stop() }
+  } finally {page.stop()}
 })
 
-test('进入和轮询不启动，创建只冻结；开始和停止必须显式操作', async () => {
-  const page = m2Component({ createM2Run: draft, getM2Run: draft, startM2Run: { ...draft, status: 'running' }, stopM2Run: { ...draft, status: 'stopping' } })
-  try {
-    await page.mounted(); for (const poll of page.intervals) await poll()
-    assert.equal(page.calls.some(c => /start|create/i.test(c.method)), false)
-    await page.state.createRun()
-    assert.equal(page.state.selected.value.status, 'queued')
-    assert.equal(page.calls.some(c => c.method === 'startM2Run'), false)
-    await page.state.startRun(); await page.state.stopRun()
-    assert.deepEqual(page.calls.find(c => c.method === 'startM2Run').args, [draft.run_id])
-    assert.deepEqual(page.calls.find(c => c.method === 'stopM2Run').args, [draft.run_id])
-    assert.equal(page.calls.some(c => /Collection/.test(c.method)), false)
-  } finally { page.stop() }
-  assert.ok(page.cleared.length)
+
+test('执行中prepared响应仍会轮询，历史只读运行不会执行或放弃',async()=>{
+ const page=m2Component({startDeliveryRun:{...draft,execution_active:true},getDeliveryRun:{...draft,status:'running',execution_active:true}})
+ try {
+  await page.mounted();page.state.selected.value=draft;page.state.selectedId.value=draft.run_id
+  await page.state.startRun();for(const poll of page.intervals)await poll()
+  assert.ok(page.calls.some(c=>c.method==='getDeliveryRun'))
+  page.state.selected.value={...draft,status:'stopped',execution_available:false};const before=page.calls.length
+  await page.state.resumeRun();await page.state.abandonRun();assert.equal(page.calls.length,before)
+ } finally {page.stop()}
 })
 
-test('历史成员模式不携带范围过滤，输入上限和反向ID范围阻止创建', async () => {
-  const page = m2Component({ createM2Run: draft })
-  try {
-    await page.mounted()
-    page.state.idMin.value = 9; page.state.idMax.value = 2
-    await page.state.createRun()
-    assert.equal(page.calls.some(c => c.method === 'createM2Run'), false)
-    page.state.cohort.value = 'main120'
-    await page.state.createRun()
-    assert.deepEqual(page.calls.find(c => c.method === 'createM2Run').args[0], { cohort: 'main120', limit: 120, sources: [], id_min: null, id_max: null })
-  } finally { page.stop() }
-})
-
-test('选择新任务后旧任务和旧JD响应不能覆盖', async () => {
-  let finish!: (v: any) => void, finishItem!: (v: any) => void
-  const page = m2Component({ getM2Run: (id: string) => id === 'old' ? new Promise(resolve => { finish = resolve }) : { ...draft, run_id: id }, getM2Item: (_id: string, ordinal: number) => ordinal === 1 ? new Promise(resolve => { finishItem = resolve }) : { ordinal } })
-  try {
-    await page.mounted()
-    const first = page.state.selectRun('old'); await page.state.selectRun('new')
-    finish({ ...draft, run_id: 'old' }); await first
-    assert.equal(page.state.selected.value.run_id, 'new')
-    const item = page.state.inspectItem(1); await page.state.inspectItem(2)
-    finishItem({ ordinal: 1 }); await item
-    assert.equal(page.state.detail.value.ordinal, 2)
-  } finally { page.stop() }
-})
-
-test('失败显示原因且不补造结果，版本重放生成待执行任务', async () => {
-  const page = m2Component({ getM2Run: draft, getM2Item: new Error('本地原文门禁拒绝'), replayM2Run: { ...draft, run_id: 'replay' } })
-  try {
-    await page.mounted(); await page.state.selectRun(draft.run_id)
-    await page.state.inspectItem(1)
-    assert.equal(page.state.detail.value, null)
-    assert.match(page.state.error.value, /门禁拒绝/)
-    page.state.revision.value = 'v2'
-    await page.state.replayRun()
-    assert.equal(page.state.selected.value.run_id, 'replay')
-    assert.deepEqual(page.calls.find(c => c.method === 'replayM2Run').args, [draft.run_id, 'v2'])
-    assert.equal(page.calls.some(c => c.method === 'startM2Run'), false)
-  } finally { page.stop() }
-})
-
-test('冻结创建较慢时，不能覆盖用户后来选择的历史任务', async () => {
-  let finish!: (v: any) => void
-  const page = m2Component({ createM2Run: () => new Promise(resolve => { finish = resolve }), getM2Run: { ...draft, run_id: 'chosen' } })
-  try {
-    await page.mounted()
-    const pending = page.state.createRun()
-    await page.state.selectRun('chosen')
-    finish(draft); await pending
-    assert.equal(page.state.selected.value.run_id, 'chosen')
-  } finally { page.stop() }
-})
-
-test('待审身份显示为独立标签并进入报告汇总', async () => {
-  const pendingRun = {
-    ...draft,
-    status: 'completed_with_issues',
-    summary: {
-      input_total: 1, finalized: 1, stage_complete: 1,
-      final_counts: { needs_review: 1 },
-      identity: { verified: 0, pending: 1, unknown: 0 },
-      content: { eligible: 1, ineligible: 0, unknown: 0 },
-    },
-    items: [{
-      ordinal: 1, jd_id: 101, source: 'zhaopin', title: 'Python 工程师',
-      identity_status: 'pending', content_eligible: true,
-      identity_evidence: { binding_policy: 'zhaopin-dom-panel-v1' },
-      final_status: 'needs_review', evidence: { matched: 0, invalid: 0 },
-      stages: {},
-    }],
-  }
-  const page = m2Component({ getM2Runs: [pendingRun], getM2Run: pendingRun })
-  try {
-    await page.mounted()
-    page.state.selected.value = pendingRun
-    assert.equal(page.state.identityText('pending'), '身份待审')
-    assert.equal(page.state.identityText('verified'), '身份已验证')
-    assert.equal(page.state.identityText('unknown'), '身份未知')
-    assert.equal(page.state.stageMetrics.value.identity.pending, 1)
-    assert.equal(page.state.stageMetrics.value.content.eligible, 1)
-  } finally { page.stop() }
-})
-
-test('人工审核绑定机器摘要并可读取历史和导出', async () => {
-  const completed = {
-    ...draft,
-    status: 'completed_with_issues',
-    summary: {
-      ...draft.summary,
-      review: { total_items: 1, reviewed_items: 1, unreviewed_items: 0, accepted: 1, rejected: 0, needs_followup: 0 },
-    },
-  }
-  const detail:any = {
-    ordinal: 1, jd_id: 101, source: 'boss', title: '后端工程师', final_status: 'needs_review',
-    evidence: { matched: 1, invalid: 0 }, machine_sha256: 'a'.repeat(64),
-    human_review: null, reviews: [], warnings: [], input_sha256: 'b'.repeat(64),
-    input: { id: 101, raw_text: '负责软件开发' },
-    stages: {
-      b2: { status: 'saved', result: { body: {
-        statements: [
-          { id: 's1', state: 'required', relation: null, condition: null, skills: [{ name: 'python' }], evidence: { quote: '必须掌握 Python' } },
-          { id: 's2', state: 'uncertain', relation: null, condition: null, skills: [{ name: '未登记框架' }], evidence: { quote: '了解未登记框架' } },
-        ],
-      } } },
-      b22: { status: 'saved', result: { body: {
-        skills: [{ id: 'k1', canonical: 'python', statement_ids: ['s1'] }],
-        original_semantics: { statements: [{ id: 's1', state: 'required', relation: null, condition: null, evidence: { quote: '必须掌握 Python' } }] },
-      } } },
-      b3: { status: 'saved', result: { body: {
-        candidates: [{ family_id: 'software_engineering', clues: [{ evidence: { quote: '负责软件开发' } }] }],
-      } } },
-    },
-  }
-  const event = {
-    review_id: 1, schema_version: 'm2-human-review-1', run_id: completed.run_id,
-    ordinal: 1, jd_id: 101, input_sha256: 'b'.repeat(64), machine_sha256: 'a'.repeat(64),
-    machine_status: 'needs_review', decision: 'accepted', reviewer: '审核员',
-    note: '职责证据明确', reviewed_at: '2026-10-22T10:00:00+00:00',
-    sha256: 'c'.repeat(64), formal_truth_claim: false,
-  }
-  const page = m2Component({
-    getM2Run: completed,
-    getM2Item: detail,
-    reviewM2Item: { ...detail, human_review: event, reviews: [event] },
-    exportM2Reviews: { schema_version: 'm2-human-review-export-1', reviews: [event], items: [] },
-  })
-  try {
-    await page.mounted()
-    page.state.selected.value = completed
-    page.state.selectedId.value = completed.run_id
-    await page.state.inspectItem(1)
-    page.state.reviewDecision.value = 'accepted'
-    page.state.reviewReviewer.value = '审核员'
-    page.state.reviewNote.value = '职责证据明确'
-    if (page.state.reviewScopeStatus) page.state.reviewScopeStatus.value = 'in_scope'
-    if (page.state.humanStatementStates) page.state.humanStatementStates.s1 = 'required'
-    if (page.state.humanStatementStates) page.state.humanStatementStates.s2 = 'not_skill'
-    if (page.state.humanB3Decisions) page.state.humanB3Decisions.software_engineering = 'accepted'
-    await page.state.submitReview()
-
-    assert.deepEqual(page.calls.find(c => c.method === 'reviewM2Item').args, [
-      completed.run_id, 1,
-      {
-        decision: 'accepted', reviewer: '审核员', note: '职责证据明确', machine_sha256: 'a'.repeat(64),
-        annotations: {
-          b1_scope: { scope_status: 'in_scope', note: '' },
-          b2_statements: [
-            { statement_id: 's1', skill_ids: ['k1'], human_state: 'required', note: '' },
-            { statement_id: 's2', skill_ids: [], human_state: 'not_skill', note: '' },
-          ],
-          b3_categories: [{ family_id: 'software_engineering', human_decision: 'accepted', note: '' }],
-        },
-      },
-    ])
-    assert.equal(page.state.detail.value.human_review.decision, 'accepted')
-    assert.equal(page.state.reviewDecision.value, '')
-    await page.state.downloadReviews()
-    assert.equal(page.downloads[0].download, `m2-reviews-${completed.run_id}.json`)
-  } finally { page.stop() }
-})
-
-test('审核返回不能覆盖后来打开的 JD', async () => {
-  let finishReview!: (value:any) => void
-  const completed = { ...draft, status: 'completed_with_issues' }
-  const first:any = {
-    ordinal: 1, jd_id: 101, title: '岗位一', final_status: 'needs_review',
-    machine_sha256: 'a'.repeat(64), reviews: [], stages: {}, evidence: { matched: 0, invalid: 0 },
-  }
-  const second:any = { ...first, ordinal: 2, jd_id: 102, title: '岗位二', machine_sha256: 'd'.repeat(64) }
-  const page = m2Component({
-    getM2Run: completed,
-    getM2Item: (_id: string, ordinal: number) => ordinal === 1 ? first : second,
-    reviewM2Item: () => new Promise(resolve => { finishReview = resolve }),
-  })
-  try {
-    await page.mounted()
-    page.state.selected.value = completed
-    page.state.selectedId.value = completed.run_id
-    await page.state.inspectItem(1)
-    page.state.reviewDecision.value = 'accepted'
-    page.state.reviewReviewer.value = '审核员'
-    const pending = page.state.submitReview()
-    await page.state.inspectItem(2)
-    finishReview({ ...first, human_review: { decision: 'accepted' } })
-    await pending
-    assert.equal(page.state.detail.value.ordinal, 2)
-    assert.equal(page.state.detail.value.human_review, undefined)
-  } finally { page.stop() }
-})
-
-test('重新打开 JD 显示跨事件有效标签和冲突，不把旧标签自动重提', async () => {
-  const completed = { ...draft, status: 'completed_with_issues' }
-  const provenance = (reviewId: number, reviewer: string) => ({
-    review_id: reviewId, event_sha256: String(reviewId).repeat(64).slice(0, 64),
-    reviewer, reviewed_at: `2026-10-22T10:0${reviewId}:00+00:00`,
-    machine_sha256: 'a'.repeat(64), input_sha256: 'b'.repeat(64),
-  })
-  const detail:any = {
-    ordinal: 1, jd_id: 101, title: '跨事件审核', final_status: 'needs_review',
-    machine_sha256: 'a'.repeat(64), input_sha256: 'b'.repeat(64), warnings: [],
-    evidence: { matched: 1, invalid: 0 },
-    stages: {
-      b2: { status: 'saved', result: { body: { statements: [
-        { id: 's1', state: 'required', relation: null, condition: null, skills: [{ name: 'python' }], evidence: { quote: '必须掌握 Python' } },
-      ] } } },
-      b22: { status: 'saved', result: { body: { skills: [{ id: 'k1', canonical: 'python', statement_ids: ['s1'] }] } } },
-      b3: { status: 'saved', result: { body: { candidates: [
-        { family_id: 'software_engineering', clues: [{ evidence: { quote: '负责软件开发' } }] },
-      ] } } },
-    },
-    human_review: { decision: 'needs_followup', review_id: 3 },
-    reviews: [{ review_id: 1 }, { review_id: 2 }, { review_id: 3 }],
-    human_effective: {
-      schema_version: 'm2-human-effective-1',
-      b1_scope: { scope_status: 'in_scope', note: '范围', provenance: provenance(1, '范围审核员') },
-      b2_statements: [{
-        statement_id: 's1', skill_ids: ['k1'], human_state: 'required', note: '技能',
-        provenance: provenance(2, '技能审核员'),
-      }],
-      b3_categories: [{
-        family_id: 'software_engineering', human_decision: 'accepted', note: '大类',
-        provenance: provenance(3, '大类审核员'),
-      }],
-      conflicts: [{
-        dimension: 'b2_statement', key: 's1',
-        previous: {
-          statement_id: 's1', skill_ids: ['k1'], human_state: 'uncertain', note: '旧值',
-          provenance: provenance(2, '技能审核员'),
-        },
-        effective: {
-          statement_id: 's1', skill_ids: ['k1'], human_state: 'required', note: '技能',
-          provenance: provenance(3, '技能审核员'),
-        },
-      }],
-      event_count: 3, annotation_event_count: 3, legacy_review_count: 0, has_dimension_truth: true,
-    },
-  }
-  const page = m2Component({ getM2Run: completed, getM2Item: detail, reviewM2Item: { ...detail, human_review: { decision: 'needs_followup', review_id: 4 } } })
-  try {
-    await page.mounted()
-    page.state.selected.value = completed
-    page.state.selectedId.value = completed.run_id
-    await page.state.inspectItem(1)
-    assert.equal(page.state.effectiveB2Map?.value.get('s1')?.human_state, 'required')
-    assert.equal(page.state.effectiveB2Map?.value.get('s1')?.provenance.reviewer, '技能审核员')
-    assert.equal(page.state.effectiveB3Map?.value.get('software_engineering')?.human_decision, 'accepted')
-    assert.equal(page.state.detail.value.human_effective.conflicts.length, 1)
-    assert.equal(page.state.reviewScopeStatus.value, '')
-    assert.equal(page.state.humanStatementStates.s1, undefined)
-    assert.equal(page.state.humanB3Decisions.software_engineering, undefined)
-
-    page.state.reviewDecision.value = 'needs_followup'
-    page.state.reviewReviewer.value = '新增审核员'
-    page.state.humanStatementStates.s1 = 'preferred'
-    await page.state.submitReview()
-    const payload = page.calls.find(c => c.method === 'reviewM2Item').args[2]
-    assert.deepEqual(payload.annotations, {
-      b1_scope: null,
-      b2_statements: [{ statement_id: 's1', skill_ids: ['k1'], human_state: 'preferred', note: '' }],
-      b3_categories: [],
-    })
-  } finally { page.stop() }
-})
-
-test('延迟导出使用发起时的 run_id 命名结果', async () => {
-  let finishExport!: (value:any) => void
-  const page = m2Component({
-    exportM2Reviews: () => new Promise(resolve => { finishExport = resolve }),
-  })
-  try {
-    page.state.selected.value = { ...draft, run_id: 'a'.repeat(32) }
-    page.state.selectedId.value = 'a'.repeat(32)
-    const pending = page.state.downloadReviews()
-    page.state.selected.value = { ...draft, run_id: 'b'.repeat(32) }
-    page.state.selectedId.value = 'b'.repeat(32)
-    finishExport({ reviews: [] })
-    await pending
-    assert.equal(page.downloads[0].download, `m2-reviews-${'a'.repeat(32)}.json`)
-  } finally { page.stop() }
-})
-
-test('B3 机器漏判的人工补充保存及重开后仍可见，更正仅提交本轮标签', async () => {
-  const completed = { ...draft, status: 'completed_with_issues' }
-  const provenance = {
-    review_id: 1, event_sha256: 'c'.repeat(64), reviewer: '合成测试员',
-    reviewed_at: '2026-10-22T10:00:00+00:00',
-    machine_sha256: 'a'.repeat(64), input_sha256: 'b'.repeat(64),
-  }
-  const category = { family_id: 'data_ai', human_decision: 'accepted', note: '合成补充依据', provenance }
-  const detail = {
-    ordinal: 1, machine_sha256: 'a'.repeat(64),
-    stages: { b3: { result: { body: { candidates: [] } } } },
-  }
-  const saved = {
-    ...detail,
-    human_effective: { b3_categories: [category] },
-  }
-  const page = m2Component({ getM2Run: completed, getM2Item: detail, reviewM2Item: saved })
-  try {
-    page.state.selected.value = completed
-    page.state.selectedId.value = completed.run_id
-    await page.state.inspectItem(1)
-    page.state.reviewAdditionalB3Family.value = 'data_ai'
-    page.state.humanB3Decisions.data_ai = 'accepted'
-    page.state.humanB3Notes.data_ai = '合成补充依据'
-    page.state.reviewDecision.value = 'accepted'
-    page.state.reviewReviewer.value = '合成测试员'
-    await page.state.submitReview()
-    assert.deepEqual(page.calls.find(c => c.method === 'reviewM2Item').args[2].annotations, {
-      b1_scope: null, b2_statements: [],
-      b3_categories: [{ family_id: 'data_ai', human_decision: 'accepted', note: '合成补充依据' }],
-    })
-    assert.equal(page.state.reviewAdditionalB3Family.value, '')
-    assert.deepEqual(page.state.b3ReviewRows.value.map((row: any) => row.family_id), ['data_ai'])
-
-    page.state.drawer.value = false
-    const reopened = m2Component({ getM2Run: completed, getM2Item: saved, reviewM2Item: saved })
-    try {
-      reopened.state.selected.value = completed
-      reopened.state.selectedId.value = completed.run_id
-      await reopened.state.inspectItem(1)
-      assert.deepEqual(reopened.state.b3ReviewRows.value, [{
-        family_id: 'data_ai', label: '数据与人工智能', machine: false,
-        evidence: '机器未给出该大类候选；由人工补充待核。',
-      }])
-      assert.deepEqual(reopened.state.effectiveB3Map.value.get('data_ai'), category)
-      assert.match(reopened.state.provenanceText(category.provenance), /事件 #1.*合成测试员/)
-      assert.equal(reopened.state.humanB3Decisions.data_ai, undefined)
-      assert.equal(reopened.state.humanB3Notes.data_ai, undefined)
-      reopened.state.reviewDecision.value = 'needs_followup'
-      reopened.state.reviewReviewer.value = '合成测试员'
-      await reopened.state.submitReview()
-      assert.equal(reopened.calls.find(c => c.method === 'reviewM2Item').args[2].annotations, undefined)
-
-      reopened.state.reviewDecision.value = 'needs_followup'
-      reopened.state.humanB3Decisions.data_ai = 'rejected'
-      reopened.state.humanB3Notes.data_ai = '合成更正依据'
-      await reopened.state.submitReview()
-      const submissions = reopened.calls.filter(c => c.method === 'reviewM2Item')
-      assert.deepEqual(submissions[1].args[2].annotations, {
-        b1_scope: null, b2_statements: [],
-        b3_categories: [{ family_id: 'data_ai', human_decision: 'rejected', note: '合成更正依据' }],
-      })
-    } finally { reopened.stop() }
-  } finally { page.stop() }
-})
-
-test('B3 合并机器候选、历史人工补充与本轮选择，按大类去重并保留机器证据', () => {
-  const page = m2Component()
-  try {
-    page.state.detail.value = {
-      stages: { b3: { result: { body: { candidates: [
-        { family_id: 'software_engineering', clues: [{ evidence: { quote: '负责软件开发' } }] },
-      ] } } } },
-      human_effective: { b3_categories: [
-        { family_id: 'software_engineering', human_decision: 'accepted' },
-        { family_id: 'data_ai', human_decision: 'needs_followup' },
-      ] },
-    }
-    page.state.reviewAdditionalB3Family.value = 'test_quality_engineering'
-    assert.deepEqual(page.state.b3ReviewRows.value.map((row: any) => row.family_id), [
-      'software_engineering', 'data_ai', 'test_quality_engineering',
-    ])
-    assert.equal(page.state.b3ReviewRows.value[0].machine, true)
-    assert.equal(page.state.b3ReviewRows.value[0].evidence, '负责软件开发')
-    page.state.reviewAdditionalB3Family.value = 'data_ai'
-    assert.deepEqual(page.state.b3ReviewRows.value.map((row: any) => row.family_id), ['software_engineering', 'data_ai'])
-    assert.deepEqual(Object.keys(page.state.humanB3Decisions), [])
-  } finally { page.stop() }
+test('用户显式放弃保留结果；迟到开始响应不能覆盖改选运行',async()=>{
+ let finish!:(value:any)=>void
+ const page=m2Component({startDeliveryRun:()=>new Promise(r=>{finish=r}),getDeliveryRun:{...draft,run_id:'new'},abandonDeliveryRun:{...draft,run_id:'new',status:'abandoned',execution_available:false}})
+ try {
+  page.state.selected.value=draft;page.state.selectedId.value=draft.run_id
+  const pending=page.state.startRun();await page.state.selectRun('new');finish({...draft,status:'running'});await pending
+  assert.equal(page.state.selected.value.run_id,'new')
+  await page.state.abandonRun();assert.deepEqual(page.calls.find(c=>c.method==='abandonDeliveryRun').args,['new'])
+  assert.equal(page.state.selected.value.status,'abandoned')
+ } finally {page.stop()}
 })

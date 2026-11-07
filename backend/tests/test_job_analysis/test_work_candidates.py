@@ -53,7 +53,8 @@ def apply(store, request, values=(), knowledge=None):
 
 def test_two_batches_persist_identity_history_and_exact_retry(tmp_path):
     from app.job_analysis.work_candidates.storage import CandidateStore
-    first, second = work(), work("two", "使用 Go 开发订单接口，保障订单服务运行。", title="平台程序员")
+    first = work()
+    second = work("two", first["claims"][0]["text"], title="平台程序员")
     path = tmp_path / "p3.sqlite3"
     with CandidateStore(path, create=True) as store:
         request = batch(store, "batch-one", [first], [create(first)])
@@ -260,7 +261,8 @@ def test_same_skill_different_duty_may_be_a_hint_but_never_same_work(tmp_path):
         two = apply(store, batch(store, "two", [b]), [b])
         assert all(r["state"] == "pending_review" for r in two["relations"].values())
         assert all(r["formal_identity"] is None for r in two["relations"].values())
-        assert two["report"]["searches"][0]["semantic_status"] == "not_evaluated"
+        assert two["report"]["searches"][0]["semantic_status"] == "bounded_machine_comparison"
+        assert not any(r["jd_id"] == "analyst" for r in two["relations"].values())
 
 
 def test_two_new_candidates_and_explicit_links_do_not_read_half_updated_baseline(tmp_path):
@@ -420,7 +422,7 @@ def test_new_relations_preserve_all_observed_versions_of_the_same_jd(tmp_path, m
     b = work("ambiguous", "分析订单服务接口性能并交付诊断报告。")
     with CandidateStore(tmp_path / "state.db", create=True) as store:
         if mode in {"link", "automatic"}:
-            seed = work("seed", "开发订单服务接口并保障交易服务。")
+            seed = work("seed", a["claims"][0]["text"])
             apply(store, batch(store, "seed", [seed], [create(seed)]), [seed])
         if mode == "historical-version":
             apply(store, batch(store, "earlier-analysis", [b]), [b])

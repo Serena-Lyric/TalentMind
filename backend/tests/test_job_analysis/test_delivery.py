@@ -38,8 +38,12 @@ def test_entry_preserves_analysis_alignment_and_run_bound_candidate_history(area
         assert item['analysis'] == a
         assert item['alignment']['source_analysis_sha256'] == digest(a)
         assert item['roles']['knowledge_sha256'] == result['knowledge']['sha256']
-        assert item['role_assignment']['status'] == 'unavailable'
-        assert item['role_assignment']['reason'] == 'p2_2_not_validated'
+        assert item['role_assignment']['status'] == 'bounded_research_completed'
+        assert item['role_assignment']['source_analysis_sha256'] == digest(a)
+        assert item['role_assignment']['knowledge_sha256'] == result['knowledge']['sha256']
+        assert item['role_assignment']['model_calls'] == 0
+        assert item['role_assignment']['primary_role_id'] is None
+        assert item['role_assignment']['source_work']
         assert result['work']['candidates']['work-orders']['research']['version'] == 1
         assert result['work']['formal_roles'] == []
         asyncio.run(execute(store, 'two', request(store, [a]), load_snapshot(KNOWLEDGE)))
@@ -59,6 +63,23 @@ def test_processor_path_actually_runs_p1_and_preserves_observation_separately(ar
         assert two['items'][0]['observation'] == row['crawled_at']
         assert two['items'][0]['analysis'] == one['items'][0]['analysis']
         assert 'crawled_at' not in two['items'][0]['analysis']['input_row']
+
+
+def test_role_research_failure_preserves_completed_alignment_and_original_facts(area, monkeypatch):
+    from app.job_analysis.delivery import runner
+    Store, execute, _ = api()
+    analysis = duties('a', ['开发订单交易接口。'])
+    def fail(*args, **kwargs):
+        raise ValueError('synthetic research failure')
+    monkeypatch.setattr(runner, 'build_delivery_research', fail)
+    with Store(area / 'delivery', create=True) as store:
+        result = asyncio.run(execute(store, 'one', request(store, [analysis]), load_snapshot(KNOWLEDGE)))
+    item = result['items'][0]
+    assert item['analysis'] == analysis
+    assert item['alignment']['source_analysis_sha256'] == digest(analysis)
+    assert item['roles'] is not None
+    assert item['role_assignment']['status'] == 'failed'
+    assert item['role_assignment']['reason'] == 'role_research_failed'
 
 
 @pytest.mark.parametrize('change', ['content', 'model', 'knowledge', 'input_version'])

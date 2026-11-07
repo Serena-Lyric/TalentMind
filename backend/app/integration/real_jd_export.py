@@ -69,7 +69,7 @@ def export_sample(env, output, per_platform=40):
 
 def export_sql(sql_path, output, per_platform=40, *, offset=0):
     """Read only the named table in a mysqldump; never execute SQL."""
-    from ..job_analysis.db import _split_sql_values
+    from .sql_values import split_sql_values as _split_sql_values
     output = validate_destination(output)
     if not 1 <= per_platform <= 100:
         raise ValueError("per-platform must be 1..100")

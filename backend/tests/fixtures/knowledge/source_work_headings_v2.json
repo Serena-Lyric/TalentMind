@@ -1,0 +1,949 @@
+{
+  "baseline": "312013b3b35a68a4f09c50ab9c5badb0ebcd494f",
+  "cases": [
+    {
+      "text": "协助职责\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": null,
+      "expected": {
+        "text": "开发订单接口",
+        "core": null,
+        "scope": "affirmed",
+        "importance": "unknown",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "unknown",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "affirmed",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "unknown",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "231e838a2f6f00ebdded86f42ed64fd8c986f7e9a70827611e8fd8cd2fdb2084",
+              "field": "raw_text",
+              "start": 5,
+              "end": 11,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "231e838a2f6f00ebdded86f42ed64fd8c986f7e9a70827611e8fd8cd2fdb2084",
+              "field": "raw_text",
+              "start": 5,
+              "end": 11,
+              "quote": "开发订单接口"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "unknown",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "unknown",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "affirmed",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "unknown",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "【协助职责】\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": null,
+      "expected": {
+        "text": "开发订单接口",
+        "core": null,
+        "scope": "affirmed",
+        "importance": "unknown",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "unknown",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "affirmed",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "unknown",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "e6630cf4a40e3d5b15b322fefdb1e3548ac1437b9a91a66f1567af5b927cbac8",
+              "field": "raw_text",
+              "start": 7,
+              "end": 13,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "e6630cf4a40e3d5b15b322fefdb1e3548ac1437b9a91a66f1567af5b927cbac8",
+              "field": "raw_text",
+              "start": 7,
+              "end": 13,
+              "quote": "开发订单接口"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "unknown",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "unknown",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "affirmed",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "unknown",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "协助职责：\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": null,
+      "expected": {
+        "text": "开发订单接口",
+        "core": null,
+        "scope": "affirmed",
+        "importance": "auxiliary",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "auxiliary",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "affirmed",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "auxiliary",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "d42eabba2ec205cc91998dd78938bc0bc0230fcaf13958b0f35143a3aa314469",
+              "field": "raw_text",
+              "start": 6,
+              "end": 12,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "d42eabba2ec205cc91998dd78938bc0bc0230fcaf13958b0f35143a3aa314469",
+              "field": "raw_text",
+              "start": 6,
+              "end": 12,
+              "quote": "开发订单接口"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [
+              {
+                "namespace": "synthetic",
+                "jd_id": "heading-history",
+                "fingerprint": "d42eabba2ec205cc91998dd78938bc0bc0230fcaf13958b0f35143a3aa314469",
+                "field": "raw_text",
+                "start": 0,
+                "end": 6,
+                "quote": "协助职责：\n"
+              }
+            ],
+            "importance": "auxiliary",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "auxiliary",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "affirmed",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "auxiliary",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "协助职责：\n维护网络。\n主要职责\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": true,
+      "expected": {
+        "text": "开发订单接口",
+        "core": true,
+        "scope": "affirmed",
+        "importance": "auxiliary",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "auxiliary",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "affirmed",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "auxiliary",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "5b3da93c9b81ee97852f142e5e924ba72f967515a5fa258974cbc8702447a803",
+              "field": "raw_text",
+              "start": 17,
+              "end": 23,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "5b3da93c9b81ee97852f142e5e924ba72f967515a5fa258974cbc8702447a803",
+              "field": "raw_text",
+              "start": 17,
+              "end": 23,
+              "quote": "开发订单接口"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [
+              {
+                "namespace": "synthetic",
+                "jd_id": "heading-history",
+                "fingerprint": "5b3da93c9b81ee97852f142e5e924ba72f967515a5fa258974cbc8702447a803",
+                "field": "raw_text",
+                "start": 0,
+                "end": 5,
+                "quote": "协助职责："
+              }
+            ],
+            "importance": "auxiliary",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "auxiliary",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "affirmed",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "auxiliary",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "协助职责：\n维护网络。\n主要职责：\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": true,
+      "expected": {
+        "text": "开发订单接口",
+        "core": true,
+        "scope": "affirmed",
+        "importance": "core",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "core",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "affirmed",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "core",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "487e9a7720719e6dc15bb722ffdbd208a492935d5280aeec3d2a452b067873f4",
+              "field": "raw_text",
+              "start": 18,
+              "end": 24,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "487e9a7720719e6dc15bb722ffdbd208a492935d5280aeec3d2a452b067873f4",
+              "field": "raw_text",
+              "start": 18,
+              "end": 24,
+              "quote": "开发订单接口"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "core",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "core",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "affirmed",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "core",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "如果项目需要：\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": null,
+      "expected": {
+        "text": "开发订单接口",
+        "core": null,
+        "scope": "conditional",
+        "importance": "unknown",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "conditional",
+          "importance": "unknown",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "conditional",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "unknown",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "64869f069aea7382dd0fbf6801083ee082f56e347b53cfb793ce33c8e6d0325f",
+              "field": "raw_text",
+              "start": 8,
+              "end": 14,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "64869f069aea7382dd0fbf6801083ee082f56e347b53cfb793ce33c8e6d0325f",
+              "field": "raw_text",
+              "start": 8,
+              "end": 14,
+              "quote": "开发订单接口"
+            },
+            "scope": "conditional",
+            "context_restricts_quote": false,
+            "governing_evidence": [
+              {
+                "namespace": "synthetic",
+                "jd_id": "heading-history",
+                "fingerprint": "64869f069aea7382dd0fbf6801083ee082f56e347b53cfb793ce33c8e6d0325f",
+                "field": "raw_text",
+                "start": 0,
+                "end": 8,
+                "quote": "如果项目需要：\n"
+              }
+            ],
+            "importance": "unknown",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "conditional",
+              "importance": "unknown",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "conditional",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "unknown",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "无需承担：\n开发订单接口。",
+      "quote": "开发订单接口",
+      "core": null,
+      "expected": {
+        "text": "开发订单接口",
+        "core": null,
+        "scope": "negated",
+        "importance": "unknown",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "negated",
+          "importance": "unknown",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "negated",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "unknown",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "11f70fc0781b7d0cba43d08b1e572ae971c5a85146888a5ef525e14dbbca0e99",
+              "field": "raw_text",
+              "start": 6,
+              "end": 12,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "11f70fc0781b7d0cba43d08b1e572ae971c5a85146888a5ef525e14dbbca0e99",
+              "field": "raw_text",
+              "start": 6,
+              "end": 12,
+              "quote": "开发订单接口"
+            },
+            "scope": "negated",
+            "context_restricts_quote": false,
+            "governing_evidence": [
+              {
+                "namespace": "synthetic",
+                "jd_id": "heading-history",
+                "fingerprint": "11f70fc0781b7d0cba43d08b1e572ae971c5a85146888a5ef525e14dbbca0e99",
+                "field": "raw_text",
+                "start": 0,
+                "end": 6,
+                "quote": "无需承担：\n"
+              }
+            ],
+            "importance": "unknown",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "negated",
+              "importance": "unknown",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "negated",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "unknown",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "开发订单接口。\n【协助职责】\n维护网络。",
+      "quote": "开发订单接口",
+      "core": true,
+      "expected": {
+        "text": "开发订单接口",
+        "core": true,
+        "scope": "affirmed",
+        "importance": "core",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "core",
+          "context_restricts_quote": false,
+          "frames": [
+            {
+              "action": "build",
+              "object": "software",
+              "object_detail": "interface_service",
+              "object_phrase": "订单接口",
+              "scope": "affirmed",
+              "object_start": 4,
+              "object_end": 6,
+              "object_quote": "接口",
+              "importance": "core",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            }
+          ],
+          "gaps": [],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "88401804e16d3bd0f7d1cfc1d98d9a55f560e271350ddf7865fdacf4a85ccd2e",
+              "field": "raw_text",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "88401804e16d3bd0f7d1cfc1d98d9a55f560e271350ddf7865fdacf4a85ccd2e",
+              "field": "raw_text",
+              "start": 0,
+              "end": 6,
+              "quote": "开发订单接口"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "core",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "core",
+              "frames": [
+                {
+                  "action": "build",
+                  "object": "software",
+                  "object_detail": "interface_service",
+                  "object_phrase": "订单接口",
+                  "scope": "affirmed",
+                  "object_start": 4,
+                  "object_end": 6,
+                  "object_quote": "接口",
+                  "importance": "core",
+                  "start": 0,
+                  "end": 6,
+                  "quote": "开发订单接口"
+                }
+              ],
+              "gaps": [],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "编写软件采购合同及代码",
+      "quote": "编写",
+      "core": true,
+      "expected": {
+        "text": "编写",
+        "core": true,
+        "scope": "affirmed",
+        "importance": "core",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "core",
+          "context_restricts_quote": false,
+          "frames": [],
+          "gaps": [
+            {
+              "start": 0,
+              "end": 2,
+              "quote": "编写",
+              "importance": "core",
+              "reason": "unrecognized_work_aspect"
+            }
+          ],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "c651dd0ad6320fe6b66490b5cf2193120b4ba9d3e19e99bdbc33a15667a81da4",
+              "field": "raw_text",
+              "start": 0,
+              "end": 2,
+              "quote": "编写"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "c651dd0ad6320fe6b66490b5cf2193120b4ba9d3e19e99bdbc33a15667a81da4",
+              "field": "raw_text",
+              "start": 0,
+              "end": 11,
+              "quote": "编写软件采购合同及代码"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "core",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "core",
+              "frames": [],
+              "gaps": [
+                {
+                  "start": 0,
+                  "end": 2,
+                  "quote": "编写",
+                  "importance": "core",
+                  "reason": "unrecognized_work_aspect"
+                }
+              ],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "编写软件采购合同及代码",
+      "quote": "软件",
+      "core": true,
+      "expected": {
+        "text": "软件",
+        "core": true,
+        "scope": "affirmed",
+        "importance": "core",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "core",
+          "context_restricts_quote": false,
+          "frames": [],
+          "gaps": [
+            {
+              "start": 0,
+              "end": 2,
+              "quote": "软件",
+              "importance": "core",
+              "reason": "unrecognized_work_aspect"
+            }
+          ],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "c651dd0ad6320fe6b66490b5cf2193120b4ba9d3e19e99bdbc33a15667a81da4",
+              "field": "raw_text",
+              "start": 2,
+              "end": 4,
+              "quote": "软件"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "c651dd0ad6320fe6b66490b5cf2193120b4ba9d3e19e99bdbc33a15667a81da4",
+              "field": "raw_text",
+              "start": 0,
+              "end": 11,
+              "quote": "编写软件采购合同及代码"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "core",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "core",
+              "frames": [],
+              "gaps": [
+                {
+                  "start": 0,
+                  "end": 2,
+                  "quote": "软件",
+                  "importance": "core",
+                  "reason": "unrecognized_work_aspect"
+                }
+              ],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "text": "编写软件采购合同及代码",
+      "quote": "代码",
+      "core": true,
+      "expected": {
+        "text": "代码",
+        "core": true,
+        "scope": "affirmed",
+        "importance": "core",
+        "source_explanation": {
+          "version": "bounded-work-semantics-2",
+          "semantic_review": "machine_unreviewed",
+          "scope": "affirmed",
+          "importance": "core",
+          "context_restricts_quote": false,
+          "frames": [],
+          "gaps": [
+            {
+              "start": 0,
+              "end": 2,
+              "quote": "代码",
+              "importance": "core",
+              "reason": "unrecognized_work_aspect"
+            }
+          ],
+          "limitation": "原文上下文只限定实际引文，不补入未引用的工作事实。"
+        },
+        "matched_source_units": [
+          {
+            "evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "c651dd0ad6320fe6b66490b5cf2193120b4ba9d3e19e99bdbc33a15667a81da4",
+              "field": "raw_text",
+              "start": 9,
+              "end": 11,
+              "quote": "代码"
+            },
+            "context_evidence": {
+              "namespace": "synthetic",
+              "jd_id": "heading-history",
+              "fingerprint": "c651dd0ad6320fe6b66490b5cf2193120b4ba9d3e19e99bdbc33a15667a81da4",
+              "field": "raw_text",
+              "start": 0,
+              "end": 11,
+              "quote": "编写软件采购合同及代码"
+            },
+            "scope": "affirmed",
+            "context_restricts_quote": false,
+            "governing_evidence": [],
+            "importance": "core",
+            "view": {
+              "version": "bounded-work-semantics-2",
+              "semantic_review": "machine_unreviewed",
+              "scope": "affirmed",
+              "importance": "core",
+              "frames": [],
+              "gaps": [
+                {
+                  "start": 0,
+                  "end": 2,
+                  "quote": "代码",
+                  "importance": "core",
+                  "reason": "unrecognized_work_aspect"
+                }
+              ],
+              "limitation": "有界中文/英文工作方面适配；未识别表述保留缺口，不证明整岗或正式职业等价。"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

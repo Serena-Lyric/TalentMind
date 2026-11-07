@@ -2,7 +2,7 @@
   <section class="learning-roadmap panel" v-loading="generating">
     <span class="learning-planet-companion" aria-hidden="true"></span>
     <div class="roadmap-header">
-      <div><h2>技能学习路径</h2><p>学习目标来自简历自动匹配结果，点击推荐岗位后自动生成对应路径。</p></div>
+      <div><h2>技能学习路径</h2><p>显式选择岗位画像，使用同一要求版本计算规则分和学习建议。</p></div>
       <el-button class="btn-coral" :disabled="!hasResume || !selectedJobId" :loading="generating" @click="generatePath"><el-icon><MagicStick /></el-icon>重新生成</el-button>
     </div>
 
@@ -19,20 +19,29 @@
     </div>
 
     <template v-else>
+      <div class="target-picker">
+        <p>推荐快捷选择（最多三项，分数为上传时快照；下方按已选择的要求版本重新计算）</p>
+        <el-button v-for="job in resumeStore.recommendedJobs" :key="job.id" @click="chooseRecommendation(job.id)">{{ job.title }} · {{ job.score }} 分</el-button>
+        <p>选择其他可用于匹配的岗位画像</p>
+        <el-select :model-value="selectedJobId" filterable placeholder="请选择岗位画像" :loading="jobsLoading" @change="chooseTarget"><el-option v-for="job in eligibleJobs" :key="job.value" :value="job.value" :label="job.label" /></el-select>
+        <el-alert v-if="jobsError" :title="jobsError" type="warning" :closable="false"><el-button @click="loadJobs">重试目录</el-button></el-alert>
+      </div>
       <div class="roadmap-config">
         <div class="config-status"><span class="status-dot"></span><div><small>当前简历</small><strong>{{ resumeStore.fileName || '最近一次解析结果' }}</strong><p>字段覆盖率 {{ resumeStore.parseQuality }}%（非准确率）</p></div></div>
-        <div class="selected-target"><small>自动匹配目标岗位</small><strong>{{ path?.job_title || '等待选择推荐岗位' }}</strong><em>{{ path?.job_name_en || '' }}<span v-if="path?.category"> · {{ path.category }}</span></em></div>
+        <div class="selected-target"><small>已选择的岗位画像</small><strong>{{ path?.job_title || '等待选择岗位画像' }}</strong><em>{{ path?.job_name_en || '' }}<span v-if="path?.category"> · {{ path.category }}</span></em></div>
       </div>
 
       <div v-if="!selectedJobId" class="roadmap-empty compact">
         <div class="empty-symbol"><el-icon><MagicStick /></el-icon></div>
-        <h3>请选择一个自动推荐岗位</h3>
-        <p>学习路径必须绑定到简历页中你点击的推荐岗位，避免生成与匹配结果不一致的路径。</p>
+        <h3>请选择学习目标</h3>
+        <p>可点击推荐前三名，或从共享岗位画像目录中主动选择其他目标。研究候选不在此目录。</p>
         <el-button class="btn-soft" @click="router.push('/resume')">返回查看岗位推荐</el-button>
       </div>
 
       <template v-else>
         <div v-if="path">
+          <p>当前目标实际规则分：{{ path.score }} 分（技能文本命中，不代表能力或录用概率）</p>
+          <p class="muted">要求版本：{{ path.requirements_version }}</p>
           <div class="summary-grid">
             <div><span>岗位</span><strong>{{ path.job_title }}</strong></div>
             <div><span>简历已提及</span><strong class="green-text">{{ path.overview ? path.overview.mastered_required + path.overview.mastered_bonus : path.mastered_skills.length }} 项</strong></div>
@@ -90,26 +99,58 @@
             </div>
           </div>
         </div>
-        <div v-else-if="error" class="roadmap-empty"><h3>学习路径暂不可用</h3><p>{{ error }}</p><el-button @click="generatePath">重试</el-button><el-button @click="router.push('/resume')">返回岗位推荐</el-button></div>
-        <div v-else class="roadmap-empty"><div class="empty-symbol"><el-icon><MagicStick /></el-icon></div><h3>{{ generating ? '正在生成学习路径' : '等待生成学习路径' }}</h3><p>学习目标来自当前简历的岗位推荐。</p></div>
+        <div v-else-if="error" class="roadmap-empty"><h3>学习路径暂不可用</h3><p>{{ error }}</p><el-button v-if="versionConflict" @click="recomputeCurrent">读取当前要求并重算</el-button><el-button v-else @click="generatePath">重试</el-button><el-button @click="router.push('/resume')">返回岗位推荐</el-button></div>
+        <div v-else class="roadmap-empty"><div class="empty-symbol"><el-icon><MagicStick /></el-icon></div><h3>{{ generating ? '正在生成学习路径' : '等待生成学习路径' }}</h3><p>学习目标来自你显式选择的岗位画像。</p></div>
       </template>
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { CircleCheck, Document, MagicStick, Warning } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import { generateLearningPath, type LearningPath } from '../api/learning'
+import { generateLearningPath, getLearningJobs, type LearningJob, type LearningPath } from '../api/learning'
 import { useResumeStore } from '../store/resume'
 
 const router = useRouter()
 const route = useRoute()
 const resumeStore = useResumeStore()
 const generating = ref(false)
-const selectedJobId = computed(() => String(route.query.job_id || route.query.job || resumeStore.matchResult?.target_job_id || ''))
+const selectedJobId = computed(() => String(route.query.job_id || resumeStore.learningTarget?.id || ''))
+const targetVersion = computed(() => resumeStore.learningTarget?.id === selectedJobId.value ? resumeStore.learningTarget.requirements_version : resumeStore.recommendedJobs.find(job => job.id === selectedJobId.value)?.requirements_version || '')
+const eligibleJobs = ref<LearningJob[]>([])
+const jobsLoading = ref(false)
+const jobsError = ref('')
+const versionConflict = ref(false)
+let jobsRequest = 0
+let disposed = false
+async function loadJobs() {
+  const request = ++jobsRequest
+  jobsLoading.value = true; jobsError.value = ''
+  try { const jobs = await getLearningJobs(); if (request !== jobsRequest || disposed) return false; eligibleJobs.value = jobs; return true }
+  catch { if (request === jobsRequest) jobsError.value = '岗位画像目录加载失败，请重试。'; return false }
+  finally { if (request === jobsRequest) jobsLoading.value = false }
+}
+function chooseRecommendation(id: string) {
+  const job = resumeStore.recommendedJobs.find(job => job.id === id)
+  if (!job) return
+  resumeStore.selectTarget(id, job.requirements_version)
+  void router.replace({ query: { job_id: id } })
+}
+function chooseTarget(id: string) {
+  const job = eligibleJobs.value.find(job => job.value === id)
+  if (!job) return
+  resumeStore.selectTarget(id, job.requirements_version)
+  void router.replace({ query: { job_id: id } })
+}
+async function recomputeCurrent() {
+  const id = selectedJobId.value, session = resumeStore.revision, request = generation
+  const refreshed = await loadJobs()
+  if (!refreshed || disposed || session !== resumeStore.revision || request !== generation || id !== selectedJobId.value || !hasResume.value) return
+  chooseTarget(id)
+}
 const path = ref<LearningPath | null>(null)
 const hasResume = computed(() => Boolean(resumeStore.profile))
 const error = ref('')
@@ -119,25 +160,27 @@ async function generatePath() {
   const request = ++generation
   path.value = null
   error.value = ''
+  versionConflict.value = false
   generating.value = false
   if (!hasResume.value || !selectedJobId.value) return
-  if (!resumeStore.recommendedJobs.some(job => String(job.id) === selectedJobId.value)) {
-    error.value = '此岗位不在当前简历推荐中，请返回简历页重新选择。'
+  if (!targetVersion.value) {
+    error.value = '请从推荐或画像目录显式选择目标，以绑定岗位要求版本。'
     return
   }
   generating.value = true
   try {
-    const result = await generateLearningPath({ job_id: selectedJobId.value, resume_skills: [...(resumeStore.profile.skills || [])] })
+    const result = await generateLearningPath({ job_id: selectedJobId.value, resume_skills: [...(resumeStore.profile.skills || [])], requirements_version: targetVersion.value })
     if (request !== generation) return
     path.value = result
     ElMessage.success('学习路径已生成')
   } catch (cause: any) {
-    if (request === generation) error.value = cause?.message || '学习路径生成失败，请重试。'
+    if (request === generation) { versionConflict.value = cause?.response?.status === 409; error.value = versionConflict.value ? '岗位要求已更新，旧推荐分数不能用于解释新要求。请读取当前要求并重新计算。' : cause?.message || '学习路径生成失败，请重试。' }
   } finally { if (request === generation) generating.value = false }
 }
 
-watch([selectedJobId, () => resumeStore.profile, () => resumeStore.recommendedJobs], () => { void generatePath() }, { immediate: true, deep: true, flush: 'sync' })
-onUnmounted(() => { generation++ })
+watch([selectedJobId, targetVersion, () => resumeStore.revision, () => resumeStore.profile, () => resumeStore.recommendedJobs], () => { void generatePath() }, { immediate: true, deep: true, flush: 'sync' })
+onMounted(loadJobs)
+onUnmounted(() => { disposed = true; generation++; jobsRequest++ })
 </script>
 
 <style scoped>

@@ -11,7 +11,9 @@ APP_ID = 0x4D325733
 
 
 class CandidateStore:
-    def __init__(self, path, *, create=False):
+    def __init__(self, path, *, create=False, readonly=False):
+        if readonly and create:
+            raise ValueError("readonly cannot create a registry")
         self.path = safe_destination(path)
         if self.path.suffix not in {".db", ".sqlite", ".sqlite3"}:
             raise ValueError("explicit SQLite filename required")
@@ -20,9 +22,17 @@ class CandidateStore:
             raise ValueError("registry does not exist; use init")
         if exists and self.path.stat().st_nlink > 1:
             raise ValueError("hardlinked registry prohibited")
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.path, isolation_level=None, timeout=5)
+        if not readonly:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.conn = sqlite3.connect(self.path.as_uri() + "?mode=ro" if readonly else self.path,
+                                    uri=readonly, isolation_level=None, timeout=5)
         try:
+            if readonly:
+                if (self.conn.execute("PRAGMA application_id").fetchone()[0] != APP_ID
+                        or self.conn.execute("PRAGMA user_version").fetchone()[0] != 1):
+                    raise ValueError("not a P3 registry; no automatic migration")
+                self.read()
+                return
             self.conn.execute("PRAGMA recursive_triggers=ON")
             self.conn.execute("PRAGMA synchronous=FULL")
             self.conn.execute("BEGIN IMMEDIATE")
