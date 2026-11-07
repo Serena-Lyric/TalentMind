@@ -24,3 +24,8 @@ test('旧版本缺失研究保留原状态，不虚构新版已执行结果',asy
   const html=await render({status:'unavailable',reason:'historical snapshot'})
   assert.ok(html.includes('本版本未保存新版岗位研究明细'));assert.ok(html.includes('historical snapshot'));assert.ok(!html.includes('局部职责支持'))
 })
+test('同一职责有局部支持时仍展示未覆盖原文片段',async()=>{
+  const html=await render({schema_version:'m2-role-research-1',status:'bounded_research_completed',local_supports:[{claim_id:'d1',role_id:'backend',reference_id:'r1'}],uncovered_work:[{claim_id:'d1',reason:'partial_source_work_uncovered',source_gaps:[{quote:'主持部门会议'}]}]})
+  assert.ok(html.includes('部分工作尚未覆盖'))
+  assert.ok(html.includes('主持部门会议'))
+})
