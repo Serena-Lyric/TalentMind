@@ -10,6 +10,7 @@ import random
 import sqlite3
 import secrets
 import time
+from contextlib import closing
 from pathlib import Path
 
 PAGE_DELAY_MIN = 15.0
@@ -180,7 +181,7 @@ def issue_capture_permit(run_id: str, kind: str, reservation: dict) -> dict:
     permit = {'token': secrets.token_urlsafe(24), 'kind': kind,
               'issued_at': reservation['reserved_at'], 'expires_at': reservation['reserved_at'] + 15.0}
     try:
-        with sqlite3.connect(str(_STATE_PATH), timeout=5) as connection:
+        with closing(sqlite3.connect(str(_STATE_PATH), timeout=5)) as connection, connection:
             connection.execute('PRAGMA synchronous=FULL')
             connection.execute('CREATE TABLE IF NOT EXISTS collection_capture_permits (token TEXT PRIMARY KEY, run_id TEXT NOT NULL, kind TEXT NOT NULL, issued REAL NOT NULL, expires REAL NOT NULL, used INTEGER NOT NULL)')
             connection.execute('INSERT INTO collection_capture_permits VALUES (?, ?, ?, ?, ?, 0)',
@@ -194,7 +195,7 @@ def consume_capture_permit(run_id: str, kind: str, permit: str | None, now: floa
     if not permit or not math.isfinite(now):
         raise ValueError('capture_permit_required_or_expired')
     try:
-        with sqlite3.connect(str(_STATE_PATH), timeout=5) as connection:
+        with closing(sqlite3.connect(str(_STATE_PATH), timeout=5)) as connection, connection:
             connection.execute('PRAGMA synchronous=FULL')
             connection.execute('BEGIN IMMEDIATE')
             changed = connection.execute('''UPDATE collection_capture_permits SET used=1

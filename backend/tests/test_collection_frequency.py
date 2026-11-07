@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import closing
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -127,7 +128,7 @@ def test_invalid_persisted_ledger_is_not_silently_reset(ledger, damage):
         frequency._STATE_PATH.touch()
     else:
         frequency.reserve_action('boss', 'Java', '101')
-        with sqlite3.connect(frequency._STATE_PATH) as connection:
+        with closing(sqlite3.connect(frequency._STATE_PATH)) as connection, connection:
             statement = "UPDATE collection_frequency SET next_page=last_reserved+1" if damage == 'short_interval' else "UPDATE collection_frequency SET keyword=''"
             connection.execute(statement)
     with pytest.raises(frequency.FrequencyStateError):

@@ -158,6 +158,13 @@ from datetime import datetime
 from sqlalchemy import create_engine,event
 from sqlalchemy.orm import Session
 from app.collect import fetch_cn_jobs as cn
+from app.collect import frequency
+from pathlib import Path
+import time
+frequency._STATE_PATH = Path(os.environ['M1_SYNTHETIC_DB']).with_suffix('.frequency.sqlite3')
+clock = [1800000000.0]
+frequency._clock = lambda: clock[0]
+time.sleep = lambda seconds: clock.__setitem__(0, clock[0] + seconds)
 from app.db import mysql
 engine=create_engine('sqlite:///'+os.environ['M1_SYNTHETIC_DB'])
 @event.listens_for(engine,'before_cursor_execute',retval=True)
@@ -202,7 +209,7 @@ cn.CdpClient.connect_first_page=lambda *a,**kw:Client()
     try:
         launched=control.start_task({'platform':'liepin','mode':'once','keywords':['Python'],
             'cities':[{'name':'北京','code':'北京'}],'pages':1,'max_jobs':5,'detail_limit':5,
-            'page_delay_min':0,'page_delay_max':0,'settle_min':0,'settle_max':0})
+            'page_delay_min':15,'page_delay_max':15,'settle_min':5,'settle_max':5})
         control._START_THREAD.join(timeout=5)
         process=processes[0]
         assert process.wait(timeout=15)==0
@@ -225,6 +232,9 @@ cn.CdpClient.connect_first_page=lambda *a,**kw:Client()
         for thread in threads:thread.join(timeout=5)
         database.unlink(missing_ok=True)
         assert not database.exists()
+        ledger = database.with_suffix('.frequency.sqlite3')
+        ledger.unlink(missing_ok=True)
+        assert not ledger.exists()
 
 
 def test_watcher_retains_explicit_gate_error_even_if_worker_exits_zero(isolated_control):
