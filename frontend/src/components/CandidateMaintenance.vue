@@ -5,7 +5,14 @@
     <div class="actions"><el-button :loading="workLoading" @click="loadWork()">读取工作候选</el-button><el-button :loading="skillListLoading" @click="loadSkills()">读取技能候选</el-button><el-button :loading="pendingLoading" :disabled="!!pendingSaving" @click="loadPending()">检查未完成维护</el-button></div>
     <el-alert v-if="pendingError" :title="pendingError" type="error" :closable="false" />
     <el-alert v-if="pendingSaved" :title="pendingSaved" type="success" :closable="false" />
-    <template v-if="pending!==null"><p v-if="!pending.length">没有需要恢复的未完成维护。</p><article v-for="item in pending" :key="item.id" class="source"><p>{{item.kind==='work'?'工作候选':'技能候选'}}维护中断 · {{item.candidate_id || item.id}}</p><p>恢复将继续服务端已冻结的原请求，不使用当前表单内容。</p><p class="binding">请求摘要 {{item.request_sha256}}</p><details v-if="item.request"><summary>核对待恢复操作、原因和版本</summary><pre>{{pretty(item.request)}}</pre></details><el-button :loading="pendingSaving===item.id" :disabled="!!pendingSaving" @click="resumePending(item)">恢复未完成维护</el-button></article></template>
+    <el-alert v-for="item in closedMaintenance" :key="item.id" :title="closedMaintenanceMessage(item)" type="warning" :closable="false" />
+    <template v-if="pending!==null"><p v-if="!pending.length">没有需要恢复的未完成维护。</p><article v-for="item in pending" :key="item.id" class="source"><p>{{item.kind==='work'?'工作候选':'技能候选'}}维护中断 · {{item.candidate_id || item.id}}</p><p>恢复将继续服务端已冻结的原请求，不使用当前表单内容。</p><p class="binding">请求摘要 {{item.request_sha256}}</p><details v-if="item.request"><summary>核对待恢复操作、原因和版本</summary><pre>{{pretty(item.request)}}</pre></details><el-button :loading="pendingSaving===item.id" :disabled="!!pendingSaving" @click="resumePending(item)">恢复未完成维护</el-button>
+      <template v-if="item.can_close===true">
+        <p>旧版维护没有记录完整投影绑定，无法安全认领为完整成功。结束将保留已保存成果，不删除历史、不回滚候选，也不会记作完整成功。</p>
+        <el-input v-model="pendingCloseReasons[item.id]" aria-label="结束旧版维护原因" placeholder="填写结束原因（必填）" type="textarea" :disabled="!!pendingSaving || pendingLoading" />
+        <el-button :loading="pendingSaving===item.id" :disabled="!!pendingSaving || pendingLoading" @click="closePending(item)">结束旧版未完成维护（保留已保存成果）</el-button>
+      </template>
+    </article></template>
     <el-alert v-if="workError" :title="workError" type="error" :closable="false" />
     <el-alert v-if="workSaved" :title="workSaved" type="success" :closable="false" />
     <article v-if="work" class="candidate-block">
@@ -90,11 +97,12 @@
 </template>
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from 'vue'
-import {getWorkCandidates,saveWorkCandidates,getSkillCandidates,getSkillCandidate,saveSkillCandidate,getPendingMaintenance,resumeMaintenance,type WorkCandidates,type SkillCandidateDetail,type CandidateSource,type PendingMaintenance} from '../api/candidates'
+import {getWorkCandidates,saveWorkCandidates,getSkillCandidates,getSkillCandidate,saveSkillCandidate,getPendingMaintenance,resumeMaintenance,closeMaintenance,type WorkCandidates,type SkillCandidateDetail,type CandidateSource,type PendingMaintenance,type ClosedMaintenanceRecord} from '../api/candidates'
 
 const work=ref<WorkCandidates|null>(null),workId=ref(''),workRevision=ref<number>(),workLoading=ref(false),workSaving=ref(false),workError=ref(''),workSaved=ref(''),workConflict=ref(false)
 const skills=ref<Record<string,any>[]|null>(null),skill=ref<SkillCandidateDetail|null>(null),skillId=ref(''),skillVersion=ref<number>(),skillLoading=ref(false),skillListLoading=ref(false),skillSaving=ref(false),skillError=ref(''),skillSaved=ref(''),skillConflict=ref(false)
 const pending=ref<PendingMaintenance[]|null>(null),pendingLoading=ref(false),pendingSaving=ref(''),pendingError=ref(''),pendingSaved=ref('')
+const pendingCloseReasons=ref<Record<string,string>>({}),closedMaintenance=ref<ClosedMaintenanceRecord[]>([])
 const emptyWork=()=>({action:'describe',description:'',question:'',unresolved:'',reason:'',relationId:'',decision:'corroborates',sourceSha:'',workIds:[] as string[],replace:false,counterSourceSha:'',counterIds:[] as string[]})
 const workForm=ref(emptyWork())
 const skillForm=ref({action:'mark_disputed',reason:'',description:'',hypotheses:'',sourceSha:''})
@@ -157,7 +165,23 @@ async function saveSkill(){if(!skill.value||skillVersion.value!==undefined||skil
     skillSaving.value=true;const result=await saveSkillCandidate(id,{...request,request_id:skillRetry.id});if(disposed||token!==skillEpoch)return;if(result.candidate.candidate_id!==id)throw Error('保存结果候选身份不一致');skill.value=result;skillRetry=null;skillSaved.value=`已保存技能候选 v${result.candidate.version}；后续分析使用维护后的投影。`;skillForm.value.reason='';skillForm.value.sourceSha='';if(skills.value)skills.value=skills.value.map(c=>c.candidate_id===id?result.candidate:c)
   }catch(e:any){if(!disposed&&token===skillEpoch){skillConflict.value=e?.response?.status===409;skillError.value=skillConflict.value?`版本冲突：${message(e)}。请重新读取当前版本后修改。`:message(e)}}finally{if(!disposed&&token===skillEpoch)skillSaving.value=false}
 }
-async function loadPending(){if(pendingSaving.value)return;const token=++pendingEpoch;pendingLoading.value=true;pendingError.value='';try{const result=await getPendingMaintenance();if(!disposed&&token===pendingEpoch)pending.value=result.items}catch(e){if(!disposed&&token===pendingEpoch)pendingError.value=message(e)}finally{if(!disposed&&token===pendingEpoch)pendingLoading.value=false}}
+async function loadPending(){if(pendingSaving.value)return;const token=++pendingEpoch;pendingLoading.value=true;pendingError.value='';try{const result=await getPendingMaintenance();if(!disposed&&token===pendingEpoch){pending.value=result.items;closedMaintenance.value=result.closed||[]}}catch(e){if(!disposed&&token===pendingEpoch)pendingError.value=message(e)}finally{if(!disposed&&token===pendingEpoch)pendingLoading.value=false}}
+function closedMaintenanceMessage(item:ClosedMaintenanceRecord){return `${item.kind==='work'?'工作候选':'技能候选'} ${item.candidate_id||item.id}：维护已结束但未完整完成（${item.status}）；${item.candidate_version_saved?'候选版本已保存':'候选版本未保存'}；投影绑定未记录（${item.projection_binding}）。原因：${item.reason}。历史与已保存候选保留。`}
+async function closePending(item:PendingMaintenance){
+  if(disposed||pendingSaving.value||pendingLoading.value||!pending.value?.some(p=>p.id===item.id&&p.can_close===true))return
+  const reason=(pendingCloseReasons.value[item.id]||'').trim()
+  pendingError.value='';pendingSaved.value=''
+  if(!reason){pendingError.value='请填写结束旧版维护的原因';return}
+  const token=++pendingEpoch;pendingSaving.value=item.id
+  try{
+    const result=await closeMaintenance(item.id,reason)
+    if(disposed||token!==pendingEpoch)return
+    closedMaintenance.value=[...closedMaintenance.value.filter(p=>p.id!==item.id),{...result,id:item.id,kind:item.kind,candidate_id:item.candidate_id}]
+    pending.value=pending.value?.filter(p=>p.id!==item.id)||[];delete pendingCloseReasons.value[item.id]
+    pendingSaving.value='';await loadPending()
+  }catch(e){if(!disposed&&token===pendingEpoch)pendingError.value=message(e)}
+  finally{if(!disposed&&(token===pendingEpoch||!pendingSaving.value))pendingSaving.value=''}
+}
 async function resumePending(item:PendingMaintenance){if(pendingSaving.value||!pending.value?.some(p=>p.id===item.id))return;const token=++pendingEpoch;pendingSaving.value=item.id;pendingError.value='';pendingSaved.value='';try{const result=await resumeMaintenance(item.id);if(disposed||token!==pendingEpoch)return;const version=item.kind==='work'?`研究版本 ${(result as WorkCandidates).state.binding.revision}`:`技能候选 v${(result as SkillCandidateDetail).candidate.version}`;pendingSaved.value=`已恢复并保存${version}。请重新读取当前候选查看结果。`;pending.value=pending.value?.filter(p=>p.id!==item.id)||[];pendingSaving.value='';await loadPending()}catch(e){if(!disposed&&token===pendingEpoch)pendingError.value=message(e)}finally{if(!disposed&&(token===pendingEpoch||!pendingSaving.value))pendingSaving.value=''}}
 onUnmounted(()=>{disposed=true;workEpoch++;skillEpoch++;listEpoch++;pendingEpoch++})
 </script>

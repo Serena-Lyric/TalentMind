@@ -15,10 +15,13 @@ export interface SkillCandidateDetail {
   projection_scope:'historical_candidate_only'|'current_head'
   eligible_new_evidence:CandidateSource[]
 }
-export interface PendingMaintenance {id:string;kind:'work'|'skill';candidate_id?:string;request_sha256:string;request?:Record<string,any>}
+export interface PendingMaintenance {id:string;kind:'work'|'skill';candidate_id?:string;request_sha256:string;request?:Record<string,any>;can_close?:boolean}
+export interface ClosedMaintenance {status:'closed_incomplete';reason:string;candidate_version_saved:boolean;projection_binding:'not_recorded'}
+export interface ClosedMaintenanceRecord extends ClosedMaintenance {id:string;kind:'work'|'skill';candidate_id?:string}
 const root='/m2/delivery/candidates'
-export const getPendingMaintenance=()=>get<{items:PendingMaintenance[]}>(`${root}/pending`)
+export const getPendingMaintenance=()=>get<{items:PendingMaintenance[];closed?:ClosedMaintenanceRecord[]}>(`${root}/pending`)
 export const resumeMaintenance=(id:string)=>post<WorkCandidates|SkillCandidateDetail>(`${root}/pending/${encodeURIComponent(id)}/resume`,{})
+export const closeMaintenance=(id:string,reason:string)=>post<ClosedMaintenance>(`${root}/pending/${encodeURIComponent(id)}/close`,{reason})
 export const getWorkCandidates=(revision?:number)=>get<WorkCandidates>(`${root}/work`,{revision})
 export const saveWorkCandidates=(request:Record<string,any>)=>post<WorkCandidates>(`${root}/work/batches`,request)
 export const getSkillCandidates=()=>get<{items:Record<string,any>[]}>(`${root}/skills`)

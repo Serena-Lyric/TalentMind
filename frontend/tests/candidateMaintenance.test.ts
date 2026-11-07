@@ -7,6 +7,56 @@ const source={analysis_sha256:'b'.repeat(64),analysis}
 const work=(revision=1)=>({state:{binding:{...binding,revision},candidates:{c1:{id:'c1',version:revision,description:'原说明',research_question:'原问题',unresolved:['尚未复核']}},relations:{r1:{id:'r1',candidate_id:'c1',namespace:'synthetic',jd_id:'1',analysis_sha256:source.analysis_sha256,work_ids:['d1'],state:'pending_review'}}},versions:[1,2],relation_sha256s:{r1:'c'.repeat(64)},sources:[source]})
 const skill=(id='s1',version=1)=>({candidate:{candidate_id:id,version,surface:id,description:'原解释',reason:'原原因',status:'observing',competing_hypotheses:[],referenced_observations:[]},versions:[1,2],projection:{sha256:'d'.repeat(64)},projection_scope:'current_head',eligible_new_evidence:[source]})
 function deferred(){let resolve!:(v:any)=>void;const promise=new Promise(r=>resolve=r);return {promise,resolve}}
+const nodeText=(node:any):string=>typeof node==='string'?node:Array.isArray(node)?node.map(nodeText).join(''):nodeText(typeof node?.children?.default==='function'?node.children.default():node?.children||'')
+const closeLabel='结束旧版未完成维护（保留已保存成果）'
+const legacyPending={id:'maintenance-skill-legacy',kind:'skill',candidate_id:'s1',request_sha256:'f'.repeat(64),can_close:true}
+
+test('重新进入页面持久读取已结束但未完整完成的记录，旧服务无closed仍可读取',async()=>{
+  let reads=0
+  const closure={...legacyPending,status:'closed_incomplete',reason:'旧流程投影身份缺失',candidate_version_saved:true,projection_binding:'not_recorded'}
+  const page=candidateComponent({getPendingMaintenance:()=>++reads===1?{items:[],closed:[closure]}:{items:[]}})
+  try{await page.state.loadPending();const warning=page.elements().find(n=>n.type?.name==='el-alert'&&n.props?.type==='warning');assert.ok(warning);assert.match(warning.props.title,/closed_incomplete/);assert.match(warning.props.title,/旧流程投影身份缺失/);assert.match(warning.props.title,/s1/);assert.equal(page.state.pendingSaved.value,'');assert.equal(page.calls.length,1)
+    await page.state.loadPending();assert.equal(page.elements().filter(n=>n.type?.name==='el-alert'&&n.props?.type==='warning').length,0)
+  }finally{page.stop()}
+})
+
+test('只有可结束的旧维护显示结束入口，原因必填且读取不自动写入',async()=>{
+  const page=candidateComponent({getPendingMaintenance:{items:[legacyPending,{...legacyPending,id:'modern',can_close:false},{...legacyPending,id:'missing',can_close:undefined}]}})
+  try{await page.state.loadPending();const nodes=page.elements();const buttons=nodes.filter(n=>n.type?.name==='el-button'&&nodeText(n)===closeLabel);assert.equal(buttons.length,1);assert.equal(page.calls.length,1);assert.ok(nodes.some(n=>n.type==='p'&&/不删除历史、不回滚候选，也不会记作完整成功/.test(nodeText(n))))
+    await buttons[0].props.onClick();assert.equal(page.calls.length,1);assert.match(page.state.pendingError.value,/原因/)
+    await page.state.closePending({...legacyPending,id:'modern'});assert.equal(page.calls.length,1)
+  }finally{page.stop()}
+})
+
+for(const saved of [true,false])test(`旧维护显式结束绑定原因，防止重复写入，展示实际未完成状态及候选已保存=${saved}`,async()=>{
+  const closing=deferred();let closed=false
+  const result={status:'closed_incomplete',reason:'无法确认旧投影绑定',candidate_version_saved:saved,projection_binding:'not_recorded'}
+  const page=candidateComponent({getPendingMaintenance:()=>({items:closed?[]:[legacyPending],closed:closed?[{...legacyPending,...result}]:[]}),closeMaintenance:()=>closing.promise})
+  try{await page.state.loadPending();const input=page.elements().find(n=>n.props?.['aria-label']==='结束旧版维护原因');assert.ok(input);input.props['onUpdate:modelValue']('  无法确认旧投影绑定  ')
+    const button=page.elements().find(n=>n.type?.name==='el-button'&&nodeText(n)===closeLabel);const save=button.props.onClick();await button.props.onClick();await page.state.resumePending(legacyPending);await page.state.loadPending()
+    assert.deepEqual(page.calls.filter(c=>c.method==='closeMaintenance').map(c=>c.args),[[legacyPending.id,'无法确认旧投影绑定']]);assert.equal(page.calls.filter(c=>c.method==='resumeMaintenance').length,0);assert.equal(page.calls.filter(c=>c.method==='getPendingMaintenance').length,1)
+    assert.ok(page.elements().find(n=>n.type?.name==='el-button'&&nodeText(n)===closeLabel).props.disabled)
+    closed=true;closing.resolve(result);await save
+    const alert=page.elements().find(n=>n.type?.name==='el-alert'&&n.props?.type==='warning');assert.ok(alert);assert.match(alert.props.title,/closed_incomplete/);assert.match(alert.props.title,/无法确认旧投影绑定/);assert.match(alert.props.title,saved?/候选版本已保存/:/候选版本未保存/);assert.match(alert.props.title,/not_recorded/);assert.equal(page.state.pendingSaved.value,'');assert.equal(page.state.pending.value.length,0)
+  }finally{page.stop()}
+})
+
+test('结束请求失败保留原因供显式重试，卸载后的迟到结束响应不写回',async()=>{
+  const closing=deferred();let attempt=0
+  const page=candidateComponent({getPendingMaintenance:{items:[legacyPending]},closeMaintenance:()=>{if(!attempt++)throw Error('网络结果未知');return closing.promise}})
+  await page.state.loadPending();page.state.pendingCloseReasons.value[legacyPending.id]='保留原候选，结束旧流程';await page.state.closePending(legacyPending)
+  assert.match(page.state.pendingError.value,/网络结果未知/);assert.equal(page.state.pending.value.length,1);assert.equal(page.state.pendingCloseReasons.value[legacyPending.id],'保留原候选，结束旧流程');assert.equal(page.state.pendingSaving.value,'')
+  const save=page.state.closePending(legacyPending);page.stop();closing.resolve({status:'closed_incomplete',reason:'保留原候选，结束旧流程',candidate_version_saved:true,projection_binding:'not_recorded'});await save
+  assert.deepEqual(page.state.closedMaintenance.value,[]);assert.equal(page.state.pending.value.length,1);assert.equal(page.calls.filter(c=>c.method==='getPendingMaintenance').length,1)
+})
+
+test('未完成列表刷新中阻止结束，旧读取迟到不能恢复已撤销的结束资格',async()=>{
+  const stale=deferred();let reads=0
+  const page=candidateComponent({getPendingMaintenance:()=>++reads===2?stale.promise:{items:[{...legacyPending,can_close:reads===1}]}})
+  try{await page.state.loadPending();page.state.pendingCloseReasons.value[legacyPending.id]='结束原因';const refresh=page.state.loadPending();await page.state.closePending(legacyPending);assert.equal(page.calls.filter(c=>c.method==='closeMaintenance').length,0)
+    await page.state.loadPending();stale.resolve({items:[legacyPending]});await refresh;assert.equal(page.state.pending.value[0].can_close,false);assert.equal(page.elements().filter(n=>n.type?.name==='el-button'&&nodeText(n)===closeLabel).length,0);await page.state.closePending(legacyPending);assert.equal(page.calls.filter(c=>c.method==='closeMaintenance').length,0)
+  }finally{page.stop()}
+})
 
 test('工作说明提交绑定读到的版本，响应显示实际保存版本，历史只读',async()=>{
   const page=candidateComponent({getWorkCandidates:work(),saveWorkCandidates:work(2)})

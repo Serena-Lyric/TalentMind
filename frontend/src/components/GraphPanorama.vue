@@ -64,7 +64,7 @@
       <p v-if="nodeFieldMode" class="snapshot-note">局部旋臂场 v3：知识密度轻微牵引附近星尘。<a :href="legacySpaceHref">回退 P2.5 空间</a></p>
       <p v-if="visual !== 'p22'" class="snapshot-note reference-mark">受控回放：{{ visual === 'p1a2' ? 'P1-A.2 原知识点 shader' : 'P2.1 视觉' }}<br />同历史输入 / 同布局 / 同投影，非原独立站相机</p>
       <details class="snapshot-note layout-provenance"><summary>布局来源（候选，非职业分类）</summary><p>Jaccard 0.10 + Leiden · seed 42<br />{{ realMode ? '仅无冲突、无条件的明确必备/加分单项参与相似计算；其余陈述仍保留。' : 'layout-v1 · PR32@377e9b8。' }}只用于候选空间布局，不映射八大职业大类。</p></details>
-      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a href="?graphCamera=fixed&graphVisual=p21#/graph">P2.1视觉回退</a> · <a href="?graphCamera=fixed&graphVisual=p22#/graph">P2.2固定投影</a> · <a href="?graphStars=p23#/graph">P2.3星点外观</a> · <a href="?graphStars=p24#/graph">P2.4恒星外观</a> · <a href="?graphSpace=legacy#/graph">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
+      <details class="snapshot-note"><summary>视觉回退 / 受控对照</summary><p><a :href="visualHref({ graphCamera: 'fixed', graphVisual: 'p21' })">P2.1视觉回退</a> · <a :href="visualHref({ graphCamera: 'fixed', graphVisual: 'p22' })">P2.2固定投影</a> · <a :href="visualHref({ graphStars: 'p23' })">P2.3星点外观</a> · <a :href="visualHref({ graphStars: 'p24' })">P2.4恒星外观</a> · <a :href="legacySpaceHref">P2.5知识星体</a></p><p>P1-A.2原shader回放通过graphVisual=p1a2；对照视图统一使用graphCompare=overview/middle/near。P2.4外观回退保留新版渐变关系及交互；完整旧版见提交df1ca24。</p></details>
       <details v-if="spatialMode" class="snapshot-note"><summary>三维操作与空间说明</summary><p>左拖旋转 · 右拖平移 · WASD屏幕平移 · Q/E左/右滚转 · 滚轮缩放 · R恢复全景。点击星体原位选择。</p><p>display-depth-v1 为确定性展示深度，空间距离不代表已验证的岗位相似性；八大领域沿用B3职业大类，历史岗位未自动归类。旋臂不代表关系，社区分析默认关闭。</p></details>
       <details v-if="relationAudit" class="snapshot-note relation-audit"><summary>关系显示逐项核对</summary><p>当前范围 {{ relationAudit.scope }} / 全图 {{ graphData.edges.length }}。缺项不等于业务上没有关联。</p><div v-for="(label,key) in auditLabels" :key="key">{{ label }}：{{ relationAudit[key] }}</div><p>以下分类互斥，和已提交数量相加等于当前范围。直连只按类型隐藏，不受LOD、视口或预算删除。</p></details>
         <label v-if="spatialMode && stellarMode && !semanticMode">P2.4恒星外观预设
@@ -158,9 +158,12 @@ let fittedScale = 1
 let lastFit: { area: Bounds; points: number; outside: number } | null = null
 
 const query = new URLSearchParams(window.location.search)
-const legacySpaceQuery = new URLSearchParams(query)
-legacySpaceQuery.set('graphSpace','legacy')
-const legacySpaceHref = `?${legacySpaceQuery}#/graph`
+function visualHref(parameters: Record<string, string>) {
+  const visualQuery = new URLSearchParams(query)
+  for (const [key, value] of Object.entries(parameters)) visualQuery.set(key, value)
+  return `?${visualQuery}${window.location.hash}`
+}
+const legacySpaceHref = visualHref({ graphSpace: 'legacy' })
 const deliveryMode=query.get('graphDataset')==='delivery'
 const realMode=deliveryMode||query.get('graphDataset')==='real'
 const realSources=shallowRef<RealSources|null>(null),realManifest=shallowRef<RealManifest|null>(null)

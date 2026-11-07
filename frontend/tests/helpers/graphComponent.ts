@@ -6,8 +6,8 @@ import ts from 'typescript'
 import * as vue from 'vue'
 
 // 执行真实 SFC setup；只隔离网络、挂载和 Canvas 端口，无 DOM 测试框架依赖。
-export function graphComponent(props = vue.reactive({ panelsHidden: false, immersive: false }), search = '?nebulaDebug=1') {
-  const location = { search, reloadCount: 0, reload() { this.reloadCount++ } }
+export function graphComponent(props = vue.reactive({ panelsHidden: false, immersive: false }), search = '?nebulaDebug=1', hash = '#/graph') {
+  const location = { search, hash, reloadCount: 0, reload() { this.reloadCount++ } }
   const filename = resolve(import.meta.dirname, '../../src/components/GraphPanorama.vue')
   const modules = new Map<string, any>()
   const load = (path: string, source?: string): any => {
