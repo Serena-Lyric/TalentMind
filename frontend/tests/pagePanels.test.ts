@@ -169,10 +169,13 @@ for (const name of ['Dashboard', 'JobEvolution']) {
       const browser = getBrowser(page)
       assert.deepEqual(page.calls.find(c => c.method === 'getJobList').args[0], { keyword: '', page: 1, page_size: pageSize })
       assert.equal(browser.total.value, 241)
-      await browser.changePage(13); await flush()
-      assert.equal(browser.jobs.value[0].id, String(12 * pageSize + 1))
-      assert.equal(browser.page.value, 13)
-      await browser.changePage(13)
+      const targetPage = name === 'Dashboard' ? 14 : 6
+      const expectedId = name === 'Dashboard' ? '105' : '101'
+      await browser.changePage(targetPage); await flush()
+      assert.equal(browser.jobs.value[0].id, expectedId)
+      assert.ok(Number(browser.jobs.value[0].id) > 100)
+      assert.equal(browser.page.value, targetPage)
+      await browser.changePage(targetPage)
       assert.equal(page.calls.filter(c => c.method === 'getJobList').length, 2)
     } finally { page.stop() }
   })
@@ -263,7 +266,7 @@ test('翻页加载期间保留分页边界，不触发分页器回到第一页',
   let stopPagination: (() => void) | undefined
   try {
     await browser.load()
-    // 未挂载真实 Element Plus。用真实 Vue watch 复现其 2.9.4 pagination.ts
+    // 未挂载真实 Element Plus。用真实 Vue watch 复现锁定的 Element Plus 2.14.3 分页器
     // pageCountBridge 收缩时，经 currentPageBridge setter 发出 current-change 的行为。
     stopPagination = vue.watch(() => Math.max(1, Math.ceil(browser.total.value / 8)), count => {
       if (browser.page.value > count) void browser.changePage(count)
