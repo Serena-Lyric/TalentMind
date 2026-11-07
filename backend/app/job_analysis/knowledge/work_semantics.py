@@ -12,7 +12,7 @@ from .work_evidence import CONDITION, AUXILIARY, STATEMENTS, work_groups
 from ..foundation.inputs import InputRecord
 from ..semantics.models import Evidence
 
-VERSION = "bounded-work-semantics-2"
+VERSION = "bounded-work-semantics-3"
 ACTIONS = {
     "build": r"开发|研发|编写|实现|构建|创建|编码|封装|抽象为|develop|implement|build|create|program",
     "design": r"设计|规划|design",
@@ -261,7 +261,28 @@ def compare_work(left, right):
                 semantic_review="machine_unreviewed", whole_job_equivalence=False)
 
 
-def source_work(claim, analysis):
+def _section_label(text):
+    label = unicodedata.normalize('NFKC', text).strip().rstrip(':').strip()
+    label = re.sub(r'^(?:(?:\d+|[一二三四五六七八九十]+)[、.)]|\((?:\d+|[一二三四五六七八九十]+)\))\s*', '', label)
+    for left, right in (('【', '】'), ('[', ']'), ('(', ')')):
+        if label.startswith(left) and label.endswith(right):
+            label = label[len(left):-len(right)].strip().rstrip(':').strip()
+            break
+    # A sentence mentioning assistance is not a structural responsibility label.
+    return bool(re.fullmatch(r'(?:(?:协助|辅助|配合|主要|核心|次要|其他|日常|岗位|工作)(?:工作)?)?'
+                             r'(?:职责|责任|任务|工作(?:内容|范围)?|要求)|(?:任职|技能|能力)要求', label))
+
+
+def _preceding_heading(prefix, recover_plain_headings):
+    headings = {match.start(): (match, False) for match in re.finditer(r'(?m)^[^\n]*[:：]\s*$', prefix)}
+    if recover_plain_headings:
+        for line in re.finditer(r'(?m)^[^\r\n]+', prefix):
+            if line.start() not in headings and _section_label(line.group()):
+                headings[line.start()] = (line, True)
+    return headings[max(headings)] if headings else None
+
+
+def source_work(claim, analysis, *, recover_plain_headings=True):
     row = InputRecord.from_row(analysis['namespace'], analysis['input_row'])
     units = {}
     for value in claim['evidence']:
@@ -270,18 +291,29 @@ def source_work(claim, analysis):
         for statement in STATEMENTS.finditer(source):
             if statement.end() <= evidence.start or statement.start() >= evidence.end:
                 continue
+            if recover_plain_headings:
+                line_start = source.rfind('\n', 0, statement.start()) + 1
+                line_end = source.find('\n', statement.end())
+                if _section_label(source[line_start:line_end if line_end >= 0 else len(source)]):
+                    # A cited heading supplies governing evidence below, not an
+                    # additional unknown task that depends on quote boundaries.
+                    continue
             begin = statement.start()
             governing = []
+            heading_importance = None
             # Recover a preceding controlling heading even when P1 only cites the task line.
-            headings = list(re.finditer(r'(?m)^[^\n]*[:：]\s*$', source[:begin]))
-            if headings:
-                heading = explain_work(headings[-1].group())
+            preceding = _preceding_heading(source[:begin], recover_plain_headings)
+            if preceding:
+                match, plain = preceding
+                heading = explain_work(match.group())
                 if heading['scope'] != 'affirmed' or heading['importance'] == 'auxiliary':
-                    begin = headings[-1].start()
-                    governing = [evidence.model_copy(update=dict(start=headings[-1].start(),
-                        end=headings[-1].end(), quote=headings[-1].group())).model_dump()]
+                    begin = match.start()
+                    governing = [evidence.model_copy(update=dict(start=match.start(),
+                        end=match.end(), quote=match.group())).model_dump()]
+                    if plain:
+                        heading_importance = heading['importance']
             context = source[begin:statement.end()]
-            parsed = explain_work(dict(text=context, core=claim.get('core')))
+            parsed = explain_work(dict(text=context, core=claim.get('core'), importance=heading_importance))
             spans = [*parsed['frames'], *[dict(gap, scope='affirmed') for gap in parsed['gaps']]]
             found = False
             for span in spans:
@@ -304,15 +336,20 @@ def source_work(claim, analysis):
                     restricts_quote = bool(view['frames']) and not cited_head
                     view['frames'] = [dict(f, object_phrase=span['object_phrase']) for f in view['frames']
                                       if cited_head and (f['action'], f['object_detail']) == (span['action'], span['object_detail'])]
-                    if not view['frames'] and not view['gaps']:
-                        view['gaps'] = [dict(start=0, end=len(unit['quote']), quote=unit['quote'],
-                                             reason='uncited_action_or_object', importance=span['importance'])]
+                    if not view['frames'] and (recover_plain_headings or not view['gaps']):
+                        if recover_plain_headings:
+                            restricts_quote = True
+                        view['gaps'].append(dict(start=0, end=len(unit['quote']), quote=unit['quote'],
+                                                reason='uncited_action_or_object', importance=span['importance']))
                 key = (evidence.field, start, end)
                 if key in units:
                     units[key]['context_restricts_quote'] |= restricts_quote
                     units[key]['view']['frames'].extend(f for f in view['frames'] if f not in units[key]['view']['frames'])
                     if units[key]['view']['frames']:
                         units[key]['view']['gaps'] = [g for g in units[key]['view']['gaps'] if g['reason'] != 'uncited_action_or_object']
+                    elif recover_plain_headings:
+                        units[key]['view']['gaps'].extend(g for g in view['gaps'] if g['reason'] == 'uncited_action_or_object'
+                                                        and g not in units[key]['view']['gaps'])
                 else:
                     units[key] = dict(evidence=unit, context_evidence=context_unit, scope=span['scope'],
                                       context_restricts_quote=restricts_quote, governing_evidence=governing,
@@ -324,7 +361,7 @@ def source_work(claim, analysis):
                 # Later uncited affirmative work must not lend its scope to an earlier quote.
                 scope = explain_work(source[begin:end])['scope']
                 unit = evidence.model_copy(update=dict(start=start, end=end, quote=source[start:end])).model_dump()
-                view = explain_work(dict(text=unit['quote'], scope=scope, core=claim.get('core')))
+                view = explain_work(dict(text=unit['quote'], scope=scope, core=claim.get('core'), importance=heading_importance))
                 units[(evidence.field, start, end)] = dict(evidence=unit, context_evidence=unit,
                     context_restricts_quote=False, governing_evidence=governing,
                     scope=scope, importance=view['importance'], view=view)
@@ -332,12 +369,14 @@ def source_work(claim, analysis):
     for unit in ordered:
         if unit['view']['frames']:
             unit['context_restricts_quote'] = False
+        if not recover_plain_headings:
+            unit['view']['version'] = 'bounded-work-semantics-2'
     affirmed = [unit for unit in ordered if unit['scope'] == 'affirmed']
     scope = 'affirmed' if affirmed else next((unit['scope'] for unit in ordered), 'unresolved')
     selected = affirmed or ordered
     importance = ('auxiliary' if any(u['importance'] == 'auxiliary' for u in selected) else
                   'core' if claim.get('core') is True else 'unknown')
-    explanation = dict(version=VERSION, semantic_review='machine_unreviewed', scope=scope, importance=importance,
+    explanation = dict(version=VERSION if recover_plain_headings else 'bounded-work-semantics-2', semantic_review='machine_unreviewed', scope=scope, importance=importance,
         context_restricts_quote=any(u['context_restricts_quote'] for u in selected),
         frames=[f for u in selected for f in u['view']['frames']], gaps=[g for u in selected for g in u['view']['gaps']],
         limitation='原文上下文只限定实际引文，不补入未引用的工作事实。')

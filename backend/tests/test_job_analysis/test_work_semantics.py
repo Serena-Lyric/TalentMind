@@ -56,7 +56,7 @@ def test_unknown_words_are_visible_not_fabricated():
 def test_matched_frames_keep_original_text_and_machine_status():
     text = "采用Go实现订单服务接口"
     result = explain_work({"text": text, "core": True})
-    assert result["version"] == "bounded-work-semantics-2"
+    assert result["version"] == "bounded-work-semantics-3"
     assert result["semantic_review"] == "machine_unreviewed"
     assert all(text[f["start"]:f["end"]] == f["quote"] for f in result["frames"])
 
