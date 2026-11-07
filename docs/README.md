@@ -40,7 +40,6 @@
 |---|---|
 | 2026-10-22 | [M1 分平台修复](review/M1-platform-repair-2026-10-22.md) |
 | 2026-11-07 | [PR #71 工程可靠性与统一交付](review/PR71-engineering-2026-11-07.md) |
-| 2026-11-07 | [Issue #73 七页接通](review/Issue73-seven-pages-2026-11-07.md) |
 | 2026-10-30 | [M2 P1 单条理解与真实 DEV 验证](review/M2-P1-understanding-2026-10-30.md) |
 | 2026-10-28 | [M2 P0 基准与契约交付](review/M2-P0-baseline-2026-10-28.md) |
 

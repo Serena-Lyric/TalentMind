@@ -25,4 +25,4 @@
 
 读取历史不触发新引擎或当前head解释；退役的是执行能力，不是原始数据。删除旧接口时同步删除其专属测试，但保留共享生命周期、安全门禁与实际消费者。集成验证只能使用隔离实例。
 
-回归入口：`test_delivery_http.py`、`test_delivery_governance.py`、`test_delivery_graph.py`、`test_m2_history.py`、`test_evolution_history.py`、`test_delivery_comparison.py`、前端`m2Product`/`deliverySnapshot`/`jobs`/`resumeLearning`/`resumeSession`/`pagePanels`。具体本轮结果与边界见[阶段报告](../../review/Issue73-seven-pages-2026-11-07.md)。
+回归入口：`test_delivery_http.py`、`test_delivery_governance.py`、`test_delivery_graph.py`、`test_m2_history.py`、`test_evolution_history.py`、`test_delivery_comparison.py`、前端`m2Product`/`deliverySnapshot`/`jobs`/`resumeLearning`/`resumeSession`/`pagePanels`。具体本轮结果与边界见[独立复审与交付记录](https://github.com/Serena-Lyric/TalentMind/pull/75#pullrequestreview-5812002054)。
