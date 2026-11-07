@@ -51,3 +51,13 @@
 - 看板 UI 传 `day/week/month`，前端 API 注释写 `month/quarter/year`，后端虽接收 `range`，查询未使用它过滤；本轮只保留并记录此冲突，不定义自然周或滚动天数。
 - 本轮非真实浏览器端到端、非真实数据库集成、非 OCR/复杂排版或真实简历准确率验收。Mock 图表证明脚本生命周期，不能替代浏览器绘制效果。
 - M2 P2-2/P6 真实中文同组、完整岗位归属与演化准确率继续按 [#63](https://github.com/Serena-Lyric/TalentMind/issues/63)、[#67](https://github.com/Serena-Lyric/TalentMind/issues/67)、[#69](https://github.com/Serena-Lyric/TalentMind/issues/69) 跟踪；工程整合和 CI 通过不代表这些语义验收完成。ChatGPT 对固定 head 独立复审后再按用户授权合并。
+
+
+## 后续独立分支：只读岗位浏览（2026-11-07）
+
+此节与上方 #71/#72 的历史验证分开。以已合并 #72 的 `master` `0a144f211bcb7fad44f99baf184243492f635a0b` 为基线，修改保留在 `fix/read-only-job-browsing`，不合并。
+
+- 范围：`Dashboard.vue`、`JobEvolution.vue`、共享 `usePagedJobs.ts` 及面板回归。两页改用既有 `/api/jobs` 服务端分页/关键词筛选和真实 `total`，不再截断到前 100 条。概览每页 8 条、能力动态每页 20 条；搜索回首页、翻页和搜索迟到响应隔离、成功空与失败分离、同查询刷新失败保留数据、总页数缩小有界回查。
+- 交叉审查复现并修复：临时清零总数触发 Element Plus 自动回第一页。新增真实 Vue 响应性下的同等分页器监听回归；测试不冒称真实浏览器挂载。能力动态在新页加载中保留旧选中标题/时间线的对应关系，新页成功后选择有效岗位，成功空结果清除旧时间线。
+- 验证环境：Linux、Node `24.22.1`（满足仓库 `>=24.15.0 <25`）、pnpm `11.5.1`。GitHub 连接器取得确切 master 前端源码与历史图 fixture；二进制构建图片核对 Git blob SHA。`pnpm install --frozen-lockfile --ignore-scripts` 安装既有锁定依赖，未更新锁文件。完整测试与类型/构建结果以该分支固定提交的交付消息为准，不套用 #72 的测试数。
+- 未修改采集链、后端接口、数据库契约、匹配/学习路径及 M2 算法。未连接生产库、启动采集或调用外部模型。未做真实浏览器/生产数据端到端；原有 Vite 大 chunk 与混合导入警告保留。分支留供独立复审，不授权合并。
