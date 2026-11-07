@@ -57,7 +57,7 @@ def main():
 
     def run(job):
         sample, pair, context = job
-        result = start_work_comparison(context, version=3)
+        result = start_work_comparison(context, version=4)
         identity = (pair["claim_id"], pair["role_id"], pair["reference_id"])
         data = _work_input(result, *identity)
         prompts = work_prompts(data["model_input"])

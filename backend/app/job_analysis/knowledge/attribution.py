@@ -111,7 +111,7 @@ def attribute_roles(analysis: dict, knowledge: LoadedSnapshot, policy: BoundPoli
         context = attribute_roles(analysis, knowledge, policy, candidate_projection, method="context")
         if method == "work":
             from .work_comparison import start_work_comparison, compare_source_work
-            return compare_source_work(start_work_comparison(context, version=3), task_retriever, local_model, pairs_per_role)
+            return compare_source_work(start_work_comparison(context, version=4), task_retriever, local_model, pairs_per_role)
         from .task_comparison import start_comparison, compare_selected
         return compare_selected(start_comparison(context), task_retriever, local_model, pairs_per_role)
     if task_retriever is not None:

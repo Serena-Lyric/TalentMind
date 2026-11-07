@@ -4,7 +4,7 @@ from pathlib import Path
 from ..foundation.inputs import digest
 from .attribution import attribute_roles
 from .role_policy import bind_policy, load_policy
-from .work_semantics import VERSION, explain_work
+from .work_semantics import VERSION, explain_work, source_work as explain_source
 
 
 def _policy(knowledge):
@@ -68,9 +68,10 @@ def build_delivery_research(analysis, knowledge, *, candidate_projection=None):
         if claim.kind != "duty":
             continue
         # Exact P1 source spans, never its paraphrase, supply the new interpretation.
-        units = [u for u in result.work_units if u.claim_id == claim.id]
-        views = [explain_work(dict(text=u.evidence.quote, scope=u.scope, core=claim.core)) for u in units if u.kind == "work"]
-        source_work.append(dict(claim_id=claim.id, core=claim.core, evidence=[e.model_dump() for e in claim.evidence], views=views))
+        source = explain_source(claim.model_dump(), analysis)
+        views = [u['view'] for u in source['matched_source_units']]
+        source_work.append(dict(claim_id=claim.id, core=claim.core, evidence=[e.model_dump() for e in claim.evidence],
+                               matched_source_units=source['matched_source_units'], views=views))
         source_keys = {(f["action"], f["object"]) for view in views for f in view["frames"] if f["scope"] == "affirmed"}
         for comparison in result.comparisons:
             rule = rules.get(comparison.role_id)
@@ -87,7 +88,7 @@ def build_delivery_research(analysis, knowledge, *, candidate_projection=None):
                     matched_aspects=[dict(action=a, object=o) for a, o in sorted(shared)])
                 assessments.append(item)
                 if shared:
-                    supports.append({**item, "importance": "core" if claim.core is True else "auxiliary" if claim.core is False else "unknown",
+                    supports.append({**item, "importance": source['importance'],
                         "basis": "bounded_source_pattern", "semantic_review": "machine_unreviewed",
                         "source_evidence": [e.model_dump() for e in claim.evidence],
                         "reference_evidence": [e.model_dump() for e in ref.evidence]})
@@ -117,6 +118,9 @@ def build_delivery_research(analysis, knowledge, *, candidate_projection=None):
 def build_research_summary(result):
     """Project an explicitly supplied, validated source-work result without inference."""
     summary = _base_summary(result)
+    summary['method_version'] = {'source-bound-work-comparison-3': 'bounded-work-semantics-1',
+                                 'source-bound-work-comparison-4': VERSION}.get(
+                                     result.explanation_version, result.explanation_version)
     supports = [dict(claim_id=c.claim_id, role_id=c.role_id, reference_id=c.reference_id,
         importance=c.importance, basis="machine_pair_checked", semantic_review=c.semantic_review)
         for c in result.work_candidates]
