@@ -119,7 +119,8 @@ def build_research_summary(result):
     """Project an explicitly supplied, validated source-work result without inference."""
     summary = _base_summary(result)
     summary['method_version'] = {'source-bound-work-comparison-3': 'bounded-work-semantics-1',
-                                 'source-bound-work-comparison-4': VERSION}.get(
+                                 'source-bound-work-comparison-4': 'bounded-work-semantics-2',
+                                 'source-bound-work-comparison-5': VERSION}.get(
                                      result.explanation_version, result.explanation_version)
     supports = [dict(claim_id=c.claim_id, role_id=c.role_id, reference_id=c.reference_id,
         importance=c.importance, basis="machine_pair_checked", semantic_review=c.semantic_review)

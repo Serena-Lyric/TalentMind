@@ -8,7 +8,7 @@ import re
 import unicodedata
 
 from .work_context import NEGATED, HISTORY, INSTRUCTION, _other_actor
-from .work_evidence import CONDITION, AUXILIARY, STATEMENTS, work_groups
+from .work_evidence import CONDITION, AUXILIARY, STATEMENTS, PREDICATES, work_groups
 from ..foundation.inputs import InputRecord
 from ..semantics.models import Evidence
 
@@ -277,7 +277,8 @@ def _preceding_heading(prefix, recover_plain_headings):
     headings = {match.start(): (match, False) for match in re.finditer(r'(?m)^[^\n]*[:：]\s*$', prefix)}
     if recover_plain_headings:
         for line in re.finditer(r'(?m)^[^\r\n]+', prefix):
-            if line.start() not in headings and _section_label(line.group()):
+            condition_only = CONDITION.search(line.group()) and not re.search(PREDICATES, line.group())
+            if line.start() not in headings and (_section_label(line.group()) or condition_only):
                 headings[line.start()] = (line, True)
     return headings[max(headings)] if headings else None
 
