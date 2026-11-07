@@ -38,7 +38,7 @@
 ## 最小阅读与输入
 
 - [总计划](../2026-10-28-m2-core-delivery-plan.md)、[审核标准](../../specs/2026-10-28-m2-delivery-review-standard.md)、P0 已审交接和[设计 §3～§4](../../specs/2026-10-28-m2-analysis-candidate-design.md)。
-- 参考 `foundation/inputs.py`、`foundation/models.py`、`semantics/validation.py`、`llm.py` 和 `docs/superpowers/traps/2026-10-22-m2-real-evidence-scope.md`；旧 FactClaim/B2 校验不能被默认当成新语义结果结构。
+- 参考 `foundation/inputs.py`、`foundation/models.py`、`semantics/validation.py`、`understanding/cloud.py` 和 `docs/superpowers/traps/2026-10-22-m2-real-evidence-scope.md`；旧 FactClaim/B2 校验不能被默认当成新语义结果结构。
 
 ## 必须交付的结果
 

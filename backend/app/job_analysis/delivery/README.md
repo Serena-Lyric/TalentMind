@@ -1,10 +1,23 @@
-# M2 独立集成入口与恢复契约
+# M2 统一交付入口与恢复契约
 
 `delivery` 将已审的 P1 `understand`、P2-1 `align_analysis/compare_roles` 和 P3/P4 `apply_batch` 接在同一个实际入口。无需 MySQL、Neo4j、M3、前端或完整职业目录。授权/开发证据集中在 [#69](https://github.com/Serena-Lyric/TalentMind/issues/69)，阶段审核与合并状态只看[总表](../../../../docs/superpowers/plans/2026-10-28-m2-core-delivery-plan.md#3-分段地图与当前进度)。
 
+
+## 网页入口与配置
+
+`/#/m2`通过`/api/m2/delivery/inputs`分页读取JD，`POST /delivery/runs {jd_ids:[...]}`冻结输入，随后显式`/start`或`/resume`；`/stop`在已提交边界保留部分结果。`/abandon`显式结束未完成任务并保留结果，之后可冻结新任务；同一账本最多一项未完成可执行任务，避免候选基线漂移。完成/放弃后不可原地恢复。
+
+后端必须开启现有`TALENTMIND_LOCAL_RAW=1`并通过localhost/Origin门禁，演示登录不替代此门禁。模型处理器使用显式`TALENTMIND_M2_CONFIG`配置路径与`TALENTMIND_M2_KEY_FILE`私有密钥文件路径；缺配置返回明确错误，读历史不要求模型。冻结不调用模型，只有点击开始执行。本轮开发验证未发真实文本到模型，实际新模型运行需相应授权。
+
+网页状态落`data/local/m2-delivery`。已知P5/P6 `sequence-head-final/state`和`dev-head-final/state`以只读历史挂载，标明合成或受控DEV来源；不迁移原件、不改原run ID，冲突ID拒绝。旧`/api/m2/runs`只读`data/local/m2-product`，不再提供旧执行POST。
+
+技能候选通过`CandidateRegistry.observe→CandidateRegistry.project→align_analysis`被本次统一结果实际消费；原分析与投影版本分别保存，历史不依赖当前有效head重建。网页来源研究种子仅为单来源职责假设，不表示中文同组已确认。
+
+`GET /delivery/compare?before_run=...&after_run=...`比较确切运行：同来源的原文、事实分析、知识与技能投影分层，研究候选需同registry才可比。`GET /delivery/runs/{id}/graph`冻结本次已提交结果，返回内容摘要绑定URL；artifact请求必须带该`snapshot`。快照保存在私有`graphs/<run>/<sha>/`，运行继续或服务重启不改旧快照，缺失时失败而不回落另一数据集。
+
 ## 执行
 
-在 `backend/` 使用现有虚拟环境。默认不加载 `.env`，不调用网络/收费模型。stdout 仅安全摘要；**SQLite、请求、完整导出含原文，必须放 `data/local/` 或仓库外私有路径，不上传**。CLI 是本机文件消费者，没有远程 HTTP 服务或浏览器缓存；导出遵守同一私有路径限制。需要共享时另做人工审查/脱敏，不直接分享完整结果。
+在 `backend/` 使用现有虚拟环境。默认不加载 `.env`，不调用网络/收费模型。stdout 仅安全摘要；**SQLite、请求、完整导出含原文，必须放 `data/local/` 或仓库外私有路径，不上传**。CLI 是本机文件消费者；网页另有受控 localhost HTTP 门禁；导出遵守同一私有路径限制。需要共享时另做人工审查/脱敏，不直接分享完整结果。
 
 ```powershell
 python -m app.job_analysis.delivery init --state ../data/local/m2-delivery/state
@@ -29,7 +42,7 @@ python -m app.job_analysis.delivery resume --state ../data/local/m2-delivery/sta
 
 CLI 原始 JD 可用 `--replay recorded.json`，文件为 `{"schema_version":"m2-recorded-processor-1","runs":["<primary目录>","<audit目录>"]}`。各目录先验证 P1 manifest；可给 primary/audit 子目录，也可给包含 primary_run/audit_attempt 的标准完整 P1 目录，记录器会递归读取。只有**完全相同请求摘要**才能取得回包。缺缓存返回 `not_run`，不调用网络，也不以相近请求替代。不同模型配置分开运行；缓存内容摘要纳入处理器版本，metadata 标记 `cached_recompile/network_requests=0`。这是真实执行当前 P1 编译与审计代码，不能称为 fresh 模型运行。Python 接入 CloudProcessor 只是已有能力，实际发送真实文本/产生费用仍须对应授权。
 
-`operations` 沿用 [P3/P4 契约](../work_candidates/README.md)：create/link/correct/describe 全是显式输入，引用真实分析 SHA 与 claim ID。初次 raw JD 可先无操作完成理解，再从私有结果取确切分析创建有依据的研究假设。检索、知识解释和研究投影自动执行；没有独立中文同组判断器，不会自动把标题/技能相近认作同一工作组合。每日研究修订不要求人工逐条批准；关键结构/正式归属/发布仍没有可信确认写入路径。
+`operations` 沿用 [P3/P4 契约](../work_candidates/README.md)：create/link/correct/describe 均支持显式输入；请求的 `research_sources` 默认false，网页置true时还会为每个来源核心职责生成独立create研究种子（ID绑定原分析SHA与claim），只作来源假设，不自动同组，引用真实分析 SHA 与 claim ID。初次 raw JD 可先无操作完成理解，再从私有结果取确切分析创建有依据的研究假设。检索、知识解释和研究投影自动执行；没有独立中文同组判断器，不会自动把标题/技能相近认作同一工作组合。每日研究修订不要求人工逐条批准；关键结构/正式归属/发布仍没有可信确认写入路径。
 
 ## 消费契约 `m2-delivery-result-1`
 
@@ -39,6 +52,7 @@ CLI 原始 JD 可用 `--replay recorded.json`，文件为 `{"schema_version":"m2
 | `knowledge.sha256` | 本次冻结知识原字节 SHA，原始知识同请求保存在账本 |
 | `items[].analysis/analysis_sha256` | 原始 `m2-semantic-0.2`、实际 analyzer/model/prompt/configuration/input 版本及完整五态/程度/条件/组合/稀疏关系；导入或复用不改写原分析 |
 | `items[].p1/input_mode/reuse/observation` | 原 P1 完整执行、实际输入模式和复用来源；当前观察时间与原分析时间分开 |
+| `items[].skill_candidates/knowledge_projection` | 本次实际观察的技能候选与有效知识投影，含证据/争议/状态及版本；随后被alignment消费，历史不重读当前registry |
 | `alignment/roles` | P2-1 候选知识成熟度、精确技能对齐、有限岗位比较、覆盖及具体原因；不等于正式岗位归属 |
 | `role_assignment` | `unavailable/p2_2_not_validated`，明确 #63 缺口，不伪造完整解释 |
 | `items[].status/counts` | complete、partial、unknown、failed、not_run 分账，分母是本次 items；完整指 P1 五个适用维度及集成执行，不是人工语义验收。classification 的 not_run 仍原样存在 |
@@ -46,14 +60,14 @@ CLI 原始 JD 可用 `--replay recorded.json`，文件为 `{"schema_version":"m2
 | `work` | 确切 P3/P4 binding、候选、研究版本、来源引用、未决/反证及结构建议；null 表示候选阶段未完成，不能回落当前 head |
 | `semantic_review/market_accuracy` | machine_unreviewed/null；独立来源与 vacancy 未知、正式目录为空的边界不变 |
 
-`read --id` 始终返回该 run 已存结果，`--expected-request` 可校验调用方选中的请求；即使后续运行成功也不替换旧读数。只读连接可在其他 worker 持有写租约时读取已提交结果。旧 UI/API 的 B1/B2/B22/B3 原生契约保持原样；它们尚未接入本入口，不应把新结果强制投影进旧字段。
+`read --id` 始终返回该 run 已存结果，`--expected-request` 可校验调用方选中的请求；即使后续运行成功也不替换旧读数。只读连接可在其他 worker 持有写租约时读取已提交结果。网页已直接消费本契约；旧 B1/B2/B22/B3 仅提供原结果只读历史，新结果不强制投影进旧字段。
 
 ## 复用与恢复
 
 | 变化/故障 | 实际策略 |
 |---|---|
 | 同身份、同有效输入/处理器/提示/P1 源码 | 只跨 run 复用有事实且 P1 五维 complete、execution=ok 的结果；classification=not_run 不误阻止适用五维完成。partial、未识别、失败不冒充完整缓存 |
-| 仅 crawled_at 变化 | P1 可复用；当前 observation 单独保存，不改原分析，不增加独立需求 |
+| 仅 crawled_at 变化 | CLI/Python在input_version不变时可复用P1；网页对整行生成input_version，因此保守重算。当前observation单独保存，不改原分析、不增加独立需求 |
 | 正文或其他有效字段/input_version 变化 | 保守重做 P1，保留旧输入和结果 |
 | 知识/标准变化 | 复用充分 P1，实际重做 P2/P4；完整保存新解释，旧 run 不重算 |
 | 模型/配置/提示/分析源码变化 | 新 run 保守重评；未结束旧 run 必须匹配原有效依赖才能恢复。长驻 worker 发现磁盘提示/代码漂移会拒绝继续，先重启再另建 run。已结束历史读取不检查当前依赖 |
