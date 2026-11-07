@@ -86,7 +86,8 @@ class DeliveryStore:
             if self._checked(row) != value: raise ValueError('run ID already bound to different request')
             return
         for (pending,) in self.conn.execute("SELECT DISTINCT run_id FROM events WHERE kind='maintenance_prepare'"):
-            if self.latest(pending, 'maintenance_result') is None and self.latest(pending, 'maintenance_rejected') is None:
+            if (self.latest(pending, 'maintenance_result') is None and self.latest(pending, 'maintenance_rejected') is None
+                    and self.latest(pending, 'maintenance_closed') is None):
                 raise RuntimeError('unfinished maintenance request; retry it before freezing a run')
         if value['request']['baseline'] != self.candidates.read()['binding']:
             raise ValueError('stale candidate baseline')

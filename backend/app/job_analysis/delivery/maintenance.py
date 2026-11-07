@@ -1,15 +1,17 @@
 """Version-bound local candidate maintenance over persisted, validated evidence."""
 from pathlib import Path
+import re
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from ..baseline.contract import validate_analysis
 from ..foundation.inputs import digest
 from ..knowledge.alignment import align_analysis
-from ..knowledge.candidates import CandidateRegistry, CandidateVersion, _extract_observations
+from ..knowledge.candidates import CandidateRegistry, CandidateVersion, _extract_observations, load_projection
 from ..knowledge.catalog import load_snapshot, LoadedSnapshot
-from ..knowledge.models import Strict, StableId, Text, Sha256, validate_snapshot
+from ..knowledge.models import Strict, StableId, Text, Sha256, CandidateProjectionBinding, validate_snapshot
+from ..knowledge.storage import save_result
 from ..work_candidates.models import Binding, Link, Correct, Describe
 from ..work_candidates.service import apply_batch, algorithm_version
 from ..work_candidates.storage import CandidateStore
@@ -33,9 +35,19 @@ class SkillCommand(Strict):
     source_analysis_sha256: Sha256 | None = None
 
 
+class CloseCommand(Strict):
+    reason: Text = Field(max_length=4000)
+
+
 class _PreviewRegistry(CandidateRegistry):
+    replacement = None
+
     def _write(self, value):
         return value
+
+    def _heads(self):
+        return [self.replacement if self.replacement is not None and item.candidate_id == self.replacement.candidate_id
+                else item for item in super()._heads()]
 
 
 def checkpoint(stage):
@@ -48,17 +60,23 @@ class Maintenance:
 
     def pending(self):
         if not (self.service.root / 'delivery.db').exists():
-            return dict(items=[])
+            return dict(items=[], closed=[])
         with DeliveryStore(self.service.root, readonly=True) as store:
-            result = []
+            result, closed = [], []
             for (action_id,) in store.conn.execute("SELECT DISTINCT run_id FROM events WHERE kind='maintenance_prepare'"):
-                if store.latest(action_id, 'maintenance_result') is not None or store.latest(action_id, 'maintenance_rejected') is not None:
-                    continue
                 prepared = store.latest(action_id, 'maintenance_prepare')
                 request = prepared['request']
+                closure = store.latest(action_id, 'maintenance_closed')
+                if closure is not None:
+                    closed.append(dict(id=action_id, kind=prepared['kind'], candidate_id=request.get('candidate_id'), **closure))
+                    continue
+                if store.latest(action_id, 'maintenance_result') is not None or store.latest(action_id, 'maintenance_rejected') is not None:
+                    continue
                 result.append(dict(id=action_id, kind=prepared['kind'], candidate_id=request.get('candidate_id'),
-                                   request_sha256=prepared['request_sha256'], request=request))
-            return dict(items=result)
+                                   request_sha256=prepared['request_sha256'], request=request,
+                                   can_close=prepared['kind'] == 'skill' and 'response' not in prepared
+                                   and store.latest(action_id, 'maintenance_materialized') is None))
+            return dict(items=result, closed=closed)
 
     def recover(self, action_id):
         with DeliveryStore(self.service.root, readonly=True) as store:
@@ -70,6 +88,51 @@ class Maintenance:
             return self.update_work(request)
         candidate_id = request.pop('candidate_id')
         return self.update_skill(candidate_id, request)
+
+    def close(self, action_id, reason):
+        reason = CloseCommand(reason=reason).reason
+        with DeliveryStore(self.service.root) as store:
+            prepared = store.latest(action_id, 'maintenance_prepare')
+            if prepared is None or prepared['kind'] != 'skill' or 'response' in prepared or store.latest(action_id, 'maintenance_materialized') is not None:
+                raise ValueError('only legacy skill maintenance without an output binding can be closed')
+            previous = store.latest(action_id, 'maintenance_closed')
+            if previous is not None:
+                if previous['reason'] != reason:
+                    raise RuntimeError('closed maintenance reason is immutable')
+                return previous
+            if store.latest(action_id, 'maintenance_result') is not None or store.latest(action_id, 'maintenance_rejected') is not None:
+                raise ValueError('maintenance request already ended')
+            self._guard(store, action_id)
+            target = CandidateVersion.model_validate(prepared['candidate'])
+            if target.candidate_id != prepared['request']['candidate_id']:
+                raise ValueError('legacy maintenance candidate identity mismatch')
+            registry = self._registry()
+            target_path = registry.root / 'candidates' / target.candidate_id / 'versions' / str(target.version)
+            if target_path.exists() or target_path.is_symlink():
+                if not target_path.is_dir() or target_path.resolve() != target_path:
+                    raise ValueError('invalid published candidate path')
+                if registry.read(target.candidate_id, target.version) != target:
+                    raise ValueError('legacy maintenance candidate content mismatch')
+            current = registry.read(target.candidate_id)
+            saved = current == target
+            if not saved and current.version != prepared['request']['expected_version']:
+                raise RuntimeError('legacy maintenance candidate version mismatch')
+            if current.version == target.version and not saved:
+                raise RuntimeError('legacy maintenance candidate content mismatch')
+            # Old intents did not bind a projection. Validate existing published
+            # artifacts but never assign one to this operation or recalculate it.
+            folder = registry.root / 'projections'
+            if folder.exists():
+                for path in folder.iterdir():
+                    if re.fullmatch(r'[a-f0-9]{64}', path.name):
+                        if not path.is_dir() or path.resolve() != path:
+                            raise ValueError('invalid published projection path')
+                        if load_projection(path).sha256 != path.name:
+                            raise ValueError('published projection directory digest mismatch')
+            response = dict(status='closed_incomplete', reason=reason,
+                            candidate_version_saved=saved, projection_binding='not_recorded')
+            store.append(action_id, 'maintenance_closed', response)
+            return response
 
     def _sources(self):
         sources = {}
@@ -109,7 +172,8 @@ class Maintenance:
                 raise RuntimeError('unfinished delivery run; resume or abandon before maintenance')
         for (pending,) in store.conn.execute("SELECT DISTINCT run_id FROM events WHERE kind='maintenance_prepare'"):
             if (pending != action_id and store.latest(pending, 'maintenance_result') is None
-                    and store.latest(pending, 'maintenance_rejected') is None):
+                    and store.latest(pending, 'maintenance_rejected') is None
+                    and store.latest(pending, 'maintenance_closed') is None):
                 raise RuntimeError('unfinished maintenance request; retry its original request first')
 
     @staticmethod
@@ -119,6 +183,8 @@ class Maintenance:
             raise RuntimeError('request ID already used for different content')
         if store.latest(action_id, 'maintenance_rejected') is not None:
             raise ValueError('original maintenance request rejected; correct it with a new request ID')
+        if store.latest(action_id, 'maintenance_closed') is not None:
+            raise RuntimeError('maintenance request closed incomplete; its saved effects are preserved')
         return prepared, store.latest(action_id, 'maintenance_result')
 
     def update_work(self, payload):
@@ -180,25 +246,42 @@ class Maintenance:
 
     def skill(self, candidate_id, version=None):
         # StableId is also a path boundary; never trust a route segment as a path.
-        from pydantic import TypeAdapter
         TypeAdapter(StableId).validate_python(candidate_id)
         registry = self._registry()
         candidate = registry.read(candidate_id, version)
         head = registry.read(candidate_id)
-        eligible = []
-        if candidate.version == head.version:
-            bound = {o.observation_key for o in head.referenced_observations}
-            knowledge = load_snapshot(self.service.knowledge)
-            for sha, analysis in sorted(self._sources().items()):
-                observations = _extract_observations(analysis, align_analysis(analysis, knowledge))
-                if any(o.interpretation_key == head.interpretation_key and o.observation_key not in bound for o in observations):
-                    eligible.append(dict(analysis_sha256=sha, analysis=analysis))
         return dict(candidate=candidate.model_dump(), versions=registry._versions(candidate_id),
                     projection=registry.project(persist=False).model_dump() if candidate.version == head.version else None,
                     projection_scope='current_head' if candidate.version == head.version else 'historical_candidate_only',
-                    eligible_new_evidence=eligible)
+                    eligible_new_evidence=self._eligible(candidate) if candidate.version == head.version else [])
+
+    def _eligible(self, candidate):
+        bound = {o.observation_key for o in candidate.referenced_observations}
+        knowledge = load_snapshot(self.service.knowledge)
+        eligible = []
+        for sha, analysis in sorted(self._sources().items()):
+            observations = _extract_observations(analysis, align_analysis(analysis, knowledge))
+            if any(o.interpretation_key == candidate.interpretation_key and o.observation_key not in bound for o in observations):
+                eligible.append(dict(analysis_sha256=sha, analysis=analysis))
+        return eligible
+
+    @staticmethod
+    def _published_skill(registry, target, response):
+        if response['candidate'] != target.model_dump():
+            raise ValueError('frozen maintenance response candidate mismatch')
+        projection = CandidateProjectionBinding.model_validate(response['projection'])
+        if digest(projection.projection.model_dump()) != projection.sha256:
+            raise ValueError('frozen maintenance projection binding mismatch')
+        version_path = registry.root / 'candidates' / target.candidate_id / 'versions' / str(target.version)
+        projection_path = registry.root / 'projections' / projection.sha256
+        if version_path.exists() and registry.read(target.candidate_id, target.version) != target:
+            raise ValueError('published maintenance candidate mismatch')
+        if projection_path.exists() and load_projection(projection_path) != projection:
+            raise ValueError('published maintenance projection mismatch')
+        return version_path.exists() and projection_path.exists()
 
     def update_skill(self, candidate_id, payload):
+        TypeAdapter(StableId).validate_python(candidate_id)
         command = SkillCommand.model_validate(payload)
         action_id = 'maintenance-skill-' + command.request_id
         request = dict(candidate_id=candidate_id, **command.model_dump())
@@ -208,8 +291,8 @@ class Maintenance:
                 return previous
             self._guard(store, action_id)
             registry = self._registry()
-            current = self.skill(candidate_id)['candidate']
             if prepared is None:
+                current = registry.read(candidate_id).model_dump()
                 if current['version'] != command.expected_version:
                     raise RuntimeError('stale candidate version; refresh before editing')
                 preview = _PreviewRegistry(registry.root)
@@ -227,11 +310,23 @@ class Maintenance:
                     updated = preview.revise(candidate_id, command.description, command.reason,
                         analysis=source, alignment=align_analysis(source, load_snapshot(self.service.knowledge)),
                         competing_hypotheses=command.competing_hypotheses or None)
-                prepared = dict(request_sha256=digest(request), request=request, kind='skill', candidate=updated.model_dump(), algorithm=algorithm_version())
+                preview.replacement = updated
+                response = dict(candidate=updated.model_dump(), versions=[*registry._versions(candidate_id), updated.version],
+                    projection=preview.project(persist=False).model_dump(), projection_scope='current_head',
+                    eligible_new_evidence=self._eligible(updated))
+                prepared = dict(request_sha256=digest(request), request=request, kind='skill', candidate=updated.model_dump(),
+                                algorithm=algorithm_version(), response=response)
                 store.append(action_id, 'maintenance_prepare', prepared)
+            updated = CandidateVersion.model_validate(prepared['candidate'])
+            response = prepared.get('response') or store.latest(action_id, 'maintenance_materialized')
+            if response is not None and self._published_skill(registry, updated, response):
+                # Publication is complete; only the exact frozen receipt remains.
+                store.append(action_id, 'maintenance_result', response)
+                return response
             if prepared['algorithm'] != algorithm_version():
                 raise RuntimeError('maintenance recovery requires original algorithm dependencies')
-            updated = CandidateVersion.model_validate(prepared['candidate'])
+            current = registry.read(candidate_id).model_dump()
+            checkpoint('before_skill_commit')
             if current['version'] == updated.version:
                 if current != updated.model_dump():
                     raise RuntimeError('maintenance recovery version mismatch')
@@ -240,7 +335,19 @@ class Maintenance:
             else:
                 raise RuntimeError('maintenance recovery requires original version')
             checkpoint('after_skill_commit')
-            registry.project()
-            response = self.skill(candidate_id, updated.version)
+            if response is None:
+                # A legacy intent can acquire a binding only under its original
+                # dependencies, never by guessing which existing projection it used.
+                registry.project()
+                response = self.skill(candidate_id, updated.version)
+                store.append(action_id, 'maintenance_materialized', response)
+            else:
+                projection = response['projection']
+                path = registry.root / 'projections' / projection['sha256']
+                if not path.exists():
+                    save_result(path, projection['projection'])
+            checkpoint('after_skill_projection')
+            if not self._published_skill(registry, updated, response):
+                raise RuntimeError('maintenance outputs are not fully published')
             store.append(action_id, 'maintenance_result', response)
             return response

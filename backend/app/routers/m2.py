@@ -8,7 +8,7 @@ from app.response import ok
 from app.job_analysis.product import source
 from app.job_analysis.product.workflow import History
 from app.job_analysis.delivery.http_service import DeliveryService, available_inputs
-from app.job_analysis.delivery.maintenance import Maintenance, WorkCommand, SkillCommand
+from app.job_analysis.delivery.maintenance import Maintenance, WorkCommand, SkillCommand, CloseCommand
 from .collection import _require_local_raw
 
 
@@ -62,6 +62,11 @@ def pending_maintenance():
 @router.post('/delivery/candidates/pending/{request_id}/resume')
 def resume_maintenance(request_id: str):
     return call(Maintenance(get_delivery()).recover, request_id)
+
+
+@router.post('/delivery/candidates/pending/{request_id}/close')
+def close_maintenance(request_id: str, payload: CloseCommand):
+    return call(Maintenance(get_delivery()).close, request_id, payload.reason)
 
 
 @router.post('/delivery/candidates/work/batches')
