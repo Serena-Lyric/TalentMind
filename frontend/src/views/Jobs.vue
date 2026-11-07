@@ -193,7 +193,7 @@ function retryDetail() { if (detailJob.value && !detailLoading.value) return rea
 function discardAndReload() { if (detailJob.value) return openDetail(detailJob.value) }
 function startAddSkill() { newSkill.value = ""; newSkillType.value = ''; addingSkill.value = true }
 function confirmAddSkill() { const s = newSkill.value.trim(); if (!s) return; if (!newSkillType.value) { ElMessage.warning('请选择必备或加分类型'); return } if (!detailSkills.value.includes(s)) { detailSkills.value.push(s); detailSkillTypes.value[s] = newSkillType.value; skillDirty.value = true } newSkill.value = "" }
-function removeDetailSkill(index: number) { detailSkills.value.splice(index, 1); skillDirty.value = true }
+function removeDetailSkill(index: number) { const [skill] = detailSkills.value.splice(index, 1); delete detailSkillOrigins.value[skill]; delete detailSkillTypes.value[skill]; skillDirty.value = true }
 function startEditSkill(index: number) { editingIndex.value = index; editValue.value = detailSkills.value[index] }
 function cancelEditSkill() { editingIndex.value = -1; editValue.value = "" }
 function confirmEditSkill() { if (editingIndex.value < 0) return; const idx = editingIndex.value; const old = detailSkills.value[idx]; const val = editValue.value.trim(); if (!val) { cancelEditSkill(); return } if (val !== old) { if (detailSkills.value.includes(val)) { ElMessage.warning("该技能已存在"); editValue.value = old; return } detailSkillOrigins.value[val] = detailSkillOrigins.value[old]; delete detailSkillOrigins.value[old]; detailSkillTypes.value[val] = detailSkillTypes.value[old]; delete detailSkillTypes.value[old]; detailSkills.value[idx] = val; skillDirty.value = true } editingIndex.value = -1 }

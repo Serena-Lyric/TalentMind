@@ -1,19 +1,18 @@
-"""TalentMind unified API for the full M2 catalog, graph and resume matching."""
+"""TalentMind unified API for the job-profile catalog and resume matching."""
 from __future__ import annotations
 
 import io
 import hashlib
 import json
-import math
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Body, File, Form, Query, UploadFile
+from fastapi import APIRouter, File, Form, Query, UploadFile
 from fastapi.responses import Response as FastResponse
 from starlette.concurrency import run_in_threadpool
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from sqlalchemy import text
 
 from app.db.mysql import SessionLocal
@@ -148,12 +147,6 @@ def jobs_platform_stats():
                 "unique_titles": len(item["unique_titles"]),
                 "latest_crawled_at": item["latest_collected_at"].isoformat() if hasattr(item["latest_collected_at"], "isoformat") else None}
                for source, item in by_source.items()])
-
-
-
-
-
-
 
 
 def _extract_file_text(filename: str, data: bytes) -> str:
@@ -390,19 +383,6 @@ def job_detail(job_id: int):
         db.close()
 
 
-@router.post("/jobs")
-def create_job(payload: JobPayload):
-    if not payload.job_name.strip(): raise BizError(4001, "job_name 不能为空")
-    db = SessionLocal()
-    try:
-        result = db.execute(text("""INSERT INTO job_definition (job_name, core_duties, required_skills, bonus_skills, scenarios, source, quality, is_emerging, evolution, collected_at, updated_at) VALUES (:job_name, :core_duties, :required_skills, :bonus_skills, :scenarios, :source, :quality, :is_emerging, :evolution, :collected_at, :updated_at)"""), {"job_name": payload.job_name.strip(), "core_duties": payload.core_duties, "required_skills": json.dumps(payload.required_skills, ensure_ascii=False), "bonus_skills": json.dumps(payload.bonus_skills, ensure_ascii=False), "scenarios": json.dumps(payload.scenarios, ensure_ascii=False), "source": json.dumps(payload.source, ensure_ascii=False), "quality": payload.quality, "is_emerging": int(payload.is_emerging), "evolution": json.dumps(payload.evolution, ensure_ascii=False), "collected_at": payload.collected_at or None, "updated_at": payload.updated_at or None})
-        new_id = result.lastrowid
-        db.commit()
-        return ok({"id": str(new_id)})
-    except Exception: db.rollback(); raise
-    finally: db.close()
-
-
 @router.put("/jobs/{job_id}")
 def update_job(job_id: int, payload: JobPayload):
     if not payload.job_name.strip():
@@ -453,114 +433,3 @@ def update_job(job_id: int, payload: JobPayload):
         raise
     finally:
         db.close()
-
-
-@router.delete("/jobs/{job_id}")
-def delete_job(job_id: int):
-    db=SessionLocal()
-    try:
-        cur=db.execute(text("DELETE FROM job_definition WHERE id=:id"),{"id":job_id}); db.commit()
-        if cur.rowcount==0: raise BizError(4041,"岗位不存在")
-        return ok({"success":True})
-    except Exception: db.rollback(); raise
-    finally: db.close()
-
-
-@router.post("/jobs/batch-delete")
-def batch_delete_jobs(ids: list[int] = Body(...)):
-    if not ids: raise BizError(4001,"ids 不能为空")
-    db=SessionLocal()
-    try:
-        for job_id in ids: db.execute(text("DELETE FROM job_definition WHERE id=:id"),{"id":job_id})
-        db.commit(); return ok({"deleted":len(ids)})
-    except Exception: db.rollback(); raise
-    finally: db.close()
-
-
-@router.post("/jobs/import")
-async def import_jobs(file: UploadFile = File(...)):
-    raw = await file.read()
-    return await run_in_threadpool(_import_jobs, raw, file.filename or "")
-
-
-def _import_jobs(raw: bytes, filename: str):
-    import csv
-    index = 0
-    field = "结构"
-    file_error = "导入文件编码无效，请使用 UTF-8 编码"
-    try:
-        content = raw.decode("utf-8-sig")
-        is_json = filename.lower().endswith(".json") or content.lstrip().startswith("[")
-        file_error = "JSON 文件语法无效，请检查文件格式" if is_json else "CSV 文件语法无效，请检查引号与列格式"
-        if is_json:
-            rows = json.loads(content)
-            if not isinstance(rows, list):
-                raise BizError(4001, "JSON 文件顶层必须为记录数组")
-        else:
-            reader = csv.DictReader(io.StringIO(content), strict=True)
-            if not reader.fieldnames or not {"job_name", "title"}.intersection(reader.fieldnames):
-                raise BizError(4001, "CSV 表头缺少 job_name 或 title 列")
-            if len(set(reader.fieldnames)) != len(reader.fieldnames):
-                raise BizError(4001, "CSV 表头存在重复列名")
-            rows = list(reader)
-        payloads = []
-        for index, row in enumerate(rows, start=1):
-            field = "结构"
-            if not isinstance(row, dict) or None in row:
-                raise ValueError(f"第 {index} 行结构无效")
-            item = dict(row)
-            item["job_name"] = item.get("job_name") or item.get("title") or ""
-            for field in ("required_skills", "bonus_skills", "scenarios", "source"):
-                value = item.get(field)
-                if value is None or value == "":
-                    value = []
-                elif not is_json and isinstance(value, str):
-                    value = json.loads(value) if value.lstrip().startswith("[") else [part.strip() for part in re.split(r"[;|]", value) if part.strip()]
-                if not isinstance(value, list) or any(not isinstance(part, str) for part in value):
-                    raise ValueError(f"第 {index} 行 {field} 必须为字符串列表")
-                item[field] = value
-            for field in ("core_duties", "collected_at", "updated_at", "first_seen"):
-                if item.get(field) is None:
-                    item[field] = ""
-            for field, default in (("quality", 0), ("is_emerging", False), ("evolution", {})):
-                if item.get(field) is None or item.get(field) == "":
-                    item[field] = default
-            if not is_json and isinstance(item["evolution"], str):
-                field = "evolution"
-                item["evolution"] = json.loads(item["evolution"])
-            payload = JobPayload(**item)
-            field = "job_name"
-            payload.job_name = payload.job_name.strip()
-            if not payload.job_name or len(payload.job_name) > 128:
-                raise ValueError(f"第 {index} 行 job_name 必须为 1–128 个字符")
-            field = "quality"
-            if not math.isfinite(payload.quality) or abs(payload.quality) > 3.4028234663852886e38:
-                raise ValueError(f"第 {index} 行 quality 超出 FLOAT 范围")
-            field = "core_duties"
-            if len(payload.core_duties.encode("utf-8")) > 65535:
-                raise ValueError(f"第 {index} 行 core_duties 超出 TEXT 字节上限")
-            # MySQL JSON rejects non-finite numbers, including nested overflow from 1e999.
-            for field, value in payload.model_dump().items():
-                json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
-            for field in ("collected_at", "updated_at", "first_seen"):
-                value = getattr(payload, field)
-                if value:
-                    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?)?", value):
-                        raise ValueError(f"第 {index} 行 {field} 必须为不带时区的日期时间")
-                    parsed = datetime.fromisoformat(value)
-                    if parsed.year < 1000:
-                        raise ValueError(f"第 {index} 行 {field} 超出 DATETIME 范围")
-                    setattr(payload, field, parsed.isoformat(sep=" "))
-            payloads.append(payload)
-    except ValidationError as exc:
-        # Only schema-owned top-level names are public; nested keys and input values stay private.
-        field = next((error["loc"][0] for error in exc.errors(include_input=False, include_context=False)
-                      if error["loc"] and error["loc"][0] in JobPayload.model_fields), "结构")
-        raise BizError(4001, f"第 {index} 条记录的 {field} 无效，请检查字段类型") from exc
-    except (ValueError, TypeError, csv.Error) as exc:
-        message = f"第 {index} 条记录的 {field} 无效，请检查字段格式或存储范围" if index else file_error
-        raise BizError(4001, message) from exc
-    # Preserve per-row commits; validate the whole file before any database write.
-    for payload in payloads:
-        create_job(payload)
-    return ok({"imported": len(payloads)})

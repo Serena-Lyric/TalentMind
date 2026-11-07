@@ -3,7 +3,7 @@
     <div class="page-title">
       <div>
         <h1>简历上传诊断</h1>
-        <p>智能提取个人能力，并与目标岗位能力图谱进行匹配分析</p>
+        <p>解析简历技能文本，并与岗位画像的技能要求进行规则匹配</p>
       </div>
       <div class="title-actions">
         <el-button @click="fileInput?.click()"><el-icon><UploadFilled /></el-icon>上传简历</el-button>

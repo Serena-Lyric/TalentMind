@@ -7,6 +7,7 @@ import * as vue from 'vue'
 
 // 执行真实 SFC setup；只隔离网络、挂载和 Canvas 端口，无 DOM 测试框架依赖。
 export function graphComponent(props = vue.reactive({ panelsHidden: false, immersive: false }), search = '?nebulaDebug=1') {
+  const location = { search, reloadCount: 0, reload() { this.reloadCount++ } }
   const filename = resolve(import.meta.dirname, '../../src/components/GraphPanorama.vue')
   const modules = new Map<string, any>()
   const load = (path: string, source?: string): any => {
@@ -26,7 +27,7 @@ export function graphComponent(props = vue.reactive({ panelsHidden: false, immer
       return createRequire(path)(id)
     }
     new Function('require', 'module', 'exports', 'window', code)(require, module, module.exports, {
-      location: { search }, devicePixelRatio: 1,
+      location, devicePixelRatio: 1,
     })
     return module.exports
   }
@@ -50,5 +51,5 @@ export function graphComponent(props = vue.reactive({ panelsHidden: false, immer
     state.nodeById.clear()
     nodes.forEach(node => state.nodeById.set(node.id, node))
   }
-  return { state, setGraph, labels, load, stop: () => scope.stop(), debug: () => JSON.parse(state.rootRef.value.dataset.nebula) }
+  return { state, setGraph, labels, load, location, stop: () => scope.stop(), debug: () => JSON.parse(state.rootRef.value.dataset.nebula) }
 }

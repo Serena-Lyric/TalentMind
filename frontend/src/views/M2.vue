@@ -4,7 +4,8 @@
     <el-alert v-if="error" :title="error" type="error" :closable="false" />
     <section class="surface">
       <h2>选择本次输入</h2><p>已选 {{ selectedJdIds.length }} 条；选中仅确定输入，创建任务不会自动执行。</p>
-      <el-table :data="inputs" row-key="jd_id" stripe>
+      <el-alert v-if="inputError" :title="inputError" type="error" :closable="false"><el-button text @click="changeInputPage(inputPage)">重试第 {{inputPage}} 页</el-button></el-alert>
+      <el-table v-loading="inputsLoading" :data="inputs" row-key="jd_id" stripe>
         <el-table-column label="选择" width="68"><template #default="{row}"><el-checkbox :model-value="selectedJdIds.includes(Number(row.jd_id ?? row.id))" :aria-label="`选择 JD ${row.jd_id ?? row.id}`" @change="toggleInput(Number(row.jd_id ?? row.id))" /></template></el-table-column>
         <el-table-column label="JD ID" width="95"><template #default="{row}">{{row.jd_id ?? row.id}}</template></el-table-column>
         <el-table-column label="岗位原始标题" min-width="190"><template #default="{row}">{{row.title || row.job_title || '未提供标题'}}</template></el-table-column>
@@ -52,7 +53,7 @@ import { useRoute } from 'vue-router'
 import { createDeliveryRun, getDeliveryInputs, getDeliveryRun, getDeliveryRuns, getDeliveryGraph, startDeliveryRun, stopDeliveryRun, resumeDeliveryRun, abandonDeliveryRun, getM2Runs, getM2Run, getM2Item, type DeliveryRun, type DeliveryItem, type DeliveryHistory, type DeliveryInput } from '../api/m2'
 const route=useRoute()
 const selected=ref<DeliveryRun|null>(null),selectedId=ref(''),history=ref<DeliveryHistory[]>([])
-const inputs=ref<DeliveryInput[]>([]),inputPage=ref(1),inputTotal=ref(0),selectedJdIds=ref<number[]>([])
+const inputs=ref<DeliveryInput[]>([]),inputPage=ref(1),inputTotal=ref(0),selectedJdIds=ref<number[]>([]),inputError=ref(''),inputsLoading=ref(false)
 const detail=ref<DeliveryItem|null>(null),sourcePreview=ref<DeliveryInput|null>(null)
 const legacyHistory=ref<DeliveryHistory[]>([]),legacyId=ref(''),legacy=ref<Record<string,any>|null>(null),legacyItem=ref<Record<string,any>|null>(null)
 const error=ref(''),refreshing=ref(false),mutating=ref(false),graphLoading=ref(false)
@@ -65,7 +66,7 @@ function label(value:string){return words[value] || value}
 function pretty(value:any){return JSON.stringify(value ?? null,null,2)}
 function message(e:any){return e?.response?.data?.detail || e?.message || String(e)}
 function toggleInput(id:number){selectedJdIds.value=selectedJdIds.value.includes(id)?selectedJdIds.value.filter(i=>i!==id):[...selectedJdIds.value,id]}
-async function changeInputPage(page:number){const token=++inputEpoch;inputPage.value=page;try{const result=await getDeliveryInputs((page-1)*20,20);if(!disposed&&token===inputEpoch){inputs.value=result.items;inputTotal.value=result.total}}catch(e){if(!disposed&&token===inputEpoch)error.value=message(e)}}
+async function changeInputPage(page:number){const token=++inputEpoch;inputPage.value=page;inputs.value=[];inputError.value='';inputsLoading.value=true;try{const result=await getDeliveryInputs((page-1)*20,20);if(!disposed&&token===inputEpoch){inputs.value=result.items;inputTotal.value=result.total}}catch(e){if(!disposed&&token===inputEpoch)inputError.value=`第 ${page} 页加载失败：${message(e)}`}finally{if(!disposed&&token===inputEpoch)inputsLoading.value=false}}
 async function refresh(){const token=++refreshEpoch;refreshing.value=true;await Promise.all([changeInputPage(inputPage.value),(async()=>{try{const rows=await getDeliveryRuns();if(!disposed&&token===refreshEpoch)history.value=rows}catch(e){if(!disposed&&token===refreshEpoch)error.value=message(e)}})(),(async()=>{try{const rows=await getM2Runs();if(!disposed&&token===refreshEpoch)legacyHistory.value=rows}catch(e){if(!disposed&&token===refreshEpoch)error.value=message(e)}})()]);if(!disposed&&token===refreshEpoch)refreshing.value=false}
 function invalidate(){epoch++;detail.value=null;graphLoading.value=false;error.value='';return epoch}
 async function selectRun(id:string){const token=invalidate();selectedId.value=id;selected.value=null;try{const run=await getDeliveryRun(id);if(!disposed&&token===epoch)selected.value=run}catch(e){if(!disposed&&token===epoch)error.value=message(e)}}

@@ -7,9 +7,10 @@ from copy import deepcopy
 from functools import lru_cache
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
-import threading
+from tempfile import TemporaryDirectory
 from urllib.parse import quote
 
 from app.job_analysis.baseline.contract import validate_analysis
@@ -18,7 +19,6 @@ from .candidate_layout import build_layout
 from .research.algorithms import pair_scores, community_run
 
 FILES = {'manifest.json', 'facts.json', 'sources.json', 'layout.json'}
-_WRITE_LOCK = threading.RLock()
 
 def _text(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')) + '\n'
@@ -170,18 +170,28 @@ def graph_info(service, run_id):
     contents = _bundle(_text(_run(service, run_id)))
     sha = _sha(contents['manifest.json'])
     path = _snapshot_path(service, run_id, sha)
-    with _WRITE_LOCK:
-        path.mkdir(parents=True, exist_ok=True)
-        for name in [*sorted(FILES - {'manifest.json'}), 'manifest.json']:
-            target = path / name
-            if target.resolve() != target:
-                raise ValueError('redirected graph artifact prohibited')
-            if target.exists():
-                if target.stat().st_nlink != 1 or target.read_text(encoding='utf-8') != contents[name]:
-                    raise ValueError('immutable graph snapshot content mismatch')
-            else:
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        # Only this invocation's private staging directory is disposable. A final
+        # SHA directory is immutable, even when incomplete/corrupt: absence of a
+        # manifest cannot prove that a previously published file was not deleted.
+        with TemporaryDirectory(prefix=f'.{sha}.staging-', dir=path.parent) as staging:
+            stage = Path(staging)
+            for name in [*sorted(FILES - {'manifest.json'}), 'manifest.json']:
+                target = stage / name
                 with target.open('x', encoding='utf-8', newline='\n') as stream:
                     stream.write(contents[name])
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            # Same-filesystem directory rename exposes the entire bundle at once.
+            # Concurrent processes can race here; a complete winner is verified
+            # below, never overwritten or supplemented by the losing writer.
+            _snapshot_path(service, run_id, sha)
+            try:
+                stage.rename(path)
+            except OSError:
+                if not path.exists():
+                    raise
     read_bundle(service, run_id, 'manifest.json', sha)
     return dict(run_id=run_id, manifest=json.loads(contents['manifest.json']), manifest_sha256=sha,
                 url=f'/?graphDataset=delivery&m2DeliveryRun={quote(run_id,safe="")}&m2Graph={sha}&graphSpace=node-field-v1#/graph')

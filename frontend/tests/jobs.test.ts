@@ -501,3 +501,19 @@ for (const rename of [false, true]) {
     } finally { page.stop() }
   })
 }
+
+test('详情迟到时删除再添加同名技能采用新选类型，不继承已删除技能身份', async () => {
+  const pending = deferred()
+  const original = { ...job('A', ['Docker']), required_skills: [], bonus_skills: ['Docker'] }
+  const page = component({ getJobDetail: () => pending.promise })
+  try {
+    const opening = page.state.openDetail(original)
+    page.state.removeDetailSkill(0)
+    addSkill(page.state, 'Docker')
+    pending.resolve(original); await opening
+    await page.state.saveSkills()
+    const payload = page.calls.find(call => call.method === 'updateJob')!.args[1]
+    assert.deepEqual(payload.required_skills, ['Docker'])
+    assert.deepEqual(payload.bonus_skills, [])
+  } finally { page.stop() }
+})
