@@ -4,7 +4,7 @@ import threading
 
 import pytest
 
-from app.collect import control
+from app.collect import control, readiness
 
 
 @pytest.fixture(autouse=True)
@@ -12,6 +12,7 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'state.json')
     monkeypatch.setattr(control, '_PROCESS', None)
+    monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
 
 
 def test_platform_switch_uses_own_city_codes():
@@ -85,6 +86,16 @@ def test_prepare_route_forwards_current_search_and_validation(monkeypatch):
     collection.collection_prepare(payload)
     assert seen == [dict(auto_start=True, platform='zhaopin', config_payload={
         key: value for key, value in payload.items() if key != 'auto_start'})]
+
+
+def test_database_readiness_failure_blocks_before_state_or_browser(monkeypatch):
+    def blocked():
+        raise RuntimeError('identity_schema_migration_required')
+    monkeypatch.setattr(readiness, 'require_database_ready', blocked)
+    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
+    with pytest.raises(RuntimeError, match='identity_schema_migration_required'):
+        control.start_task({})
+    assert not control._STATE_PATH.exists()
 
 
 def test_prepare_rejects_invalid_temporary_config_before_browser(monkeypatch):
@@ -357,6 +368,27 @@ def test_results_route_applies_same_full_raw_gate(monkeypatch, enabled, client, 
     else:
         with pytest.raises(HTTPException) as error:
             collection.collection_results(request=request, run_id='one')
+        assert error.value.status_code == 403
+        assert calls == []
+
+
+@pytest.mark.parametrize('enabled,allowed', [('0', False), ('1', True)])
+def test_raw_route_applies_gate_before_reading_private_body(monkeypatch, enabled, allowed):
+    from fastapi import HTTPException
+    from starlette.requests import Request
+    from app.routers import collection
+    monkeypatch.setenv('TALENTMIND_LOCAL_RAW', enabled)
+    request = Request({'type': 'http', 'client': ('127.0.0.1', 1),
+                       'headers': [(b'host', b'localhost:18000')]})
+    calls = []
+    monkeypatch.setattr(control, 'get_raw',
+                        lambda raw_id: calls.append(raw_id) or {'jd_pool_id': raw_id, 'raw_text': 'private body'})
+    if allowed:
+        assert collection.collection_raw(7, request)['data']['raw_text'] == 'private body'
+        assert calls == [7]
+    else:
+        with pytest.raises(HTTPException) as error:
+            collection.collection_raw(7, request)
         assert error.value.status_code == 403
         assert calls == []
 

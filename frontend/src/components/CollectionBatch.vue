@@ -46,7 +46,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { createCollectionBatch, getCollectionBatch, getCollectionBatches, getCollectionBatchItemTask, getCollectionConfig, startCollectionBatch, stopCollectionBatch, type CollectionBatch, type CollectionBatchItem, type CollectionPlatform, type CollectionTask } from '../api/collection'
 
-const props = defineProps<{ platforms: CollectionPlatform[]; singleBusy: boolean }>()
+const props = defineProps<{ platforms: CollectionPlatform[]; singleBusy: boolean; startBlocked?: boolean; blockedPlatforms?: string[] }>()
 const emit = defineEmits<{ (event: 'busy', value: boolean): void; (event: 'inspect', value: CollectionTask): void }>()
 const platform = ref('boss')
 const keywords = ref<string[]>([])
@@ -76,9 +76,9 @@ const validationHint = computed(() => !selectedPlatform.value?.supported ? '请�
 const canCreate = computed(() => !validationHint.value && !mutating.value)
 function isActive(batch: CollectionBatch) { return ['running', 'waiting_next_round', 'stopping'].includes(batch.status) }
 const activeBatch = computed(() => batches.value.find(isActive) || (selectedBatch.value && isActive(selectedBatch.value) ? selectedBatch.value : null))
-const canStart = computed(() => selectedBatch.value?.status === 'queued' && !props.singleBusy && !activeBatch.value && !mutating.value && !detailLoading.value && !refreshing.value)
+const canStart = computed(() => selectedBatch.value?.status === 'queued' && !props.startBlocked && !props.blockedPlatforms?.includes(selectedBatch.value.platform) && !props.singleBusy && !activeBatch.value && !mutating.value && !detailLoading.value && !refreshing.value)
 const canStop = computed(() => !!selectedBatch.value && (isActive(selectedBatch.value) || selectedBatch.value.status === 'queued') && !mutating.value && !detailLoading.value)
-const launchHint = computed(() => props.singleBusy ? '单轮任务正在准备或运行；批次与单轮互斥，请先停止当前任务。' : activeBatch.value && activeBatch.value.batch_id !== selectedId.value ? `批次 ${activeBatch.value.batch_id} 正在执行，请先停止该批次。` : selectedBatch.value?.status === 'queued' ? '计划尚未启动。点击“开始批次”后才会准备浏览器并执行。' : '停止会取消后续待执行项，并等待当前单项实际停止；不会自动重试或恢复。')
+const launchHint = computed(() => props.startBlocked || props.blockedPlatforms?.includes(selectedBatch.value?.platform || '') ? '启动条件受阻，请查看上方数据库检查与采集动作诊断。计划可先保存。' : props.singleBusy ? '单轮任务正在准备或运行；批次与单轮互斥，请先停止当前任务。' : activeBatch.value && activeBatch.value.batch_id !== selectedId.value ? `批次 ${activeBatch.value.batch_id} 正在执行，请先停止该批次。` : selectedBatch.value?.status === 'queued' ? '计划尚未启动。点击“开始批次”后才会准备浏览器并执行。' : '停止会取消后续待执行项，并等待当前单项实际停止；不会自动重试或恢复。')
 watch(platform, () => { cityCodes.value = [] }, { flush: 'sync' })
 watch(() => props.platforms, () => { if (!selectedPlatform.value?.supported) platform.value = props.platforms.find(item => item.supported)?.platform || '' }, { immediate: true })
 watch(() => !!activeBatch.value || starting.value || stopping.value, value => emit('busy', value), { immediate: true, flush: 'sync' })
@@ -87,7 +87,7 @@ const countFields = [['listed', '列表识别'], ['detail_attempted', '详情尝
 function formatCount(value?: number | null) { return typeof value === 'number' && Number.isFinite(value) ? String(value) : '—' }
 function formatTime(value?: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }) }
 function platformText(value: string) { return props.platforms.find(item => item.platform === value)?.label || value }
-function statusText(value: string) { return ({ queued: '待执行', preparing: '准备中', running: '运行中', waiting_next_round: '等待下一项', stopping: '停止中', stopped: '已停止', completed: '已完成', blocked: '访问受限', error: '失败', cancelled: '已取消', interrupted: '已中断' } as Record<string, string>)[value] || value }
+function statusText(value: string) { return ({ queued: '待执行', preparing: '准备中', running: '运行中', waiting_next_round: '等待下一项', stopping: '停止中', stopped: '已停止', completed: '执行结束', blocked: '访问受限', error: '失败', cancelled: '已取消', interrupted: '已中断' } as Record<string, string>)[value] || value }
 function errorText(value: unknown) { const data = (value as { response?: { data?: { detail?: unknown; message?: unknown } } } | null)?.response?.data; return typeof data?.detail === 'string' ? data.detail : typeof data?.message === 'string' ? data.message : value instanceof Error ? value.message : String(value) }
 let disposed = false
 let listRequest = 0

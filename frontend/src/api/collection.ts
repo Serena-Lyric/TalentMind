@@ -92,6 +92,25 @@ export interface CollectionPreparation extends CollectionAccess {
   target_url?: string
 }
 
+export interface CollectionReadiness {
+  ready: boolean
+  reason: string | null
+  message: string
+  missing_columns: string[]
+  next_step: string
+}
+export interface CollectionFrequency {
+  platform: string
+  state: 'clear' | 'unfinished' | 'busy' | 'unavailable'
+  can_recover: boolean
+  recovery_token: string | null
+  reason: string | null
+  message: string
+  next_action_at: number | null
+  next_combination_at: number | null
+  interruption?: 'exception' | 'unknown' | null
+}
+
 export interface CollectionResult {
   source?: string
   job_title: string
@@ -212,6 +231,9 @@ export function stopCollectionBatch(batch_id: string) { return post<CollectionBa
 // 浏览器准备可能包含进程启动和页面就绪等待；沿用统一请求与响应解包。
 export function prepareCollection(auto_start = false, platform?: string, config: Partial<CollectionConfig> = {}) { return post<CollectionPreparation>('/collection/prepare', { ...config, auto_start, platform }, { timeout: 120000 }) }
 export function getCollectionPlatforms() { return get<CollectionPlatform[]>('/collection/platforms') }
+export function getCollectionReadiness() { return get<CollectionReadiness>('/collection/readiness') }
+export function getCollectionFrequency(platform: string) { return get<CollectionFrequency>(`/collection/frequency/${encodeURIComponent(platform)}`) }
+export function recoverCollectionFrequency(platform: string, recovery_token: string) { return post<CollectionFrequency & { recovered: boolean }>(`/collection/frequency/${encodeURIComponent(platform)}/recover`, { recovery_token }) }
 export function getCollectionStatus() { return get<CollectionTask>('/collection/status') }
 export function getCollectionProgress() { return get<CollectionTask>('/collection/progress') }
 export function getCollectionStats() { return get<CollectionStats>('/collection/stats') }

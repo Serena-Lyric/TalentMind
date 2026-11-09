@@ -38,6 +38,67 @@ def no_database(monkeypatch):
 
 
 
+def test_job_detail_never_falls_back_to_same_number_raw_pool_id(monkeypatch):
+    statements = []
+
+    class Session:
+        def execute(self, statement, params):
+            statements.append((str(statement), params))
+            self._rows = []
+            return self
+
+        def mappings(self):
+            return self
+
+        def first(self):
+            return self._rows[0] if self._rows else None
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(mvp, "SessionLocal", Session)
+    with pytest.raises(mvp.BizError) as error:
+        mvp.job_detail(7)
+    assert error.value.code == 4041
+    assert len(statements) == 1
+    assert "FROM job_definition" in statements[0][0]
+    assert all("jd_pool" not in statement for statement, _ in statements)
+
+
+def test_job_detail_returns_only_the_requested_profile_identity(monkeypatch):
+    row = {
+        "id": 7, "job_name": "合成画像", "name_en": "Synthetic Profile",
+        "job_name_zh": "合成画像", "m2_job_id": "m2-7", "category": "fixture",
+        "category_review": "fixture", "required_skills": '["Python"]',
+        "bonus_skills": '["SQL"]', "core_duties": "负责合成服务\n维护合成接口",
+        "scenarios": "[]", "source": '["boss"]', "quality": 1.0,
+        "is_emerging": 0, "evolution": "{}", "source_jd_count": 1,
+        "collected_at": "2026-11-09T00:00:00", "updated_at": "2026-11-09T00:00:00",
+    }
+
+    class Session:
+        def execute(self, *args, **kwargs):
+            return self
+
+        def mappings(self):
+            return self
+
+        def first(self):
+            return row
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(mvp, "SessionLocal", Session)
+    result = mvp.job_detail(7)["data"]
+    assert result["id"] == "7"
+    assert result["job_name"] == "合成画像"
+    assert result["object_type"] == "job_profile"
+    assert result["responsibilities"] == ["负责合成服务", "维护合成接口"]
+    assert "raw_text" not in result
+
+
+
 def test_slow_upload_keeps_health_responsive_and_session_on_worker(monkeypatch):
     entered = threading.Event()
     stages = []

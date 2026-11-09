@@ -56,6 +56,28 @@ def identity_decision(
     if job.get('_dom'):
         if not isinstance(binding, dict):
             return 'unknown', {}, 'binding_evidence_missing'
+        if binding.get('binding_policy') == 'zhaopin-dom-panel-v2':
+            final_probe = detail.get('_panel_probe')
+            if not isinstance(final_probe, dict):
+                return 'unknown', {}, 'binding_evidence_missing'
+            if not binding.get('target_card_matches') or not final_probe.get('target_card_matches'):
+                return 'unknown', {}, 'list_card_changed'
+            if not final_probe.get('target_active'):
+                return 'unknown', {}, 'target_card_not_active'
+            if not final_probe.get('panel_visible'):
+                return 'unknown', {}, 'panel_not_visible'
+            if (_text(final_probe.get('panel_title')) != _text(detail.get('title'))
+                    or _text(final_probe.get('description')) != _text(detail.get('description'))
+                    or _text(final_probe.get('company')) != _text(detail.get('company'))
+                    or _text(binding.get('company')) != _text(detail.get('company'))):
+                return 'unknown', {}, 'panel_changed_during_capture'
+            list_company = _text(job.get('company'))
+            panel_company = _text(final_probe.get('company'))
+            company_match = None
+            if list_company and panel_company:
+                if list_company.casefold() != panel_company.casefold():
+                    return 'unknown', {}, 'company_mismatch'
+                company_match = True
         if not binding.get('target_card_found'):
             return 'unknown', {}, 'target_card_not_found'
         if not binding.get('target_active_after'):
@@ -94,6 +116,13 @@ def identity_decision(
             'panel_title': _text(binding.get('panel_title')),
             'before_panel_title': _text(binding.get('before_panel_title')),
         }
+        if binding.get('binding_policy') == 'zhaopin-dom-panel-v2':
+            evidence['target_card_matches'] = True
+            evidence['final_target_active'] = True
+            evidence['final_panel_matches'] = True
+            evidence['list_company'] = list_company
+            evidence['panel_company'] = panel_company
+            evidence['company_match'] = company_match
         return 'pending', evidence, None
 
     detail_title = _text(detail.get('title'))

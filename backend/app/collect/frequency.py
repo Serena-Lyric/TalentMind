@@ -32,6 +32,23 @@ class FrequencyLimitError(RuntimeError):
         super().__init__(f'collection_frequency_limited: wait at least {math.ceil(retry_after)} seconds')
 
 
+def _validate_state(row: tuple, now: float) -> None:
+    """Apply the same persisted-state checks to reservations and recovery."""
+    if not math.isfinite(now) or now < 0:
+        raise FrequencyStateError('collection_frequency_clock_invalid')
+    last, next_page, old_keyword, old_city, next_switch = row
+    if (any(not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0
+            for value in (last, next_page, next_switch))
+            or not PAGE_DELAY_MIN - .000001 <= next_page - last <= PAGE_DELAY_MAX + .000001
+            or (old_keyword is None) != (old_city is None)
+            or (old_keyword is not None and (not isinstance(old_keyword, str)
+                or not old_keyword.strip() or not isinstance(old_city, str)
+                or not old_city.strip() or next_switch <= 0))):
+        raise FrequencyStateError('collection_frequency_state_invalid')
+    if now < last:
+        raise FrequencyStateError('collection_frequency_clock_rollback')
+
+
 def reserve_action(platform: str, keyword: str, city: str, *, kind: str = 'page') -> dict:
     return _reserve_action(platform, keyword, city, kind=kind)
 
@@ -73,16 +90,7 @@ def _reserve_action(platform: str, keyword: str, city: str, *, kind: str, flight
         ).fetchone()
         if row:
             last, next_page, old_keyword, old_city, next_switch = row
-            if (any(not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0
-                    for value in (last, next_page, next_switch))
-                    or not PAGE_DELAY_MIN - .000001 <= next_page - last <= PAGE_DELAY_MAX + .000001
-                    or (old_keyword is None) != (old_city is None)
-                    or (old_keyword is not None and (not isinstance(old_keyword, str)
-                        or not old_keyword.strip() or not isinstance(old_city, str)
-                        or not old_city.strip() or next_switch <= 0))):
-                raise FrequencyStateError('collection_frequency_state_invalid')
-            if now < last:
-                raise FrequencyStateError('collection_frequency_clock_rollback')
+            _validate_state(row, now)
             due = next_page
             if target and old_keyword is not None and target != (old_keyword, old_city):
                 due = max(due, next_switch)
@@ -153,7 +161,16 @@ def run_action(platform: str, keyword: str, city: str, action, *, kind: str = 'p
         before_action = _clock()
         if not math.isfinite(before_action) or before_action < reservation['reserved_at']:
             raise FrequencyStateError('collection_frequency_clock_rollback')
-        result = action()
+        try:
+            result = action()
+        except BaseException:
+            # The callback has unwound, but browser completion remains uncertain.
+            # Preserve the flight and reservation for explicit, fenced recovery.
+            connection.execute('''CREATE TABLE IF NOT EXISTS collection_action_failures (
+                owner TEXT PRIMARY KEY, platform TEXT NOT NULL)''')
+            connection.execute('INSERT INTO collection_action_failures VALUES (?, ?)', (owner, platform))
+            connection.commit()
+            raise
         finished = _clock()
         if not math.isfinite(finished) or finished < reservation['reserved_at']:
             raise FrequencyStateError('collection_frequency_clock_rollback')

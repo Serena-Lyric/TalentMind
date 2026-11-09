@@ -21,7 +21,7 @@ from typing import Any
 from app.collect.boss_collect_loop import DEFAULT_CITIES, DEFAULT_KEYWORDS
 from app.collect.fetch_boss_jobs import _search_url as boss_search_url
 from app.collect.fetchers.job_sites import SITES, SiteSpec
-from app.collect import browser, worker_process
+from app.collect import browser, frequency_recovery, readiness, worker_process
 from app.collect.cleaner import source_sections
 from app.collect.timing_validation import validate_collection_ranges
 
@@ -494,6 +494,27 @@ def prepare_browser(auto_start: bool = False, platform: str | None = None,
         _release_tasks(reservation)
 
 
+def get_frequency_status(platform: str) -> dict[str, Any]:
+    with _LOCK:
+        status = frequency_recovery.get_status(platform)
+        try:
+            _ensure_no_external_task(_load_state())
+            if _RESERVATION is not None or _PROCESS is not None or _STARTING_RUN is not None:
+                raise RuntimeError('已有采集任务、批次或浏览器准备正在运行')
+        except RuntimeError as exc:
+            status.update(state='busy', can_recover=False, recovery_token=None,
+                          reason='collection_controller_busy', message=str(exc))
+        return status
+
+
+def recover_frequency(platform: str, recovery_token: str) -> dict[str, Any]:
+    reservation = _reserve_tasks()
+    try:
+        return frequency_recovery.recover(platform, recovery_token)
+    finally:
+        _release_tasks(reservation)
+
+
 def _prepare_browser(auto_start: bool, platform: str | None,
                      config_payload: dict[str, Any] | None) -> dict[str, Any]:
     payload = dict(config_payload or {})
@@ -863,6 +884,7 @@ def start_task(payload: dict[str, Any], *, _reservation: object | None = None) -
         state = _load_state()
         _ensure_no_external_task(state)
         config = _validated_config(get_config(), payload)
+        readiness.require_database_ready()
         run_id = f"{config['platform']}-{uuid.uuid4().hex}"
         task = _empty_task(run_id, config)
         task['log_path'] = str(_STATE_DIR / f'{run_id}.out.log')

@@ -12,6 +12,6 @@ M4 简历解析与岗位匹配正式目录（已迁入实现：resume_parser / m
 
 ## 显式目标与要求版本
 
-`GET /api/learning/jobs` 读取全部可匹配的 `job_definition`，每项包含 `requirements_version`。推荐最多三项，也携带同一规则的要求摘要；`POST /api/learning/generate-path` 必须传 `target_job_id`、`resume_skills`、`requirements_version`。后台在同一查询结果上校验摘要并计算规则分，变化返回409，用户显式读取新要求并重算。摘要由 `matching/requirements.py` 规范化必备/加分目录生成，不增加正式表字段。
+`GET /api/learning/jobs` 读取全部可匹配的 `job_definition`，每项包含 `requirements_version`。推荐最多三项，也携带同一规则的要求摘要；`POST /api/learning/generate-path` 必须传 `job_id`、`resume_skills`、`requirements_version`。后台在同一查询结果上校验摘要并计算规则分，变化返回409，用户显式读取新要求并重算。摘要由 `matching/requirements.py` 规范化必备/加分目录生成，不增加正式表字段。
 
 前端不从 `matchResult` 或推荐第一名自动采用目标。用户主动选择后绑定目标及摘要；退出、切换演示用户和清空简历均递增会话代次，上传/生成/重新读取要求的迟到响应失效。岗位编辑保留要求类型并在同事务写入 `job_change_log` 的档案前后值/摘要。

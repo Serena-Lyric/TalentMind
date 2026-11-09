@@ -104,21 +104,6 @@ def _catalog_to_item(row: dict) -> dict:
     }
 
 
-def _raw_pool_to_item(row: dict) -> dict:
-    source = str(row.get("source") or "")
-    crawled = row.get("crawled_at") or ""
-    return {
-        "id": str(row["id"]), "title": row.get("job_title") or "未命名岗位", "name_en": row.get("job_title") or "",
-        "company": "", "city": "", "type": PLATFORM_LABELS.get(source, source), "platform": source,
-        "platform_label": PLATFORM_LABELS.get(source, source), "source": [source] if source else [],
-        "salary": "", "experience": row.get("experience") or "", "status": row.get("status") or "cleaned",
-        "skills": [], "required_skills": [], "bonus_skills": [], "core_duties": row.get("duties") or "",
-        "scenarios": [], "updated": str(crawled), "collected_at": str(crawled), "quality": float(row.get("quality") or 0),
-        "source_detail": row.get("source_detail") or "", "track": "", "kind": "job",
-        "evolution": {"added": [], "removed": [], "changed": []},
-    }
-
-
 @router.get("/jobs")
 def list_jobs(keyword: str = Query(""), platform: str = Query(""), category: str = Query(""), page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100)):
     rows, total = _catalog_rows(keyword, platform, category, page, page_size)
@@ -376,9 +361,7 @@ def job_detail(job_id: int):
                                FROM job_definition WHERE id=:id"""), {"id": job_id}).mappings().first()
         if row:
             item = _catalog_to_item(dict(row)); item["responsibilities"] = [line.strip() for line in str(row.get("core_duties") or "").splitlines() if line.strip()]; item["requirements"] = []; item["job_name"] = str(row.get("job_name") or ""); return ok(item)
-        row = db.execute(text("SELECT id, source, source_detail, job_title, raw_text, duties, experience, quality, crawled_at, status FROM jd_pool WHERE id=:id AND source IN ('boss','zhaopin','liepin')"), {"id": job_id}).mappings().first()
-        if not row: raise BizError(4041, "岗位不存在")
-        item = _raw_pool_to_item(dict(row)); item["responsibilities"] = [line.strip() for line in str(row.get("duties") or "").splitlines() if line.strip()]; item["requirements"] = [str(row.get("experience") or "").strip()] if row.get("experience") else []; item["raw_text"] = row.get("raw_text") or ""; return ok(item)
+        raise BizError(4041, "岗位不存在")
     finally:
         db.close()
 

@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.collect import control, worker_process
+from app.collect import control, readiness, worker_process
 
 
 @pytest.fixture
@@ -28,6 +28,7 @@ def batch(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_RESERVATION', None)
     monkeypatch.setattr(control, '_DONE_EVENTS', {})
     monkeypatch.setattr(control, '_worker_environment', os.environ.copy)
+    monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(control, '_ensure_browser', lambda endpoint, profile, platform, target: {
         'endpoint': endpoint, 'user_data_dir': profile,
         'platform_access': {platform: {'can_collect': True, 'access_state': 'public_accessible', 'target_id': 'synthetic-target'}}})
