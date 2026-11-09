@@ -26,6 +26,18 @@ _PROCESSES: dict[str, subprocess.Popen] = {}
 _PROCESS_META: dict[str, dict[str, int | None]] = {}
 _LOCK = threading.RLock()
 _clock = time.time
+_KERNEL32 = ctypes.windll.kernel32 if os.name == 'nt' else None
+if _KERNEL32 is not None:
+    _KERNEL32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    _KERNEL32.OpenProcess.restype = wintypes.HANDLE
+    _KERNEL32.GetProcessTimes.argtypes = [
+        wintypes.HANDLE, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+    ]
+    _KERNEL32.GetProcessTimes.restype = wintypes.BOOL
+    _KERNEL32.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    _KERNEL32.GetExitCodeProcess.restype = wintypes.BOOL
+    _KERNEL32.CloseHandle.argtypes = [wintypes.HANDLE]
+    _KERNEL32.CloseHandle.restype = wintypes.BOOL
 
 
 def _config_dict(config: RuntimeConfig) -> dict[str, Any]:
@@ -39,7 +51,7 @@ class _FileTime(ctypes.Structure):
 def _process_creation_time(pid: int) -> int | None:
     if os.name != 'nt':
         return None
-    handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+    handle = _KERNEL32.OpenProcess(0x1000, False, int(pid))
     if not handle:
         return None
     try:
@@ -47,13 +59,13 @@ def _process_creation_time(pid: int) -> int | None:
         exited = _FileTime()
         kernel = _FileTime()
         user = _FileTime()
-        if not ctypes.windll.kernel32.GetProcessTimes(
+        if not _KERNEL32.GetProcessTimes(
             handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user),
         ):
             return None
         return (int(created.dwHighDateTime) << 32) | int(created.dwLowDateTime)
     finally:
-        ctypes.windll.kernel32.CloseHandle(handle)
+        _KERNEL32.CloseHandle(handle)
 
 
 def _pid_alive(pid: int, created_at: int | None = None) -> bool:
@@ -63,18 +75,18 @@ def _pid_alive(pid: int, created_at: int | None = None) -> bool:
             return True
         except OSError:
             return False
-    handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+    handle = _KERNEL32.OpenProcess(0x1000, False, int(pid))
     if not handle:
         return False
     try:
         code = wintypes.DWORD()
-        if not ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+        if not _KERNEL32.GetExitCodeProcess(handle, ctypes.byref(code)):
             return False
         if code.value != 259:
             return False
         return created_at is None or _process_creation_time(int(pid)) == created_at
     finally:
-        ctypes.windll.kernel32.CloseHandle(handle)
+        _KERNEL32.CloseHandle(handle)
 
 
 class _PidProcess:
@@ -149,7 +161,6 @@ def _spawn_worker(platform: str, config: RuntimeConfig) -> subprocess.Popen:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     kwargs: dict[str, Any] = {
         'cwd': str(_BACKEND_ROOT),
-        'stdout': log_path.open('a', encoding='utf-8'),
         'stderr': subprocess.STDOUT,
         'text': True,
     }
@@ -157,11 +168,13 @@ def _spawn_worker(platform: str, config: RuntimeConfig) -> subprocess.Popen:
         kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
     else:
         kwargs['start_new_session'] = True
-    return subprocess.Popen(
-        [sys.executable, '-m', 'app.collect.runtime.worker', '--platform', platform,
-         '--config-json', json.dumps(_config_dict(config), ensure_ascii=False)],
-        **kwargs,
-    )
+    with log_path.open('a', encoding='utf-8') as log_file:
+        return subprocess.Popen(
+            [sys.executable, '-m', 'app.collect.runtime.worker', '--platform', platform,
+             '--config-json', json.dumps(_config_dict(config), ensure_ascii=False)],
+            stdout=log_file,
+            **kwargs,
+        )
 
 
 def _alive(process) -> bool:

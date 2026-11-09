@@ -101,7 +101,7 @@ export interface CollectionReadiness {
 }
 export interface CollectionFrequency {
   platform: string
-  state: 'clear' | 'unfinished' | 'busy' | 'unavailable'
+  state: 'clear' | 'unfinished' | 'busy' | 'unavailable' | 'legacy_migration_required'
   can_recover: boolean
   recovery_token: string | null
   reason: string | null

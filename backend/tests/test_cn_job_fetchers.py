@@ -201,3 +201,13 @@ process.stdin.on('end',()=>{
     assert result['panel_title'] == '后端工程师'
     assert result['description'] == '负责服务开发'
     assert result['list_url'].startswith('https://www.zhaopin.com/jobs/')
+
+
+def test_normalize_job_rejects_overlong_source_detail():
+    spec = SITES['liepin']
+    raw = normalize_job(spec, {
+        'url': '/job/' + ('a' * 130),
+        'title': '数据工程师',
+        'description': '负责数据平台建设',
+    })
+    assert raw is None
