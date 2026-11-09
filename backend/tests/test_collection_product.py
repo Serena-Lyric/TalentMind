@@ -372,6 +372,27 @@ def test_results_route_applies_same_full_raw_gate(monkeypatch, enabled, client, 
         assert calls == []
 
 
+@pytest.mark.parametrize('enabled,allowed', [('0', False), ('1', True)])
+def test_raw_route_applies_gate_before_reading_private_body(monkeypatch, enabled, allowed):
+    from fastapi import HTTPException
+    from starlette.requests import Request
+    from app.routers import collection
+    monkeypatch.setenv('TALENTMIND_LOCAL_RAW', enabled)
+    request = Request({'type': 'http', 'client': ('127.0.0.1', 1),
+                       'headers': [(b'host', b'localhost:18000')]})
+    calls = []
+    monkeypatch.setattr(control, 'get_raw',
+                        lambda raw_id: calls.append(raw_id) or {'jd_pool_id': raw_id, 'raw_text': 'private body'})
+    if allowed:
+        assert collection.collection_raw(7, request)['data']['raw_text'] == 'private body'
+        assert calls == [7]
+    else:
+        with pytest.raises(HTTPException) as error:
+            collection.collection_raw(7, request)
+        assert error.value.status_code == 403
+        assert calls == []
+
+
 def test_private_json_events_never_enter_public_status_or_history_tail():
     state = control._default_state()
     state['current_task'] = control._empty_task('private', state['config'])
