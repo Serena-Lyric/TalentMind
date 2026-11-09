@@ -5,7 +5,7 @@
         <div class="module-mark collection-mark"><el-icon><Connection /></el-icon></div>
         <div>
           <h1>采集工作台</h1>
-          <p>统一管理单轮与批量任务；先准备浏览器，再明确启动。登录或验证由你在浏览器中完成。</p>
+          <p>统一管理三平台持续采集与单轮验证；每站独立进程/Profile，登录或验证由你在浏览器中完成。</p>
         </div>
       </div>
       <div class="collection-guide-stage">
@@ -38,6 +38,8 @@
         </template>
       </div>
     </section>
+
+    <CollectionRuntime />
 
     <el-radio-group v-model="workspaceMode" aria-label="采集模式"><el-radio-button value="single">单轮采集</el-radio-button><el-radio-button value="bridge">普通浏览器</el-radio-button><el-radio-button value="batch">批量任务</el-radio-button></el-radio-group>
     <p class="hint">{{ modeHint }}</p>
@@ -180,6 +182,7 @@ import { ElMessage } from 'element-plus'
 import { Connection, Refresh } from '@element-plus/icons-vue'
 import CollectionBatch from '../components/CollectionBatch.vue'
 import CollectionBridge from '../components/CollectionBridge.vue'
+import CollectionRuntime from '../components/CollectionRuntime.vue'
 import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionPlatforms, getCollectionRaw, getCollectionResults, getCollectionStatus, getDatabaseStats, getCollectionReadiness, getCollectionFrequency, recoverCollectionFrequency, prepareCollection, startCollection, stopCollection, type CDPStatus, type CollectionAccess, type CollectionConfig, type CollectionPlatform, type CollectionPreparation, type CollectionRaw, type CollectionResult, type CollectionStats, type CollectionTask, type CollectionReadiness, type CollectionFrequency } from '../api/collection'
 
 const platforms = ref<CollectionPlatform[]>([])

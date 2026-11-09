@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 from fastapi import APIRouter, Body, Query, Request, HTTPException
 
 from app.collect import batch, control
+from app.collect.runtime import scheduler as runtime_scheduler
 from app.response import BizError, ok
 
 router = APIRouter()
@@ -89,6 +90,26 @@ def collection_database_stats():
 def collection_readiness():
     from app.collect import readiness
     return ok(readiness.inspect_database())
+
+
+@router.get('/collection/runtime/status')
+def collection_runtime_status():
+    return ok(runtime_scheduler.status())
+
+
+@router.post('/collection/runtime/start')
+def collection_runtime_start(payload: dict[str, Any] = Body(default={})):
+    return ok(_biz_call(runtime_scheduler.start, payload))
+
+
+@router.post('/collection/runtime/stop')
+def collection_runtime_stop():
+    return ok(_biz_call(runtime_scheduler.stop))
+
+
+@router.post('/collection/runtime/resume/{platform}')
+def collection_runtime_resume(platform: str, payload: dict[str, Any] = Body(default={})):
+    return ok(_biz_call(runtime_scheduler.resume, platform, confirmed=bool(payload.get('confirmed', False))))
 
 
 @router.get('/collection/frequency/{platform}')
