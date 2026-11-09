@@ -32,7 +32,9 @@ def offline(monkeypatch, tmp_path):
         conn.execute(text("""CREATE TABLE jd_pool (
             id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, source_detail TEXT,
             job_title TEXT, raw_text TEXT, duties TEXT, experience TEXT, quality FLOAT,
-            dup_group TEXT, crawled_at DATETIME, status TEXT)"""))
+            dup_group TEXT, crawled_at DATETIME, status TEXT,
+            identity_status TEXT NOT NULL DEFAULT 'unknown',
+            content_eligible BOOLEAN NULL, identity_evidence TEXT NULL)"""))
 
     def get_db():
         with Session(engine) as db:

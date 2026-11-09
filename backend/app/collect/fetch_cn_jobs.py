@@ -172,6 +172,7 @@ def run_fetch(
     current_page_only: bool = False,
     browser_timeout: float = 20,
     login_timeout: float = 120,
+    db_provider=None,
     on_event=None,
 ) -> dict:
     validate_fetch_timing(delay, settle)
@@ -263,8 +264,12 @@ def run_fetch(
             return
         provider = db = None
         try:
-            from app.db.mysql import get_db
-            provider = get_db()
+            if db_provider is None:
+                from app.db.mysql import get_db
+                provider_factory = get_db
+            else:
+                provider_factory = db_provider
+            provider = provider_factory()
             db = next(provider)
             row_by_detail = {row.source_detail: row for row in raws}
             def saved_event(item):

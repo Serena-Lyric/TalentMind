@@ -139,6 +139,7 @@ def run_fetch(
     no_details: bool = False,
     browser_timeout: float = 20,
     login_timeout: float = 120,
+    db_provider=None,
     on_event=None,
 ) -> dict:
     validate_fetch_timing(delay, settle)
@@ -151,10 +152,12 @@ def run_fetch(
                                    timeout=browser_timeout, wait_for_login=login_timeout)
     cdp_endpoint = prepared['endpoint']
 
-    from app.db.mysql import get_db
+    if db_provider is None:
+        from app.db.mysql import get_db
+        db_provider = get_db
 
     # 保留 provider 至 finally，避免 next(get_db()) 的临时生成器提前关闭 session。
-    provider = get_db()
+    provider = db_provider()
     db = next(provider)
     created_ids: set[int] = set()
     def emit(event, **payload):
