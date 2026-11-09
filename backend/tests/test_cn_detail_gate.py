@@ -394,6 +394,7 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
     }
     changed = {
         'target_card_found': True, 'target_active': True, 'panel_visible': True,
+        'target_card_matches': True,
         'panel_title': 'Python 工程师', 'description': detail_value['description'],
         'company': '客户公司', 'list_url': job['_list_url'],
     }
@@ -406,7 +407,7 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
             if 'card.click();' in script:
                 return {'clicked': True}
             if 'description_truncated:' in script:
-                return dict(detail_value)
+                return {**detail_value, '_panel_probe': dict(changed)}
             return next(self.probes)
         def close(self):
             pass
@@ -430,7 +431,7 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
         persisted = next(e for e in events if e['event'] == 'persisted')['items'][0]
         assert persisted['identity_status'] == 'pending'
         assert persisted['content_eligible'] is True
-        assert persisted['identity_evidence']['binding_policy'] == 'zhaopin-dom-panel-v1'
+        assert persisted['identity_evidence']['binding_policy'] == 'zhaopin-dom-panel-v2'
         assert persisted['source_detail'].startswith('dom://zhaopin/')
         assert len(persisted['source_detail'].split('/')[-1]) == 64
     finally:

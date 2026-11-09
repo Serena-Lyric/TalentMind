@@ -256,7 +256,7 @@ def _js_array(values: tuple[str, ...]) -> str:
     return json.dumps(list(values), ensure_ascii=False)
 
 
-def build_search_extract_js(spec: SiteSpec) -> str:
+def build_search_extract_js(spec: SiteSpec, card_index: int | None = None) -> str:
     import json
 
     return f"""
@@ -271,7 +271,7 @@ def build_search_extract_js(spec: SiteSpec) -> str:
   const first = (root, selectors) => {{
     for (const selector of selectors) {{
       const node = root?.querySelector(selector);
-      if (node && text(node)) return text(node);
+      if (visible(node) && text(node)) return text(node);
     }}
     return '';
   }};
@@ -294,6 +294,7 @@ def build_search_extract_js(spec: SiteSpec) -> str:
   const listUrl = location.href;
   const seen = new Set();
   return cardNodes.map((card, cardIndex) => {{
+    {f'if (cardIndex !== {int(card_index)}) return null;' if card_index is not None else ''}
     if (!visible(card)) return null;
     const tags = [...(card.querySelectorAll('[class*="tag"], [class*="label"], [class*="skill"]') || [])]
       .map(text).filter(Boolean).slice(0, 30);
@@ -328,7 +329,21 @@ def build_search_extract_js(spec: SiteSpec) -> str:
 """
 
 
-def build_activate_card_js(spec: SiteSpec, card_index: int) -> str:
+def _card_matches_js(spec: SiteSpec, job: dict) -> str:
+    import json
+
+    fields = ('title', 'company', 'salary', 'location', 'tags', '_list_url', '_observation_key')
+    expected = {key: job.get(key) for key in fields}
+    card_index = int(job.get('_card_index', -1))
+    return f"""(() => {{
+      const current = ({build_search_extract_js(spec, card_index)})[0];
+      const expected = {json.dumps(expected, ensure_ascii=False)};
+      return Boolean(current && Object.keys(expected).every(key =>
+        JSON.stringify(current[key]) === JSON.stringify(expected[key])));
+    }})()"""
+
+
+def build_activate_card_js(spec: SiteSpec, card_index: int, expected_job: dict | None = None) -> str:
     import json
 
     return f"""
@@ -336,6 +351,7 @@ def build_activate_card_js(spec: SiteSpec, card_index: int) -> str:
   const cards = [...document.querySelectorAll({json.dumps(', '.join(spec.card_selectors), ensure_ascii=False)})];
   const card = cards[{int(card_index)}];
   if (!card) return {{clicked: false, reason: 'card-not-found'}};
+  {f"if (!({_card_matches_js(spec, expected_job)})) return {{clicked: false, reason: 'list_card_changed'}};" if expected_job is not None else ''}
   card.scrollIntoView({{block: 'center', inline: 'nearest'}});
   card.click();
   return {{clicked: true, title: (card.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 200)}};
@@ -343,7 +359,7 @@ def build_activate_card_js(spec: SiteSpec, card_index: int) -> str:
 """
 
 
-def build_panel_probe_js(spec: SiteSpec, card_index: int) -> str:
+def build_panel_probe_js(spec: SiteSpec, card_index: int, expected_job: dict | None = None) -> str:
     import json
 
     return f"""
@@ -376,6 +392,7 @@ def build_panel_probe_js(spec: SiteSpec, card_index: int) -> str:
   }}
   return {{
     target_card_found: Boolean(card),
+    {f"target_card_matches: {_card_matches_js(spec, expected_job)}," if expected_job is not None else ''}
     target_active: Boolean(card && card.classList?.contains('job-card--active')),
     panel_visible: visible(root),
     panel_title: first({_js_array(spec.title_selectors)}),
@@ -390,7 +407,7 @@ def build_panel_probe_js(spec: SiteSpec, card_index: int) -> str:
 """
 
 
-def build_detail_extract_js(spec: SiteSpec) -> str:
+def build_detail_extract_js(spec: SiteSpec, expected_job: dict | None = None) -> str:
     return f"""
 (() => {{
   const text = (node) => (node?.innerText || node?.textContent || '').replace(/\\s+/g, ' ').trim();
@@ -425,6 +442,7 @@ def build_detail_extract_js(spec: SiteSpec) -> str:
   }}
   return {{
     url: location.href,
+    {f"_panel_probe: {build_panel_probe_js(spec, int(expected_job.get('_card_index', -1)), expected_job)}," if expected_job is not None else ''}
     title: first({_js_array(spec.title_selectors)}),
     company: {"first(['.name'], document.querySelector('.job-apply-header-bottom'))" if spec.source == "liepin" else "first(" + _js_array(spec.company_selectors) + ")"},
     salary: first({_js_array(spec.salary_selectors)}),

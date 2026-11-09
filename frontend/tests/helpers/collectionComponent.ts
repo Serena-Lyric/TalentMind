@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { parse, compileScript } from 'vue/compiler-sfc'
+import { parse, compileScript, compileTemplate } from 'vue/compiler-sfc'
 import ts from 'typescript'
 import * as vue from 'vue'
 
@@ -15,6 +15,8 @@ export function collectionComponent(overrides: Record<string, any> = {}, options
   const calls: { method: string; args: any[] }[] = []
   const messages: string[] = []
   const defaults: Record<string, any> = {
+    getCollectionReadiness: { ready: true, missing_columns: [], message: '数据库结构就绪', next_step: '' },
+    getCollectionFrequency: (platform: string) => ({ platform, state: 'clear', can_recover: false, recovery_token: null, message: '可执行', next_action_at: null, next_combination_at: null }),
     getCollectionPlatforms: [{ platform: 'boss', label: 'BOSS', supported: true, cities: [{ name: '北京', code: '101010100' }] }, { platform: 'zhaopin', label: '智联', supported: true, cities: [{ name: '北京', code: '530' }] }, { platform: 'hn', label: 'HN', supported: false, cities: [] }],
     getCollectionStatus: { run_id: null, status: 'idle' },
     getCollectionConfig: { platform: 'boss', keywords: ['Python'], cities: [{ name: '北京', code: '101010100' }], pages: 1, detail_limit: 5, max_jobs: 5 },
@@ -59,14 +61,16 @@ export function collectionComponent(overrides: Record<string, any> = {}, options
       return typeof value === 'function' ? value(...args) : value
     },
   })
-  const input = compileScript(parse(readFileSync(filename, 'utf8')).descriptor, { id: 'collection-test' }).content
+  const descriptor = parse(readFileSync(filename, 'utf8')).descriptor
+  const script = compileScript(descriptor, { id: 'collection-test' })
+  const input = script.content
   const code = ts.transpileModule(input, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const module = { exports: {} as any }
   const require = (id: string): any => {
     if (id === 'vue') return { ...vue, onMounted: (callback: () => any) => mounted.push(callback), onUnmounted: (callback: () => any) => unmounted.push(callback) }
-    if (id.endsWith('.vue')) return {}
+    if (id.endsWith('.vue')) return { default: {} }
     if (id === '../api/collection') return api
-    if (id === '@element-plus/icons-vue') return {}
+    if (id === '@element-plus/icons-vue') return new Proxy({}, { get: (_, name) => ({ name }) })
     if (id === 'element-plus') return { ElMessage: Object.fromEntries(['info', 'success', 'warning', 'error'].map(key => [key, (message: string) => messages.push(message)])), ElMessageBox: { confirm: async () => {} } }
     throw new Error(`Unexpected dependency: ${id}`)
   }
@@ -74,5 +78,21 @@ export function collectionComponent(overrides: Record<string, any> = {}, options
   const scope = vue.effectScope()
   const props = vue.reactive(options.props || {})
   const state = scope.run(() => module.exports.default.setup(props, { expose() {}, emit: (name: string, value: any) => events.push({ name, value }) }))
-  return { state, calls, messages, props, intervals, cleared, events, mounted: async () => { for (const callback of mounted) await callback() }, stop: () => { for (const callback of unmounted) callback(); scope.stop() } }
+  function renderedNodes() {
+    const template = compileTemplate({ source: descriptor.template!.content, filename, id: 'collection-test', compilerOptions: { bindingMetadata: script.bindings } })
+    const compiled = ts.transpileModule(template.code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
+    const output = { exports: {} as any }
+    new Function('require', 'module', 'exports', compiled)((id: string) => id === 'vue' ? { ...vue, resolveComponent: (name: string) => ({ name }), resolveDirective: () => ({}), withDirectives: (node: any) => node } : require(id), output, output.exports)
+    const nodes: any[] = []
+    function visit(node: any) {
+      if (!node || typeof node !== 'object') return
+      if (Array.isArray(node)) { node.forEach(visit); return }
+      nodes.push(node)
+      if (Array.isArray(node.children)) visit(node.children)
+      else if (typeof node.children?.default === 'function') visit(node.children.default({ row: {} }))
+    }
+    visit(output.exports.render({}, [], props, vue.proxyRefs(state), {}, {}))
+    return nodes
+  }
+  return { state, calls, messages, props, intervals, cleared, events, renderedNodes, mounted: async () => { for (const callback of mounted) await callback() }, stop: () => { for (const callback of unmounted) callback(); scope.stop() } }
 }

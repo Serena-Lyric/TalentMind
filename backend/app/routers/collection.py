@@ -85,6 +85,30 @@ def collection_database_stats():
     return ok(control.get_database_stats())
 
 
+@router.get('/collection/readiness')
+def collection_readiness():
+    from app.collect import readiness
+    return ok(readiness.inspect_database())
+
+
+@router.get('/collection/frequency/{platform}')
+def collection_frequency(platform: str, request: Request):
+    _require_local_raw(request)
+    return ok(_biz_call(control.get_frequency_status, platform))
+
+
+@router.post('/collection/frequency/{platform}/recover')
+def collection_frequency_recover(platform: str, request: Request, payload: dict[str, Any] = Body(...)):
+    _require_local_raw(request)
+    try:
+        result = control.recover_frequency(platform, payload.get('recovery_token'))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return ok(result)
+
+
 @router.get("/collection/stats")
 def collection_stats():
     return ok(control.get_database_stats())

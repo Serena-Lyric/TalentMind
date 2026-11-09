@@ -93,6 +93,7 @@ def await_stable_panel(
     before: dict,
     timeout: float = 5.0,
     interval: float = 0.2,
+    expected_job: dict | None = None,
 ) -> dict:
     """Poll the detail panel until one update becomes stable twice in a row."""
     deadline = time.monotonic() + timeout
@@ -101,9 +102,11 @@ def await_stable_panel(
     stable_samples = 0
     last = {}
     while time.monotonic() < deadline:
-        probe = client.evaluate(build_panel_probe_js(spec, card_index))
+        probe = client.evaluate(build_panel_probe_js(spec, card_index, expected_job))
         if isinstance(probe, dict):
             last = probe
+            if expected_job is not None and not probe.get('target_card_matches'):
+                break
             if (_panel_content_signature(probe) != before_signature
                     and probe.get('target_active') and probe.get('panel_visible')
                     and clean_text(probe.get('panel_title')) and clean_text(probe.get('description'))):
@@ -118,6 +121,7 @@ def await_stable_panel(
         time.sleep(interval)
     return {
         'target_card_found': bool(last.get('target_card_found')),
+        'target_card_matches': bool(last.get('target_card_matches')),
         'target_active_before': bool(before.get('target_active')),
         'target_active_after': bool(last.get('target_active')),
         'panel_visible': bool(last.get('panel_visible')),
@@ -128,7 +132,7 @@ def await_stable_panel(
         'description': str(last.get('description') or ''),
         'company': clean_text(last.get('company')),
         'list_url': str(last.get('list_url') or before.get('list_url') or ''),
-        'binding_policy': 'zhaopin-dom-panel-v1',
+        'binding_policy': 'zhaopin-dom-panel-v2' if expected_job is not None else 'zhaopin-dom-panel-v1',
     }
 
 
@@ -318,22 +322,27 @@ def run_fetch(
                     emit('detail_attempt', index=index, job=job)
                     if job.get('_dom'):
                         _require_current_target(detail_client, platform, keyword, city_code)
-                        before = detail_client.evaluate(build_panel_probe_js(spec, int(job.get('_card_index', -1))))
+                        card_index = int(job.get('_card_index', -1))
+                        before = detail_client.evaluate(build_panel_probe_js(spec, card_index, job))
                         if not isinstance(before, dict):
                             raise CdpError('panel_probe_failed')
-                        result = detail_client.evaluate(build_activate_card_js(spec, int(job.get('_card_index', -1))))
+                        result = detail_client.evaluate(build_activate_card_js(spec, card_index, job))
+                        activation_reason = result.get('reason') if isinstance(result, dict) else None
                         if not isinstance(result, dict) or not result.get('clicked'):
-                            raise CdpError('card_activation_failed')
+                            raise CdpError(activation_reason or 'card_activation_failed')
                         binding = await_stable_panel(
-                            detail_client, spec, int(job.get('_card_index', -1)), before,
+                            detail_client, spec, card_index, before,
                             timeout=max(2.0, settle * 2.0),
+                            expected_job=job,
                         )
                     else:
                         detail_client.navigate(job['url'], settle_seconds=settle)
                     access = browser.wait_access(detail_client, platform, max(5.0, settle * 2.0))
                     if access.get('content_limited'):
                         raise browser.AccessBlocked('limited_guest_content')
-                    return binding, access, detail_client.evaluate(build_detail_extract_js(spec))
+                    expected_job = job if job.get('_dom') else None
+                    detail = detail_client.evaluate(build_detail_extract_js(spec, expected_job))
+                    return binding, access, detail
                 try:
                     binding, access, detail = frequency.run_action(
                         platform, keyword, city_code, read_detail, sleeper=time.sleep,

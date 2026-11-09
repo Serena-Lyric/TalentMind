@@ -132,7 +132,7 @@ function formatNumber(value?: number | null) {
   return typeof value === 'number' && Number.isFinite(value) ? new Intl.NumberFormat('zh-CN').format(value) : '—'
 }
 function statusText(value: string) {
-  return ({ waiting_for_capture: '等待人工采集', completed: '已完成', stopped: '已停止', error: '错误' } as Record<string, string>)[value] || value
+  return ({ waiting_for_capture: '等待人工采集', completed: '执行结束', stopped: '已停止', error: '错误' } as Record<string, string>)[value] || value
 }
 function outcomeText(value?: string | null) {
   return ({ listed: '已识别列表', inserted: '新增入库', updated: '更新入库', skipped: '重复跳过', rejected: '已拒绝', failed: '失败', complete: '详情合格' } as Record<string, string>)[value || ''] || value || '未记录'

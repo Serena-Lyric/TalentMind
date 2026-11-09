@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from app.collect import bridge, control, frequency
+from app.collect import bridge, control, frequency, readiness
 
 
 _TEST_CLOCK = [1_800_000_000.0]
@@ -83,6 +83,7 @@ def private_state(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_PROCESS', None)
     monkeypatch.setattr(control, '_STARTING_RUN', None)
     monkeypatch.setattr(control, '_RESERVATION', None)
+    monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     try:
         yield state
     finally:
