@@ -104,3 +104,19 @@ def get_platform(platform: str) -> PlatformDefinition:
 
 def default_runtime_config() -> RuntimeConfig:
     return RuntimeConfig()
+
+
+def config_from_payload(payload: RuntimeConfig | dict | None) -> RuntimeConfig:
+    if isinstance(payload, RuntimeConfig):
+        return payload
+    if payload is None:
+        return default_runtime_config()
+    if not isinstance(payload, dict):
+        raise ValueError('runtime config must be an object')
+    values = dict(payload)
+    values['keywords'] = tuple(values.get('keywords') or ())
+    values['cities'] = {
+        str(platform): tuple((str(city[0]), str(city[1])) for city in cities)
+        for platform, cities in (values.get('cities') or {}).items()
+    }
+    return RuntimeConfig(**values)

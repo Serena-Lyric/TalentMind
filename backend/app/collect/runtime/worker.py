@@ -1,11 +1,13 @@
 """Per-platform low-frequency rotation worker; no site parsing lives here."""
 from __future__ import annotations
 
+import argparse
+import json
 import time
 from typing import Any, Callable
 
 from app.collect.runtime import state as runtime_state
-from app.collect.runtime.platforms import RuntimeConfig
+from app.collect.runtime.platforms import RuntimeConfig, config_from_payload
 
 
 def _last_saved_identity(events: list[dict[str, Any]]) -> str | None:
@@ -65,6 +67,13 @@ def run_worker(
     rounds = 0
     try:
         while max_rounds == 0 or rounds < max_rounds:
+            if value.next_run_at is not None:
+                if not _wait_until(value.next_run_at, platform, state_root=state_root, clock=clock, sleeper=sleeper):
+                    value.status = 'stopped'
+                    value.next_run_at = None
+                    value.updated_at = clock()
+                    runtime_state.save_state(value, root=state_root)
+                    return value
             if runtime_state.stop_requested(platform, root=state_root):
                 value.status = 'stopped'
                 value.next_run_at = None
@@ -143,3 +152,24 @@ def run_worker(
         runtime_state.save_state(value, root=state_root)
         return value
     return value
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description='Run one isolated collection platform worker')
+    parser.add_argument('--platform', required=True, choices=('boss', 'zhaopin', 'liepin'))
+    parser.add_argument('--config-json', required=True)
+    args = parser.parse_args()
+    config = config_from_payload(json.loads(args.config_json))
+    from app.db.mysql import get_db
+    from app.collect.runtime.browser import CdpEngine
+    from app.collect.runtime.sink import DatabaseSink
+
+    result = run_worker(
+        args.platform, config, engine=CdpEngine(), sink=DatabaseSink(get_db),
+    )
+    print(json.dumps(result.to_dict(), ensure_ascii=False))
+    return 2 if result.status in {'failed', 'blocked', 'needs_login'} else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
