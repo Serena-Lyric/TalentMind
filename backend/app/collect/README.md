@@ -34,7 +34,7 @@ PR #52实现已合入主线；旧PR #49已关闭，重要真实结果、限制�
 
 详情采样前的临时 DOM URL 包含列表页、卡片位置和展示摘要哈希，展示字段完全相同的两张卡片也会分别保留。DOM fingerprint 使用列表页、卡片位置、标题、公司、薪资/地点、正文 SHA-256、观察时间和绑定策略版本生成 SHA-256，仅定位观察，不证明唯一招聘岗位。`source_detail` 保存最终 `dom://zhaopin/<hash>`，事件另用 `_observation_key` 关联 listed/detail/persisted。`detail_obtained` 不代表正文合格；`content_eligible`、`identity_pending`、`identity_verified` 独立统计，既有 `complete` 只增加 `verified` 且内容合格记录。
 
-`jd_pool` 已声明追加字段 `identity_status`（历史默认 `unknown`）、`content_eligible`（历史 NULL）和 `identity_evidence`。迁移脚本只提交、未执行；旧 schema 若收到 pending/内容证据会在 INSERT 前明确报 `identity_schema_migration_required`，不静默丢字段。M2/M3 可读取 pending 作候选分析和候选观察，但不能计正式独立岗位或已确认需求。迁移、备份与回退见[设计](../superpowers/specs/2026-10-21-zhaopin-identity-pending-design.md)，实测/回放见[报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Zhaopin-identity-pending-2026-10-21.md)。
+`jd_pool` 已声明追加字段 `identity_status`（历史默认 `unknown`）、`content_eligible`（历史 NULL）和 `identity_evidence`。本机开发库已于 2026-11-09 在私有冷备与隔离恢复验证后完成追加字段迁移；其他部署仍须单独授权。旧 schema 若收到 pending/内容证据会在 INSERT 前明确报 `identity_schema_migration_required`，不静默丢字段。M2/M3 可读取 pending 作候选分析和候选观察，但不能计正式独立岗位或已确认需求。迁移、备份与回退见[设计](../../../docs/superpowers/specs/2026-10-21-zhaopin-identity-pending-design.md)，实测/回放见[报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/Zhaopin-identity-pending-2026-10-21.md)。
 
 ## 多关键词×多城市批次（2026-10-21）
 
