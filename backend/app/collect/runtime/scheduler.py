@@ -1,12 +1,15 @@
 """Start, stop and resume the three isolated platform worker processes."""
 from __future__ import annotations
 
+import ctypes
 import json
 import os
+import signal
 import subprocess
 import sys
 import threading
 import time
+from ctypes import wintypes
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -20,12 +23,116 @@ _BACKEND_ROOT = Path(__file__).resolve().parents[3]
 _STATE_ROOT = _REPO_ROOT / 'data/local/collection/runtime'
 _SCHEDULER_PATH = _STATE_ROOT / 'scheduler.json'
 _PROCESSES: dict[str, subprocess.Popen] = {}
+_PROCESS_META: dict[str, dict[str, int | None]] = {}
 _LOCK = threading.RLock()
 _clock = time.time
 
 
 def _config_dict(config: RuntimeConfig) -> dict[str, Any]:
     return asdict(config)
+
+
+class _FileTime(ctypes.Structure):
+    _fields_ = [('dwLowDateTime', wintypes.DWORD), ('dwHighDateTime', wintypes.DWORD)]
+
+
+def _process_creation_time(pid: int) -> int | None:
+    if os.name != 'nt':
+        return None
+    handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+    if not handle:
+        return None
+    try:
+        created = _FileTime()
+        exited = _FileTime()
+        kernel = _FileTime()
+        user = _FileTime()
+        if not ctypes.windll.kernel32.GetProcessTimes(
+            handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user),
+        ):
+            return None
+        return (int(created.dwHighDateTime) << 32) | int(created.dwLowDateTime)
+    finally:
+        ctypes.windll.kernel32.CloseHandle(handle)
+
+
+def _pid_alive(pid: int, created_at: int | None = None) -> bool:
+    if os.name != 'nt':
+        try:
+            os.kill(int(pid), 0)
+            return True
+        except OSError:
+            return False
+    handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+    if not handle:
+        return False
+    try:
+        code = wintypes.DWORD()
+        if not ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+            return False
+        if code.value != 259:
+            return False
+        return created_at is None or _process_creation_time(int(pid)) == created_at
+    finally:
+        ctypes.windll.kernel32.CloseHandle(handle)
+
+
+class _PidProcess:
+    def __init__(self, pid: int, created_at: int | None):
+        self.pid = pid
+        self.created_at = created_at
+
+    def poll(self):
+        return None if _pid_alive(self.pid, self.created_at) else 0
+
+    def wait(self, timeout=None):
+        deadline = time.monotonic() + (timeout if timeout is not None else 0)
+        while self.poll() is None:
+            if timeout is not None and time.monotonic() >= deadline:
+                raise subprocess.TimeoutExpired(str(self.pid), timeout)
+            time.sleep(.1)
+        return 0
+
+    def terminate(self):
+        os.kill(self.pid, signal.SIGTERM)
+
+    def kill(self):
+        os.kill(self.pid, signal.SIGTERM)
+
+
+def _pid_process(platform: str, pid: int, created_at: int | None):
+    if _pid_alive(pid, created_at):
+        return _PidProcess(pid, created_at)
+    return None
+
+
+def _restore_processes() -> None:
+    data = _read_scheduler()
+    for platform, value in (data.get('pids') or {}).items():
+        if platform in _PROCESSES:
+            continue
+        if isinstance(value, dict):
+            pid = value.get('pid')
+            created_at = value.get('created_at')
+        else:
+            pid, created_at = value, None
+        if type(pid) is not int or pid <= 0:
+            continue
+        process = _pid_process(platform, pid, created_at)
+        if process is not None:
+            _PROCESSES[platform] = process
+            _PROCESS_META[platform] = {'pid': pid, 'created_at': created_at}
+
+
+def _process_payload() -> dict[str, dict[str, int | None]]:
+    result = {}
+    for platform, process in _PROCESSES.items():
+        meta = _PROCESS_META.get(platform) or {}
+        result[platform] = {
+            'pid': int(process.pid),
+            'created_at': meta.get('created_at', _process_creation_time(int(process.pid))),
+        }
+    return result
 
 
 
@@ -94,6 +201,7 @@ def _state_for(platform: str) -> state.RuntimeState:
 
 def status() -> dict[str, Any]:
     with _LOCK:
+        _restore_processes()
         platforms = {platform: _state_for(platform).to_dict() for platform in ('boss', 'zhaopin', 'liepin')}
         running = any(item['status'] in {'running', 'waiting'} for item in platforms.values())
         attention = any(item['status'] in {'needs_login', 'blocked', 'failed'} for item in platforms.values())
@@ -105,6 +213,7 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
     config = config_from_payload(payload)
     config.validate()
     with _LOCK:
+        _restore_processes()
         if any(_alive(process) for process in _PROCESSES.values()):
             raise RuntimeError('collection_runtime_already_running')
         for platform in ('boss', 'zhaopin', 'liepin'):
@@ -122,10 +231,13 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
                 )
                 spawned[platform] = _spawn_worker(platform, config)
             _PROCESSES.update(spawned)
+            _PROCESS_META.clear()
+            for platform, process in spawned.items():
+                _PROCESS_META[platform] = {'pid': process.pid, 'created_at': _process_creation_time(process.pid)}
             _write_scheduler({
                 'started_at': now,
                 'config': _config_dict(config),
-                'pids': {platform: process.pid for platform, process in spawned.items()},
+                'pids': _process_payload(),
             })
             return status()
         except Exception:
@@ -137,6 +249,7 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
 
 def stop() -> dict[str, Any]:
     with _LOCK:
+        _restore_processes()
         processes = dict(_PROCESSES)
         for platform in ('boss', 'zhaopin', 'liepin'):
             state.request_stop(platform, root=_STATE_ROOT)
@@ -156,6 +269,7 @@ def stop() -> dict[str, Any]:
                 value.updated_at = _clock()
                 state.save_state(value, root=_STATE_ROOT)
         _PROCESSES.clear()
+        _PROCESS_META.clear()
         _write_scheduler({'stopped_at': _clock()})
         return status()
 
@@ -163,6 +277,7 @@ def stop() -> dict[str, Any]:
 def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
     get_platform(platform)
     with _LOCK:
+        _restore_processes()
         value = state.load_state(platform, root=_STATE_ROOT)
         if value.status not in {'blocked', 'needs_login'}:
             raise ValueError('collection_runtime_platform_not_waiting_for_manual_action')
@@ -185,7 +300,13 @@ def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
         config = config_from_payload(
             (_read_scheduler().get('config') if _SCHEDULER_PATH.exists() else None)
         )
-        _PROCESSES[platform] = _spawn_worker(platform, config)
+        process = _spawn_worker(platform, config)
+        _PROCESSES[platform] = process
+        _PROCESS_META[platform] = {'pid': process.pid, 'created_at': _process_creation_time(process.pid)}
+        scheduler_data = _read_scheduler()
+        scheduler_data['config'] = _config_dict(config)
+        scheduler_data['pids'] = _process_payload()
+        _write_scheduler(scheduler_data)
         return status()
 
 
