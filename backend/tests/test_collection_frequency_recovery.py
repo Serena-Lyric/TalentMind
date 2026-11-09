@@ -278,7 +278,8 @@ def test_frequency_routes_require_local_boundary(controller, monkeypatch, enable
 def split_ledger(tmp_path, monkeypatch):
     clock = [1800000000.0]
     legacy = tmp_path / 'frequency.sqlite3'
-    monkeypatch.setattr(frequency, '_STATE_PATH', frequency._DEFAULT_STATE_PATH)
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy)
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
     monkeypatch.setattr(frequency, '_LEDGER_ROOT', tmp_path / 'runtime')
     monkeypatch.setattr(frequency, '_clock', lambda: clock[0])
     return legacy, clock
@@ -288,9 +289,11 @@ def test_legacy_flight_migration_preserves_unfinished_and_cooldown(split_ledger,
     legacy, clock = split_ledger
     from app.collect import frequency_recovery
 
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy.parent / 'not-the-legacy.sqlite3')
     monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
     frequency._reserve_action('zhaopin', 'Python', '530', kind='page', flight='legacy-owner')
-    monkeypatch.setattr(frequency, '_STATE_PATH', frequency._DEFAULT_STATE_PATH)
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy)
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
 
     assert frequency.legacy_migration_required('zhaopin') is True
     migrated = frequency_recovery.migrate_legacy_platform('zhaopin', legacy)
