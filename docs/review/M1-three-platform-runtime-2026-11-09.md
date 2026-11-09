@@ -12,7 +12,7 @@
 - `/collection` 三站状态、统一启动/停止和单站人工恢复。
 - 三站隔离模拟、历史 RED→GREEN 映射、兼容/退役候选清单。
 
-主要提交：`8ce062e`、`08b6f12`、`d6a726a`、`a7e1f25`、`ad98497`、`d4cc0f7`、`ee57b34`、`662f197`（文档提交见本报告所在提交）。
+主要提交：`8ce062e`、`08b6f12`、`d6a726a`、`a7e1f25`、`ad98497`、`d4cc0f7`、`ee57b34`、`662f197`、`b235bdc`、`726992f`。PR：<https://github.com/Serena-Lyric/TalentMind/pull/80>。
 
 ## 验证
 
@@ -22,6 +22,7 @@
   - **293 passed / 0 failed**。
 - 前端：`pnpm run build`
   - 类型检查和生产构建通过；Vite 仅保留既有大 chunk 警告。
+- PR #80 CI：5/5 checks successful。
 - 隔离证据：
   - 三站模拟覆盖单条 SQLite 提交、第二轮幂等、停止/重启、BOSS blocked 后智联/猎聘继续。
   - 每平台独立频率账本并行执行测试通过；旧 flight 迁移保留 unfinished 和冷却。
