@@ -241,6 +241,15 @@ def test_panel_body_changes_after_stability_are_rejected(isolated_collector):
     assert rows == []
 
 
+def test_stable_list_detail_company_conflict_is_rejected(isolated_collector):
+    browser = SyntheticBrowser([synthetic_card(company='合成甲公司', detail_company='合成乙公司')])
+    stats, events, rows = isolated_collector(browser)
+    assert stats['content_eligible'] == 1
+    assert stats['identity_pending'] == stats['inserted'] == 0
+    assert stats['rejection_reasons'] == {'company_mismatch': 1}
+    assert rows == []
+
+
 def test_same_title_panel_company_changes_after_stability_are_rejected(isolated_collector):
     browser = SyntheticBrowser([synthetic_card()])
     def change_company(script):

@@ -71,6 +71,13 @@ def identity_decision(
                     or _text(final_probe.get('company')) != _text(detail.get('company'))
                     or _text(binding.get('company')) != _text(detail.get('company'))):
                 return 'unknown', {}, 'panel_changed_during_capture'
+            list_company = _text(job.get('company'))
+            panel_company = _text(final_probe.get('company'))
+            company_match = None
+            if list_company and panel_company:
+                if list_company.casefold() != panel_company.casefold():
+                    return 'unknown', {}, 'company_mismatch'
+                company_match = True
         if not binding.get('target_card_found'):
             return 'unknown', {}, 'target_card_not_found'
         if not binding.get('target_active_after'):
@@ -113,6 +120,9 @@ def identity_decision(
             evidence['target_card_matches'] = True
             evidence['final_target_active'] = True
             evidence['final_panel_matches'] = True
+            evidence['list_company'] = list_company
+            evidence['panel_company'] = panel_company
+            evidence['company_match'] = company_match
         return 'pending', evidence, None
 
     detail_title = _text(detail.get('title'))

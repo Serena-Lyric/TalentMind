@@ -1,5 +1,7 @@
 import hashlib
 
+import pytest
+
 from app.collect.fetchers.job_sites import SITES
 
 
@@ -87,6 +89,45 @@ def test_panel_not_updated_is_rejected_even_when_title_matches():
 
     assert status == 'unknown'
     assert rejection == 'panel_not_updated'
+
+
+def v2_detail(company='乙公司'):
+    return detail(company=company, _panel_probe={
+        'target_card_matches': True, 'target_active': True, 'panel_visible': True,
+        'panel_title': 'Python 工程师',
+        'description': '负责 Python 平台开发\n熟悉 SQL 和 Docker',
+        'company': company,
+    })
+
+
+def v2_binding(company='乙公司'):
+    return binding(
+        binding_policy='zhaopin-dom-panel-v2', company=company,
+        target_card_matches=True,
+    )
+
+
+@pytest.mark.parametrize('list_company,panel_company', [('甲公司', '乙公司'), ('甲科技有限公司', '甲公司')])
+def test_v2_list_and_stable_panel_company_must_match_without_guessing_aliases(list_company, panel_company):
+    from app.collect.identity import identity_decision
+    status, _, rejection = identity_decision(
+        SITES['zhaopin'], {**job(), 'company': list_company}, v2_detail(panel_company),
+        v2_binding(panel_company), '2026-11-09T09:00:00+08:00',
+    )
+    assert (status, rejection) == ('unknown', 'company_mismatch')
+
+
+@pytest.mark.parametrize('list_company,panel_company', [('', '乙公司'), ('甲公司', '')])
+def test_v2_missing_company_side_remains_pending_unknown(list_company, panel_company):
+    from app.collect.identity import identity_decision
+    status, evidence, rejection = identity_decision(
+        SITES['zhaopin'], {**job(), 'company': list_company}, v2_detail(panel_company),
+        v2_binding(panel_company), '2026-11-09T09:00:00+08:00',
+    )
+    assert (status, rejection) == ('pending', None)
+    assert evidence['list_company'] == list_company
+    assert evidence['panel_company'] == panel_company
+    assert evidence['company_match'] is None
 
 
 def test_same_title_does_not_replace_missing_panel_transition():

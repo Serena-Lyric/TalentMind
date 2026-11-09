@@ -383,7 +383,7 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
     }
     detail_value = {
         'url': 'https://www.zhaopin.com/jobs/?jl=538&kw=Java&page=1',
-        'title': 'Python 工程师', 'company': '客户公司',
+        'title': 'Python 工程师', 'company': job['company'],
         'description': '负责 Python 平台开发\n熟悉 SQL 和 Docker',
         'description_truncated': False,
     }
@@ -396,7 +396,7 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
         'target_card_found': True, 'target_active': True, 'panel_visible': True,
         'target_card_matches': True,
         'panel_title': 'Python 工程师', 'description': detail_value['description'],
-        'company': '客户公司', 'list_url': job['_list_url'],
+        'company': detail_value['company'], 'list_url': job['_list_url'],
     }
     class Client:
         def __init__(self):
