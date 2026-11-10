@@ -39,6 +39,9 @@ Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动�
 - `last_saved_identity` 只接受 persisted inserted/updated/skipped 回执，列表或详情尝试事件不算保存。
 - 旧共享账本门禁下沉到 `frequency.assert_legacy_migrated`，旧单轮、批次、bridge 创建均提前失败。
 - `runtime/lease.py` 提供每平台跨进程 writer lock；runtime、旧 control/batch、bridge 双向互斥，历史只读不受影响。
+- writer lock 使用原子目录发布和 owner 原子替换；owner 未发布/损坏时 fail closed，不把创建中文件当 stale。
+- scheduler/control 在 worker 启动后将 lease 重绑定到 worker 根 PID；停止必须确认进程树退出，终止失败不释放 lease。
+- stop 保留 blocked/needs_login/failed 的人工门禁；scheduler.json 保留自定义计划，空 payload 重启复用原计划，显式配置变化要求 reset_checkpoint。
 - 页面动作和组合间隔只约束硬下限及有限值，允许用户配置更慢节奏。
 
 

@@ -28,3 +28,11 @@ PR #80 首轮独立复审发现六类可确定的生产控制流问题：
 ## 教训
 
 不要让“纯函数通过”替代生产分派证据。跨层参数必须在最靠近真实副作用的位置验证；检查点、保存身份和 writer ownership 都必须有确认回执或可核验 owner，不能用尝试事件或进程内标志冒充。测试必须隔离真实 `data/local`，否则本机旧账本会让 CI 与本地结果不一致。
+
+
+## 第二轮补充（2026-11-10）
+
+- writer lock 不能先创建空文件再写 JSON；改为原子目录锁 + owner 文件原子替换，未发布/损坏 owner fail closed。
+- lease 必须从启动者重绑定到实际 worker 根 PID；终止必须由 worker_process/job 或可核验进程句柄确认，失败时保留锁和待处理状态。
+- stop 不是人工恢复确认：blocked/needs_login/failed 必须保持门禁，不能通过 Stop→Start 重访。
+- 自定义关键词/城市计划必须随 scheduler 保存；空 payload 重启复用原计划，配置改变时要求显式 reset_checkpoint，避免旧 index 解释新计划。

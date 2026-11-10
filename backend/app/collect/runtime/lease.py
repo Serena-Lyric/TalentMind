@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -19,6 +21,10 @@ class WriterBusy(RuntimeError):
         self.platform = platform
         self.owner = owner or {}
         super().__init__(f'collection_writer_busy:{platform}:{self.owner.get("kind") or "unknown"}')
+
+
+class WriterStateError(RuntimeError):
+    """The lock exists but its owner record is incomplete or unverifiable."""
 
 
 @dataclass
@@ -38,6 +44,10 @@ def lock_path(platform: str, root: Path | str | None = None) -> Path:
     return state.stop_path(platform, root=root).parent / 'writer.lock'
 
 
+def _owner_path(lock_dir: Path) -> Path:
+    return lock_dir / 'owner.json'
+
+
 def _pid_alive(pid: int, created_at: int | None) -> bool:
     from app.collect.runtime import scheduler
     return scheduler._pid_alive(pid, created_at)
@@ -48,17 +58,40 @@ def _created_at(pid: int) -> int | None:
     return scheduler._process_creation_time(pid)
 
 
-def _read(path: Path) -> dict[str, Any] | None:
+def _read_owner(lock_dir: Path) -> dict[str, Any] | None:
     try:
-        value = json.loads(path.read_text(encoding='utf-8'))
+        value = json.loads(_owner_path(lock_dir).read_text(encoding='utf-8'))
         return value if isinstance(value, dict) else None
     except (OSError, ValueError, json.JSONDecodeError):
         return None
 
 
+def _write_owner(lock_dir: Path, payload: dict[str, Any]) -> None:
+    temporary = lock_dir / f'owner.{uuid.uuid4().hex}.tmp'
+    try:
+        with temporary.open('wb') as stream:
+            stream.write(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode('utf-8'))
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, _owner_path(lock_dir))
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _payload(platform: str, owner: str, kind: str, pid: int, created_at: int | None) -> dict[str, Any]:
+    return {
+        'platform': platform,
+        'owner': owner,
+        'kind': kind,
+        'pid': pid,
+        'created_at': created_at,
+        'acquired_at': _now(),
+    }
+
+
 def status(platform: str, root: Path | str | None = None) -> dict[str, Any] | None:
-    path = lock_path(platform, root=root)
-    value = _read(path)
+    lock_dir = lock_path(platform, root=root)
+    value = _read_owner(lock_dir)
     if value is None:
         return None
     pid = value.get('pid')
@@ -66,6 +99,18 @@ def status(platform: str, root: Path | str | None = None) -> dict[str, Any] | No
     if type(pid) is not int or not _pid_alive(pid, created_at):
         return None
     return value
+
+
+def _reclaim_stale(lock_dir: Path) -> None:
+    stale = lock_dir.with_name(f'writer.lock.stale-{uuid.uuid4().hex}')
+    try:
+        os.replace(lock_dir, stale)
+    except FileNotFoundError:
+        return
+    except OSError:
+        # Another process may have reclaimed it first; retry acquisition.
+        return
+    shutil.rmtree(stale, ignore_errors=True)
 
 
 def acquire(
@@ -82,48 +127,64 @@ def acquire(
         raise ValueError('unsupported collection writer kind')
     if not isinstance(owner, str) or not owner.strip():
         raise ValueError('collection writer owner required')
-    path = lock_path(platform, root=root)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_dir = lock_path(platform, root=root)
+    lock_dir.parent.mkdir(parents=True, exist_ok=True)
     pid = os.getpid() if pid is None else int(pid)
     created_at = _created_at(pid) if created_at is None else created_at
-    payload = {
-        'platform': platform,
-        'owner': owner,
-        'kind': kind,
-        'pid': pid,
-        'created_at': created_at,
-        'acquired_at': _now(),
-    }
+    payload = _payload(platform, owner, kind, pid, created_at)
     for _ in range(4):
         try:
-            descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            os.mkdir(lock_dir)
         except FileExistsError:
-            existing = _read(path)
+            existing = _read_owner(lock_dir)
             if existing is None:
-                path.unlink(missing_ok=True)
-                continue
+                # An owner file can be absent while another process is publishing
+                # the lock. Never interpret that as stale; a damaged record needs
+                # explicit investigation.
+                raise WriterStateError(f'collection_writer_state_unknown:{platform}')
             existing_pid = existing.get('pid')
             existing_created = existing.get('created_at')
             if type(existing_pid) is int and _pid_alive(existing_pid, existing_created):
                 raise WriterBusy(platform, existing)
-            path.unlink(missing_ok=True)
+            _reclaim_stale(lock_dir)
             continue
         try:
-            encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode('utf-8')
-            offset = 0
-            while offset < len(encoded):
-                offset += os.write(descriptor, encoded[offset:])
-            os.fsync(descriptor)
-        finally:
-            os.close(descriptor)
-        return Lease(platform, owner, kind, path, pid, created_at)
-    raise WriterBusy(platform, _read(path))
+            _write_owner(lock_dir, payload)
+        except BaseException:
+            shutil.rmtree(lock_dir, ignore_errors=True)
+            raise
+        return Lease(platform, owner, kind, lock_dir, pid, created_at)
+    raise WriterBusy(platform, _read_owner(lock_dir))
+
+
+def rebind(lease: Lease, pid: int, created_at: int | None, *, owner: str | None = None) -> Lease:
+    """Atomically move ownership from the launcher to the actual worker."""
+    current = _read_owner(lease.path)
+    if current is None or current.get('owner') != lease.owner:
+        raise WriterStateError(f'collection_writer_owner_changed:{lease.platform}')
+    new_owner = owner or f'worker:{pid}:{uuid.uuid4().hex}'
+    payload = _payload(lease.platform, new_owner, lease.kind, int(pid), created_at)
+    _write_owner(lease.path, payload)
+    lease.owner = new_owner
+    lease.pid = int(pid)
+    lease.created_at = created_at
+    return lease
 
 
 def release(lease: Lease) -> None:
-    path = lease.path
-    existing = _read(path)
-    if existing is None:
+    current = _read_owner(lease.path)
+    if current is None or current.get('owner') != lease.owner:
         return
-    if existing.get('owner') == lease.owner:
-        path.unlink(missing_ok=True)
+    _reclaim_stale(lease.path)
+
+
+def release_if_dead(platform: str, root: Path | str | None = None) -> bool:
+    lock_dir = lock_path(platform, root=root)
+    current = _read_owner(lock_dir)
+    if current is None:
+        return False
+    pid = current.get('pid')
+    if type(pid) is int and _pid_alive(pid, current.get('created_at')):
+        return False
+    _reclaim_stale(lock_dir)
+    return True

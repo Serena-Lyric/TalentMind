@@ -9,12 +9,13 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from ctypes import wintypes
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from app.collect import frequency, readiness
+from app.collect import frequency, readiness, worker_process
 from app.collect.runtime import lease, state
 from app.collect.runtime.platforms import RuntimeConfig, config_from_payload, get_platform
 
@@ -161,22 +162,18 @@ def _write_scheduler(payload: dict[str, Any]) -> None:
 def _spawn_worker(platform: str, config: RuntimeConfig) -> subprocess.Popen:
     log_path = _STATE_ROOT / platform / 'worker.log'
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    kwargs: dict[str, Any] = {
-        'cwd': str(_BACKEND_ROOT),
-        'stderr': subprocess.STDOUT,
-        'text': True,
-    }
-    if os.name == 'nt':
-        kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
-    else:
-        kwargs['start_new_session'] = True
     with log_path.open('a', encoding='utf-8') as log_file:
-        return subprocess.Popen(
+        return worker_process.spawn(
             [sys.executable, '-m', 'app.collect.runtime.worker', '--platform', platform,
              '--config-json', json.dumps(_config_dict(config), ensure_ascii=False)],
-            stdout=log_file,
-            **kwargs,
+            cwd=str(_BACKEND_ROOT), stdout=log_file, stderr=subprocess.STDOUT, text=True,
         )
+
+
+def _bind_worker_lease(platform: str, process, held: lease.Lease) -> None:
+    created_at = _process_creation_time(int(process.pid))
+    lease.rebind(held, int(process.pid), created_at, owner=f'worker:{process.pid}:{uuid.uuid4().hex}')
+    _PROCESS_META[platform] = {'pid': int(process.pid), 'created_at': created_at}
 
 
 def _alive(process) -> bool:
@@ -185,6 +182,14 @@ def _alive(process) -> bool:
 
 def _stop_process(process) -> None:
     if process is None:
+        return
+    if getattr(process, '_collection_job', None) is not None:
+        try:
+            worker_process.stop(process, timeout=5)
+        except BaseException as exc:
+            raise RuntimeError('collection_worker_termination_unknown') from exc
+        if process.poll() is None:
+            raise RuntimeError('collection_worker_termination_unknown')
         return
     try:
         process.wait(timeout=3)
@@ -199,6 +204,11 @@ def _stop_process(process) -> None:
                 process.kill()
             except (OSError, AttributeError):
                 pass
+    deadline = time.monotonic() + 3
+    while process.poll() is None and time.monotonic() < deadline:
+        time.sleep(.05)
+    if process.poll() is None:
+        raise RuntimeError('collection_worker_termination_unknown')
 
 
 def _state_for(platform: str) -> state.RuntimeState:
@@ -211,6 +221,7 @@ def _state_for(platform: str) -> state.RuntimeState:
         value.updated_at = _clock()
         state.save_state(value, root=_STATE_ROOT)
         _PROCESSES.pop(platform, None)
+        lease.release_if_dead(platform, root=_STATE_ROOT)
     return value
 
 
@@ -226,7 +237,13 @@ def status() -> dict[str, Any]:
 
 
 def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, Any]:
-    config = config_from_payload(payload)
+    raw_payload = dict(payload) if isinstance(payload, dict) else payload
+    reset_checkpoint = bool(raw_payload.get('reset_checkpoint')) if isinstance(raw_payload, dict) else False
+    if isinstance(raw_payload, dict):
+        raw_payload.pop('reset_checkpoint', None)
+    stored_config = _read_scheduler().get('config') if _SCHEDULER_PATH.exists() else None
+    empty_payload = raw_payload is None or raw_payload == {}
+    config = config_from_payload(stored_config if empty_payload and stored_config else raw_payload)
     config.validate()
     with _LOCK:
         _restore_processes()
@@ -239,6 +256,13 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
         blocked = [platform for platform, value in existing.items() if value.status in _MANUAL_RECOVERY_STATUSES]
         if blocked:
             raise RuntimeError('collection_runtime_manual_recovery_required:' + ','.join(blocked))
+        stored_runtime = config_from_payload(stored_config) if stored_config else None
+        has_checkpoint = any(value.keyword_index or value.city_index or value.page != 1 or value.last_saved_identity or value.stats
+                             for value in existing.values())
+        if stored_runtime is not None and config != stored_runtime and has_checkpoint and not reset_checkpoint:
+            raise RuntimeError('collection_runtime_config_mismatch: explicit reset required')
+        if reset_checkpoint:
+            existing = {platform: state.RuntimeState(platform=platform, status='stopped') for platform in ('boss', 'zhaopin', 'liepin')}
         acquired: dict[str, lease.Lease] = {}
         spawned: dict[str, Any] = {}
         try:
@@ -256,7 +280,13 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
                 value.next_run_at = value.next_run_at if value.next_run_at is not None else now
                 value.updated_at = now
                 state.save_state(value, root=_STATE_ROOT)
-                spawned[platform] = _spawn_worker(platform, config)
+                process = _spawn_worker(platform, config)
+                try:
+                    _bind_worker_lease(platform, process, acquired[platform])
+                except BaseException:
+                    _stop_process(process)
+                    raise
+                spawned[platform] = process
             _LEASES.update(acquired)
             _PROCESSES.update(spawned)
             _PROCESS_META.clear()
@@ -285,15 +315,19 @@ def stop() -> dict[str, Any]:
             state.request_stop(platform, root=_STATE_ROOT)
         for platform, process in processes.items():
             _stop_process(process)
+            lease.release_if_dead(platform, root=_STATE_ROOT)
             value = state.load_state(platform, root=_STATE_ROOT)
-            value.status = 'stopped'
-            value.stop_reason = 'user_stopped'
+            if value.status not in _MANUAL_RECOVERY_STATUSES:
+                value.status = 'stopped'
+                value.stop_reason = 'user_stopped'
             value.updated_at = _clock()
             state.save_state(value, root=_STATE_ROOT)
         for platform in ('boss', 'zhaopin', 'liepin'):
             if platform not in processes:
                 value = state.load_state(platform, root=_STATE_ROOT)
-                value.status = 'stopped'
+                if value.status not in _MANUAL_RECOVERY_STATUSES:
+                    value.status = 'stopped'
+                    value.stop_reason = 'user_stopped'
                 value.updated_at = _clock()
                 state.save_state(value, root=_STATE_ROOT)
         for item in _LEASES.values():
@@ -301,7 +335,10 @@ def stop() -> dict[str, Any]:
         _LEASES.clear()
         _PROCESSES.clear()
         _PROCESS_META.clear()
-        _write_scheduler({'stopped_at': _clock()})
+        scheduler_data = _read_scheduler()
+        scheduler_data['stopped_at'] = _clock()
+        scheduler_data['pids'] = {}
+        _write_scheduler(scheduler_data)
         return status()
 
 
@@ -336,7 +373,10 @@ def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
             acquired = lease.acquire(platform, f'scheduler:{os.getpid()}:{platform}', 'runtime', root=_STATE_ROOT)
         try:
             process = _spawn_worker(platform, config)
+            _bind_worker_lease(platform, process, acquired)
         except Exception:
+            if 'process' in locals():
+                _stop_process(process)
             acquired.release()
             raise
         _LEASES[platform] = acquired

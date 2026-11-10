@@ -36,15 +36,16 @@ def test_old_single_start_route_remains_compatible(monkeypatch):
 def test_asgi_empty_start_payload_reaches_real_scheduler_default_validation(monkeypatch, tmp_path):
     class Process:
         pid = 43210
+        returncode = None
 
         def poll(self):
-            return None
+            return self.returncode
 
         def wait(self, timeout=None):
-            return None
+            return self.returncode
 
         def terminate(self):
-            pass
+            self.returncode = 0
 
     monkeypatch.setattr(scheduler, '_STATE_ROOT', tmp_path / 'runtime')
     monkeypatch.setattr(scheduler, '_SCHEDULER_PATH', tmp_path / 'runtime' / 'scheduler.json')

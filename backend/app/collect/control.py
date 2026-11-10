@@ -954,6 +954,16 @@ def _launch_task(run_id: str, config: dict[str, Any]) -> None:
                 env['TALENTMIND_COLLECTION_TARGET_ID'] = access['target_id']
                 env['TALENTMIND_COLLECTION_TARGET_URL'] = _search_target(config)
             _spawn_worker(run_id, config, task, state, env)
+            if _LEASE is not None and _PROCESS is not None:
+                try:
+                    lease.rebind(
+                        _LEASE, _PROCESS.pid, lease._created_at(_PROCESS.pid),
+                        owner=f'worker:{_PROCESS.pid}:{uuid.uuid4().hex}',
+                    )
+                except BaseException:
+                    worker_process.stop(_PROCESS, timeout=5)
+                    _release_lease()
+                    raise
             spawned = True
     except Exception as exc:
         _archive_task(run_id, status='error', stop_reason=type(exc).__name__, last_error=str(exc))

@@ -87,6 +87,9 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
                 break
         assert child_pid is not None, 'worker did not publish a readable numeric PID'
         assert child_pid != process.pid
+        writer = lease.status('boss', root=tmp_path / 'runtime')
+        assert writer['pid'] == process.pid
+        assert writer['owner'].startswith('worker:')
         result = control.stop_task(run['run_id'])
         assert result['stopped'] is True
         assert process.poll() is not None

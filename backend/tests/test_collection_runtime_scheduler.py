@@ -175,3 +175,95 @@ def test_scheduler_blocks_old_writer_and_stop_releases_its_lease(isolated_schedu
     assert lease.status('boss', root=scheduler._STATE_ROOT)['kind'] == 'runtime'
     scheduler.stop()
     assert lease.status('boss', root=scheduler._STATE_ROOT) is None
+
+
+@pytest.mark.parametrize('status', ['blocked', 'needs_login', 'failed'])
+def test_stop_preserves_manual_gate_and_start_rejects(isolated_scheduler, status):
+    value = state.RuntimeState(platform='boss', status=status, stop_reason='review_required', updated_at=1000)
+    state.save_state(value, root=scheduler._STATE_ROOT)
+    scheduler.stop()
+    assert state.load_state('boss', root=scheduler._STATE_ROOT).status == status
+    with pytest.raises(RuntimeError, match='manual_recovery'):
+        scheduler.start(RuntimeConfig())
+    assert isolated_scheduler == []
+
+
+def test_custom_config_stop_start_empty_reuses_stored_plan(tmp_path, monkeypatch):
+    monkeypatch.setattr(scheduler, '_STATE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(scheduler, '_SCHEDULER_PATH', tmp_path / 'runtime' / 'scheduler.json')
+    monkeypatch.setattr(scheduler, '_PROCESSES', {})
+    monkeypatch.setattr(scheduler, '_PROCESS_META', {})
+    monkeypatch.setattr(scheduler, '_LEASES', {})
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
+    monkeypatch.setattr(scheduler.readiness, 'require_database_ready', lambda: None)
+    monkeypatch.setattr(scheduler.frequency, 'legacy_migration_required', lambda platform: False)
+    configs = []
+    def spawn(platform, config):
+        configs.append(config)
+        return FakeProcess()
+    monkeypatch.setattr(scheduler, '_spawn_worker', spawn)
+    custom = RuntimeConfig(
+        keywords=('CustomRole',),
+        cities={'boss': (('深圳', '101280600'),), 'zhaopin': (('深圳', '765'),), 'liepin': (('深圳', '深圳'),)},
+    )
+    scheduler.start(custom)
+    scheduler.stop()
+    configs.clear()
+    scheduler.start({})
+    assert configs[0].keywords == ('CustomRole',)
+    assert configs[0].cities['boss'] == (('深圳', '101280600'),)
+
+
+def test_scheduler_binds_runtime_lease_to_spawned_worker_pid(isolated_scheduler, monkeypatch):
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
+    scheduler.start(RuntimeConfig())
+    record = lease.status('boss', root=scheduler._STATE_ROOT)
+    assert record['pid'] == isolated_scheduler[0][1].pid
+    assert record['owner'].startswith('worker:')
+
+
+def test_stop_fails_closed_when_worker_termination_is_unconfirmed(tmp_path, monkeypatch):
+    class StuckProcess:
+        pid = 9001
+        def poll(self): return None
+        def wait(self, timeout=None): return None
+        def terminate(self): pass
+        def kill(self): pass
+
+    monkeypatch.setattr(scheduler, '_STATE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(scheduler, '_SCHEDULER_PATH', tmp_path / 'runtime' / 'scheduler.json')
+    monkeypatch.setattr(scheduler, '_PROCESSES', {})
+    monkeypatch.setattr(scheduler, '_PROCESS_META', {})
+    monkeypatch.setattr(scheduler, '_LEASES', {})
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
+    monkeypatch.setattr(scheduler.readiness, 'require_database_ready', lambda: None)
+    monkeypatch.setattr(scheduler.frequency, 'legacy_migration_required', lambda platform: False)
+    monkeypatch.setattr(scheduler, '_spawn_worker', lambda platform, config: StuckProcess())
+    tick = [0.0]
+    monkeypatch.setattr(scheduler.time, 'monotonic', lambda: tick[0])
+    monkeypatch.setattr(scheduler.time, 'sleep', lambda seconds: tick.__setitem__(0, tick[0] + seconds))
+    scheduler.start(RuntimeConfig())
+    with pytest.raises(RuntimeError, match='termination_unknown'):
+        scheduler.stop()
+    assert lease.status('boss', root=scheduler._STATE_ROOT) is not None
+
+
+def test_new_backend_can_stop_restored_worker_and_release_worker_owned_lease(isolated_scheduler, monkeypatch):
+    scheduler.start(RuntimeConfig())
+    by_pid = {process.pid: process for _, process in isolated_scheduler}
+    alive = set(by_pid)
+    monkeypatch.setattr(scheduler, '_pid_process', lambda platform, pid, created_at: by_pid.get(pid))
+    monkeypatch.setattr(scheduler, '_pid_alive', lambda pid, created_at: pid in alive)
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: pid in alive)
+    for process in by_pid.values():
+        original = process.terminate
+        def terminate(process=process, original=original):
+            alive.discard(process.pid)
+            original()
+        process.terminate = terminate
+    scheduler._PROCESSES.clear()
+    scheduler._LEASES.clear()
+
+    result = scheduler.stop()
+    assert all(item['status'] == 'stopped' for item in result['platforms'].values())
+    assert lease.status('boss', root=scheduler._STATE_ROOT) is None

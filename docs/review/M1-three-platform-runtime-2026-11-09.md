@@ -17,7 +17,7 @@
 ## 验证
 
 - 后端：`cd backend; .\.venv\Scripts\python.exe -m pytest -m "not integration" -q`
-  - **2718 passed / 2 skipped / 18 deselected**。
+  - **2728 passed / 2 skipped / 18 deselected**。
 - 前端：`cd frontend; pnpm test`
   - **293 passed / 0 failed**。
 - 前端：`pnpm run build`
@@ -56,3 +56,17 @@
 | 次要契约 | 页面/组合间隔只校验有限值与硬下限，不再把默认 30/720 秒当绝对上限 | `fa31620`；慢配置正例 |
 
 新增测试只使用临时文件、合成 CDP/worker 和隔离 SQLite；没有新增真实站点采集、正式库写入/删除或迁移。真实 BOSS 单次重试仍未执行。
+
+
+## 第二轮独立复审修复（2026-11-10）
+
+复审 head：`745b6f17edacfe53cfe349db6f0f0725b12d260e`。新增问题与修复：
+
+| 项 | 修复 | 回归 |
+|---|---|---|
+| P1-A writer.lock 空文件竞争 | 改为原子目录获取 + `owner.json` 原子替换；owner 缺失/损坏 fail closed，不当作 stale；stale 目录先原子改名再清理 | `test_two_processes_cannot_both_publish_writer_lock`、`test_incomplete_lock_record_fails_closed_and_is_not_deleted` |
+| P1-B lease 绑定 API PID | scheduler/control 在子进程启动后 `lease.rebind` 到实际 worker 根 PID；scheduler 使用 `worker_process.spawn/stop`，终止失败不释放、不标 stopped；新后端可从 scheduler.json 恢复并确认退出后回收 worker-owned lease | `test_scheduler_binds_runtime_lease_to_spawned_worker_pid`、`test_new_backend_can_stop_restored_worker_and_release_worker_owned_lease`、`test_stop_fails_closed_when_worker_termination_is_unconfirmed` |
+| P1-C Stop→Start 绕过受限门禁 | stop 保留 blocked/needs_login/failed 状态，不再覆盖为 stopped；start 继续拒绝，必须显式恢复 | `test_stop_preserves_manual_gate_and_start_rejects` |
+| P2 计划/游标错位 | scheduler.json stop 时保留 config；空 payload 启动复用原计划；显式配置变化且已有游标时要求 `reset_checkpoint` | `test_custom_config_stop_start_empty_reuses_stored_plan` |
+
+所有验证仍使用临时文件、合成进程/CDP 与隔离 SQLite；真实站点重试、正式库操作、迁移和合并仍未执行。
