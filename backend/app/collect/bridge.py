@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
 from app.collect import control, frequency
+from app.collect.runtime import lease
 from app.collect.bridge_schema import BridgeCapture, BridgeSessionCreate, validate_capture
 from app.collect.cleaner import clean, is_valid_jd
 from app.collect.fetchers.boss import normalize_boss_job, normalize_url
@@ -24,6 +25,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _STATE_DIR = _REPO_ROOT / "data" / "local" / "collection"
 _SESSIONS_DIR = _STATE_DIR / "bridge"
 _LOCK = threading.RLock()
+_LEASE_ROOT = None
+_LEASE = None
 _permit_clock = time.time
 _RUN_ID = re.compile(r"bridge-[a-f0-9]{32}")
 
@@ -156,19 +159,41 @@ def _empty_session(payload: BridgeSessionCreate) -> dict[str, Any]:
     }
 
 
+def _release_bridge_lease() -> None:
+    global _LEASE
+    with _LOCK:
+        value = _LEASE
+        _LEASE = None
+    if value is not None:
+        value.release()
+
+
 def create_session(payload: dict[str, Any]) -> dict[str, Any]:
+    global _LEASE
     parsed = BridgeSessionCreate.model_validate(payload)
     frequency.assert_legacy_migrated('boss')
-    reservation = control._reserve_tasks()
+    session = _empty_session(parsed)
+    with _LOCK:
+        if any(not item.get('finished_at') for item in list_sessions()):
+            raise RuntimeError('已有普通浏览器桥接任务未结束')
+    acquired = lease.acquire(
+        'boss', f'bridge:{os.getpid()}:{session["run_id"]}', 'bridge', root=_LEASE_ROOT,
+    )
+    _LEASE = acquired
+    reservation = None
     try:
-        session = _empty_session(parsed)
+        reservation = control._reserve_tasks()
         with _LOCK:
             if any(not item.get('finished_at') for item in list_sessions()):
                 raise RuntimeError('已有普通浏览器桥接任务未结束')
             _save_session(session)
             _sync_history(session)
+    except BaseException:
+        _release_bridge_lease()
+        raise
     finally:
-        control._release_tasks(reservation)
+        if reservation is not None:
+            control._release_tasks(reservation)
     return {"run_id": session["run_id"], "session": session}
 
 
@@ -483,5 +508,6 @@ def _finish_session(session: dict[str, Any], reason: str | None, status: str) ->
     _record_tail(session, 'finished', status)
     _save_session(session)
     _sync_history(session)
+    _release_bridge_lease()
     return session
 

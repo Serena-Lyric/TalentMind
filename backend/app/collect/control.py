@@ -22,6 +22,7 @@ from app.collect.boss_collect_loop import DEFAULT_CITIES, DEFAULT_KEYWORDS
 from app.collect.fetch_boss_jobs import _search_url as boss_search_url
 from app.collect.fetchers.job_sites import SITES, SiteSpec
 from app.collect import browser, frequency, frequency_recovery, readiness, worker_process
+from app.collect.runtime import lease
 from app.collect.cleaner import source_sections
 from app.collect.timing_validation import validate_collection_ranges
 
@@ -34,6 +35,8 @@ _START_THREAD: threading.Thread | None = None
 _STARTING_RUN: str | None = None
 _DONE_EVENTS: dict[str, threading.Event] = {}
 _RESERVATION: object | None = None
+_LEASE_ROOT: Path | None = None
+_LEASE: lease.Lease | None = None
 _spawn_process = worker_process.spawn
 _ACTIVE_STATUSES = {"preparing", "waiting_for_browser", "running", "waiting_next_round", "stopping"}
 _QUALITY_COUNTERS = ('detail_attempted', 'detail_obtained', 'complete', 'inserted',
@@ -353,6 +356,7 @@ def _watch_process(run_id: str, process: subprocess.Popen[str]) -> None:
             if _PROCESS is process:
                 _PROCESS = None
         worker_process.close(process)
+        _release_lease()
         if run_id in _DONE_EVENTS:
             _DONE_EVENTS[run_id].set()
 
@@ -874,6 +878,15 @@ def _wait_task_done(run_id: str, timeout: float) -> bool:
     return bool(event and event.wait(timeout))
 
 
+def _release_lease() -> None:
+    global _LEASE
+    with _LOCK:
+        value = _LEASE
+        _LEASE = None
+    if value is not None:
+        value.release()
+
+
 def start_task(payload: dict[str, Any], *, _reservation: object | None = None) -> dict[str, Any]:
     global _START_THREAD, _STARTING_RUN
     with _LOCK:
@@ -885,22 +898,32 @@ def start_task(payload: dict[str, Any], *, _reservation: object | None = None) -
         _ensure_no_external_task(state)
         config = _validated_config(get_config(), payload)
         frequency.assert_legacy_migrated(config['platform'])
-        readiness.require_database_ready()
         run_id = f"{config['platform']}-{uuid.uuid4().hex}"
-        task = _empty_task(run_id, config)
-        task['log_path'] = str(_STATE_DIR / f'{run_id}.out.log')
-        state['current_task'] = task
-        if _reservation is None:
-            state['config'] = config
-        _save_state(state)
-        for previous in list(_DONE_EVENTS):
-            if _DONE_EVENTS[previous].is_set():
-                del _DONE_EVENTS[previous]
-        _DONE_EVENTS[run_id] = threading.Event()
-        _STARTING_RUN = run_id
-        _START_THREAD = threading.Thread(target=_launch_task, args=(run_id, config), daemon=True)
-        _START_THREAD.start()
-        return {'run_id': run_id}
+        kind = 'batch' if _reservation is not None else 'single'
+        acquired = lease.acquire(
+            config['platform'], f'control:{os.getpid()}:{run_id}', kind, root=_LEASE_ROOT,
+        )
+        global _LEASE
+        _LEASE = acquired
+        try:
+            readiness.require_database_ready()
+            task = _empty_task(run_id, config)
+            task['log_path'] = str(_STATE_DIR / f'{run_id}.out.log')
+            state['current_task'] = task
+            if _reservation is None:
+                state['config'] = config
+            _save_state(state)
+            for previous in list(_DONE_EVENTS):
+                if _DONE_EVENTS[previous].is_set():
+                    del _DONE_EVENTS[previous]
+            _DONE_EVENTS[run_id] = threading.Event()
+            _STARTING_RUN = run_id
+            _START_THREAD = threading.Thread(target=_launch_task, args=(run_id, config), daemon=True)
+            _START_THREAD.start()
+            return {'run_id': run_id}
+        except BaseException:
+            _release_lease()
+            raise
 
 
 def _launch_task(run_id: str, config: dict[str, Any]) -> None:
@@ -945,6 +968,7 @@ def _launch_task(run_id: str, config: dict[str, Any]) -> None:
                     _archive_task(run_id, status='stopped', stop_reason='user_stopped')
                 if run_id in _DONE_EVENTS:
                     _DONE_EVENTS[run_id].set()
+                _release_lease()
 
 
 def _spawn_worker(run_id: str, config: dict, task: dict, state: dict, env: dict) -> None:

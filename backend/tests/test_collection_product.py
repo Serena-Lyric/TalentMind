@@ -5,6 +5,7 @@ import threading
 import pytest
 
 from app.collect import control, frequency, readiness
+from app.collect.runtime import lease
 
 
 @pytest.fixture(autouse=True)
@@ -12,6 +13,9 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'state.json')
     monkeypatch.setattr(control, '_PROCESS', None)
+    monkeypatch.setattr(control, '_LEASE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(control, '_LEASE', None)
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
 
 
@@ -635,3 +639,13 @@ def test_old_single_start_blocks_legacy_ledger_before_browser(monkeypatch):
     monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
     with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
         control.start_task({})
+
+
+def test_old_single_start_is_blocked_by_runtime_writer_lease(tmp_path, monkeypatch):
+    monkeypatch.setattr(frequency, 'assert_legacy_migrated', lambda platform: None)
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
+    held = lease.acquire('boss', 'scheduler:test', 'runtime', root=tmp_path / 'runtime', pid=900, created_at=1)
+    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
+    with pytest.raises(lease.WriterBusy, match='collection_writer_busy:boss:runtime'):
+        control.start_task({})
+    held.release()

@@ -2,7 +2,7 @@
 import pytest
 
 from app.collect import frequency
-from app.collect.runtime import scheduler, state
+from app.collect.runtime import lease, scheduler, state
 from app.collect.runtime.platforms import RuntimeConfig
 
 
@@ -37,6 +37,7 @@ def isolated_scheduler(tmp_path, monkeypatch):
     monkeypatch.setattr(scheduler, '_SCHEDULER_PATH', tmp_path / 'runtime' / 'scheduler.json')
     monkeypatch.setattr(scheduler, '_PROCESSES', {})
     monkeypatch.setattr(scheduler, '_PROCESS_META', {})
+    monkeypatch.setattr(scheduler, '_LEASES', {})
     monkeypatch.setattr(scheduler, '_clock', lambda: 1000.0)
     monkeypatch.setattr(scheduler.readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(frequency, 'legacy_migration_required', lambda platform: False)
@@ -160,3 +161,17 @@ def test_resume_failed_requires_confirmation_and_keeps_safety_delay(isolated_sch
     result = scheduler.resume('boss', confirmed=True)
     assert result['platforms']['boss']['status'] in {'running', 'waiting'}
     assert result['platforms']['boss']['next_run_at'] >= 1030
+
+
+def test_scheduler_blocks_old_writer_and_stop_releases_its_lease(isolated_scheduler, monkeypatch):
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
+    old = lease.acquire('boss', 'old-single', 'single', root=scheduler._STATE_ROOT, pid=900, created_at=1)
+    with pytest.raises(lease.WriterBusy, match='collection_writer_busy:boss:single'):
+        scheduler.start(RuntimeConfig())
+    assert isolated_scheduler == []
+    old.release()
+
+    scheduler.start(RuntimeConfig())
+    assert lease.status('boss', root=scheduler._STATE_ROOT)['kind'] == 'runtime'
+    scheduler.stop()
+    assert lease.status('boss', root=scheduler._STATE_ROOT) is None

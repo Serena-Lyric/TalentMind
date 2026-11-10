@@ -46,11 +46,14 @@ def test_venv_sleep_wrapper_and_real_child_both_stop_before_return(method):
 
 @pytest.mark.skipif(os.name != 'nt', reason='Windows job/controller regression')
 def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch):
-    from app.collect import control, readiness, worker_process
+    from app.collect import control, frequency, readiness, worker_process
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'state.json')
     monkeypatch.setattr(control, '_PROCESS', None)
     monkeypatch.setattr(control, '_STARTING_RUN', None)
+    monkeypatch.setattr(control, '_LEASE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(control, '_LEASE', None)
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(control, '_ensure_browser', lambda *a: {
         'endpoint': 'http://127.0.0.1:1', 'user_data_dir': str(tmp_path),

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from app.collect import frequency, readiness
-from app.collect.runtime import state
+from app.collect.runtime import lease, state
 from app.collect.runtime.platforms import RuntimeConfig, config_from_payload, get_platform
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -24,6 +24,7 @@ _STATE_ROOT = _REPO_ROOT / 'data/local/collection/runtime'
 _SCHEDULER_PATH = _STATE_ROOT / 'scheduler.json'
 _PROCESSES: dict[str, subprocess.Popen] = {}
 _PROCESS_META: dict[str, dict[str, int | None]] = {}
+_LEASES: dict[str, lease.Lease] = {}
 _LOCK = threading.RLock()
 _clock = time.time
 _MANUAL_RECOVERY_STATUSES = frozenset({'blocked', 'needs_login', 'failed'})
@@ -220,7 +221,8 @@ def status() -> dict[str, Any]:
         running = any(item['status'] in {'running', 'waiting'} for item in platforms.values())
         attention = any(item['status'] in {'needs_login', 'blocked', 'failed'} for item in platforms.values())
         top = 'running' if running else 'attention' if attention else 'stopped'
-        return {'status': top, 'platforms': platforms, 'scheduler_path': str(_SCHEDULER_PATH)}
+        return {'status': top, 'platforms': platforms, 'scheduler_path': str(_SCHEDULER_PATH),
+                'writers': {platform: lease.status(platform, root=_STATE_ROOT) for platform in ('boss', 'zhaopin', 'liepin')}}
 
 
 def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, Any]:
@@ -237,10 +239,15 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
         blocked = [platform for platform, value in existing.items() if value.status in _MANUAL_RECOVERY_STATUSES]
         if blocked:
             raise RuntimeError('collection_runtime_manual_recovery_required:' + ','.join(blocked))
-        readiness.require_database_ready()
-        now = _clock()
+        acquired: dict[str, lease.Lease] = {}
         spawned: dict[str, Any] = {}
         try:
+            for platform in ('boss', 'zhaopin', 'liepin'):
+                acquired[platform] = lease.acquire(
+                    platform, f'scheduler:{os.getpid()}:{platform}', 'runtime', root=_STATE_ROOT,
+                )
+            readiness.require_database_ready()
+            now = _clock()
             for platform in ('boss', 'zhaopin', 'liepin'):
                 state.clear_stop(platform, root=_STATE_ROOT)
                 value = existing[platform]
@@ -250,6 +257,7 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
                 value.updated_at = now
                 state.save_state(value, root=_STATE_ROOT)
                 spawned[platform] = _spawn_worker(platform, config)
+            _LEASES.update(acquired)
             _PROCESSES.update(spawned)
             _PROCESS_META.clear()
             for platform, process in spawned.items():
@@ -263,6 +271,8 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
         except Exception:
             for process in spawned.values():
                 _stop_process(process)
+            for item in acquired.values():
+                item.release()
             _PROCESSES.clear()
             raise
 
@@ -286,6 +296,9 @@ def stop() -> dict[str, Any]:
                 value.status = 'stopped'
                 value.updated_at = _clock()
                 state.save_state(value, root=_STATE_ROOT)
+        for item in _LEASES.values():
+            item.release()
+        _LEASES.clear()
         _PROCESSES.clear()
         _PROCESS_META.clear()
         _write_scheduler({'stopped_at': _clock()})
@@ -318,7 +331,15 @@ def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
         config = config_from_payload(
             (_read_scheduler().get('config') if _SCHEDULER_PATH.exists() else None)
         )
-        process = _spawn_worker(platform, config)
+        acquired = _LEASES.get(platform)
+        if acquired is None:
+            acquired = lease.acquire(platform, f'scheduler:{os.getpid()}:{platform}', 'runtime', root=_STATE_ROOT)
+        try:
+            process = _spawn_worker(platform, config)
+        except Exception:
+            acquired.release()
+            raise
+        _LEASES[platform] = acquired
         _PROCESSES[platform] = process
         _PROCESS_META[platform] = {'pid': process.pid, 'created_at': _process_creation_time(process.pid)}
         scheduler_data = _read_scheduler()
