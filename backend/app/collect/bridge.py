@@ -158,6 +158,7 @@ def _empty_session(payload: BridgeSessionCreate) -> dict[str, Any]:
 
 def create_session(payload: dict[str, Any]) -> dict[str, Any]:
     parsed = BridgeSessionCreate.model_validate(payload)
+    frequency.assert_legacy_migrated('boss')
     reservation = control._reserve_tasks()
     try:
         session = _empty_session(parsed)

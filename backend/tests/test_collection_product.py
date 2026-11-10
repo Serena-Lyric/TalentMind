@@ -4,7 +4,7 @@ import threading
 
 import pytest
 
-from app.collect import control, readiness
+from app.collect import control, frequency, readiness
 
 
 @pytest.fixture(autouse=True)
@@ -626,3 +626,12 @@ def test_status_poll_lets_owned_exited_worker_finish_watcher_archive(monkeypatch
     task = control.get_history()['items'][0]
     assert task['status'] == 'completed'
     assert task['stop_reason'] is None
+
+
+def test_old_single_start_blocks_legacy_ledger_before_browser(monkeypatch):
+    def blocked(platform):
+        raise frequency.FrequencyStateError('collection_legacy_migration_required')
+    monkeypatch.setattr(frequency, 'assert_legacy_migrated', blocked)
+    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
+    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
+        control.start_task({})

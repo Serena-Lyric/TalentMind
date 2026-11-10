@@ -394,3 +394,11 @@ def test_sixth_detail_url_is_rejected_at_session_limit(private_state, isolated_d
     assert result["result"]["reason"] == "bridge_session_limit_reached"
     assert bridge.get_session(run_id)["detail_attempted"] == 5
 
+
+
+def test_bridge_creation_blocks_unmigrated_legacy_ledger(private_state, monkeypatch):
+    def blocked(platform):
+        raise frequency.FrequencyStateError('collection_legacy_migration_required')
+    monkeypatch.setattr(frequency, 'assert_legacy_migrated', blocked)
+    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
+        bridge.create_session({'keyword': 'Java', 'city_name': '北京', 'city_code': '101010100'})

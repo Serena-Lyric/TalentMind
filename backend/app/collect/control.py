@@ -21,7 +21,7 @@ from typing import Any
 from app.collect.boss_collect_loop import DEFAULT_CITIES, DEFAULT_KEYWORDS
 from app.collect.fetch_boss_jobs import _search_url as boss_search_url
 from app.collect.fetchers.job_sites import SITES, SiteSpec
-from app.collect import browser, frequency_recovery, readiness, worker_process
+from app.collect import browser, frequency, frequency_recovery, readiness, worker_process
 from app.collect.cleaner import source_sections
 from app.collect.timing_validation import validate_collection_ranges
 
@@ -884,6 +884,7 @@ def start_task(payload: dict[str, Any], *, _reservation: object | None = None) -
         state = _load_state()
         _ensure_no_external_task(state)
         config = _validated_config(get_config(), payload)
+        frequency.assert_legacy_migrated(config['platform'])
         readiness.require_database_ready()
         run_id = f"{config['platform']}-{uuid.uuid4().hex}"
         task = _empty_task(run_id, config)

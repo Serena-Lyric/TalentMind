@@ -115,6 +115,11 @@ def legacy_migration_required(platform: str) -> bool:
         return True
 
 
+def assert_legacy_migrated(platform: str) -> None:
+    if legacy_migration_required(platform):
+        raise FrequencyStateError('collection_legacy_migration_required')
+
+
 def _validate_state(row: tuple, now: float) -> None:
     """Apply the same persisted-state checks to reservations and recovery."""
     if not math.isfinite(now) or now < 0:
@@ -140,6 +145,7 @@ def _reserve_action(platform: str, keyword: str, city: str, *, kind: str, flight
     platform = _check_platform(platform)
     if kind not in {'page', 'prepare', 'capture'}:
         raise ValueError('unsupported collection frequency scope')
+    assert_legacy_migrated(platform)
     keyword, city = str(keyword).strip(), str(city).strip()
     if kind != 'prepare' and (not keyword or not city):
         raise ValueError('collection frequency requires keyword and city code')

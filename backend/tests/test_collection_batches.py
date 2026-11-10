@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.collect import control, readiness, worker_process
+from app.collect import control, frequency, readiness, worker_process
 
 
 @pytest.fixture
@@ -540,3 +540,23 @@ def test_batch_stop_waits_for_real_synthetic_worker_tree_and_archive(batch, monk
             process.wait(timeout=5)
         pid_file.unlink(missing_ok=True)
 
+
+
+def test_batch_start_surfaces_legacy_ledger_error_before_browser(batch, monkeypatch):
+    def blocked(platform):
+        raise frequency.FrequencyStateError('collection_legacy_migration_required')
+    monkeypatch.setattr(frequency, 'assert_legacy_migrated', blocked)
+    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
+    payload = plan()
+    payload.update(keywords=['Python'], cities=[{'name': '北京', 'code': '101010100'}])
+    created = batch.create_batch(payload)
+    batch.start_batch(created['batch_id'])
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        result = batch.get_batch(created['batch_id'])
+        if result['items'][0]['status'] == 'error':
+            break
+        time.sleep(.01)
+    else:
+        pytest.fail(f"batch item did not fail: {result}")
+    assert result['items'][0]['stop_reason'] == 'FrequencyStateError'
