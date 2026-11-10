@@ -1,5 +1,6 @@
 """离线验证真实采集编排及 SQL 提交；仅使用临时 SQLite 和合成岗位。"""
 from contextlib import contextmanager
+import json
 import sys
 import types
 
@@ -291,3 +292,20 @@ def test_placeholder_detail_does_not_block_next_round_completion(offline, monkey
     assert len(rows()) == 1
     assert "负责 Python 后端服务开发" in rows()[0]["raw_text"]
 
+
+
+def test_boss_run_fetch_persists_verified_identity_from_actual_detail(offline, monkeypatch):
+    Client, rows, run = offline
+    monkeypatch.setattr(boss, '_fetch_search_page', lambda *args: [card('verified')])
+    with run(pages=1, detail_limit=1, max_jobs=1) as collect:
+        stats = collect()
+    assert stats['inserted'] == 1
+    stored = rows()
+    assert len(stored) == 1
+    row = stored[0]
+    assert row['identity_status'] == 'verified'
+    assert row['content_eligible'] == 1
+    evidence = json.loads(row['identity_evidence'])
+    assert evidence['job_url'] == row['source_detail']
+    assert evidence['detail_url'] == row['source_detail']
+    assert '负责 Python 服务开发' in row['raw_text']

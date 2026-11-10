@@ -259,7 +259,10 @@ def run_fetch(
                     else:
                         stats['complete'] += 1
                         job.update({key: value for key, value in detail.items() if value and key != 'url'})
-                        raw = normalize_boss_job(job)
+                        # Keep the validated detail URL as a separate identity argument;
+                        # the merged job intentionally omits the detail URL to avoid
+                        # replacing the list-derived source URL.
+                        raw = normalize_boss_job(job, detail)
                         if raw:
                             run_pipeline(db, [raw], jd_saver=save_detail)
                     time.sleep(delay)
