@@ -163,6 +163,7 @@ def run_fetch(
     cdp_endpoint: str,
     user_data_dir: str | None = None,
     pages: int = 1,
+    start_page: int = 1,
     detail_limit: int = 8,
     max_jobs: int = 12,
     delay: float = 15.0,
@@ -183,8 +184,8 @@ def run_fetch(
     cities = list(cities)
     if not keywords or not cities:
         raise ValueError("至少需要一个关键词和城市")
-    if pages < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0 or settle < 0:
-        raise ValueError("pages 必须 >=1，其余数值不能为负数")
+    if pages < 1 or start_page < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0 or settle < 0:
+        raise ValueError("pages/start_page 必须 >=1，其余数值不能为负数")
     if current_page_only and (len(keywords) != 1 or len(cities) != 1):
         raise ValueError("current_page_only 必须绑定一个关键词和城市")
     if search_url_template:
@@ -196,7 +197,7 @@ def run_fetch(
     if not current_page_only:
         for keyword in keywords:
             for city_name, city_code in cities:
-                for page in range(1, pages + 1):
+                for page in range(start_page, start_page + pages):
                     url = spec.search_url(keyword, city_code, page)
                     if browser.search_navigation_target(platform, url) != (keyword.strip(), city_code.strip()):
                         raise ValueError('collection_search_target_mismatch')

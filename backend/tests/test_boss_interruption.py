@@ -309,3 +309,16 @@ def test_boss_run_fetch_persists_verified_identity_from_actual_detail(offline, m
     assert evidence['job_url'] == row['source_detail']
     assert evidence['detail_url'] == row['source_detail']
     assert '负责 Python 服务开发' in row['raw_text']
+
+
+def test_boss_run_fetch_uses_requested_start_page(offline, monkeypatch):
+    Client, rows, run = offline
+    urls = []
+    def search(client, url, settle):
+        urls.append(url)
+        return [card('page-two')]
+    monkeypatch.setattr(boss, '_fetch_search_page', search)
+    with run(pages=1, start_page=2, detail_limit=1, max_jobs=1) as collect:
+        collect()
+    assert len(urls) == 1
+    assert 'page=2' in urls[0]

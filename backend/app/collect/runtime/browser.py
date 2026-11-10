@@ -68,6 +68,7 @@ class CdpEngine:
             cdp_endpoint='auto',
             user_data_dir=str(definition.profile_dir),
             pages=1,
+            start_page=page,
             detail_limit=config.detail_limit,
             max_jobs=config.max_jobs,
             delay=config.page_delay_min,

@@ -32,6 +32,7 @@ def test_cdp_engine_dispatches_three_platforms_to_fixed_isolated_profiles():
     assert all(path.endswith(('boss', 'zhaopin', 'liepin')) for path in profiles)
     for _, _, kwargs in calls:
         assert kwargs['pages'] == 1
+        assert kwargs['start_page'] == 1
         assert kwargs['detail_limit'] == 1
         assert kwargs['max_jobs'] == 1
         assert kwargs['login_timeout'] == 0
@@ -58,3 +59,16 @@ def test_cdp_engine_maps_block_and_login_without_retry():
     result = engine.fetch_once('zhaopin', 'Python', PLATFORMS['zhaopin'].cities[0], 1, lambda: None)
     assert result['status'] == 'needs_login'
     assert attempts == ['blocked', 'login']
+
+
+def test_cdp_engine_forwards_requested_page_as_single_page_start():
+    calls = []
+
+    def runner(*args, **kwargs):
+        calls.append(kwargs)
+        return {'listed': 0, 'inserted': 0, 'stop_reason': None}
+
+    engine = CdpEngine(boss_runner=runner, cn_runner=runner)
+    engine.fetch_once('boss', 'Python', PLATFORMS['boss'].cities[0], 2, lambda: None)
+    assert calls[0]['pages'] == 1
+    assert calls[0]['start_page'] == 2
