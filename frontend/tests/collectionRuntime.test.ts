@@ -34,7 +34,8 @@ test('持续采集面板显示三站状态并启动/停止真实接口', async (
     assert.equal(button(page, 'runtime-stop').props.disabled, true)
 
     await button(page, 'runtime-start').props.onClick()
-    assert.equal(page.calls.some(call => call.method === 'startCollectionRuntime'), true)
+    const startCall = page.calls.find(call => call.method === 'startCollectionRuntime')
+    assert.deepEqual(startCall?.args, [{}])
     assert.equal(page.state.notice.value.includes('worker'), true)
 
     await button(page, 'runtime-stop').props.onClick()

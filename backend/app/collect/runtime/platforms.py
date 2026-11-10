@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import math
 from pathlib import Path
 from typing import Callable
 from urllib.parse import quote_plus
@@ -83,12 +84,14 @@ class RuntimeConfig:
             raise ValueError('detail_limit must be a non-negative integer')
         if type(self.max_jobs) is not int or self.max_jobs < 0:
             raise ValueError('max_jobs must be a non-negative integer')
-        if not (15.0 <= self.page_delay_min <= self.page_delay_max <= 30.0):
-            raise ValueError('page delays must be within 15..30 seconds')
-        if not (360.0 <= self.switch_interval_min <= self.switch_interval_max <= 720.0):
-            raise ValueError('switch intervals must be within 360..720 seconds')
-        if self.settle < 5.0:
-            raise ValueError('settle must be at least 5 seconds')
+        if (not math.isfinite(self.page_delay_min) or not math.isfinite(self.page_delay_max)
+                or self.page_delay_min < 15.0 or self.page_delay_max < self.page_delay_min):
+            raise ValueError('page delays must be finite and at least 15 seconds with max >= min')
+        if (not math.isfinite(self.switch_interval_min) or not math.isfinite(self.switch_interval_max)
+                or self.switch_interval_min < 360.0 or self.switch_interval_max < self.switch_interval_min):
+            raise ValueError('switch intervals must be finite and at least 360 seconds with max >= min')
+        if not math.isfinite(self.settle) or self.settle < 5.0:
+            raise ValueError('settle must be finite and at least 5 seconds')
         for source in PLATFORMS:
             cities = self.cities.get(source)
             if not cities or any(not name or not code for name, code in cities):
@@ -114,9 +117,32 @@ def config_from_payload(payload: RuntimeConfig | dict | None) -> RuntimeConfig:
     if not isinstance(payload, dict):
         raise ValueError('runtime config must be an object')
     values = dict(payload)
-    values['keywords'] = tuple(values.get('keywords') or ())
-    values['cities'] = {
-        str(platform): tuple((str(city[0]), str(city[1])) for city in cities)
-        for platform, cities in (values.get('cities') or {}).items()
-    }
+    defaults = default_runtime_config()
+    if 'keywords' in values:
+        keywords = values['keywords']
+        if not isinstance(keywords, (list, tuple)):
+            raise ValueError('keywords must be a list or tuple')
+        values['keywords'] = tuple(str(value).strip() for value in keywords)
+    else:
+        values['keywords'] = defaults.keywords
+    if 'cities' in values:
+        supplied = values['cities']
+        if not isinstance(supplied, dict):
+            raise ValueError('cities must be an object keyed by platform')
+        merged = {platform: definition.cities for platform, definition in PLATFORMS.items()}
+        for platform, cities in supplied.items():
+            platform = str(platform)
+            if platform not in PLATFORMS:
+                raise ValueError(f'unsupported collection runtime platform: {platform}')
+            if not isinstance(cities, (list, tuple)):
+                raise ValueError(f'cities for {platform} must be a list or tuple')
+            parsed = []
+            for city in cities:
+                if not isinstance(city, (list, tuple)) or len(city) != 2:
+                    raise ValueError(f'city for {platform} must be [name, code]')
+                parsed.append((str(city[0]).strip(), str(city[1]).strip()))
+            merged[platform] = tuple(parsed)
+        values['cities'] = merged
+    else:
+        values['cities'] = defaults.cities
     return RuntimeConfig(**values)

@@ -1,4 +1,8 @@
 """Runtime API is a thin wrapper over the isolated scheduler."""
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from app.collect import frequency, readiness
 from app.collect.runtime import scheduler
 from app.routers import collection
 
@@ -27,3 +31,32 @@ def test_old_single_start_route_remains_compatible(monkeypatch):
     monkeypatch.setattr(control, 'start_task', lambda payload: {'run_id': 'legacy', 'status': 'preparing'})
     result = collection.collection_start({'platform': 'boss'})
     assert result['data']['run_id'] == 'legacy'
+
+
+def test_asgi_empty_start_payload_reaches_real_scheduler_default_validation(monkeypatch, tmp_path):
+    class Process:
+        pid = 43210
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            return None
+
+        def terminate(self):
+            pass
+
+    monkeypatch.setattr(scheduler, '_STATE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(scheduler, '_SCHEDULER_PATH', tmp_path / 'runtime' / 'scheduler.json')
+    monkeypatch.setattr(scheduler, '_PROCESSES', {})
+    monkeypatch.setattr(scheduler, '_PROCESS_META', {})
+    monkeypatch.setattr(scheduler, '_spawn_worker', lambda platform, config: Process())
+    monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
+    monkeypatch.setattr(frequency, 'legacy_migration_required', lambda platform: False)
+
+    app = FastAPI()
+    app.include_router(collection.router)
+    response = TestClient(app).post('/collection/runtime/start', json={})
+    assert response.status_code == 200
+    assert response.json()['code'] == 0
+    assert set(response.json()['data']['platforms']) == {'boss', 'zhaopin', 'liepin'}
