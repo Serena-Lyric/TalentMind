@@ -109,7 +109,10 @@ def acquire(
             path.unlink(missing_ok=True)
             continue
         try:
-            os.write(descriptor, json.dumps(payload, ensure_ascii=False, sort_keys=True).encode('utf-8'))
+            encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode('utf-8')
+            offset = 0
+            while offset < len(encoded):
+                offset += os.write(descriptor, encoded[offset:])
             os.fsync(descriptor)
         finally:
             os.close(descriptor)

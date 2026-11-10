@@ -17,7 +17,7 @@
 ## 验证
 
 - 后端：`cd backend; .\.venv\Scripts\python.exe -m pytest -m "not integration" -q`
-  - **2687 passed / 2 skipped / 18 deselected**。
+  - **2718 passed / 2 skipped / 18 deselected**。
 - 前端：`cd frontend; pnpm test`
   - **293 passed / 0 failed**。
 - 前端：`pnpm run build`
@@ -39,3 +39,20 @@
 ## 审查重点
 
 单站阻断隔离、跨平台长动作不互锁、旧 flight 不绕过冷却、逐条提交与幂等、迟到/换页/公司冲突、`source_detail` 不静默截断，以及“执行结束”和“业务入库/拒绝”不可混淆。
+
+
+## 首轮独立复审修复（2026-11-10）
+
+固定复审 head：`5e3cb969067336657a57524e8c88f9b2c7f53611`；逐项修复如下：
+
+| 项 | 修复 | 提交/回归 |
+|---|---|---|
+| P1-1 默认启动 | `config_from_payload({})` 保留默认关键词与三站城市；部分城市覆写只替换指定平台；显式空/畸形值仍拒绝；慢于默认上限的合法间隔保留 | `fa31620`；`test_collection_runtime_config.py`、ASGI 空 `{}` 启动、前端默认 `{}` 请求 |
+| P1-2 BOSS 真采身份 | `fetch_boss_jobs.run_fetch` 将已验证详情 URL 作为独立参数传给 `normalize_boss_job` | `e922318`；合成 CDP + 隔离 SQLite 保存后读回 `verified/True` |
+| P1-3 分页游标 | BOSS/智联入口新增 `start_page`；`CdpEngine` 把 worker 页码作为单页起点传递 | `6b42b7e`；引擎参数、BOSS/智联实际 URL 指定页测试 |
+| P1-4 检查点/回执 | `scheduler.start` 保留既有游标、`next_run_at`、最后保存身份与统计；blocked/needs_login/failed 不自动清除；`last_saved_identity` 只接受 persisted inserted/updated/skipped 回执 | `d38218c`；调度器重启、无保存事件、三类回执测试 |
+| P1-5 旧账本门禁 | `frequency.assert_legacy_migrated` 下沉到真实预约底层；旧单轮、批次、bridge 创建入口提前 fail closed | `e1f3af8`；unfinished/cooldown 底层测试及三入口测试 |
+| P1-6 跨入口互斥 | 新增 `runtime/lease.py`，每平台 writer lock；runtime 三 worker、旧 control/batch、bridge 统一占用；PID+创建时间识别 stale lock | `1f34174`；lease 单测、runtime↔旧单轮、runtime↔bridge 双向抢占 |
+| 次要契约 | 页面/组合间隔只校验有限值与硬下限，不再把默认 30/720 秒当绝对上限 | `fa31620`；慢配置正例 |
+
+新增测试只使用临时文件、合成 CDP/worker 和隔离 SQLite；没有新增真实站点采集、正式库写入/删除或迁移。真实 BOSS 单次重试仍未执行。

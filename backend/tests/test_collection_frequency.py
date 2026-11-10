@@ -223,7 +223,8 @@ def test_clock_rollback_before_callback_blocks_the_actual_action(ledger, monkeyp
 
 
 def test_platform_actions_use_independent_ledgers(tmp_path, monkeypatch):
-    monkeypatch.setattr(frequency, '_STATE_PATH', frequency._DEFAULT_STATE_PATH)
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
     monkeypatch.setattr(frequency, '_LEDGER_ROOT', tmp_path / 'runtime')
     barrier = threading.Barrier(2)
 

@@ -47,6 +47,7 @@ def test_venv_sleep_wrapper_and_real_child_both_stop_before_return(method):
 @pytest.mark.skipif(os.name != 'nt', reason='Windows job/controller regression')
 def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch):
     from app.collect import control, frequency, readiness, worker_process
+    from app.collect.runtime import lease
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'state.json')
     monkeypatch.setattr(control, '_PROCESS', None)
@@ -96,6 +97,7 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
         assert state['history'][0]['pid'] is None
         assert control._PROCESS is None
         assert process._collection_job.handle is None
+        assert lease.status('boss', root=tmp_path / 'runtime') is None
     finally:
         if process is not None:
             worker_process.close(process)

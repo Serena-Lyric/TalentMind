@@ -50,6 +50,7 @@ def test_asgi_empty_start_payload_reaches_real_scheduler_default_validation(monk
     monkeypatch.setattr(scheduler, '_SCHEDULER_PATH', tmp_path / 'runtime' / 'scheduler.json')
     monkeypatch.setattr(scheduler, '_PROCESSES', {})
     monkeypatch.setattr(scheduler, '_PROCESS_META', {})
+    monkeypatch.setattr(scheduler, '_LEASES', {})
     monkeypatch.setattr(scheduler, '_spawn_worker', lambda platform, config: Process())
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(frequency, 'legacy_migration_required', lambda platform: False)
@@ -60,3 +61,4 @@ def test_asgi_empty_start_payload_reaches_real_scheduler_default_validation(monk
     assert response.status_code == 200
     assert response.json()['code'] == 0
     assert set(response.json()['data']['platforms']) == {'boss', 'zhaopin', 'liepin'}
+    scheduler.stop()

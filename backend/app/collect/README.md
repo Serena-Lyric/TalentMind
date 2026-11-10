@@ -31,6 +31,17 @@ Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动�
 
 控制 API：`GET /collection/runtime/status`、`POST /collection/runtime/start`、`POST /collection/runtime/stop`、`POST /collection/runtime/resume/{platform}`。现有 `/collection` 页增加三站状态卡、启动/停止和人工处理后恢复入口；旧单轮、批次、桥接接口暂保留兼容。
 
+首轮独立复审后的固定补充：
+
+- 空 `{}` 启动使用默认关键词和三站城市；部分城市覆写只替换指定平台，显式空值仍拒绝。
+- worker 页码通过 `start_page` 传入 BOSS/智联入口，单次只访问指定页，不把第 2 页重复成第 1 页。
+- scheduler 重启保留已有游标、`next_run_at`、最后确认身份和统计；blocked/needs_login/failed 必须显式恢复。
+- `last_saved_identity` 只接受 persisted inserted/updated/skipped 回执，列表或详情尝试事件不算保存。
+- 旧共享账本门禁下沉到 `frequency.assert_legacy_migrated`，旧单轮、批次、bridge 创建均提前失败。
+- `runtime/lease.py` 提供每平台跨进程 writer lock；runtime、旧 control/batch、bridge 双向互斥，历史只读不受影响。
+- 页面动作和组合间隔只约束硬下限及有限值，允许用户配置更慢节奏。
+
+
 兼容/退役清单：
 
 - 保留复用：`browser.py` 的低层 Edge/CDP 准备、`fetch_boss_jobs.py`、`fetch_cn_jobs.py`、`pipeline.py`、`repository.py`、`identity.py`、`frequency.py`、`frequency_recovery.py`。
