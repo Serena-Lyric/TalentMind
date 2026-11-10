@@ -22,7 +22,7 @@
   - **293 passed / 0 failed**。
 - 前端：`pnpm run build`
   - 类型检查和生产构建通过；Vite 仅保留既有大 chunk 警告。
-- PR #80 CI：5/5 checks successful。
+- PR #80 当前 head 的 CI 以 GitHub checks 为准；旧 head 结果不外推。
 - 隔离证据：
   - 三站模拟覆盖单条 SQLite 提交、第二轮幂等、停止/重启、BOSS blocked 后智联/猎聘继续。
   - 每平台独立频率账本并行执行测试通过；旧 flight 迁移保留 unfinished 和冷却。
