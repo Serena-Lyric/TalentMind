@@ -122,3 +122,41 @@ def test_status_restores_persisted_worker_pid_and_creation_time(isolated_schedul
     result = scheduler.status()
     assert scheduler._PROCESSES['boss'] is process
     assert result['platforms']['boss']['status'] == 'waiting'
+
+
+def test_start_preserves_existing_checkpoint_and_pending_next_due(isolated_scheduler):
+    existing = state.RuntimeState(
+        platform='boss', status='stopped', keyword_index=1, city_index=2, page=3,
+        next_run_at=1234.0, last_saved_identity='boss://saved', last_success_at=1200.0,
+        stats={'inserted': 2}, updated_at=1200.0,
+    )
+    state.save_state(existing, root=scheduler._STATE_ROOT)
+
+    scheduler.start(RuntimeConfig())
+    loaded = state.load_state('boss', root=scheduler._STATE_ROOT)
+    assert (loaded.keyword_index, loaded.city_index, loaded.page) == (1, 2, 3)
+    assert loaded.next_run_at == 1234.0
+    assert loaded.last_saved_identity == 'boss://saved'
+    assert loaded.last_success_at == 1200.0
+    assert loaded.stats == {'inserted': 2}
+    assert loaded.status == 'waiting'
+
+
+@pytest.mark.parametrize('status', ['blocked', 'needs_login', 'failed'])
+def test_start_does_not_clear_state_that_needs_manual_recovery(isolated_scheduler, status):
+    existing = state.RuntimeState(platform='boss', status=status, stop_reason='review_required', updated_at=1000)
+    state.save_state(existing, root=scheduler._STATE_ROOT)
+    with pytest.raises(RuntimeError, match='manual_recovery'):
+        scheduler.start(RuntimeConfig())
+    assert isolated_scheduler == []
+    assert state.load_state('boss', root=scheduler._STATE_ROOT).status == status
+
+
+def test_resume_failed_requires_confirmation_and_keeps_safety_delay(isolated_scheduler):
+    failed = state.RuntimeState(platform='boss', status='failed', stop_reason='db_error', updated_at=1000)
+    state.save_state(failed, root=scheduler._STATE_ROOT)
+    with pytest.raises(ValueError, match='confirmation'):
+        scheduler.resume('boss', confirmed=False)
+    result = scheduler.resume('boss', confirmed=True)
+    assert result['platforms']['boss']['status'] in {'running', 'waiting'}
+    assert result['platforms']['boss']['next_run_at'] >= 1030

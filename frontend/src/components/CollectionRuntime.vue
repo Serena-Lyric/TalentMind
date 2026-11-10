@@ -37,14 +37,14 @@
         <p v-if="platformState(platform)?.stop_reason" class="runtime-reason">{{ platformState(platform)?.stop_reason }}</p>
         <p v-if="platformState(platform)?.next_run_at" class="hint">下一次页面动作：{{ formatTimestamp(platformState(platform)?.next_run_at) }}</p>
         <el-button
-          v-if="['blocked', 'needs_login'].includes(platformState(platform)?.status || '')"
+          v-if="['blocked', 'needs_login', 'failed'].includes(platformState(platform)?.status || '')"
           :data-testid="`runtime-resume-${platform}`"
           :loading="acting === platform"
           type="warning"
           plain
           @click="resumeRuntime(platform)"
         >
-          {{ platformState(platform)?.status === 'blocked' ? '人工确认后恢复该站' : '完成登录后恢复该站' }}
+          {{ platformState(platform)?.status === 'needs_login' ? '完成登录后恢复该站' : '确认排查后恢复该站' }}
         </el-button>
       </article>
     </div>
@@ -142,11 +142,12 @@ async function stopRuntime() {
 }
 async function resumeRuntime(platform: string) {
   const current = platformState(platform)
-  if (!current || !['blocked', 'needs_login'].includes(current.status) || acting.value || disposed) return
+  if (!current || !['blocked', 'needs_login', 'failed'].includes(current.status) || acting.value || disposed) return
   acting.value = platform; error.value = ''; notice.value = ''
   try {
-    apply(await resumeCollectionRuntime(platform, current.status === 'blocked'))
-    notice.value = current.status === 'blocked' ? '已登记人工确认，按安全间隔恢复该站。' : '已登记登录完成，按安全间隔恢复该站。'
+    const confirmed = current.status !== 'needs_login'
+    apply(await resumeCollectionRuntime(platform, confirmed))
+    notice.value = current.status === 'needs_login' ? '已登记登录完成，按安全间隔恢复该站。' : '已登记人工确认，按安全间隔恢复该站。'
     ElMessage.success('恢复请求已登记')
   } catch (reason) {
     error.value = `恢复失败：${reason instanceof Error ? reason.message : String(reason)}`

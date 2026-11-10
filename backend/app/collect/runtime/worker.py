@@ -12,14 +12,14 @@ from app.collect.runtime.platforms import RuntimeConfig, config_from_payload
 
 def _last_saved_identity(events: list[dict[str, Any]]) -> str | None:
     for event in reversed(events):
-        if event.get('event') == 'persisted':
-            for item in event.get('items') or []:
-                value = item.get('source_detail')
-                if value:
-                    return str(value)
-        job = event.get('job') or {}
-        if job.get('url'):
-            return str(job['url'])
+        if event.get('event') != 'persisted':
+            continue
+        for item in event.get('items') or []:
+            if item.get('outcome') not in {'inserted', 'updated', 'skipped'}:
+                continue
+            value = item.get('source_detail')
+            if value:
+                return str(value)
     return None
 
 

@@ -26,6 +26,7 @@ _PROCESSES: dict[str, subprocess.Popen] = {}
 _PROCESS_META: dict[str, dict[str, int | None]] = {}
 _LOCK = threading.RLock()
 _clock = time.time
+_MANUAL_RECOVERY_STATUSES = frozenset({'blocked', 'needs_login', 'failed'})
 _KERNEL32 = ctypes.windll.kernel32 if os.name == 'nt' else None
 if _KERNEL32 is not None:
     _KERNEL32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
@@ -232,16 +233,22 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
         for platform in ('boss', 'zhaopin', 'liepin'):
             if frequency.legacy_migration_required(platform):
                 raise RuntimeError(f'collection_legacy_migration_required:{platform}')
+        existing = {platform: state.load_state(platform, root=_STATE_ROOT) for platform in ('boss', 'zhaopin', 'liepin')}
+        blocked = [platform for platform, value in existing.items() if value.status in _MANUAL_RECOVERY_STATUSES]
+        if blocked:
+            raise RuntimeError('collection_runtime_manual_recovery_required:' + ','.join(blocked))
         readiness.require_database_ready()
         now = _clock()
         spawned: dict[str, Any] = {}
         try:
             for platform in ('boss', 'zhaopin', 'liepin'):
                 state.clear_stop(platform, root=_STATE_ROOT)
-                state.save_state(
-                    state.RuntimeState(platform=platform, status='waiting', next_run_at=now, updated_at=now),
-                    root=_STATE_ROOT,
-                )
+                value = existing[platform]
+                value.status = 'waiting'
+                value.stop_reason = None
+                value.next_run_at = value.next_run_at if value.next_run_at is not None else now
+                value.updated_at = now
+                state.save_state(value, root=_STATE_ROOT)
                 spawned[platform] = _spawn_worker(platform, config)
             _PROCESSES.update(spawned)
             _PROCESS_META.clear()
@@ -271,14 +278,12 @@ def stop() -> dict[str, Any]:
             value = state.load_state(platform, root=_STATE_ROOT)
             value.status = 'stopped'
             value.stop_reason = 'user_stopped'
-            value.next_run_at = None
             value.updated_at = _clock()
             state.save_state(value, root=_STATE_ROOT)
         for platform in ('boss', 'zhaopin', 'liepin'):
             if platform not in processes:
                 value = state.load_state(platform, root=_STATE_ROOT)
                 value.status = 'stopped'
-                value.next_run_at = None
                 value.updated_at = _clock()
                 state.save_state(value, root=_STATE_ROOT)
         _PROCESSES.clear()
@@ -292,10 +297,10 @@ def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
     with _LOCK:
         _restore_processes()
         value = state.load_state(platform, root=_STATE_ROOT)
-        if value.status not in {'blocked', 'needs_login'}:
+        if value.status not in {'blocked', 'needs_login', 'failed'}:
             raise ValueError('collection_runtime_platform_not_waiting_for_manual_action')
-        if value.status == 'blocked' and not confirmed:
-            raise ValueError('blocked_resume_confirmation_required')
+        if value.status in {'blocked', 'failed'} and not confirmed:
+            raise ValueError('manual_recovery_confirmation_required')
         if frequency.legacy_migration_required(platform):
             raise RuntimeError(f'collection_legacy_migration_required:{platform}')
         process = _PROCESSES.pop(platform, None)
@@ -303,7 +308,7 @@ def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
             state.request_stop(platform, root=_STATE_ROOT)
             _stop_process(process)
         state.clear_stop(platform, root=_STATE_ROOT)
-        delay = 30.0 if value.status == 'blocked' else 15.0
+        delay = 15.0 if value.status == 'needs_login' else 30.0
         now = _clock()
         value.status = 'waiting'
         value.stop_reason = None

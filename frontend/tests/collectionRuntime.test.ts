@@ -48,9 +48,9 @@ test('持续采集面板显示三站状态并启动/停止真实接口', async (
 
 test('单站 blocked/needs_login 分别按确认语义恢复，不触碰其他站', async () => {
   const page = collectionComponent({
-    getCollectionRuntimeStatus: snapshot('blocked', 'needs_login', 'waiting'),
+    getCollectionRuntimeStatus: snapshot('blocked', 'needs_login', 'failed'),
     resumeCollectionRuntime: (platform: string, confirmed: boolean) => {
-      const value = snapshot('blocked', 'needs_login', 'waiting')
+      const value = snapshot('blocked', 'needs_login', 'failed')
       value.platforms[platform].status = 'waiting'
       return { ...value, last_resume: { platform, confirmed } }
     },
@@ -59,8 +59,9 @@ test('单站 blocked/needs_login 分别按确认语义恢复，不触碰其他�
     await page.mounted()
     await button(page, 'runtime-resume-boss').props.onClick()
     await button(page, 'runtime-resume-zhaopin').props.onClick()
+    await button(page, 'runtime-resume-liepin').props.onClick()
     const resumes = page.calls.filter(call => call.method === 'resumeCollectionRuntime')
-    assert.deepEqual(resumes.map(call => call.args), [['boss', true], ['zhaopin', false]])
+    assert.deepEqual(resumes.map(call => call.args), [['boss', true], ['zhaopin', false], ['liepin', true]])
   } finally {
     page.stop()
   }

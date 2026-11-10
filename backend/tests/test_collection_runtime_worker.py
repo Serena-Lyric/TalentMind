@@ -1,6 +1,8 @@
 """Worker orchestration tests use fake engines and isolated state only."""
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
 from app.collect.runtime import state
 from app.collect.runtime.platforms import RuntimeConfig
 from app.collect.runtime.worker import run_worker
@@ -127,3 +129,27 @@ def test_failed_result_is_not_retried(tmp_path):
     assert len(engine.calls) == 1
     assert result.status == 'failed'
     assert result.stop_reason == 'db_error'
+
+
+def test_worker_last_saved_identity_ignores_list_and_detail_attempt_events(tmp_path):
+    engine = Engine(lambda *args: {
+        'status': 'success', 'stats': {'listed': 1}, 'events': [
+            {'event': 'listed', 'jobs': [{'url': 'https://list-only'}]},
+            {'event': 'detail', 'job': {'url': 'https://detail-attempt'}},
+        ],
+    })
+    result = run_worker('boss', config_for_boss(), engine=engine, sink=Sink(), state_root=tmp_path,
+                        max_rounds=1, clock=Clock(), sleeper=lambda seconds: None)
+    assert result.last_saved_identity is None
+
+
+@pytest.mark.parametrize('outcome', ['inserted', 'updated', 'skipped'])
+def test_worker_last_saved_identity_uses_only_confirmed_persisted_receipts(tmp_path, outcome):
+    engine = Engine(lambda *args: {
+        'status': 'success', 'stats': {outcome: 1}, 'events': [
+            {'event': 'persisted', 'items': [{'source_detail': 'boss://saved', 'outcome': outcome}]},
+        ],
+    })
+    result = run_worker('boss', config_for_boss(), engine=engine, sink=Sink(), state_root=tmp_path,
+                        max_rounds=1, clock=Clock(), sleeper=lambda seconds: None)
+    assert result.last_saved_identity == 'boss://saved'
