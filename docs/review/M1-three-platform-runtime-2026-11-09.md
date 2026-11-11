@@ -114,3 +114,19 @@
 - `git diff --check`：通过。
 
 全后端测试、本地 Windows Job Object 实机用例和真实三站试采未在本轮运行；未访问正式 MySQL/Neo4j、未迁移数据库、未合并 PR。PR #80 与 Issue #79 保持打开，等待新 head 独立复审。
+
+
+## 第五轮 P2 严格复位标志类型（2026-11-11）
+
+第五轮独立 Review 确认第四轮全站受限复位缺口已通过，并指出 `bool(payload.get("reset_checkpoint"))` 会把非空字符串及其他 truthy JSON 值当作明确授权，可能静默清除本地进度。本轮只收紧此参数，不调整先前复位路径或 UI 可用性范围。
+
+- `scheduler.start` 现在只接受原生 `bool`；缺省与 `false` 保持普通启动语义，字符串、数字、数组、对象和 `null` 在读取/修改状态之前拒绝。
+- ASGI + 临时 SQLite 用例覆盖有效/损坏计划、非零 checkpoint、无效类型状态零修改；原生 `false` 的正常启动与损坏计划 fail-closed 路径、原生 `true` 的复位均有回归。
+
+### 本轮验证
+
+- `python -m pytest tests/test_collection_runtime_api.py tests/test_collection_runtime_browser.py tests/test_collection_runtime_config.py tests/test_collection_runtime_lease.py tests/test_collection_runtime_scheduler.py tests/test_collection_runtime_state.py tests/test_collection_runtime_three_sites.py tests/test_collection_runtime_worker.py tests/test_collection_worker_process.py tests/test_collection_worker_restore_windows.py -q`：**86 passed**。
+- `git diff --check`：通过。
+- 本轮未改前端；未访问招聘站、未连接正式数据库、未运行数据库迁移。全后端本地套件未运行，本机缺少服务配置且未使用占位配置。
+
+PR #80 与 Issue #79 保持打开，等待新 head 独立复审；未合并。

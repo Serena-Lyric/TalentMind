@@ -295,9 +295,13 @@ def status() -> dict[str, Any]:
 
 def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, Any]:
     raw_payload = dict(payload) if isinstance(payload, dict) else payload
-    reset_checkpoint = bool(raw_payload.get('reset_checkpoint')) if isinstance(raw_payload, dict) else False
     if isinstance(raw_payload, dict):
+        reset_checkpoint = raw_payload.get('reset_checkpoint', False)
+        if type(reset_checkpoint) is not bool:
+            raise ValueError('collection_runtime_reset_checkpoint_must_be_boolean')
         raw_payload.pop('reset_checkpoint', None)
+    else:
+        reset_checkpoint = False
     scheduler_data = _read_scheduler()
     stored_config = _stored_runtime_config(scheduler_data)
     empty_payload = raw_payload is None or raw_payload == {}

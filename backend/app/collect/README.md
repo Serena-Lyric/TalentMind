@@ -31,7 +31,7 @@ Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动�
 
 控制 API：`GET /collection/runtime/status`、`POST /collection/runtime/start`、`POST /collection/runtime/stop`、`POST /collection/runtime/resume/{platform}`。现有 `/collection` 页增加三站状态卡、启动/停止和人工处理后恢复入口；旧单轮、批次、桥接接口暂保留兼容。
 
-`POST /collection/runtime/start` 接受显式 `{ "reset_checkpoint": true }` 执行本地计划/游标复位。读取到可信已存计划时沿用，否则保存默认计划；清除三站的关键词/城市/页游标、运行计数、最近保存身份和运行时间记录，但保留每站 `blocked` / `needs_login` / `failed`、原因及 `STOP` 标志。运行中的状态、worker 或任一 writer lease 未停止时拒绝复位。该分支只写本地运行态 SQLite、scheduler 文件及受限站 STOP 标记，不检查业务数据库就绪/频率、不启动 worker，也不访问招聘站。控制台仅在三站均受限时显示复位按钮，并要求二次确认；复位后仍须按各站原人工处理和确认流程逐站恢复。
+`POST /collection/runtime/start` 接受显式 JSON 布尔值 `{ "reset_checkpoint": true }` 执行本地计划/游标复位；缺省或 `false` 按普通启动处理，字符串、数字、数组或对象一律拒绝且不改运行态。读取到可信已存计划时沿用，否则保存默认计划；清除三站的关键词/城市/页游标、运行计数、最近保存身份和运行时间记录，但保留每站 `blocked` / `needs_login` / `failed`、原因及 `STOP` 标志。运行中的状态、worker 或任一 writer lease 未停止时拒绝复位。该分支只写本地运行态 SQLite、scheduler 文件及受限站 STOP 标记，不检查业务数据库就绪/频率、不启动 worker，也不访问招聘站。控制台仅在三站均受限时显示复位按钮，并要求二次确认；复位后仍须按各站原人工处理和确认流程逐站恢复。
 
 首轮独立复审后的固定补充：
 
