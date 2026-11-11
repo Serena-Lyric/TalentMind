@@ -216,10 +216,14 @@ def test_explicit_checkpoint_reset_allows_default_plan_when_config_is_unavailabl
 
     scheduler.start({'reset_checkpoint': True})
 
+    assert isolated_scheduler == []
     loaded = state.load_state('boss', root=scheduler._STATE_ROOT)
     assert (loaded.keyword_index, loaded.city_index, loaded.page) == (0, 0, 1)
     assert loaded.last_saved_identity is None
     assert loaded.stats == {}
+    assert scheduler._stored_runtime_config(scheduler._read_scheduler()).keywords == ('Python',)
+    scheduler.start({})
+    assert sorted(platform for platform, _ in isolated_scheduler) == ['boss', 'liepin', 'zhaopin']
     scheduler.stop()
 
 

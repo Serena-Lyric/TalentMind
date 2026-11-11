@@ -312,6 +312,44 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
         for platform in restricted:
             state.request_stop(platform, root=_STATE_ROOT)
         _restore_processes()
+        if reset_checkpoint:
+            active_processes = [platform for platform, process in _PROCESSES.items() if _alive(process)]
+            active_states = [platform for platform, value in existing.items()
+                             if value.status in {'running', 'waiting'}]
+            if active_processes or active_states:
+                active = ','.join(dict.fromkeys(active_processes + active_states))
+                raise RuntimeError('collection_runtime_reset_requires_stopped_workers:' + active)
+            for platform, process in list(_PROCESSES.items()):
+                _PROCESSES.pop(platform, None)
+                _PROCESS_META.pop(platform, None)
+
+            reset_leases: list[lease.Lease] = []
+            try:
+                for platform in platforms:
+                    reset_leases.append(lease.acquire(
+                        platform, f'checkpoint-reset:{os.getpid()}:{platform}', 'runtime', root=_STATE_ROOT,
+                    ))
+                now = _clock()
+                for platform, value in existing.items():
+                    value.keyword_index = 0
+                    value.city_index = 0
+                    value.page = 1
+                    value.next_run_at = None
+                    value.last_saved_identity = None
+                    value.last_success_at = None
+                    value.stats = {}
+                    value.updated_at = now
+                    state.save_state(value, root=_STATE_ROOT)
+                    _LEASES.pop(platform, None)
+                scheduler_data = _read_scheduler()
+                scheduler_data['config'] = _config_dict(config)
+                scheduler_data['pids'] = {}
+                scheduler_data['checkpoint_reset_at'] = now
+                _write_scheduler(scheduler_data)
+            finally:
+                for held in reset_leases:
+                    held.release()
+            return status()
         if not available:
             raise RuntimeError('collection_runtime_manual_recovery_required:' + ','.join(restricted))
         active = [platform for platform, process in _PROCESSES.items() if _alive(process)]
@@ -325,15 +363,6 @@ def start(payload: RuntimeConfig | dict[str, Any] | None = None) -> dict[str, An
             raise RuntimeError('collection_runtime_plan_unavailable: explicit reset required')
         if stored_config is not None and config != stored_config and has_checkpoint and not reset_checkpoint:
             raise RuntimeError('collection_runtime_config_mismatch: explicit reset required')
-        if reset_checkpoint:
-            existing = {
-                platform: state.RuntimeState(
-                    platform=platform,
-                    status=existing[platform].status if platform in restricted else 'stopped',
-                    stop_reason=existing[platform].stop_reason if platform in restricted else None,
-                )
-                for platform in platforms
-            }
         for platform, process in list(_PROCESSES.items()):
             if not _alive(process):
                 _PROCESSES.pop(platform, None)

@@ -7,6 +7,7 @@
       </div>
       <div class="runtime-actions">
         <el-button data-testid="runtime-refresh" :loading="loading" @click="refresh">刷新</el-button>
+        <el-button v-if="allRestricted" data-testid="runtime-reset-checkpoint" type="warning" plain :disabled="!canResetCheckpoint" :loading="acting === 'reset'" @click="resetPlanAndCursor">复位计划与游标</el-button>
         <el-button data-testid="runtime-start" type="primary" :loading="acting === 'start'" :disabled="!canStart" @click="startRuntime">启动持续采集</el-button>
         <el-button data-testid="runtime-stop" type="danger" plain :loading="acting === 'stop'" :disabled="!canStop" @click="stopRuntime">停止全部</el-button>
       </div>
@@ -53,7 +54,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getCollectionRuntimeStatus,
   resumeCollectionRuntime,
@@ -74,9 +75,14 @@ let request = 0
 let timer: ReturnType<typeof setInterval> | null = null
 let disposed = false
 
-const canStart = computed(() => !isRunning.value && !acting.value)
+const canStart = computed(() => !isRunning.value && !allRestricted.value && !acting.value)
 const canStop = computed(() => isRunning.value && !acting.value)
 const isRunning = computed(() => platformOrder.some(platform => ['running', 'waiting'].includes(platformState(platform)?.status || '')))
+const allRestricted = computed(() => Boolean(runtime.value) && platformOrder.every(platform => {
+  const status = platformState(platform)?.status
+  return status === 'blocked' || status === 'needs_login' || status === 'failed'
+}))
+const canResetCheckpoint = computed(() => allRestricted.value && !acting.value)
 
 function platformState(platform: string): CollectionRuntimePlatformState | undefined {
   return runtime.value?.platforms?.[platform]
@@ -120,10 +126,39 @@ async function startRuntime() {
   if (!canStart.value || disposed) return
   acting.value = 'start'; error.value = ''; notice.value = ''
   try {
-    apply(await startCollectionRuntime({}))
-    notice.value = '三个平台 worker 已启动；需要登录或验证时只暂停对应站点。'
+    const result = await startCollectionRuntime({})
+    apply(result)
+    const activeCount = platformOrder.filter(platform => ['running', 'waiting'].includes(result.platforms[platform]?.status || '')).length
+    const restricted = platformOrder
+      .filter(platform => ['blocked', 'needs_login', 'failed'].includes(result.platforms[platform]?.status || ''))
+      .map(platform => platformLabels[platform])
+    notice.value = restricted.length
+      ? `已为 ${activeCount} 个可运行平台启动 worker；${restricted.join('、')}仍需人工处理。`
+      : '三个平台 worker 已启动；需要登录或验证时只暂停对应站点。'
   } catch (reason) {
     error.value = `启动失败：${reason instanceof Error ? reason.message : String(reason)}`
+  } finally {
+    if (!disposed) acting.value = ''
+  }
+}
+async function resetPlanAndCursor() {
+  if (!canResetCheckpoint.value || disposed) return
+  try {
+    await ElMessageBox.confirm(
+      '此操作只复位本地计划与采集游标，并清除运行计数、最近保存身份和运行时间记录；不启动 worker、不访问招聘站，也不会清除受限状态或 STOP 标志。可读取时沿用已保存计划；计划缺失或损坏时使用默认计划。复位后仍需逐站完成人工处理并显式恢复。',
+      '复位计划与游标',
+      { type: 'warning', confirmButtonText: '复位本地状态', cancelButtonText: '取消' },
+    )
+  } catch {
+    return
+  }
+  acting.value = 'reset'; error.value = ''; notice.value = ''
+  try {
+    apply(await startCollectionRuntime({ reset_checkpoint: true }))
+    notice.value = '本地计划与游标已复位；各站受限状态和 STOP 标志已保留，请逐站处理后再恢复。'
+    ElMessage.success('本地计划与游标已复位')
+  } catch (reason) {
+    error.value = `本地复位失败：${reason instanceof Error ? reason.message : String(reason)}`
   } finally {
     if (!disposed) acting.value = ''
   }

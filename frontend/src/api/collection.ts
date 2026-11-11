@@ -133,6 +133,7 @@ export interface CollectionRuntimeStatus {
 }
 
 export interface CollectionRuntimeConfig {
+  reset_checkpoint?: boolean
   keywords?: string[]
   cities?: Record<string, [string, string][]>
   pages?: number

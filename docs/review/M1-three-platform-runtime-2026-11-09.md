@@ -95,3 +95,22 @@
 ### 遗留边界
 
 升级前已经存在且没有 `job_name` 的 Windows worker lease 无法证明子进程树是否已退出，代码会保留该 lease 并阻止同平台新写入，需要人工处理旧运行态。PR #80 仍需独立复审；未合并、未运行真实采集或正式库操作。
+
+
+## 第四轮 P2 定向修复（2026-11-11）
+
+第四轮 Review 固定 head 为 `61128e19ab243dc3f9c8a03898b232cb5ee5ec54`，确认此前四项缺陷已通过，并指出“全站受限 + 计划缺失/损坏 + 非零 checkpoint”使显式复位不可达。本轮只修此 P2，并按行内意见修正部分启动提示。
+
+| 项 | 修复 | 回归 |
+|---|---|---|
+| 全受限时复位不可达 | `start(reset_checkpoint=true)` 在“无可运行站”拒绝之前执行本地复位；先确认无运行 worker/state，再取得全部三站 writer lease；计划可信时沿用，否则写入默认计划；保留 `status`、`stop_reason`、STOP，不 spawn worker、不做数据库就绪/频率预检 | ASGI API + 临时 SQLite 覆盖旧格式/损坏计划、复位后逐站 resume 可达、缺少显式 reset 时 start/resume 继续拒绝、存活 lease 阻止复位 |
+| 部分启动提示过宽 | 前端按返回状态报告实际启动 worker 数及仍待人工处理的平台；全站受限时提供确认后的本地复位入口 | `collectionRuntime.test.ts` 覆盖全站复位按钮与部分启动提示 |
+
+### 本轮验证
+
+- `python -m pytest tests/test_collection_runtime_api.py tests/test_collection_runtime_browser.py tests/test_collection_runtime_config.py tests/test_collection_runtime_lease.py tests/test_collection_runtime_scheduler.py tests/test_collection_runtime_state.py tests/test_collection_runtime_three_sites.py tests/test_collection_runtime_worker.py tests/test_collection_worker_process.py tests/test_collection_worker_restore_windows.py -q`：**68 passed**。用例使用临时 SQLite、合成进程和本地 ASGI API；未访问招聘站或正式数据库。
+- `pnpm test`：**295 passed**。
+- `pnpm run build`：类型检查和生产构建成功；Vite 报告 chunk 超过 500 kB（`GraphPanorama` 与主 bundle）。
+- `git diff --check`：通过。
+
+全后端测试、本地 Windows Job Object 实机用例和真实三站试采未在本轮运行；未访问正式 MySQL/Neo4j、未迁移数据库、未合并 PR。PR #80 与 Issue #79 保持打开，等待新 head 独立复审。
