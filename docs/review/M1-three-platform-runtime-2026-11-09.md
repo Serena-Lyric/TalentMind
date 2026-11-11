@@ -70,3 +70,28 @@
 | P2 计划/游标错位 | scheduler.json stop 时保留 config；空 payload 启动复用原计划；显式配置变化且已有游标时要求 `reset_checkpoint` | `test_custom_config_stop_start_empty_reuses_stored_plan` |
 
 所有验证仍使用临时文件、合成进程/CDP 与隔离 SQLite；真实站点重试、正式库操作、迁移和合并仍未执行。
+
+
+## 第三轮独立复审定向修复（2026-11-11）
+
+复审起点：`b7065624e10e78fb20968c7281a604b4a939d5f3`。代码与回归提交：`c72cbce`。
+
+| 项 | 修复 | RED→GREEN 回归 |
+|---|---|---|
+| P1-1 stale lock 回收竞态 | 每个平台 lease 的 acquire/rebind/release/release_if_dead 在 OS sidecar 锁和进程内互斥下执行；回收前复核 owner token。旧 Lease 不能移除新 owner。 | `test_two_processes_cannot_reclaim_the_same_stale_writer_lock`、`test_stale_release_cannot_remove_a_new_owner` |
+| P1-2 Windows worker 树接管 | worker 使用具名 Job Object，名称写入 scheduler.json 和 lease owner；恢复端重开 Job、终止并等待所有成员。无可验证句柄时 fail closed；停止未确认时不释放 lease。 | `test_restored_scheduler_stops_real_child_before_releasing_writer`、`test_restored_scheduler_fails_closed_without_process_tree_handle`、`test_stop_keeps_runtime_lease_when_scheduler_cannot_restore_worker` |
+| P1-3 单站门禁隔离 | start 保留受限站的状态与 STOP，只跳过该站并启动其他可运行站；受限站仍需显式恢复。即使受限 worker 尚在进程表中，也不会创建第二个该站 worker。无法取得已有 lease 时，resume 不会清除 STOP/人工门禁。 | `test_start_skips_platform_that_needs_manual_recovery`、`test_stop_preserves_manual_gate_and_start_skips_restricted_platform`、`test_resume_keeps_manual_gate_when_worker_lease_has_no_restorable_process` |
+| P2 计划/checkpoint 不匹配 | checkpoint 存在但 scheduler.json 缺失、缺 config 或损坏时，start/resume 不再猜默认计划；先通过 start 显式 reset_checkpoint 才能复位游标。 | `test_start_requires_checkpoint_reset_when_saved_plan_is_missing`、`test_start_requires_checkpoint_reset_when_scheduler_json_is_corrupt`、`test_explicit_checkpoint_reset_allows_default_plan_when_config_is_unavailable`、原 `test_custom_config_stop_start_empty_reuses_stored_plan` |
+
+### 验证
+
+- Windows 本机四个定向测试文件：`python -m pytest tests/test_collection_runtime_lease.py tests/test_collection_runtime_scheduler.py tests/test_collection_worker_process.py tests/test_collection_worker_restore_windows.py -q` → **38 passed**。
+- M1 控制、bridge、batch、frequency、runtime 扩展回归 → **323 passed / 6 deselected**。排除的 6 项在缺少本地服务配置时导入 `app.db.mysql`/`app.main`，需读取缺失的 Settings 字段。
+- 全后端 `python -m pytest -m "not integration" -q` 在 collection 阶段遇到 15 个配置错误：当前检出没有所需的本地 `mysql_url`、Neo4j、Redis 和 LLM 配置；未设置占位值、未连接任何数据库。
+- `git diff --check` 通过。所有新增进程测试只启动本地合成 wrapper/child；未访问招聘站、未连接或写入正式数据库、未迁移数据。
+
+扩展 M1 集合明确排除的测试为 `test_get_recent_raw_returns_latest_rows`、`test_control_api_pairing_list_detail_and_verification_stop`、`test_database_failure_is_unknown`、`test_database_quality_and_latest_cover_all_platforms`、`test_raw_adds_requirements_and_preserves_stored_duties`、`test_raw_reads_identity_metadata_from_migrated_schema`。全后端 collection 错误同样来自上述缺失 Settings，不是测试执行失败。
+
+### 遗留边界
+
+升级前已经存在且没有 `job_name` 的 Windows worker lease 无法证明子进程树是否已退出，代码会保留该 lease 并阻止同平台新写入，需要人工处理旧运行态。PR #80 仍需独立复审；未合并、未运行真实采集或正式库操作。
