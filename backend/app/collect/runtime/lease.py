@@ -1,18 +1,23 @@
 """Cross-process, per-platform writer leases for collection entrypoints."""
 from __future__ import annotations
 
+import errno
 import json
 import os
 import shutil
+import threading
 import time
 import uuid
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from app.collect import worker_process
 from app.collect.runtime import state
 
 _KINDS = frozenset({'runtime', 'single', 'batch', 'bridge'})
+_OPERATION_MUTEX = threading.Lock()
 _now = time.time
 
 
@@ -35,6 +40,7 @@ class Lease:
     path: Path
     pid: int
     created_at: int | None
+    job_name: str | None = None
 
     def release(self) -> None:
         release(self)
@@ -46,6 +52,52 @@ def lock_path(platform: str, root: Path | str | None = None) -> Path:
 
 def _owner_path(lock_dir: Path) -> Path:
     return lock_dir / 'owner.json'
+
+
+@contextmanager
+def _operation_lock(lock_dir: Path):
+    """Serialize every lease mutation using an OS-owned lock on a stable sibling file."""
+    with _OPERATION_MUTEX:
+        guard_path = lock_dir.with_name(f'{lock_dir.name}.guard')
+        guard_path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(guard_path, os.O_CREAT | os.O_RDWR, 0o600)
+        locked = False
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                if os.fstat(fd).st_size == 0:
+                    os.write(fd, b'\0')
+                deadline = time.monotonic() + 10
+                while not locked:
+                    try:
+                        os.lseek(fd, 0, os.SEEK_SET)
+                        msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+                        locked = True
+                    except OSError as exc:
+                        lock_conflict = exc.errno in {
+                            errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK,
+                            getattr(errno, 'EDEADLK', -1),
+                        } or getattr(exc, 'winerror', None) == 33
+                        if not lock_conflict:
+                            raise WriterStateError('collection_writer_guard_unavailable') from exc
+                        if time.monotonic() >= deadline:
+                            raise WriterStateError('collection_writer_guard_timeout') from exc
+                        time.sleep(.01)
+            else:
+                import fcntl
+                fcntl.flock(fd, fcntl.LOCK_EX)
+                locked = True
+            yield
+        finally:
+            if locked:
+                if os.name == 'nt':
+                    import msvcrt
+                    os.lseek(fd, 0, os.SEEK_SET)
+                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
 
 
 def _pid_alive(pid: int, created_at: int | None) -> bool:
@@ -78,8 +130,15 @@ def _write_owner(lock_dir: Path, payload: dict[str, Any]) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def _payload(platform: str, owner: str, kind: str, pid: int, created_at: int | None) -> dict[str, Any]:
-    return {
+def _payload(
+    platform: str,
+    owner: str,
+    kind: str,
+    pid: int,
+    created_at: int | None,
+    job_name: str | None = None,
+) -> dict[str, Any]:
+    value = {
         'platform': platform,
         'owner': owner,
         'kind': kind,
@@ -87,6 +146,30 @@ def _payload(platform: str, owner: str, kind: str, pid: int, created_at: int | N
         'created_at': created_at,
         'acquired_at': _now(),
     }
+    if job_name:
+        value['job_name'] = job_name
+    return value
+
+
+def _is_worker_owner(value: dict[str, Any]) -> bool:
+    return str(value.get('owner') or '').startswith('worker:')
+
+
+def _owner_tree_alive(value: dict[str, Any]) -> bool | None:
+    pid = value.get('pid')
+    if type(pid) is not int or pid <= 0:
+        return None
+    if _pid_alive(pid, value.get('created_at')):
+        return True
+    if os.name != 'nt' or not _is_worker_owner(value):
+        return False
+    job_name = value.get('job_name')
+    if not isinstance(job_name, str) or not job_name:
+        return None
+    try:
+        return worker_process.job_has_processes(job_name)
+    except (OSError, ValueError):
+        return None
 
 
 def status(platform: str, root: Path | str | None = None) -> dict[str, Any] | None:
@@ -94,23 +177,23 @@ def status(platform: str, root: Path | str | None = None) -> dict[str, Any] | No
     value = _read_owner(lock_dir)
     if value is None:
         return None
-    pid = value.get('pid')
-    created_at = value.get('created_at')
-    if type(pid) is not int or not _pid_alive(pid, created_at):
-        return None
-    return value
+    return value if _owner_tree_alive(value) is not False else None
 
 
-def _reclaim_stale(lock_dir: Path) -> None:
+def _reclaim_stale(lock_dir: Path, expected_owner: str) -> bool:
+    current = _read_owner(lock_dir)
+    if current is None or current.get('owner') != expected_owner:
+        return False
     stale = lock_dir.with_name(f'writer.lock.stale-{uuid.uuid4().hex}')
     try:
         os.replace(lock_dir, stale)
     except FileNotFoundError:
-        return
+        return False
     except OSError:
         # Another process may have reclaimed it first; retry acquisition.
-        return
+        return False
     shutil.rmtree(stale, ignore_errors=True)
+    return True
 
 
 def acquire(
@@ -132,59 +215,76 @@ def acquire(
     pid = os.getpid() if pid is None else int(pid)
     created_at = _created_at(pid) if created_at is None else created_at
     payload = _payload(platform, owner, kind, pid, created_at)
-    for _ in range(4):
-        try:
-            os.mkdir(lock_dir)
-        except FileExistsError:
-            existing = _read_owner(lock_dir)
-            if existing is None:
-                # An owner file can be absent while another process is publishing
-                # the lock. Never interpret that as stale; a damaged record needs
-                # explicit investigation.
-                raise WriterStateError(f'collection_writer_state_unknown:{platform}')
-            existing_pid = existing.get('pid')
-            existing_created = existing.get('created_at')
-            if type(existing_pid) is int and _pid_alive(existing_pid, existing_created):
-                raise WriterBusy(platform, existing)
-            _reclaim_stale(lock_dir)
-            continue
-        try:
-            _write_owner(lock_dir, payload)
-        except BaseException:
-            shutil.rmtree(lock_dir, ignore_errors=True)
-            raise
-        return Lease(platform, owner, kind, lock_dir, pid, created_at)
+    with _operation_lock(lock_dir):
+        for _ in range(4):
+            try:
+                os.mkdir(lock_dir)
+            except FileExistsError:
+                existing = _read_owner(lock_dir)
+                if existing is None:
+                    # An owner file can be absent while another process is publishing
+                    # the lock. Never interpret that as stale; a damaged record needs
+                    # explicit investigation.
+                    raise WriterStateError(f'collection_writer_state_unknown:{platform}')
+                existing_owner = existing.get('owner')
+                if not isinstance(existing_owner, str) or not existing_owner:
+                    raise WriterStateError(f'collection_writer_state_unknown:{platform}')
+                existing_alive = _owner_tree_alive(existing)
+                if existing_alive is True:
+                    raise WriterBusy(platform, existing)
+                if existing_alive is None:
+                    raise WriterStateError(f'collection_writer_tree_unknown:{platform}')
+                _reclaim_stale(lock_dir, existing_owner)
+                continue
+            try:
+                _write_owner(lock_dir, payload)
+            except BaseException:
+                shutil.rmtree(lock_dir, ignore_errors=True)
+                raise
+            return Lease(platform, owner, kind, lock_dir, pid, created_at)
     raise WriterBusy(platform, _read_owner(lock_dir))
 
 
-def rebind(lease: Lease, pid: int, created_at: int | None, *, owner: str | None = None) -> Lease:
+def rebind(
+    lease: Lease,
+    pid: int,
+    created_at: int | None,
+    *,
+    owner: str | None = None,
+    job_name: str | None = None,
+) -> Lease:
     """Atomically move ownership from the launcher to the actual worker."""
-    current = _read_owner(lease.path)
-    if current is None or current.get('owner') != lease.owner:
-        raise WriterStateError(f'collection_writer_owner_changed:{lease.platform}')
-    new_owner = owner or f'worker:{pid}:{uuid.uuid4().hex}'
-    payload = _payload(lease.platform, new_owner, lease.kind, int(pid), created_at)
-    _write_owner(lease.path, payload)
-    lease.owner = new_owner
-    lease.pid = int(pid)
-    lease.created_at = created_at
-    return lease
+    with _operation_lock(lease.path):
+        current = _read_owner(lease.path)
+        if current is None or current.get('owner') != lease.owner:
+            raise WriterStateError(f'collection_writer_owner_changed:{lease.platform}')
+        new_owner = owner or f'worker:{pid}:{uuid.uuid4().hex}'
+        payload = _payload(lease.platform, new_owner, lease.kind, int(pid), created_at, job_name)
+        _write_owner(lease.path, payload)
+        lease.owner = new_owner
+        lease.pid = int(pid)
+        lease.created_at = created_at
+        lease.job_name = job_name
+        return lease
 
 
 def release(lease: Lease) -> None:
-    current = _read_owner(lease.path)
-    if current is None or current.get('owner') != lease.owner:
-        return
-    _reclaim_stale(lease.path)
+    with _operation_lock(lease.path):
+        current = _read_owner(lease.path)
+        if current is None or current.get('owner') != lease.owner:
+            return
+        _reclaim_stale(lease.path, lease.owner)
 
 
 def release_if_dead(platform: str, root: Path | str | None = None) -> bool:
     lock_dir = lock_path(platform, root=root)
-    current = _read_owner(lock_dir)
-    if current is None:
-        return False
-    pid = current.get('pid')
-    if type(pid) is int and _pid_alive(pid, current.get('created_at')):
-        return False
-    _reclaim_stale(lock_dir)
-    return True
+    with _operation_lock(lock_dir):
+        current = _read_owner(lock_dir)
+        if current is None:
+            return False
+        if _owner_tree_alive(current) is not False:
+            return False
+        owner = current.get('owner')
+        if not isinstance(owner, str) or not owner:
+            return False
+        return _reclaim_stale(lock_dir, owner)

@@ -36,3 +36,23 @@ PR #80 首轮独立复审发现六类可确定的生产控制流问题：
 - lease 必须从启动者重绑定到实际 worker 根 PID；终止必须由 worker_process/job 或可核验进程句柄确认，失败时保留锁和待处理状态。
 - stop 不是人工恢复确认：blocked/needs_login/failed 必须保持门禁，不能通过 Stop→Start 重访。
 - 自定义关键词/城市计划必须随 scheduler 保存；空 payload 重启复用原计划，配置改变时要求显式 reset_checkpoint，避免旧 index 解释新计划。
+
+
+## 第三轮补充（2026-11-11）
+
+### 症状
+
+- 两个进程同时读到同一个 dead writer owner 后，后来的 `os.replace` 会移走先行者刚创建的新 lease；相同读后改名模式也出现在 `release` / `release_if_dead`。
+- Windows 接管只保存包装进程 PID；包装进程退出不代表 Job Object 中的 Python child 已退出。
+- 只要一个平台保留人工处理状态，`start` 就拒绝启动其他平台；旧 checkpoint 在 scheduler 配置缺失或损坏时还会按默认计划解释。
+
+### 修复
+
+- 对每个平台的 acquire、rebind、release 和 stale 回收统一使用稳定 sidecar OS 锁，并在锁内复核 owner token；同一进程的线程也串行化。Windows worker 使用可按名字重新打开的 Job Object，名称同时保存在 scheduler 与 lease owner 中；接管后按 Job Object 终止并等待整棵树。没有可验证句柄时保留 lease 并 fail closed。
+- `start` 为 blocked/needs_login/failed 平台保留 STOP 和状态，只启动其余可运行平台；受限 worker 若仍在运行，只发 STOP，不为其新建 worker。
+- 有 cursor、已保存身份或统计而找不到可信 scheduler config 时，`start` 和 `resume` fail closed；须先通过 `start(reset_checkpoint=true)` 显式复位，再恢复，不再静默回落默认计划。
+- 回归使用临时目录、隔离 SQLite 和合成 wrapper/child，没有连接真实招聘站或正式数据库。
+
+### 教训
+
+所有基于路径的 lock 代次变更都必须在同一跨进程临界区内完成“检查 owner→改名/删除”，并验证 owner token。Windows PID 只标识一个进程；需要停止 worker 时，应持有可验证的 Job Object 句柄，等待成员进程全部退出后才释放写入权。多平台状态分别准入，配置与 checkpoint 必须有可证明的绑定。

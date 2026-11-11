@@ -38,6 +38,25 @@ def test_stale_lock_is_reclaimed(tmp_path, monkeypatch):
     acquired.release()
 
 
+def test_stale_release_cannot_remove_a_new_owner(tmp_path, monkeypatch):
+    path = lease.lock_path('boss', root=tmp_path)
+    path.mkdir(parents=True)
+    (path / 'owner.json').write_text(json.dumps({
+        'platform': 'boss', 'owner': 'dead', 'kind': 'runtime', 'pid': 999999, 'created_at': 1,
+    }), encoding='utf-8')
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: pid == 100)
+
+    stale = lease.Lease('boss', 'dead', 'runtime', path, 999999, 1)
+    assert lease.release_if_dead('boss', root=tmp_path) is True
+    current = lease.acquire('boss', 'current', 'runtime', root=tmp_path, pid=100, created_at=2)
+
+    stale.release()
+
+    assert lease.release_if_dead('boss', root=tmp_path) is False
+    assert lease.status('boss', root=tmp_path)['owner'] == 'current'
+    current.release()
+
+
 def test_incomplete_lock_record_fails_closed_and_is_not_deleted(tmp_path):
     path = lease.lock_path('boss', root=tmp_path)
     path.mkdir(parents=True)
@@ -74,6 +93,34 @@ def _race_worker(root, start, finish, results):
             held.release()
 
 
+def _stale_race_worker(root, owner, started, stale_read, allow_stale_read, finish, results):
+    from app.collect.runtime import lease
+    original_read = lease._read_owner
+    paused = False
+
+    def read_owner(lock_dir):
+        nonlocal paused
+        value = original_read(lock_dir)
+        if not paused and value and value.get('owner') == 'dead':
+            paused = True
+            stale_read.set()
+            allow_stale_read.wait(timeout=20)
+        return value
+
+    lease._read_owner = read_owner
+    held = None
+    started.set()
+    try:
+        held = lease.acquire('boss', owner, 'runtime', root=root)
+        results.put((owner, 'acquired'))
+        finish.wait(timeout=20)
+    except (lease.WriterBusy, lease.WriterStateError):
+        results.put((owner, 'blocked'))
+    finally:
+        if held is not None:
+            held.release()
+
+
 def test_two_processes_cannot_both_publish_writer_lock(tmp_path):
     context = multiprocessing.get_context('spawn')
     start = context.Barrier(2)
@@ -89,3 +136,51 @@ def test_two_processes_cannot_both_publish_writer_lock(tmp_path):
     assert outcomes.count('blocked') == 1
     assert all(process.exitcode == 0 for process in processes)
     assert lease.status('boss', root=tmp_path) is None
+
+
+def test_two_processes_cannot_reclaim_the_same_stale_writer_lock(tmp_path):
+    context = multiprocessing.get_context('spawn')
+    path = lease.lock_path('boss', root=tmp_path)
+    path.mkdir(parents=True)
+    (path / 'owner.json').write_text(json.dumps({
+        'platform': 'boss', 'owner': 'dead', 'kind': 'runtime', 'pid': 999999, 'created_at': 1,
+    }), encoding='utf-8')
+    started_a, started_b = context.Event(), context.Event()
+    stale_read_a, stale_read_b = context.Event(), context.Event()
+    allow_a, allow_b, finish = context.Event(), context.Event(), context.Event()
+    results = context.Queue()
+    first = context.Process(target=_stale_race_worker, args=(
+        tmp_path, 'process-a', started_a, stale_read_a, allow_a, finish, results,
+    ))
+    first.start()
+    second = None
+    try:
+        assert stale_read_a.wait(timeout=15)
+        second = context.Process(target=_stale_race_worker, args=(
+            tmp_path, 'process-b', started_b, stale_read_b, allow_b, finish, results,
+        ))
+        second.start()
+        assert started_b.wait(timeout=15)
+        saw_old_owner_before_a_reclaimed = stale_read_b.wait(timeout=2)
+
+        allow_a.set()
+        outcomes = [results.get(timeout=20)]
+        allow_b.set()
+        outcomes.append(results.get(timeout=20))
+        finish.set()
+        first.join(timeout=20)
+        second.join(timeout=20)
+
+        assert not saw_old_owner_before_a_reclaimed
+        assert dict(outcomes) == {'process-a': 'acquired', 'process-b': 'blocked'}
+        assert first.exitcode == 0
+        assert second.exitcode == 0
+    finally:
+        allow_a.set()
+        allow_b.set()
+        finish.set()
+        for process in (first, second):
+            if process is not None and process.is_alive():
+                process.terminate()
+            if process is not None:
+                process.join(timeout=5)

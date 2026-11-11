@@ -959,6 +959,7 @@ def _launch_task(run_id: str, config: dict[str, Any]) -> None:
                     lease.rebind(
                         _LEASE, _PROCESS.pid, lease._created_at(_PROCESS.pid),
                         owner=f'worker:{_PROCESS.pid}:{uuid.uuid4().hex}',
+                        job_name=getattr(getattr(_PROCESS, '_collection_job', None), 'name', None),
                     )
                 except BaseException:
                     worker_process.stop(_PROCESS, timeout=5)

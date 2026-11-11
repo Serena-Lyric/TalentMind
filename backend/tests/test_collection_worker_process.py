@@ -12,8 +12,10 @@ import pytest
 @pytest.mark.parametrize('method', ['stop', 'close'])
 def test_venv_sleep_wrapper_and_real_child_both_stop_before_return(method):
     from app.collect import worker_process
-    process = worker_process.spawn([sys.executable, '-u', '-c',
-        'import os,time; print(os.getpid(),flush=True); time.sleep(60)'],
+    script = ("import subprocess,sys,time; child=subprocess.Popen([sys.executable,'-u','-c',"
+              "'import os,time; print(os.getpid(),flush=True); time.sleep(60)'],"
+              "stdout=subprocess.PIPE,text=True); print(child.stdout.readline().strip(),flush=True); time.sleep(60)")
+    process = worker_process.spawn([sys.executable, '-u', '-c', script],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8')
     kernel = ctypes.WinDLL('kernel32', use_last_error=True)
     kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
@@ -62,8 +64,10 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
     monkeypatch.setattr(control, '_worker_environment', os.environ.copy)
     pid_file = tmp_path / 'synthetic-pid'
     # Existence signals a fully written PID, including under a busy full-suite run.
-    script = (f'import os,time; from pathlib import Path; p=Path({str(pid_file)!r}); '
-              'temporary=p.with_suffix(".tmp"); temporary.write_text(str(os.getpid())); temporary.replace(p); '
+    child_script = (f'import os,time; from pathlib import Path; p=Path({str(pid_file)!r}); '
+                    'temporary=p.with_suffix(".tmp"); temporary.write_text(str(os.getpid())); temporary.replace(p); '
+                    'time.sleep(60)')
+    script = (f'import subprocess,sys,time; subprocess.Popen([sys.executable,"-u","-c",{child_script!r}]); '
               'print("sleep worker ready",flush=True); time.sleep(60)')
     workers = []
     def spawn(args, **kwargs):
