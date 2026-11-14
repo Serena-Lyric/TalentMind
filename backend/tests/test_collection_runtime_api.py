@@ -88,6 +88,108 @@ def _all_restricted_runtime(tmp_path, monkeypatch, scheduler_data):
     return statuses
 
 
+@pytest.mark.parametrize(('platform', 'status'), [('boss', 'blocked'), ('liepin', 'failed')])
+@pytest.mark.parametrize(('payload', 'expected'), [
+    pytest.param({'confirmed': 'false'}, 'invalid', id='string-false'),
+    pytest.param({'confirmed': '0'}, 'invalid', id='string-zero'),
+    pytest.param({'confirmed': 0}, 'invalid', id='number-zero'),
+    pytest.param({'confirmed': 1}, 'invalid', id='number-one'),
+    pytest.param({'confirmed': 1.5}, 'invalid', id='number-fraction'),
+    pytest.param({'confirmed': None}, 'invalid', id='null'),
+    pytest.param({'confirmed': []}, 'invalid', id='array'),
+    pytest.param({'confirmed': {}}, 'invalid', id='object'),
+    pytest.param({'confirmed': False}, 'rejected', id='boolean-false'),
+    pytest.param({}, 'rejected', id='missing-defaults-false'),
+    pytest.param({'confirmed': True}, 'resumed', id='boolean-true'),
+])
+@pytest.mark.filterwarnings('ignore:.*asyncio.iscoroutinefunction.*:DeprecationWarning')
+def test_asgi_resume_requires_native_boolean_confirmation_before_scheduler(
+    tmp_path, monkeypatch, platform, status, payload, expected,
+):
+    plan = json.dumps({
+        'config': scheduler._config_dict(scheduler.default_runtime_config()),
+        'pids': {},
+    })
+    statuses = _all_restricted_runtime(tmp_path, monkeypatch, plan)
+    assert statuses[platform] == status
+    before_states = {
+        name: state.load_state(name, root=scheduler._STATE_ROOT).to_dict()
+        for name in statuses
+    }
+    scheduler_before = scheduler._SCHEDULER_PATH.read_bytes()
+    spawned = []
+    resume_calls = []
+    database_preflights = []
+    frequency_checks = []
+
+    class Process:
+        pid = 65432
+        returncode = None
+
+        def poll(self): return self.returncode
+        def wait(self, timeout=None): return self.returncode
+        def terminate(self): self.returncode = 0
+
+    real_resume = scheduler.resume
+
+    def observe_resume(target, confirmed=False):
+        resume_calls.append((target, confirmed))
+        return real_resume(target, confirmed=confirmed)
+
+    monkeypatch.setattr(scheduler, 'resume', observe_resume)
+    monkeypatch.setattr(scheduler, '_spawn_worker', lambda target, config: spawned.append(target) or Process())
+    monkeypatch.setattr(readiness, 'require_database_ready', lambda: database_preflights.append('database'))
+    monkeypatch.setattr(
+        frequency, 'legacy_migration_required',
+        lambda target: frequency_checks.append(target) or False,
+    )
+    app = FastAPI()
+    from app.middleware import register_exception_handlers
+    register_exception_handlers(app)
+    app.include_router(collection.router)
+
+    response = TestClient(app).post(f'/collection/runtime/resume/{platform}', json=payload)
+    result = response.json()
+
+    assert response.status_code == 200
+    if expected == 'invalid':
+        assert result['code'] != 0
+        assert result['message'] == 'confirmed must be a boolean'
+        assert resume_calls == []
+        assert database_preflights == []
+        assert frequency_checks == []
+        assert spawned == []
+        assert scheduler._SCHEDULER_PATH.read_bytes() == scheduler_before
+        for name in statuses:
+            assert state.load_state(name, root=scheduler._STATE_ROOT).to_dict() == before_states[name]
+            assert state.stop_requested(name, root=scheduler._STATE_ROOT)
+    elif expected == 'rejected':
+        assert result['code'] != 0
+        assert result['message'] == 'manual_recovery_confirmation_required'
+        assert resume_calls == [(platform, False)]
+        assert database_preflights == []
+        assert frequency_checks == []
+        assert spawned == []
+        assert scheduler._SCHEDULER_PATH.read_bytes() == scheduler_before
+        for name in statuses:
+            assert state.load_state(name, root=scheduler._STATE_ROOT).to_dict() == before_states[name]
+            assert state.stop_requested(name, root=scheduler._STATE_ROOT)
+    else:
+        assert expected == 'resumed'
+        assert result['code'] == 0
+        assert resume_calls == [(platform, True)]
+        assert frequency_checks == [platform]
+        assert spawned == [platform]
+        for name in statuses:
+            current = state.load_state(name, root=scheduler._STATE_ROOT)
+            if name == platform:
+                assert current.status == 'waiting'
+                assert not state.stop_requested(name, root=scheduler._STATE_ROOT)
+            else:
+                assert current.to_dict() == before_states[name]
+                assert state.stop_requested(name, root=scheduler._STATE_ROOT)
+
+
 @pytest.mark.parametrize('scheduler_data', ['{"stopped_at": 900}', '{"config":'])
 def test_asgi_reset_all_restricted_checkpoint_is_local_then_resume_is_reachable(
     tmp_path, monkeypatch, scheduler_data,

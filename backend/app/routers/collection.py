@@ -109,7 +109,10 @@ def collection_runtime_stop():
 
 @router.post('/collection/runtime/resume/{platform}')
 def collection_runtime_resume(platform: str, payload: dict[str, Any] = Body(default={})):
-    return ok(_biz_call(runtime_scheduler.resume, platform, confirmed=bool(payload.get('confirmed', False))))
+    confirmed = payload.get('confirmed', False)
+    if type(confirmed) is not bool:
+        raise BizError(4001, 'confirmed must be a boolean')
+    return ok(_biz_call(runtime_scheduler.resume, platform, confirmed=confirmed))
 
 
 @router.get('/collection/frequency/{platform}')

@@ -130,3 +130,20 @@
 - 本轮未改前端；未访问招聘站、未连接正式数据库、未运行数据库迁移。全后端本地套件未运行，本机缺少服务配置且未使用占位配置。
 
 PR #80 与 Issue #79 保持打开，等待新 head 独立复审；未合并。
+
+
+## 第六轮 P2 `confirmed` 类型校验（2026-11-14）
+
+依据：[第六轮独立 Review](https://github.com/Serena-Lyric/TalentMind/pull/80#pullrequestreview-5852869815) 与 [Issue #79 第六轮结论](https://github.com/Serena-Lyric/TalentMind/issues/79#issuecomment-6785129050)。在第五轮 `reset_checkpoint` P2 已通过后，本轮只修复 `/collection/runtime/resume/{platform}` 将 JSON `confirmed` 交给 `bool()` 转换的问题。
+
+- 路由只接受原生 JSON boolean；缺省仍为 `false`。字符串、数字、数组、对象和 `null` 直接返回业务错误，不调用 scheduler，因此不清 STOP、不改状态、不做频率/数据库预检、不启动 worker。
+- `blocked` / `failed` 的显式 `false` 与缺省仍被 scheduler 的人工确认门禁拒绝；原生 `true` 保持既有恢复路径。`needs_login` 的 15 秒恢复语义未改。
+- 新增真实 ASGI → scheduler 回归，使用临时 SQLite、STOP 文件、合成 worker，并覆盖两种受限状态与非法 JSON 类型。旧代码下 16 个非法输入场景先失败；修复后运行时专项 86 项通过。
+
+### 本轮验证
+
+- `cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_collection_runtime_api.py tests/test_collection_runtime_scheduler.py tests/test_collection_runtime_lease.py tests/test_collection_worker_process.py tests/test_collection_worker_restore_windows.py -q`：**86 passed**。
+- `cd backend; .\.venv\Scripts\python.exe -m pytest -q`：**2782 passed / 20 skipped / 1 failed**。唯一失败为无关测试 `test_delivery_graph.py::test_concurrent_publish_returns_one_complete_immutable_snapshot`，在 `app/graph/delivery_bundle.py` 的路径保护检查报 `redirected graph snapshot prohibited`；单独复跑仍失败，本轮未改动图谱代码。
+- 未访问招聘站、未连接或写入正式数据库、未运行迁移。PR #80 与 Issue #79 仍开放，等待本轮独立复审；未合并。
+
+根因与复用教训见[恢复确认布尔陷阱](../superpowers/traps/2026-11-14-runtime-resume-confirmation-coercion.md)。
