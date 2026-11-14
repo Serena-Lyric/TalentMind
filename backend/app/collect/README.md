@@ -4,15 +4,58 @@
 
 BOSS/智联/猎聘的真实试采必须走模块入口，不允许临时脚本、直接 API/CDP 或浏览器手动抓取绕开模块频率后回填。既有低速设计成为代码硬下限：页面动作 15–30 秒、切换关键词/城市组合 360–720 秒；页面稳定参数至少 5 秒。请求/CLI/旧配置不能降低下限，NaN/Infinity 和负值拒绝；更慢的合法配置可保留。此规则不盲目扩展到 HN、公开 API 或信号源。
 
-`frequency.py` 在真实页面导航、DOM 卡片激活或显式当前页采集之前，提交私有 SQLite 预约；CDP 动作本身由跨进程事务锁包住，并从完成时重新计时。每个平台共享一份跨进程、跨任务和跨重启账本；独立准备浏览器也消耗页面额度，但明确搜索 URL 必须解析真实关键词/城市，不能以准备动作或模板参数隐藏组合变化；无法核验的显式搜索目标拒绝。遇到有效冷却时重新原子预约，不直接 sleep 后无检查执行；状态损坏、时钟回拨或存储失败停止，不降级到无门禁。CDP 动作异常或进程丢失保留持久 unfinished 标记，该平台停止并要求调查，不自动清除后续继续。此安全收紧替代历史“普通详情异常继续”策略；本批不提供跳过未完成动作的恢复按钮。
+`frequency.py` 在真实页面导航、DOM 卡片激活或显式当前页采集之前，提交私有 SQLite 预约；CDP 动作本身由同平台跨进程事务锁包住，并从完成时重新计时。每个平台使用独立的跨进程、跨任务和跨重启账本；独立准备浏览器也消耗页面额度，但明确搜索 URL 必须解析真实关键词/城市，不能以准备动作或模板参数隐藏组合变化；无法核验的显式搜索目标拒绝。遇到有效冷却时重新原子预约，不直接 sleep 后无检查执行；状态损坏、时钟回拨或存储失败停止，不降级到无门禁。CDP 动作异常或进程丢失保留持久 unfinished 标记，该平台停止并要求调查，不自动清除后续继续。此安全收紧替代历史“普通详情异常继续”策略；本批不提供跳过未完成动作的恢复按钮。
 
 普通浏览器扩展先向 `/api/collection/bridge/sessions/{id}/permit` 申请预约，获准后才读取 DOM；内容提交必须携带对应一次性票据。桥接预约固定使用页面区间上界 30 秒，组合冷却下界额外补偿 15 秒许可窗口（预约375–720秒），票据 15 秒内有效，旧扩展无票据提交拒绝。配对、状态读取和不带正文的安全阻断通知不构成采集，不消耗新额度。浏览器扩展与后端必须一起更新并重新加载，不能用旧扩展绕开预约。
 
-动作事务锁覆盖整个 SQLite 文件，不宣称三平台可并行。另一个动作长时间占锁时，最多等待5秒后失败关闭并报告 ledger busy；这不等于状态损坏。
+动作事务锁只覆盖对应平台的 SQLite 文件，因此三个平台可并行执行各自动作；同平台仍严格串行。另一个动作长时间占锁时，最多等待5秒后失败关闭并报告 ledger busy；这不等于状态损坏。
 
-账本位于忽略的 `data/local/collection/frequency.sqlite3`，不是生产业务库迁移；不要删除它来恢复或加速采集。损坏/回拨时应先排查，不能以切换目录、进程或修改时钟规避限制。门禁约束本模块发起的动作，不能阻止用户任意浏览或外部工具访问网站；这类操作不算通过模块的试采验收。
+新账本位于忽略的 `data/local/collection/runtime/{platform}/frequency.sqlite3`，不是生产业务库迁移；不要删除它来恢复或加速采集。旧共享账本 `data/local/collection/frequency.sqlite3` 只在显式迁移函数中读取，源文件不删除；检测到旧账本但未迁移时调度器 fail closed。损坏/回拨时应先排查，不能以切换目录、进程或修改时钟规避限制。门禁约束本模块发起的动作，不能阻止用户任意浏览或外部工具访问网站；这类操作不算通过模块的试采验收。
 
 当前证据为真实模块代码配合合成页面/假时钟及临时 SQLite 的离线回归，不是真实招聘网站、扩展实机或正式库验收。实际有界试采仍须在已授权环境通过同一模块和频率执行；登录、验证码或访问限制立即停止。
+
+## 2026-11-09 三平台隔离持续运行时（开发分支）
+
+Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动、只读 CDP 附加及 BOSS/智联双独立进程均未出现站点阻断，按固定判断树选择**现有 Edge CDP**，不引入 Playwright、第二套浏览器引擎、请求拦截/重放或网络监听。
+
+新运行时目录为 `runtime/`：
+
+| 文件 | 当前职责 |
+|---|---|
+| `runtime/scheduler.py` | 三平台子进程启动、停止、PID/创建时间接管、单站恢复；正式旧账本未迁移时拒绝启动 |
+| `runtime/worker.py` | 单站关键词/城市/页码轮换、等待期停止、单站 blocked/needs_login/failed 退出 |
+| `runtime/browser.py` | 唯一 CDP 引擎；分派到现有 `fetch_boss_jobs.py` / `fetch_cn_jobs.py`，固定独立 Profile |
+| `runtime/platforms.py` | 三站默认城市、搜索 URL、Profile/运行目录和运行时配置 |
+| `runtime/state.py` | 每平台 SQLite 检查点、计数、最后成功身份和 STOP 标记 |
+| `runtime/sink.py` | 注入现有 pipeline/repository 的数据库 provider，不新建业务表 |
+
+控制 API：`GET /collection/runtime/status`、`POST /collection/runtime/start`、`POST /collection/runtime/stop`、`POST /collection/runtime/resume/{platform}`。现有 `/collection` 页增加三站状态卡、启动/停止和人工处理后恢复入口；旧单轮、批次、桥接接口暂保留兼容。
+
+`POST /collection/runtime/start` 接受显式 JSON 布尔值 `{ "reset_checkpoint": true }` 执行本地计划/游标复位；缺省或 `false` 按普通启动处理，字符串、数字、数组或对象一律拒绝且不改运行态。读取到可信已存计划时沿用，否则保存默认计划；清除三站的关键词/城市/页游标、运行计数、最近保存身份和运行时间记录，但保留每站 `blocked` / `needs_login` / `failed`、原因及 `STOP` 标志。运行中的状态、worker 或任一 writer lease 未停止时拒绝复位。该分支只写本地运行态 SQLite、scheduler 文件及受限站 STOP 标记，不检查业务数据库就绪/频率、不启动 worker，也不访问招聘站。控制台仅在三站均受限时显示复位按钮，并要求二次确认；复位后仍须按各站原人工处理和确认流程逐站恢复。
+
+首轮独立复审后的固定补充：
+
+- 空 `{}` 启动使用默认关键词和三站城市；部分城市覆写只替换指定平台，显式空值仍拒绝。
+- worker 页码通过 `start_page` 传入 BOSS/智联入口，单次只访问指定页，不把第 2 页重复成第 1 页。
+- scheduler 重启保留已有游标、`next_run_at`、最后确认身份和统计；blocked/needs_login/failed 必须显式恢复。
+- `last_saved_identity` 只接受 persisted inserted/updated/skipped 回执，列表或详情尝试事件不算保存。
+- 旧共享账本门禁下沉到 `frequency.assert_legacy_migrated`，旧单轮、批次、bridge 创建均提前失败。
+- `runtime/lease.py` 提供每平台跨进程 writer lock；runtime、旧 control/batch、bridge 双向互斥，历史只读不受影响。
+- writer lock 使用原子目录发布和 owner 原子替换；acquire/rebind/release/stale 回收由稳定 sidecar OS 锁串行化并复核 owner token，owner 未发布/损坏或树状态不可核实时 fail closed。
+- Windows worker 使用具名 Job Object；scheduler/control 将 Job 名称写入 lease，runtime 也写入 scheduler.json。恢复后可重新打开并等待整个进程树退出；缺少可验证 Job 句柄时不释放 worker-owned lease。
+- stop 保留 blocked/needs_login/failed 的人工门禁；start 跳过受限站并启动其余可运行站，保留受限站 STOP 标志，受限站仍须单独显式恢复。
+- scheduler.json 保留自定义计划，空 payload 重启复用原计划；显式配置变化要求 reset_checkpoint。存在 checkpoint 但计划配置缺失/损坏时，start/resume fail closed；须先通过 start 的 `reset_checkpoint` 显式复位，再恢复。
+- 页面动作和组合间隔只约束硬下限及有限值，允许用户配置更慢节奏。
+
+
+兼容/退役清单：
+
+- 保留复用：`browser.py` 的低层 Edge/CDP 准备、`fetch_boss_jobs.py`、`fetch_cn_jobs.py`、`pipeline.py`、`repository.py`、`identity.py`、`frequency.py`、`frequency_recovery.py`。
+- 暂兼容：`control.py` 单轮控制、`batch.py`、`bridge.py`、`frontend/bridge-extension/`；新三站模拟闭环通过前不删除旧可写入口。
+- 退役候选：`boss_collect_loop.py`、`cn_collect_loop.py`、`collect_loop.py` 及其旧准备/状态入口；只有确认无调用者并完成新链路回归后才可移除。
+- 旧普通浏览器扩展不作为本 Issue 的主引擎；仅保留现有 BOSS 人工路径的兼容与历史证据。
+
+验证边界：离线三站模拟已覆盖单条 SQLite 提交、第二轮幂等、停止/重启、BOSS 模拟 blocked 后智联/猎聘继续；真实 BOSS 单次低频实测曾机械写入 1 行，但旧入口身份字段为 `unknown/NULL`，严格契约失败，修复后未获重试授权。真实三站持续采集、正式库迁移、历史身份升级和 PR 合并仍未完成。
 
 ## 2026-10-26 当前索引
 

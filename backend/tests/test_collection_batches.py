@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.collect import control, readiness, worker_process
+from app.collect import control, frequency, readiness, worker_process
 
 
 @pytest.fixture
@@ -26,6 +26,9 @@ def batch(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_PROCESS', None)
     monkeypatch.setattr(control, '_STARTING_RUN', None)
     monkeypatch.setattr(control, '_RESERVATION', None)
+    monkeypatch.setattr(control, '_LEASE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(control, '_LEASE', None)
     monkeypatch.setattr(control, '_DONE_EVENTS', {})
     monkeypatch.setattr(control, '_worker_environment', os.environ.copy)
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
@@ -540,3 +543,23 @@ def test_batch_stop_waits_for_real_synthetic_worker_tree_and_archive(batch, monk
             process.wait(timeout=5)
         pid_file.unlink(missing_ok=True)
 
+
+
+def test_batch_start_surfaces_legacy_ledger_error_before_browser(batch, monkeypatch):
+    def blocked(platform):
+        raise frequency.FrequencyStateError('collection_legacy_migration_required')
+    monkeypatch.setattr(frequency, 'assert_legacy_migrated', blocked)
+    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
+    payload = plan()
+    payload.update(keywords=['Python'], cities=[{'name': '北京', 'code': '101010100'}])
+    created = batch.create_batch(payload)
+    batch.start_batch(created['batch_id'])
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        result = batch.get_batch(created['batch_id'])
+        if result['items'][0]['status'] == 'error':
+            break
+        time.sleep(.01)
+    else:
+        pytest.fail(f"batch item did not fail: {result}")
+    assert result['items'][0]['stop_reason'] == 'FrequencyStateError'

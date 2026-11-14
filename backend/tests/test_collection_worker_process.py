@@ -12,8 +12,10 @@ import pytest
 @pytest.mark.parametrize('method', ['stop', 'close'])
 def test_venv_sleep_wrapper_and_real_child_both_stop_before_return(method):
     from app.collect import worker_process
-    process = worker_process.spawn([sys.executable, '-u', '-c',
-        'import os,time; print(os.getpid(),flush=True); time.sleep(60)'],
+    script = ("import subprocess,sys,time; child=subprocess.Popen([sys.executable,'-u','-c',"
+              "'import os,time; print(os.getpid(),flush=True); time.sleep(60)'],"
+              "stdout=subprocess.PIPE,text=True); print(child.stdout.readline().strip(),flush=True); time.sleep(60)")
+    process = worker_process.spawn([sys.executable, '-u', '-c', script],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8')
     kernel = ctypes.WinDLL('kernel32', use_last_error=True)
     kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
@@ -46,11 +48,15 @@ def test_venv_sleep_wrapper_and_real_child_both_stop_before_return(method):
 
 @pytest.mark.skipif(os.name != 'nt', reason='Windows job/controller regression')
 def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch):
-    from app.collect import control, readiness, worker_process
+    from app.collect import control, frequency, readiness, worker_process
+    from app.collect.runtime import lease
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'state.json')
     monkeypatch.setattr(control, '_PROCESS', None)
     monkeypatch.setattr(control, '_STARTING_RUN', None)
+    monkeypatch.setattr(control, '_LEASE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(control, '_LEASE', None)
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(control, '_ensure_browser', lambda *a: {
         'endpoint': 'http://127.0.0.1:1', 'user_data_dir': str(tmp_path),
@@ -58,8 +64,10 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
     monkeypatch.setattr(control, '_worker_environment', os.environ.copy)
     pid_file = tmp_path / 'synthetic-pid'
     # Existence signals a fully written PID, including under a busy full-suite run.
-    script = (f'import os,time; from pathlib import Path; p=Path({str(pid_file)!r}); '
-              'temporary=p.with_suffix(".tmp"); temporary.write_text(str(os.getpid())); temporary.replace(p); '
+    child_script = (f'import os,time; from pathlib import Path; p=Path({str(pid_file)!r}); '
+                    'temporary=p.with_suffix(".tmp"); temporary.write_text(str(os.getpid())); temporary.replace(p); '
+                    'time.sleep(60)')
+    script = (f'import subprocess,sys,time; subprocess.Popen([sys.executable,"-u","-c",{child_script!r}]); '
               'print("sleep worker ready",flush=True); time.sleep(60)')
     workers = []
     def spawn(args, **kwargs):
@@ -83,6 +91,9 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
                 break
         assert child_pid is not None, 'worker did not publish a readable numeric PID'
         assert child_pid != process.pid
+        writer = lease.status('boss', root=tmp_path / 'runtime')
+        assert writer['pid'] == process.pid
+        assert writer['owner'].startswith('worker:')
         result = control.stop_task(run['run_id'])
         assert result['stopped'] is True
         assert process.poll() is not None
@@ -93,6 +104,7 @@ def test_stop_api_waits_for_tree_exit_and_watcher_archive(tmp_path, monkeypatch)
         assert state['history'][0]['pid'] is None
         assert control._PROCESS is None
         assert process._collection_job.handle is None
+        assert lease.status('boss', root=tmp_path / 'runtime') is None
     finally:
         if process is not None:
             worker_process.close(process)

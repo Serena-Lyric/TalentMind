@@ -8,7 +8,7 @@ import threading
 import pytest
 from websockets.exceptions import WebSocketException
 
-from app.collect import control, readiness, boss_collect_loop as boss_loop, cn_collect_loop as cn_loop
+from app.collect import control, frequency, readiness, boss_collect_loop as boss_loop, cn_collect_loop as cn_loop
 from app.collect.fetchers import cdp
 from app.config import Settings
 
@@ -25,11 +25,15 @@ def isolated_control(tmp_path,monkeypatch):
     monkeypatch.setattr(control,'_STATE_PATH',tmp_path/'collection/state.json')
     monkeypatch.setattr(control,'_PROCESS',None)
     monkeypatch.setattr(control,'_STARTING_RUN',None)
+    monkeypatch.setattr(control,'_LEASE_ROOT',tmp_path/'runtime')
+    monkeypatch.setattr(control,'_LEASE',None)
+    monkeypatch.setattr(frequency,'_STATE_PATH',tmp_path/'frequency.sqlite3')
     monkeypatch.setattr(readiness,'require_database_ready',lambda:None)
     monkeypatch.setattr(control,'_ensure_browser',lambda endpoint,profile,platform,target_url:{
         'endpoint':'http://127.0.0.1:19444','user_data_dir':str(tmp_path/'profile'),
         'platform_access':{platform:{'can_collect':True,'access_state':'public_accessible'}}})
-    return tmp_path
+    yield tmp_path
+    control._release_lease()
 
 
 def test_controller_preserves_historical_custom_template_and_once_limit(isolated_control,monkeypatch):

@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import create_engine, text
 
 from app.collect.pipeline import run_pipeline, enrich_skills
 from app.collect.fetchers.boss import normalize_boss_job
@@ -10,6 +11,16 @@ class FakeDB:
     def __init__(self):
         self.saved = []
         self.committed = 0
+        self.engine = create_engine('sqlite://')
+        with self.engine.begin() as connection:
+            connection.execute(text('''CREATE TABLE jd_pool (
+                id INTEGER PRIMARY KEY, source TEXT, source_detail TEXT, job_title TEXT,
+                raw_text TEXT, duties TEXT, experience TEXT, quality FLOAT, dup_group TEXT,
+                crawled_at DATETIME, status TEXT, identity_status TEXT, content_eligible BOOLEAN,
+                identity_evidence TEXT)'''))
+
+    def get_bind(self):
+        return self.engine
 
     def execute(self, stmt, params=None):
         if params:

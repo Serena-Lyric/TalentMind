@@ -1,7 +1,9 @@
 """BOSS 直聘岗位结果的纯函数归一化。"""
 from __future__ import annotations
 
+import json
 import re
+from datetime import datetime, timezone
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from app.collect.schema import RawJD
@@ -80,12 +82,38 @@ def normalize_boss_job(raw: dict, detail: dict | None = None) -> RawJD | None:
     ]
     raw_text = "\n\n".join(chunk for chunk in chunks if chunk)
 
+    if len(url) > 128:
+        # source_detail is part of the persistence identity contract. Rejecting is
+        # safer than truncating two different URLs into the same stored identity.
+        return None
+
+    detail_url = normalize_url(str(detail.get("url") or ""))
+    content_eligible = True if detail_text else None
+    identity_status = "unknown"
+    identity_evidence = ""
+    if detail_text and detail_url and detail_url == url:
+        identity_status = "verified"
+        identity_evidence = json.dumps(
+            {
+                "strategy": "source_url",
+                "platform": "boss",
+                "job_url": url,
+                "detail_url": detail_url,
+                "observed_at": datetime.now(timezone.utc).isoformat(),
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+
     return RawJD(
         source="boss",
         job_title=title[:128],
         raw_html=raw_text,
         experience=experience[:255],
-        source_detail=url[:128],
+        source_detail=url,
+        identity_status=identity_status,
+        content_eligible=content_eligible,
+        identity_evidence=identity_evidence,
     )
 
 

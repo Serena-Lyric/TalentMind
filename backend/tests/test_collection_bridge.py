@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from app.collect import bridge, control, frequency, readiness
+from app.collect.runtime import lease
 
 
 _TEST_CLOCK = [1_800_000_000.0]
@@ -83,6 +84,10 @@ def private_state(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_PROCESS', None)
     monkeypatch.setattr(control, '_STARTING_RUN', None)
     monkeypatch.setattr(control, '_RESERVATION', None)
+    monkeypatch.setattr(control, '_LEASE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(control, '_LEASE', None)
+    monkeypatch.setattr(bridge, '_LEASE_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(bridge, '_LEASE', None)
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     try:
         yield state
@@ -99,6 +104,7 @@ def test_only_one_bridge_session_can_be_active(private_state):
     with pytest.raises(RuntimeError, match='桥接'):
         bridge.create_session(payload)
     bridge.finish_session(first)
+    assert lease.status('boss', root=private_state.parent / 'runtime') is None
     assert bridge.create_session(payload)['run_id'] != first
 
 
@@ -394,3 +400,19 @@ def test_sixth_detail_url_is_rejected_at_session_limit(private_state, isolated_d
     assert result["result"]["reason"] == "bridge_session_limit_reached"
     assert bridge.get_session(run_id)["detail_attempted"] == 5
 
+
+
+def test_bridge_creation_blocks_unmigrated_legacy_ledger(private_state, monkeypatch):
+    def blocked(platform):
+        raise frequency.FrequencyStateError('collection_legacy_migration_required')
+    monkeypatch.setattr(frequency, 'assert_legacy_migrated', blocked)
+    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
+        bridge.create_session({'keyword': 'Java', 'city_name': '北京', 'city_code': '101010100'})
+
+
+def test_bridge_creation_is_blocked_by_runtime_writer_lease(private_state, monkeypatch):
+    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
+    held = lease.acquire('boss', 'scheduler:test', 'runtime', root=private_state.parent / 'runtime', pid=900, created_at=1)
+    with pytest.raises(lease.WriterBusy, match='collection_writer_busy:boss:runtime'):
+        bridge.create_session({'keyword': 'Java', 'city_name': '北京', 'city_code': '101010100'})
+    held.release()

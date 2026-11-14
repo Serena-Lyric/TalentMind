@@ -18,7 +18,10 @@ PAGE_DELAY_MAX = 30.0
 SWITCH_INTERVAL_MIN = 360.0
 SWITCH_INTERVAL_MAX = 720.0
 _PLATFORMS = frozenset({'boss', 'zhaopin', 'liepin'})
-_STATE_PATH = Path(__file__).resolve().parents[3] / 'data/local/collection/frequency.sqlite3'
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_DEFAULT_STATE_PATH = _REPO_ROOT / 'data/local/collection/frequency.sqlite3'
+_STATE_PATH = _DEFAULT_STATE_PATH
+_LEDGER_ROOT = _REPO_ROOT / 'data/local/collection/runtime'
 _clock = time.time
 
 
@@ -30,6 +33,91 @@ class FrequencyLimitError(RuntimeError):
     def __init__(self, retry_after: float):
         self.retry_after = retry_after
         super().__init__(f'collection_frequency_limited: wait at least {math.ceil(retry_after)} seconds')
+
+
+def _check_platform(platform: str) -> str:
+    value = str(platform or '').strip()
+    if value not in _PLATFORMS:
+        raise ValueError('unsupported collection frequency scope')
+    return value
+
+
+def ledger_path(platform: str) -> Path:
+    """Return the per-platform ledger path.
+
+    ``_STATE_PATH`` remains an explicit test/compatibility override. Production
+    uses one SQLite file per platform so a long browser action in one platform
+    cannot hold another platform's writer lock.
+    """
+    platform = _check_platform(platform)
+    if _STATE_PATH != _DEFAULT_STATE_PATH:
+        return _STATE_PATH
+    return _LEDGER_ROOT / platform / 'frequency.sqlite3'
+
+
+def _legacy_has_state(platform: str) -> bool:
+    if not _DEFAULT_STATE_PATH.exists():
+        return False
+    try:
+        with closing(sqlite3.connect(
+            _DEFAULT_STATE_PATH.resolve().as_uri() + '?mode=ro', uri=True, timeout=.2
+        )) as connection:
+            if connection.execute('PRAGMA user_version').fetchone() != (1,):
+                return True
+            if not connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='collection_frequency'"
+            ).fetchone():
+                return True
+            if connection.execute(
+                'SELECT 1 FROM collection_frequency WHERE platform=?', (platform,)
+            ).fetchone():
+                return True
+            if connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='collection_action_flights'"
+            ).fetchone() and connection.execute(
+                'SELECT 1 FROM collection_action_flights WHERE platform=?', (platform,)
+            ).fetchone():
+                return True
+            return False
+    except sqlite3.Error:
+        # A damaged legacy ledger is itself a reason to stop, not a reason to
+        # silently start from a fresh per-platform file.
+        return True
+
+
+def legacy_migration_required(platform: str) -> bool:
+    platform = _check_platform(platform)
+    if _STATE_PATH != _DEFAULT_STATE_PATH or not _legacy_has_state(platform):
+        return False
+    target = ledger_path(platform)
+    if not target.exists():
+        return True
+    try:
+        with closing(sqlite3.connect(target, timeout=.2)) as connection:
+            if connection.execute('PRAGMA user_version').fetchone() != (1,):
+                return True
+            if not connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='collection_frequency'"
+            ).fetchone():
+                return True
+            row = connection.execute(
+                'SELECT 1 FROM collection_frequency WHERE platform=?', (platform,)
+            ).fetchone()
+            flight = None
+            if connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='collection_action_flights'"
+            ).fetchone():
+                flight = connection.execute(
+                    'SELECT 1 FROM collection_action_flights WHERE platform=?', (platform,)
+                ).fetchone()
+            return not row and not flight
+    except sqlite3.Error:
+        return True
+
+
+def assert_legacy_migrated(platform: str) -> None:
+    if legacy_migration_required(platform):
+        raise FrequencyStateError('collection_legacy_migration_required')
 
 
 def _validate_state(row: tuple, now: float) -> None:
@@ -54,18 +142,21 @@ def reserve_action(platform: str, keyword: str, city: str, *, kind: str = 'page'
 
 
 def _reserve_action(platform: str, keyword: str, city: str, *, kind: str, flight: str | None = None) -> dict:
-    if platform not in _PLATFORMS or kind not in {'page', 'prepare', 'capture'}:
+    platform = _check_platform(platform)
+    if kind not in {'page', 'prepare', 'capture'}:
         raise ValueError('unsupported collection frequency scope')
+    assert_legacy_migrated(platform)
     keyword, city = str(keyword).strip(), str(city).strip()
     if kind != 'prepare' and (not keyword or not city):
         raise ValueError('collection frequency requires keyword and city code')
     # A preparation action has no proven query target and must not replace it.
     target = None if kind == 'prepare' else (keyword, city)
     connection = None
+    ledger = ledger_path(platform)
     try:
-        _STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        existed = _STATE_PATH.exists()
-        connection = sqlite3.connect(str(_STATE_PATH), timeout=5, isolation_level=None)
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        existed = ledger.exists()
+        connection = sqlite3.connect(str(ledger), timeout=5, isolation_level=None)
         connection.execute('PRAGMA synchronous=FULL')
         connection.execute('BEGIN IMMEDIATE')
         now = _clock()
@@ -143,6 +234,7 @@ def run_action(platform: str, keyword: str, city: str, action, *, kind: str = 'p
     An unfinished marker survives process loss or an uncertain browser exception.
     Investigate that action before recovery; it is never silently refunded.
     """
+    platform = _check_platform(platform)
     owner = secrets.token_hex(16)
     while True:
         try:
@@ -151,8 +243,9 @@ def run_action(platform: str, keyword: str, city: str, action, *, kind: str = 'p
         except FrequencyLimitError as exc:
             sleeper(exc.retry_after)
     connection = None
+    ledger = ledger_path(platform)
     try:
-        connection = sqlite3.connect(str(_STATE_PATH), timeout=5, isolation_level=None)
+        connection = sqlite3.connect(str(ledger), timeout=5, isolation_level=None)
         connection.execute('PRAGMA synchronous=FULL')
         connection.execute('BEGIN IMMEDIATE')
         row = connection.execute('SELECT owner FROM collection_action_flights WHERE platform=?', (platform,)).fetchone()
@@ -194,11 +287,12 @@ def run_action(platform: str, keyword: str, city: str, action, *, kind: str = 'p
             connection.close()
 
 
-def issue_capture_permit(run_id: str, kind: str, reservation: dict) -> dict:
+def issue_capture_permit(run_id: str, kind: str, reservation: dict, platform: str = 'boss') -> dict:
     permit = {'token': secrets.token_urlsafe(24), 'kind': kind,
               'issued_at': reservation['reserved_at'], 'expires_at': reservation['reserved_at'] + 15.0}
+    ledger = ledger_path(platform)
     try:
-        with closing(sqlite3.connect(str(_STATE_PATH), timeout=5)) as connection, connection:
+        with closing(sqlite3.connect(str(ledger), timeout=5)) as connection, connection:
             connection.execute('PRAGMA synchronous=FULL')
             connection.execute('CREATE TABLE IF NOT EXISTS collection_capture_permits (token TEXT PRIMARY KEY, run_id TEXT NOT NULL, kind TEXT NOT NULL, issued REAL NOT NULL, expires REAL NOT NULL, used INTEGER NOT NULL)')
             connection.execute('INSERT INTO collection_capture_permits VALUES (?, ?, ?, ?, ?, 0)',
@@ -208,11 +302,12 @@ def issue_capture_permit(run_id: str, kind: str, reservation: dict) -> dict:
         raise FrequencyStateError('collection_capture_permit_state_unavailable') from exc
 
 
-def consume_capture_permit(run_id: str, kind: str, permit: str | None, now: float) -> None:
+def consume_capture_permit(run_id: str, kind: str, permit: str | None, now: float, platform: str = 'boss') -> None:
     if not permit or not math.isfinite(now):
         raise ValueError('capture_permit_required_or_expired')
+    ledger = ledger_path(platform)
     try:
-        with closing(sqlite3.connect(str(_STATE_PATH), timeout=5)) as connection, connection:
+        with closing(sqlite3.connect(str(ledger), timeout=5)) as connection, connection:
             connection.execute('PRAGMA synchronous=FULL')
             connection.execute('BEGIN IMMEDIATE')
             changed = connection.execute('''UPDATE collection_capture_permits SET used=1

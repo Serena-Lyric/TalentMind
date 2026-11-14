@@ -439,3 +439,16 @@ def test_dom_pending_detail_persists_without_increasing_complete(tmp_path, monke
         path.unlink(missing_ok=True)
         assert not path.exists()
 
+
+
+def test_cn_run_fetch_uses_requested_start_page(offline, monkeypatch):
+    cards, details, rows, run = offline
+    urls = []
+    def search(client, spec, url, settle):
+        urls.append(url)
+        return []
+    monkeypatch.setattr(cn, 'fetch_search_page', search)
+    stats = run(start_page=2, no_details=True, detail_limit=0)
+    assert stats['listed'] == 0
+    assert len(urls) == 1
+    assert 'currentPage=2' in urls[0]
