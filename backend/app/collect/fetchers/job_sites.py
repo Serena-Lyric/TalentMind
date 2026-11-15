@@ -219,7 +219,7 @@ def normalize_job(spec: SiteSpec, raw: dict, detail: dict | None = None) -> RawJ
     detail = detail or {}
     url = normalize_url(spec, str(raw.get("url") or detail.get("url") or ""))
     title = clean(raw.get("title") or detail.get("title"))
-    if not url or not title:
+    if not url or not title or len(url) > 128:
         return None
 
     experience = clean(detail.get("experience") or raw.get("experience"))
@@ -242,7 +242,7 @@ def normalize_job(spec: SiteSpec, raw: dict, detail: dict | None = None) -> RawJ
         experience=experience[:255],
         job_id=job_id[:128],
         raw_skills=[clean(x) for x in raw.get("tags", []) if clean(x)],
-        source_detail=url[:128],
+        source_detail=url,
         identity_status=raw.get("_identity_status", "unknown"),
         content_eligible=raw.get("_content_eligible"),
         identity_evidence=raw.get("_identity_evidence", ""),

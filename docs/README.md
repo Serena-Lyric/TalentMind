@@ -20,6 +20,7 @@
 | 模块 | 权威说明 |
 |---|---|
 | M1 数据采集 | [采集 README](../backend/app/collect/README.md) |
+| M1 三平台隔离持续采集（Issue #79） | [实施计划](superpowers/plans/2026-11-09-m1-three-platform-runtime.md)；[Gate 0 与开源复用证据](superpowers/specs/2026-11-09-m1-three-platform-runtime-reuse-review.md) |
 | M2 岗位分析 | [现行分析 README](../backend/app/job_analysis/README.md)；[新底座设计演进、取舍与草案](superpowers/specs/2026-10-28-m2-analysis-candidate-design.md#0-为什么形成当前设计设计演进与取舍)；[设计输入](superpowers/specs/2026-10-27-m2-core-foundation-design.md)；[P0 逐例评价规范](superpowers/specs/M2-P0-baseline.md#31-已确认方案-a逐例定性验收2026-10-29) |
 | M3 图谱 | [图谱 README](../backend/app/graph/README.md) |
 | M4 简历与人岗匹配 | [匹配 README](../backend/app/matching/README.md) |
@@ -39,6 +40,7 @@
 | 日期 | 验收报告 |
 |---|---|
 | 2026-10-22 | [M1 分平台修复](review/M1-platform-repair-2026-10-22.md) |
+| 2026-11-09 | [M1 三平台隔离持续运行时](review/M1-three-platform-runtime-2026-11-09.md) |
 | 2026-11-07 | [PR #71 工程可靠性与统一交付](review/PR71-engineering-2026-11-07.md) |
 | 2026-10-30 | [M2 P1 单条理解与真实 DEV 验证](review/M2-P1-understanding-2026-10-30.md) |
 | 2026-10-28 | [M2 P0 基准与契约交付](review/M2-P0-baseline-2026-10-28.md) |

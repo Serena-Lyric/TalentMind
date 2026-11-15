@@ -272,3 +272,67 @@ def test_frequency_routes_require_local_boundary(controller, monkeypatch, enable
         with pytest.raises(HTTPException) as error:
             collection.collection_frequency_recover('zhaopin', request, {'recovery_token': 'owner'})
         assert error.value.status_code == 403
+
+
+@pytest.fixture
+def split_ledger(tmp_path, monkeypatch):
+    clock = [1800000000.0]
+    legacy = tmp_path / 'frequency.sqlite3'
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy)
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
+    monkeypatch.setattr(frequency, '_LEDGER_ROOT', tmp_path / 'runtime')
+    monkeypatch.setattr(frequency, '_clock', lambda: clock[0])
+    return legacy, clock
+
+
+def test_legacy_flight_migration_preserves_unfinished_and_cooldown(split_ledger, monkeypatch):
+    legacy, clock = split_ledger
+    from app.collect import frequency_recovery
+
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy.parent / 'not-the-legacy.sqlite3')
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
+    frequency._reserve_action('zhaopin', 'Python', '530', kind='page', flight='legacy-owner')
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy)
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
+
+    assert frequency.legacy_migration_required('zhaopin') is True
+    migrated = frequency_recovery.migrate_legacy_platform('zhaopin', legacy)
+    assert migrated['migrated'] is True
+    assert legacy.exists()
+    assert frequency.ledger_path('zhaopin').exists()
+
+    status = frequency_recovery.get_status('zhaopin')
+    assert status['state'] == 'unfinished'
+    assert status['recovery_token'] == 'legacy-owner'
+
+    clock[0] += 1000
+    recovered = frequency_recovery.recover('zhaopin', 'legacy-owner')
+    assert recovered['next_action_at'] == clock[0] + 30
+    with pytest.raises(frequency.FrequencyLimitError):
+        frequency.reserve_action('zhaopin', 'Python', '530')
+
+
+def _create_legacy_ledger(frequency, monkeypatch, legacy, *, flight):
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy.parent / 'not-the-legacy.sqlite3')
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
+    frequency._reserve_action('zhaopin', 'Python', '530', kind='page', flight=flight)
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', legacy)
+    monkeypatch.setattr(frequency, '_STATE_PATH', legacy)
+
+
+def test_bottom_reservation_gate_blocks_legacy_unfinished(split_ledger, monkeypatch):
+    legacy, _ = split_ledger
+    _create_legacy_ledger(frequency, monkeypatch, legacy, flight='legacy-owner')
+    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
+        frequency.reserve_action('zhaopin', 'Python', '530')
+    called = []
+    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
+        frequency.run_action('zhaopin', 'Python', '530', lambda: called.append(True))
+    assert called == []
+
+
+def test_bottom_reservation_gate_blocks_legacy_cooldown(split_ledger, monkeypatch):
+    legacy, _ = split_ledger
+    _create_legacy_ledger(frequency, monkeypatch, legacy, flight=None)
+    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
+        frequency.reserve_action('zhaopin', 'Python', '530')

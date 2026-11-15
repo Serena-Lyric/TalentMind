@@ -1,4 +1,6 @@
 import sqlite3
+import threading
+import time
 from contextlib import closing
 from concurrent.futures import ThreadPoolExecutor
 
@@ -218,3 +220,29 @@ def test_clock_rollback_before_callback_blocks_the_actual_action(ledger, monkeyp
     with pytest.raises(frequency.FrequencyStateError, match='rollback'):
         frequency.run_action('boss', 'Java', '101', lambda: called.append(True))
     assert called == []
+
+
+def test_platform_actions_use_independent_ledgers(tmp_path, monkeypatch):
+    monkeypatch.setattr(frequency, '_DEFAULT_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
+    monkeypatch.setattr(frequency, '_LEDGER_ROOT', tmp_path / 'runtime')
+    barrier = threading.Barrier(2)
+
+    def action():
+        barrier.wait(timeout=2)
+        time.sleep(.8)
+        return 'ok'
+
+    started = time.monotonic()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [
+            pool.submit(frequency.run_action, 'boss', 'Java', '101', action),
+            pool.submit(frequency.run_action, 'zhaopin', 'Java', '530', action),
+        ]
+        assert [future.result(timeout=3) for future in futures] == ['ok', 'ok']
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 1.3
+    assert frequency.ledger_path('boss').exists()
+    assert frequency.ledger_path('zhaopin').exists()
+    assert frequency.ledger_path('boss') != frequency.ledger_path('zhaopin')

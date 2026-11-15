@@ -101,7 +101,7 @@ export interface CollectionReadiness {
 }
 export interface CollectionFrequency {
   platform: string
-  state: 'clear' | 'unfinished' | 'busy' | 'unavailable'
+  state: 'clear' | 'unfinished' | 'busy' | 'unavailable' | 'legacy_migration_required'
   can_recover: boolean
   recovery_token: string | null
   reason: string | null
@@ -109,6 +109,41 @@ export interface CollectionFrequency {
   next_action_at: number | null
   next_combination_at: number | null
   interruption?: 'exception' | 'unknown' | null
+}
+
+
+export interface CollectionRuntimePlatformState {
+  platform: string
+  status: 'idle' | 'running' | 'waiting' | 'needs_login' | 'blocked' | 'failed' | 'stopped'
+  keyword_index: number
+  city_index: number
+  page: number
+  next_run_at: number | null
+  last_saved_identity: string | null
+  last_success_at: number | null
+  stop_reason: string | null
+  stats: Record<string, number | null>
+  updated_at: number
+}
+
+export interface CollectionRuntimeStatus {
+  status: 'running' | 'attention' | 'stopped'
+  platforms: Record<string, CollectionRuntimePlatformState>
+  scheduler_path?: string
+}
+
+export interface CollectionRuntimeConfig {
+  reset_checkpoint?: boolean
+  keywords?: string[]
+  cities?: Record<string, [string, string][]>
+  pages?: number
+  detail_limit?: number
+  max_jobs?: number
+  page_delay_min?: number
+  page_delay_max?: number
+  switch_interval_min?: number
+  switch_interval_max?: number
+  settle?: number
 }
 
 export interface CollectionResult {
@@ -253,3 +288,10 @@ export function getBridgePairing() { return get<CollectionBridgePairing>('/colle
 export function createBridgeSession(data: CollectionBridgeCreate) { return post<{ run_id: string; session: CollectionBridgeSession }>('/collection/bridge/sessions', data) }
 export function getBridgeSession(run_id: string) { return get<CollectionBridgeSession>(`/collection/bridge/sessions/${encodeURIComponent(run_id)}`) }
 export function finishBridgeSession(run_id: string, reason?: string) { return post<CollectionBridgeSession>(`/collection/bridge/sessions/${encodeURIComponent(run_id)}/finish`, reason ? { reason } : {}) }
+
+export function getCollectionRuntimeStatus() { return get<CollectionRuntimeStatus>('/collection/runtime/status') }
+export function startCollectionRuntime(data: CollectionRuntimeConfig = {}) { return post<CollectionRuntimeStatus>('/collection/runtime/start', data) }
+export function stopCollectionRuntime() { return post<CollectionRuntimeStatus>('/collection/runtime/stop', {}) }
+export function resumeCollectionRuntime(platform: string, confirmed = false) {
+  return post<CollectionRuntimeStatus>(`/collection/runtime/resume/${encodeURIComponent(platform)}`, { confirmed })
+}

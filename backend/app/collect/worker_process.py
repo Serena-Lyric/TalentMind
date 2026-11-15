@@ -1,8 +1,8 @@
 """Own a worker's entire process tree, including Windows venv redirectors.
 
-The root is suspended until its live process handle belongs to a private Job
-Object. Descendants inherit that job; termination never trusts a recycled PID.
-Closing the job (including interpreter exit) also terminates remaining workers.
+The root is suspended until its live process handle belongs to a named Job
+Object. Descendants inherit it, and another backend can reopen it by name;
+termination never trusts a recycled PID. Closing the last handle also stops the tree.
 """
 from __future__ import annotations
 
@@ -13,6 +13,16 @@ import signal
 import subprocess
 import threading
 import time
+import uuid
+
+_JOB_NAME_PREFIX = 'Local\\TalentMind.Collection.'
+
+
+def _valid_job_name(name):
+    if not isinstance(name, str) or not name.startswith(_JOB_NAME_PREFIX):
+        return False
+    token = name[len(_JOB_NAME_PREFIX):]
+    return len(token) == 32 and all(char in '0123456789abcdefABCDEF' for char in token)
 
 
 class _BasicLimits(ctypes.Structure):
@@ -43,11 +53,30 @@ class _ThreadEntry(ctypes.Structure):
 
 
 class _WindowsJob:
-    def __init__(self):
+    def __init__(self, name=None):
         self.lock = threading.RLock()
+        self.name = name or f'{_JOB_NAME_PREFIX}{uuid.uuid4().hex}'
+        if not _valid_job_name(self.name):
+            raise ValueError('无效的采集 Job Object 名称')
         self.kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        self._configure_kernel()
+        ctypes.set_last_error(0)
+        self.handle = self.kernel.CreateJobObjectW(None, self.name)
+        if not self.handle:
+            raise ctypes.WinError(ctypes.get_last_error())
+        if ctypes.get_last_error() == 183:
+            self.close()
+            raise RuntimeError('采集 Job Object 名称已被占用')
+        limits = _ExtendedLimits()
+        limits.basic.flags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        if not self.kernel.SetInformationJobObject(self.handle, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
+            self.close()
+            raise ctypes.WinError(ctypes.get_last_error())
+
+    def _configure_kernel(self):
         signatures = {
             'CreateJobObjectW': ([ctypes.c_void_p, wintypes.LPCWSTR], wintypes.HANDLE),
+            'OpenJobObjectW': ([wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR], wintypes.HANDLE),
             'SetInformationJobObject': ([wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD], wintypes.BOOL),
             'AssignProcessToJobObject': ([wintypes.HANDLE, wintypes.HANDLE], wintypes.BOOL),
             'TerminateJobObject': ([wintypes.HANDLE, wintypes.UINT], wintypes.BOOL),
@@ -62,17 +91,21 @@ class _WindowsJob:
             'WaitForSingleObject': ([wintypes.HANDLE, wintypes.DWORD], wintypes.DWORD),
             'CloseHandle': ([wintypes.HANDLE], wintypes.BOOL),
         }
-        for name, (args, result) in signatures.items():
-            function = getattr(self.kernel, name)
+        for function_name, (args, result) in signatures.items():
+            function = getattr(self.kernel, function_name)
             function.argtypes, function.restype = args, result
-        self.handle = self.kernel.CreateJobObjectW(None, None)
-        if not self.handle:
+
+    @classmethod
+    def open(cls, name):
+        job = cls.__new__(cls)
+        job.lock = threading.RLock()
+        job.name = name
+        job.kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        job._configure_kernel()
+        job.handle = job.kernel.OpenJobObjectW(0x0004 | 0x0008, False, name)
+        if not job.handle:
             raise ctypes.WinError(ctypes.get_last_error())
-        limits = _ExtendedLimits()
-        limits.basic.flags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-        if not self.kernel.SetInformationJobObject(self.handle, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
-            self.close()
-            raise ctypes.WinError(ctypes.get_last_error())
+        return job
 
     def attach_and_resume(self, process):
         # Popen holds the actual creation handle; no PID/name-based ownership guess.
@@ -147,10 +180,10 @@ class _WindowsJob:
                 self.handle = None
 
 
-def spawn(args, **kwargs):
+def spawn(args, *, job_name=None, **kwargs):
     if os.name != 'nt':
         return subprocess.Popen(args, start_new_session=True, **kwargs)
-    job = _WindowsJob()
+    job = _WindowsJob(job_name)
     process = None
     try:
         process = subprocess.Popen(args, creationflags=0x4 | 0x08000000, **kwargs)
@@ -169,25 +202,24 @@ def spawn(args, **kwargs):
 def stop(process, timeout=10):
     job = getattr(process, '_collection_job', None)
     if os.name == 'nt':
-        if job is None:
+        if job is None or not job.handle:
             raise RuntimeError('采集任务缺少可验证的进程树归属，拒绝按旧 PID 停止')
         with job.lock:
-            if job.handle:
-                handles = job.member_handles()
-                try:
-                    job.terminate()
-                    deadline = time.monotonic() + timeout
-                    for handle in handles:
-                        remaining = max(0, int((deadline - time.monotonic()) * 1000))
-                        if job.kernel.WaitForSingleObject(handle, remaining) != 0:
-                            raise TimeoutError('采集子进程句柄停止超时')
-                    while job.active_processes():
-                        if time.monotonic() >= deadline:
-                            raise TimeoutError('采集子进程树停止超时')
-                        time.sleep(0.05)
-                finally:
-                    for handle in handles:
-                        job.kernel.CloseHandle(handle)
+            handles = job.member_handles()
+            try:
+                job.terminate()
+                deadline = time.monotonic() + timeout
+                for handle in handles:
+                    remaining = max(0, int((deadline - time.monotonic()) * 1000))
+                    if job.kernel.WaitForSingleObject(handle, remaining) != 0:
+                        raise TimeoutError('采集子进程句柄停止超时')
+                while job.active_processes():
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError('采集子进程树停止超时')
+                    time.sleep(0.05)
+            finally:
+                for handle in handles:
+                    job.kernel.CloseHandle(handle)
     else:
         try:
             os.killpg(process.pid, signal.SIGTERM)
@@ -199,4 +231,27 @@ def stop(process, timeout=10):
 def close(process):
     job = getattr(process, '_collection_job', None)
     if job:
+        job.close()
+
+
+def open_job(name):
+    if os.name != 'nt':
+        return None
+    if not _valid_job_name(name):
+        raise ValueError('无效的采集 Job Object 名称')
+    return _WindowsJob.open(name)
+
+
+def job_has_processes(name):
+    try:
+        job = open_job(name)
+    except OSError as exc:
+        if getattr(exc, 'winerror', None) == 2:
+            return False
+        raise
+    if job is None:
+        return False
+    try:
+        return job.active_processes() > 0
+    finally:
         job.close()

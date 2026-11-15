@@ -48,6 +48,11 @@ def test_build_insert_params_maps_identity_metadata():
     assert p['identity_evidence'] == '{"binding_policy":"zhaopin-dom-panel-v1"}'
 
 
+def test_build_insert_params_rejects_overlong_job_source_detail():
+    with pytest.raises(ValueError, match='source_detail'):
+        build_insert_params({'source': 'zhaopin', 'source_detail': 'x' * 129, 'raw_text': '负责平台开发'})
+
+
 class FakeDB:
     def __init__(self):
         self.saved = []

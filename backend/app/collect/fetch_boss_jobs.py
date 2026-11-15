@@ -132,6 +132,7 @@ def run_fetch(
     cdp_endpoint: str = "http://127.0.0.1:9222",
     user_data_dir: str | None = None,
     pages: int = 5,
+    start_page: int = 1,
     detail_limit: int = 100,
     max_jobs: int = 0,
     delay: float = 15.0,
@@ -139,22 +140,25 @@ def run_fetch(
     no_details: bool = False,
     browser_timeout: float = 20,
     login_timeout: float = 120,
+    db_provider=None,
     on_event=None,
 ) -> dict:
     validate_fetch_timing(delay, settle)
     if not keywords or not cities:
         raise ValueError("至少需要一个关键词和一个城市")
-    if pages < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0:
-        raise ValueError("pages/detail_limit/max_jobs/delay 不能为负数")
+    if pages < 1 or start_page < 1 or detail_limit < 0 or max_jobs < 0 or delay < 0:
+        raise ValueError("pages/start_page/detail_limit/max_jobs/delay 不能为负数")
 
     prepared = browser.ensure_ready('boss', cdp_endpoint, user_data_dir,
                                    timeout=browser_timeout, wait_for_login=login_timeout)
     cdp_endpoint = prepared['endpoint']
 
-    from app.db.mysql import get_db
+    if db_provider is None:
+        from app.db.mysql import get_db
+        db_provider = get_db
 
     # 保留 provider 至 finally，避免 next(get_db()) 的临时生成器提前关闭 session。
-    provider = get_db()
+    provider = db_provider()
     db = next(provider)
     created_ids: set[int] = set()
     def emit(event, **payload):
@@ -176,7 +180,7 @@ def run_fetch(
             for keyword in keywords:
                 for city_name, city_code in cities:
                     consecutive_empty = 0
-                    for page in range(1, pages + 1):
+                    for page in range(start_page, start_page + pages):
                         url = _search_url(keyword, city_code, page)
                         page_jobs = browser.run_search_navigation(
                             'boss', url, lambda: _fetch_search_page(client, url, settle),
@@ -256,7 +260,10 @@ def run_fetch(
                     else:
                         stats['complete'] += 1
                         job.update({key: value for key, value in detail.items() if value and key != 'url'})
-                        raw = normalize_boss_job(job)
+                        # Keep the validated detail URL as a separate identity argument;
+                        # the merged job intentionally omits the detail URL to avoid
+                        # replacing the list-derived source URL.
+                        raw = normalize_boss_job(job, detail)
                         if raw:
                             run_pipeline(db, [raw], jd_saver=save_detail)
                     time.sleep(delay)

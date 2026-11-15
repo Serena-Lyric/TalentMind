@@ -28,9 +28,13 @@ def build_insert_params(row: dict) -> dict:
     evidence = row.get("identity_evidence", "") or ""
     if isinstance(evidence, dict):
         evidence = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
+    source = row.get("source", "")
+    source_detail = row.get("source_detail", "") or ""
+    if source in {"boss", "zhaopin", "liepin"} and len(source_detail) > 128:
+        raise ValueError("source_detail exceeds 128 characters")
     return {
-        "source": row.get("source", ""),
-        "source_detail": (row.get("source_detail", "") or "")[:128],
+        "source": source,
+        "source_detail": source_detail,
         "job_title": (row.get("job_title", "") or "")[:128],
         "raw_text": row.get("raw_text", ""),
         "duties": row.get("duties", ""),
