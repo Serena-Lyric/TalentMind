@@ -100,6 +100,14 @@ tables="$(tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -ur
 rows="$(tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroot -N -B talentmind \
     -e 'SELECT COUNT(*) FROM job_definition')"
 [[ "$rows" == "0" ]]
+status="$(curl -s -o /dev/null -w '%{http_code}' -u "$TALENTMIND_ADMIN_USER:$TALENTMIND_ADMIN_PASSWORD" \
+    "http://127.0.0.1:18080/api/jobs?page=1&page_size=1")"
+[[ "$status" == "200" ]]
+status="$(curl -s -o /dev/null -w '%{http_code}' -u "$TALENTMIND_ADMIN_USER:$TALENTMIND_ADMIN_PASSWORD" \
+    "http://127.0.0.1:18080/api/m2/delivery/inputs?limit=1&offset=0")"
+[[ "$status" == "200" ]]
+status="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:18080/healthz")"
+[[ "$status" == "200" ]]
 tm_compose down -v >/dev/null 2>&1 || true
 
 printf 'install checks passed\n'

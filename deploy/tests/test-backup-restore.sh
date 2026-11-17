@@ -70,6 +70,14 @@ rows="$(tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroo
     -e 'SELECT COUNT(*) FROM job_definition')"
 [[ "$rows" == "1" ]]
 
+# Restoring over a non-empty database with --yes must work too.
+bash deploy/scripts/restore.sh --yes "$backup_path" >/dev/null
+# shellcheck disable=SC1090
+set -a; . "$envfile_posix"; set +a
+rows="$(tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroot -N -B talentmind \
+    -e 'SELECT COUNT(*) FROM job_definition')"
+[[ "$rows" == "1" ]]
+
 if bash deploy/scripts/restore.sh "$backup_path" >/dev/null 2>&1; then
     printf 'restore without --yes unexpectedly succeeded\n' >&2
     exit 1
