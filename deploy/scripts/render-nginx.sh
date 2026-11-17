@@ -23,9 +23,33 @@ tm_python() {
 }
 
 render_nginx() {
-    local deploy_dir template output server secret python_bin
+    local deploy_dir template output server secret python_bin mode tls_dir default_template
     deploy_dir="$(tm_deploy_dir)"
-    template="${TALENTMIND_NGINX_TEMPLATE:-$deploy_dir/web/nginx-http.conf.template}"
+    mode="${TALENTMIND_TLS_MODE:-off}"
+    tls_dir="${TALENTMIND_TLS_DIR:-$deploy_dir/tls}"
+    case "$mode" in
+        off)
+            default_template="$deploy_dir/web/nginx-http.conf.template"
+            ;;
+        selfsigned)
+            # shellcheck source=deploy/scripts/tls.sh
+            source "$(dirname "${BASH_SOURCE[0]}")/tls.sh"
+            generate_self_signed
+            default_template="$deploy_dir/web/nginx-https.conf.template"
+            ;;
+        files)
+            if [[ ! -f "$tls_dir/fullchain.pem" || ! -f "$tls_dir/privkey.pem" ]]; then
+                printf 'TLS_MODE=files requires fullchain.pem and privkey.pem in %s\n' "$tls_dir" >&2
+                return 1
+            fi
+            default_template="$deploy_dir/web/nginx-https.conf.template"
+            ;;
+        *)
+            printf 'unsupported TALENTMIND_TLS_MODE: %s\n' "$mode" >&2
+            return 1
+            ;;
+    esac
+    template="${TALENTMIND_NGINX_TEMPLATE:-$default_template}"
     output="${TALENTMIND_NGINX_DIR:-$deploy_dir/nginx}/default.conf"
     server="${TALENTMIND_SERVER_NAME:-_}"
     secret="${TALENTMIND_TRUSTED_PROXY_SECRET:-}"
