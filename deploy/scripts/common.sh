@@ -52,6 +52,25 @@ tm_compose() {
     fi
 }
 
+tm_wait_service_healthy() {
+    local service="$1"
+    local timeout="${2:-90}"
+    local deadline=$((SECONDS + timeout))
+    local cid health
+    while (( SECONDS < deadline )); do
+        cid="$(tm_compose ps -q "$service" 2>/dev/null || true)"
+        if [[ -n "$cid" ]]; then
+            health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null || printf 'unknown')"
+            if [[ "$health" == "healthy" || "$health" == "none" ]]; then
+                return 0
+            fi
+        fi
+        sleep 2
+    done
+    tm_log "${service} did not become healthy within ${timeout}s"
+    return 1
+}
+
 tm_wait_healthy() {
     local timeout="${1:-90}"
     local http_port="${TALENTMIND_HTTP_PORT:-80}"
@@ -86,5 +105,5 @@ tm_require_root() {
 tm_is_initialized() {
     local data_dir
     data_dir="$(tm_data_dir)"
-    [[ -d "$data_dir" ]] && find "$data_dir" -mindepth 1 -print -quit | grep -q .
+    [[ -d "$data_dir" ]] && find "$data_dir" -type f -print -quit | grep -q .
 }
