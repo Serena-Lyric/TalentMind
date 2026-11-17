@@ -6,6 +6,8 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/common.sh"
 # shellcheck source=deploy/scripts/import-data.sh
 source "$script_dir/import-data.sh"
+# shellcheck source=deploy/scripts/render-nginx.sh
+source "$script_dir/render-nginx.sh"
 
 confirm=0
 if [[ "${1:-}" == "--yes" ]]; then
@@ -27,7 +29,8 @@ done
     sha256sum -c SHA256SUMS >/dev/null
 )
 
-source_env
+tm_source_env
+live_root_password="$MYSQL_ROOT_PASSWORD"
 data_dir="$(tm_data_dir)"
 deploy_dir="$(tm_deploy_dir)"
 data_dir_tar="$(cygpath -u "$data_dir" 2>/dev/null || printf '%s' "$data_dir")"
@@ -37,10 +40,10 @@ tm_compose up -d mysql >/dev/null
 tm_wait_service_healthy mysql 120
 
 if ! mysql_is_empty; then
-    tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroot \
+    tm_compose exec -T -e MYSQL_PWD="$live_root_password" mysql mysql -uroot \
         -e "DROP DATABASE IF EXISTS talentmind; CREATE DATABASE talentmind CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 fi
-gunzip -c "$backup_dir/mysql.sql.gz" | tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+gunzip -c "$backup_dir/mysql.sql.gz" | tm_compose exec -T -e MYSQL_PWD="$live_root_password" \
     mysql mysql -uroot talentmind
 
 rm -rf "$data_dir_tar/backend"
@@ -53,7 +56,15 @@ mkdir -p "$data_dir_tar"
 chmod 600 "$(tm_env_file)" 2>/dev/null || true
 [[ -f "$deploy_dir/auth/.credentials" ]] && chmod 600 "$deploy_dir/auth/.credentials" 2>/dev/null || true
 [[ -f "$deploy_dir/tls/privkey.pem" ]] && chmod 600 "$deploy_dir/tls/privkey.pem" 2>/dev/null || true
-source_env
+
+tm_source_env
+if [[ -z "${MYSQL_ROOT_PASSWORD:-}" || -z "${MYSQL_PASSWORD:-}" ]]; then
+    tm_die "restored .env is missing MySQL credentials"
+fi
+tm_compose exec -T -e MYSQL_PWD="$live_root_password" mysql mysql -uroot -e \
+    "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD'; ALTER USER 'talentmind'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" \
+    || tm_die "failed to reconcile restored MySQL credentials with the live server"
+render_nginx
 
 tm_compose up -d backend web
 tm_wait_healthy 120

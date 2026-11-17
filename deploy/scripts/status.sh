@@ -3,6 +3,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=deploy/scripts/common.sh
 source "$script_dir/common.sh"
+tm_source_env
 
 ok=1
 for service in mysql backend web; do

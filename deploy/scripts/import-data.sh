@@ -5,16 +5,6 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=deploy/scripts/common.sh
 source "$script_dir/common.sh"
 
-source_env() {
-    local env_file
-    env_file="$(tm_env_file)"
-    [[ -f "$env_file" ]] || tm_die "missing env file: $env_file"
-    set -a
-    # shellcheck disable=SC1090
-    . "$env_file"
-    set +a
-}
-
 mysql_is_empty() {
     local count
     count="$(tm_compose exec -T -e MYSQL_PWD="${MYSQL_ROOT_PASSWORD:-}" mysql mysql -uroot -N -B \
@@ -27,7 +17,7 @@ import_data() {
     if [[ "${1:-}" == "--force" ]]; then
         force=1
     fi
-    source_env
+    tm_source_env
     if ! mysql_is_empty && [[ "$force" -eq 0 ]]; then
         tm_log "database talentmind is not empty; refusing to import (use --force to override)"
         return 1

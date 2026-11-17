@@ -72,7 +72,11 @@ trap cleanup EXIT
 
 bash deploy/scripts/start.sh
 bash deploy/scripts/start.sh
-status_output="$(bash deploy/scripts/status.sh)"
+# Start/status must load ports/TLS/data dir from deploy/.env when the shell has none.
+env -u TALENTMIND_HTTP_PORT -u TALENTMIND_HTTPS_PORT -u TALENTMIND_TLS_MODE -u TALENTMIND_DATA_DIR \
+    bash deploy/scripts/start.sh
+status_output="$(env -u TALENTMIND_HTTP_PORT -u TALENTMIND_HTTPS_PORT -u TALENTMIND_TLS_MODE -u TALENTMIND_DATA_DIR \
+    bash deploy/scripts/status.sh)"
 printf '%s\n' "$status_output" | grep -q mysql
 printf '%s\n' "$status_output" | grep -q backend
 printf '%s\n' "$status_output" | grep -q web

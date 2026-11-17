@@ -7,7 +7,7 @@ source "$script_dir/common.sh"
 # shellcheck source=deploy/scripts/import-data.sh
 source "$script_dir/import-data.sh"
 
-source_env
+tm_source_env
 
 backup_root="${TALENTMIND_BACKUP_DIR:-$(tm_root)/backups}"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)-$$"

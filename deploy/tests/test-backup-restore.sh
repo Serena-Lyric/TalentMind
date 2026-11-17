@@ -83,6 +83,32 @@ if bash deploy/scripts/restore.sh "$backup_path" >/dev/null 2>&1; then
     exit 1
 fi
 
+# Fresh-machine restore: reinitialize the datadir with new secrets, then restore
+# the old backup. MySQL users and Nginx proxy config must be reconciled.
+tm_compose down -v >/dev/null 2>&1 || true
+rm -rf "$tmp/data/mysql" "$tmp/data/backend"
+export MYSQL_ROOT_PASSWORD=newroot
+export MYSQL_PASSWORD=newapp
+export TALENTMIND_TRUSTED_PROXY_SECRET=newproxy
+export TALENTMIND_ADMIN_PASSWORD=newpass
+export TALENTMIND_MYSQL_DUMP=""
+bash deploy/scripts/install.sh >/dev/null
+bash deploy/scripts/restore.sh --yes "$backup_path" >/dev/null
+# shellcheck disable=SC1090
+set -a; . "$envfile_posix"; set +a
+rows="$(tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroot -N -B talentmind \
+    -e 'SELECT COUNT(*) FROM job_definition')"
+[[ "$rows" == "1" ]]
+status="$(curl -s -o /dev/null -w '%{http_code}' -u "$TALENTMIND_ADMIN_USER:$TALENTMIND_ADMIN_PASSWORD" \
+    "http://127.0.0.1:18080/api/collection/platforms")"
+[[ "$status" == "200" ]]
+status="$(curl -s -o /dev/null -w '%{http_code}' -u "$TALENTMIND_ADMIN_USER:$TALENTMIND_ADMIN_PASSWORD" \
+    -H 'X-TalentMind-Proxy-Secret: wrong' "http://127.0.0.1:18080/api/collection/raw/1")"
+[[ "$status" != "403" ]]
+status="$(curl -s -o /dev/null -w '%{http_code}' -u "$TALENTMIND_ADMIN_USER:$TALENTMIND_ADMIN_PASSWORD" \
+    -H 'Sec-Fetch-Site: cross-site' "http://127.0.0.1:18080/api/collection/raw/1")"
+[[ "$status" == "403" ]]
+
 backups_before="$(find "$backup_dir" -mindepth 1 -maxdepth 1 -type d | wc -l)"
 bash deploy/scripts/upgrade.sh >/dev/null
 backups_after="$(find "$backup_dir" -mindepth 1 -maxdepth 1 -type d | wc -l)"

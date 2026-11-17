@@ -33,6 +33,18 @@ tm_env_file() {
     printf '%s' "${TALENTMIND_ENV_FILE:-$(tm_deploy_dir)/.env}"
 }
 
+tm_source_env() {
+    local env_file
+    env_file="$(tm_env_file)"
+    if [[ ! -f "$env_file" ]]; then
+        tm_die "missing env file: $env_file"
+    fi
+    set -a
+    # shellcheck disable=SC1090
+    . "$env_file"
+    set +a
+}
+
 tm_data_dir() {
     printf '%s' "${TALENTMIND_DATA_DIR:-$(tm_root)/data}"
 }
@@ -73,9 +85,13 @@ tm_wait_service_healthy() {
 
 tm_wait_healthy() {
     local timeout="${1:-90}"
-    local http_port="${TALENTMIND_HTTP_PORT:-80}"
+    local scheme="http" port="${TALENTMIND_HTTP_PORT:-80}"
     local deadline=$((SECONDS + timeout))
     local mysql_cid mysql_health
+    if [[ "${TALENTMIND_TLS_MODE:-off}" != "off" ]]; then
+        scheme="https"
+        port="${TALENTMIND_HTTPS_PORT:-443}"
+    fi
     while (( SECONDS < deadline )); do
         mysql_cid="$(tm_compose ps -q mysql 2>/dev/null || true)"
         if [[ -n "$mysql_cid" ]]; then
@@ -87,7 +103,7 @@ tm_wait_healthy() {
             && tm_compose exec -T backend python -c \
                 "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18000/health')" \
                 >/dev/null 2>&1 \
-            && curl -fsS "http://127.0.0.1:${http_port}/healthz" >/dev/null 2>&1; then
+            && curl -kfsS "${scheme}://127.0.0.1:${port}/healthz" >/dev/null 2>&1; then
             return 0
         fi
         sleep 2
