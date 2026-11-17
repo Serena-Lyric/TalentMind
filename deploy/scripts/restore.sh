@@ -45,8 +45,11 @@ gunzip -c "$backup_dir/mysql.sql.gz" | tm_compose exec -T -e MYSQL_PWD="$MYSQL_R
 
 rm -rf "$data_dir_tar/backend"
 mkdir -p "$data_dir_tar"
-tar -xzf "$backup_dir/backend.tar.gz" -C "$data_dir_tar"
-tar -xzf "$backup_dir/deploy.tar.gz" -C "$deploy_dir"
+(
+    cd "$backup_dir"
+    tar -xzf backend.tar.gz -C "$data_dir_tar"
+    tar -xzf deploy.tar.gz -C "$deploy_dir"
+)
 chmod 600 "$(tm_env_file)" 2>/dev/null || true
 [[ -f "$deploy_dir/auth/.credentials" ]] && chmod 600 "$deploy_dir/auth/.credentials" 2>/dev/null || true
 [[ -f "$deploy_dir/tls/privkey.pem" ]] && chmod 600 "$deploy_dir/tls/privkey.pem" 2>/dev/null || true

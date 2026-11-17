@@ -39,12 +39,6 @@ tm_compose exec -T -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysqldump -uroot \
     --single-transaction --routines --triggers --events --no-tablespaces talentmind \
     | gzip > "$destination/mysql.sql.gz"
 
-if [[ -d "$data_dir_tar/backend" ]]; then
-    tar -czf "$destination/backend.tar.gz" -C "$data_dir_tar" backend
-else
-    tar -czf "$destination/backend.tar.gz" -T /dev/null
-fi
-
 deploy_items=()
 for item in .env auth tls m2; do
     [[ -e "$deploy_dir/$item" ]] && deploy_items+=("$item")
@@ -52,10 +46,14 @@ done
 if [[ "${#deploy_items[@]}" -eq 0 ]]; then
     tm_die "no deploy files to back up in $deploy_dir"
 fi
-tar -czf "$destination/deploy.tar.gz" -C "$deploy_dir" "${deploy_items[@]}"
-
 (
     cd "$destination"
+    if [[ -d "$data_dir_tar/backend" ]]; then
+        tar -czf backend.tar.gz -C "$data_dir_tar" backend
+    else
+        tar -czf backend.tar.gz -T /dev/null
+    fi
+    tar -czf deploy.tar.gz -C "$deploy_dir" "${deploy_items[@]}"
     sha256sum mysql.sql.gz backend.tar.gz deploy.tar.gz > SHA256SUMS
 )
 chmod 600 "$destination"/* 2>/dev/null || true
