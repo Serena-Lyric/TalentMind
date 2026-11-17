@@ -13,7 +13,7 @@
 | 产品决策的前后替代关系 | [决策跟踪](superpowers/决策跟踪.md) |
 | 历史事实时间索引 | [历史时间线](superpowers/历史时间线.md) |
 | 测试安全、数据库和协作规范 | [AGENTS.md](../AGENTS.md) |
-| 安装、部署、数据导入、恢复 | [部署与导入说明](部署与导入说明.md)、[V1 恢复手册](V1恢复手册.md) |
+| 安装、部署、数据导入、恢复 | [部署与导入说明](部署与导入说明.md)、[Ubuntu 生产部署](部署与运行-Ubuntu.md)、[V1 恢复手册](V1恢复手册.md) |
 
 ## 模块使用与维护
 
@@ -32,6 +32,7 @@
 
 | 范围 | 计划与审核依据 |
 |---|---|
+| Ubuntu 部署与 Issue #81 P1 | [设计](superpowers/specs/2026-11-17-issue81-ubuntu-deployment-design.md)；[P1 实施计划](superpowers/plans/2026-11-17-issue81-p1-deployment.md) |
 | 七页产品完善 | [Issue #73 实施计划](superpowers/plans/2026-11-07-seven-pages.md) |
 | M2 新底座（按总表维护阶段状态） | [P0～P6 总计划及各段入口](superpowers/plans/2026-10-28-m2-core-delivery-plan.md)；[P5/P6 连续实施任务](superpowers/plans/2026-11-07-m2-integrated-delivery.md)；[独立运行/恢复/消费者契约](../backend/app/job_analysis/delivery/README.md)；[ChatGPT 交付审核标准](superpowers/specs/2026-10-28-m2-delivery-review-standard.md) |
 
