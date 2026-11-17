@@ -88,7 +88,7 @@ sudo bash deploy/scripts/upgrade.sh     # 先备份，再加载镜像并重启
 
 - `status.sh` 健康时退出码 0，未健康/未运行退出码 1。
 - `backup.sh` 会短暂停止 backend 以获得 M2 SQLite 一致快照，然后恢复；备份包含 `mysql.sql.gz`、`backend.tar.gz`、`deploy.tar.gz`、`SHA256SUMS`。
-- `restore.sh` 默认拒绝执行；必须 `--yes`，且会覆盖数据库和 `deploy/` 密钥。备份包含密钥/Cookie，必须私有保存。
+- `restore.sh` 默认拒绝执行；必须 `--yes`，且会覆盖数据库和 `deploy/` 密钥。恢复会重渲染 Nginx，并把 MySQL root/app 用户密码改为备份中的值；恢复后用备份的 `deploy/auth/.credentials` 登录。备份包含密钥/Cookie，必须私有保存。
 - `upgrade.sh` 先备份，再 `docker load deploy/images/*.tar` 并 `compose up -d`；不做自动数据库迁移。
 
 ## 6. 资源与可选组件
