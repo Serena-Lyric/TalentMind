@@ -17,6 +17,14 @@ if tm_is_initialized; then
     tm_die "existing TalentMind data found in $(tm_data_dir); refusing to overwrite. Use start.sh/status.sh or an explicit restore."
 fi
 
+if command -v docker >/dev/null 2>&1; then
+    project="${TALENTMIND_PROJECT:-talentmind}"
+    existing="$(docker ps -a --filter "label=com.docker.compose.project=$project" --format '{{.Names}}' 2>/dev/null | head -n 1 || true)"
+    if [[ -n "$existing" ]]; then
+        tm_die "existing TalentMind containers found for project $project ($existing); refusing to overwrite. Use start.sh/status.sh or an explicit restore."
+    fi
+fi
+
 if [[ "${TALENTMIND_SKIP_DOCKER_INSTALL:-0}" != "1" ]]; then
     # shellcheck source=deploy/scripts/install-docker.sh
     source "$script_dir/install-docker.sh"
