@@ -18,6 +18,8 @@ frontend/dist
 deploy/images
 deploy/auth
 deploy/tls
+deploy/nginx
+deploy/m2
 deploy/.env
 deploy/model.env
 deploy/data
