@@ -13,6 +13,10 @@ COPY frontend/ ./
 COPY exchange/ /src/exchange/
 RUN pnpm run build
 
+FROM build AS test
+COPY backend/app/job_analysis/baseline/examples/analysis.json /src/backend/app/job_analysis/baseline/examples/analysis.json
+RUN pnpm test
+
 FROM nginx:1.27-alpine
 COPY --from=build /src/frontend/dist /usr/share/nginx/html
 COPY deploy/web/nginx-image.conf /etc/nginx/conf.d/default.conf
