@@ -5,6 +5,7 @@ API 只做任务生命周期与状态展示的薄封装，采集逻辑仍位于 
 from __future__ import annotations
 
 from typing import Any
+import hmac
 import os
 from urllib.parse import urlsplit
 
@@ -15,18 +16,27 @@ from app.collect.runtime import scheduler as runtime_scheduler
 from app.response import BizError, ok
 
 router = APIRouter()
+_LOCAL_RAW_DETAIL = '仅允许已启用的本地原文访问'
 
 
 def _require_local_raw(request: Request) -> None:
+    if os.environ.get('TALENTMIND_LOCAL_RAW') != '1':
+        raise HTTPException(status_code=403, detail=_LOCAL_RAW_DETAIL)
+    if request.headers.get('sec-fetch-site') == 'cross-site':
+        raise HTTPException(status_code=403, detail=_LOCAL_RAW_DETAIL)
+    expected = os.environ.get('TALENTMIND_TRUSTED_PROXY_SECRET')
+    supplied = request.headers.get('X-TalentMind-Proxy-Secret')
+    if (expected and supplied
+            and hmac.compare_digest(expected.encode('utf-8'), supplied.encode('utf-8'))):
+        return
     local = {'127.0.0.1', '::1', 'localhost'}
     host = urlsplit('http://' + request.headers.get('host', '')).hostname
     origin = request.headers.get('origin')
     origin_url = urlsplit(origin) if origin else None
-    if (os.environ.get('TALENTMIND_LOCAL_RAW') != '1' or not request.client
+    if (not request.client
             or request.client.host not in {'127.0.0.1', '::1'} or host not in local
-            or (origin_url is not None and (origin_url.scheme not in {'http', 'https'} or origin_url.hostname not in local))
-            or request.headers.get('sec-fetch-site') == 'cross-site'):
-        raise HTTPException(status_code=403, detail='仅允许已启用的本地原文访问')
+            or (origin_url is not None and (origin_url.scheme not in {'http', 'https'} or origin_url.hostname not in local))):
+        raise HTTPException(status_code=403, detail=_LOCAL_RAW_DETAIL)
 
 
 @router.get('/collection/platforms')
