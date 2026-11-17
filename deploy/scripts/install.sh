@@ -111,6 +111,14 @@ for archive in "$deploy_dir"/images/*.tar; do
 done
 shopt -u nullglob
 
+if ! docker image inspect mysql:8.0 >/dev/null 2>&1; then
+    if declare -F verify_docker_pull >/dev/null 2>&1; then
+        verify_docker_pull mysql:8.0 || tm_die "mysql:8.0 is missing and Docker Hub pull failed; load deploy/images or fix the registry mirror"
+    else
+        tm_die "mysql:8.0 is missing; load deploy/images or install Docker Hub access"
+    fi
+fi
+
 tm_compose up -d mysql
 if ! tm_wait_service_healthy mysql 120; then
     tm_compose logs --tail=50 mysql || true
