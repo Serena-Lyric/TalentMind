@@ -1,0 +1,10 @@
+.env
+model.env
+auth/
+tls/
+nginx/default.conf
+images/
+data/
+backups/
+m2/
+tests/tmp/
