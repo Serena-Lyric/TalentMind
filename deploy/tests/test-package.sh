@@ -371,6 +371,17 @@ run_install_smoke() {
     unset TALENTMIND_MYSQL_DUMP TALENTMIND_MODEL_ENV TALENTMIND_VERSION
 
     mkdir -p "$tmp_dir/nginx" "$tmp_dir/auth" "$tmp_dir/tls"
+    # POSIX ownership is meaningless for Docker Desktop bind mounts, and MSYS
+    # chown -R over the 1.4GB seed tree takes hours. The real Ubuntu install
+    # still performs the chown.
+    case "$(uname -s)" in
+        MINGW*|MSYS*)
+            mkdir -p "$tmp_dir/bin"
+            printf '#!/bin/sh\nexit 0\n' > "$tmp_dir/bin/chown"
+            chmod +x "$tmp_dir/bin/chown"
+            export PATH="$tmp_dir/bin:$PATH"
+            ;;
+    esac
     note "running isolated install smoke test (project $project, ports 18080/18443)"
     if ! bash "$root/app/deploy/scripts/install.sh" > "$tmp_dir/install.log" 2>&1; then
         tail -80 "$tmp_dir/install.log" >&2 || true
