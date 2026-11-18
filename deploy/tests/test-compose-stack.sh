@@ -57,7 +57,13 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 services = data["services"]
 assert "ports" not in services["mysql"], "mysql must not publish ports"
-assert "ports" not in services["backend"], "backend must not publish ports"
+backend_ports = services["backend"].get("ports") or []
+assert len(backend_ports) == 1, "backend must publish only noVNC"
+novnc = backend_ports[0]
+assert novnc.get("host_ip") == "127.0.0.1", "noVNC must bind host loopback only"
+assert int(novnc.get("target")) == 6080, "noVNC target must be 6080"
+assert str(novnc.get("published")) == "6080", "noVNC published port must be 6080"
+assert novnc.get("protocol", "tcp") == "tcp"
 assert services["web"]["ports"], "web must publish 80/443"
 assert services["mysql"]["mem_limit"], "mysql mem_limit missing"
 assert services["backend"]["mem_limit"], "backend mem_limit missing"
@@ -91,12 +97,17 @@ fi
 
 published_mysql="$("${compose[@]}" port mysql 3306 2>/dev/null || true)"
 published_backend="$("${compose[@]}" port backend 18000 2>/dev/null || true)"
+published_novnc="$("${compose[@]}" port backend 6080 2>/dev/null || true)"
 if [[ -n "$published_mysql" && "$published_mysql" != ":0" ]]; then
     printf 'mysql publishes a host port: %s\n' "$published_mysql" >&2
     exit 1
 fi
 if [[ -n "$published_backend" && "$published_backend" != ":0" ]]; then
-    printf 'backend publishes a host port: %s\n' "$published_backend" >&2
+    printf 'backend publishes port 18000: %s\n' "$published_backend" >&2
+    exit 1
+fi
+if [[ "$published_novnc" != "127.0.0.1:6080" ]]; then
+    printf 'backend noVNC mapping is not loopback 6080: %s\n' "$published_novnc" >&2
     exit 1
 fi
 printf 'compose stack checks passed\n'

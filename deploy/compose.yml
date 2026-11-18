@@ -51,6 +51,9 @@ services:
       TALENTMIND_TRUSTED_PROXY_SECRET: ${TALENTMIND_TRUSTED_PROXY_SECRET}
       TALENTMIND_M2_CONFIG: /app/deploy/m2/config.json
       TALENTMIND_M2_KEY_FILE: /app/deploy/m2/api-key.txt
+    ports:
+      # noVNC stays on host loopback only; reach it through an SSH tunnel.
+      - "127.0.0.1:6080:6080"
     volumes:
       - type: bind
         source: ${TALENTMIND_DATA_DIR}/backend
