@@ -135,7 +135,7 @@ check_code_archive() {
     for path in "${required[@]}"; do
         has_path "$code_list" "$path" || fail "code archive missing $path"
     done
-    local forbidden='^(\./)?(data/|app/data/|app/backend/\.env|app/deploy/\.env|app/deploy/model\.env|app/deploy/(m2|auth|tls|data|seed|backups)/)'
+    local forbidden='^(\./)?(data/|app/data/|app/backend/\.env(/|$)|app/deploy/\.env(/|$)|app/deploy/model\.env(/|$)|app/deploy/(m2|auth|tls|data|seed|backups)/)'
     if grep -Eq "$forbidden" "$code_list"; then
         fail "code archive contains forbidden path: $(grep -E "$forbidden" "$code_list" | head -n 1)"
     fi
@@ -277,6 +277,7 @@ manifest_table_lines() {
 import json
 import sys
 
+sys.stdout.reconfigure(newline="\n")
 with open(sys.argv[1], encoding="utf-8") as handle:
     tables = json.load(handle).get("mysql", {}).get("tables", {})
 for name in sorted(tables):

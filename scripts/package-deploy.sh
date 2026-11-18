@@ -222,6 +222,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
+sys.stdout.reconfigure(newline="\n")
 source_path, destination_path = sys.argv[1], sys.argv[2]
 uri = Path(source_path).resolve().as_uri() + "?mode=ro"
 source = sqlite3.connect(uri, uri=True)
