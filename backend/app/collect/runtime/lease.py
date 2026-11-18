@@ -19,6 +19,7 @@ from app.collect.runtime import state
 _KINDS = frozenset({'runtime', 'single', 'batch', 'bridge'})
 _OPERATION_MUTEX = threading.Lock()
 _now = time.time
+_POSIX = os.name != 'nt'
 
 
 class WriterBusy(RuntimeError):
@@ -41,6 +42,7 @@ class Lease:
     pid: int
     created_at: int | None
     job_name: str | None = None
+    pgid: int | None = None
 
     def release(self) -> None:
         release(self)
@@ -137,6 +139,7 @@ def _payload(
     pid: int,
     created_at: int | None,
     job_name: str | None = None,
+    pgid: int | None = None,
 ) -> dict[str, Any]:
     value = {
         'platform': platform,
@@ -148,6 +151,8 @@ def _payload(
     }
     if job_name:
         value['job_name'] = job_name
+    if pgid is not None:
+        value['pgid'] = pgid
     return value
 
 
@@ -161,7 +166,15 @@ def _owner_tree_alive(value: dict[str, Any]) -> bool | None:
         return None
     if _pid_alive(pid, value.get('created_at')):
         return True
-    if os.name != 'nt' or not _is_worker_owner(value):
+    if _is_worker_owner(value) and _POSIX:
+        pgid = value.get('pgid')
+        if type(pgid) is not int or pgid <= 0:
+            return None
+        try:
+            return worker_process.group_alive(pgid)
+        except (OSError, ValueError, RuntimeError):
+            return None
+    if _POSIX or not _is_worker_owner(value):
         return False
     job_name = value.get('job_name')
     if not isinstance(job_name, str) or not job_name:
@@ -252,6 +265,7 @@ def rebind(
     *,
     owner: str | None = None,
     job_name: str | None = None,
+    pgid: int | None = None,
 ) -> Lease:
     """Atomically move ownership from the launcher to the actual worker."""
     with _operation_lock(lease.path):
@@ -259,12 +273,14 @@ def rebind(
         if current is None or current.get('owner') != lease.owner:
             raise WriterStateError(f'collection_writer_owner_changed:{lease.platform}')
         new_owner = owner or f'worker:{pid}:{uuid.uuid4().hex}'
-        payload = _payload(lease.platform, new_owner, lease.kind, int(pid), created_at, job_name)
+        payload = _payload(lease.platform, new_owner, lease.kind, int(pid), created_at,
+                           job_name, pgid)
         _write_owner(lease.path, payload)
         lease.owner = new_owner
         lease.pid = int(pid)
         lease.created_at = created_at
         lease.job_name = job_name
+        lease.pgid = pgid
         return lease
 
 

@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import ipaddress
 import json
 import os
 import re
 from pathlib import Path
+import shutil
 import subprocess
+import sys
 import threading
 import time
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
@@ -28,17 +31,32 @@ _LOCK = threading.RLock()
 _READY = {'public_accessible', 'authenticated_accessible', 'empty_results'}
 _BLOCKED = {'verification_required', 'login_required', 'content_limited'}
 _PREPARED_TARGETS: dict[tuple[str, str], tuple[str, str]] = {}
+_PLATFORM = sys.platform
+_readlink = os.readlink
 
 
 class AccessBlocked(CdpError):
     """A page access gate must stop collection, even with saved list cards."""
 
 
+def _daily_profile_dirs() -> tuple[Path, ...]:
+    """Every daily browser user directory that must never be reused for collection."""
+    local = Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData/Local'))
+    config = Path.home() / '.config'
+    return (
+        local / 'Microsoft/Edge/User Data',
+        local / 'Google/Chrome/User Data',
+        config / 'microsoft-edge',
+        config / 'google-chrome',
+        config / 'chromium',
+    )
+
+
 def _profile(value: str | None) -> Path:
     profile = Path(value).expanduser().resolve() if value else DEFAULT_PROFILE.resolve()
-    local = Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData/Local'))
-    for daily in (local / 'Microsoft/Edge/User Data', local / 'Google/Chrome/User Data'):
-        if profile == daily.resolve() or profile.is_relative_to(daily.resolve()):
+    for daily in _daily_profile_dirs():
+        resolved = daily.expanduser().resolve()
+        if profile == resolved or profile.is_relative_to(resolved):
             raise ValueError('必须使用独立浏览器 profile，不能使用日常浏览器用户目录')
     return profile
 
@@ -59,10 +77,148 @@ def _windows_argv(command: str) -> list[str]:
         free(argv)
 
 
+def _proc_net_address(value: str) -> tuple[str, int] | None:
+    """/proc/net/tcp uses 32-bit little-endian words; tcp6 repeats that per word."""
+    try:
+        raw, port_hex = value.split(':', 1)
+        port = int(port_hex, 16)
+        if len(raw) == 8:
+            address = str(ipaddress.IPv4Address(bytes.fromhex(raw)[::-1]))
+        elif len(raw) == 32:
+            packed = b''.join(bytes.fromhex(raw[offset:offset + 8])[::-1] for offset in range(0, 32, 8))
+            address = str(ipaddress.IPv6Address(packed))
+        else:
+            return None
+        return address, port
+    except ValueError:
+        return None
+
+
+def parse_proc_net_tcp(text: str) -> dict[int, tuple[str, int]]:
+    """Map socket inode to (address, port) for LISTEN rows only."""
+    listeners: dict[int, tuple[str, int]] = {}
+    for line in text.splitlines():
+        fields = line.split()
+        if len(fields) < 10 or fields[3] != '0A':
+            continue
+        address = _proc_net_address(fields[1])
+        try:
+            inode = int(fields[9])
+        except ValueError:
+            continue
+        if address is not None and inode > 0:
+            listeners[inode] = address
+    return listeners
+
+
+def _proc_listen_table(proc_root: Path) -> dict[int, tuple[str, int]]:
+    listeners: dict[int, tuple[str, int]] = {}
+    try:
+        text = (proc_root / 'net' / 'tcp').read_text(encoding='utf-8', errors='replace')
+    except OSError as exc:
+        raise CdpError('无法核实 Linux Edge 监听端口') from exc
+    listeners.update(parse_proc_net_tcp(text))
+    try:
+        text6 = (proc_root / 'net' / 'tcp6').read_text(encoding='utf-8', errors='replace')
+    except FileNotFoundError:
+        pass
+    except OSError as exc:
+        raise CdpError('无法核实 Linux Edge 监听端口') from exc
+    else:
+        listeners.update(parse_proc_net_tcp(text6))
+    return listeners
+
+
+def _proc_cmdline(entry: Path) -> list[str]:
+    try:
+        raw = (entry / 'cmdline').read_bytes()
+    except OSError:
+        return []
+    return [part.decode('utf-8', 'replace') for part in raw.split(b'\0') if part]
+
+
+def _socket_inodes(entry: Path) -> set[int]:
+    try:
+        links = list((entry / 'fd').iterdir())
+    except OSError:
+        return set()
+    inodes: set[int] = set()
+    for link in links:
+        try:
+            target = _readlink(link)
+        except OSError:
+            continue
+        if not target.startswith('socket:[') or not target.endswith(']'):
+            continue
+        try:
+            inodes.add(int(target[8:-1]))
+        except ValueError:
+            continue
+    return inodes
+
+
+def linux_edge_sessions(proc_root: Path | str = '/proc') -> list[dict]:
+    """Owned Edge evidence from /proc; unknown listener state fails closed."""
+    root = Path(proc_root)
+    try:
+        entries = sorted((entry for entry in root.iterdir() if entry.name.isdigit()),
+                         key=lambda entry: int(entry.name))
+    except OSError as exc:
+        raise CdpError('无法核实 Linux Edge 进程') from exc
+    listeners = _proc_listen_table(root)
+    sessions = []
+    for entry in entries:
+        args = _proc_cmdline(entry)
+        if not args or any(arg.startswith('--type=') for arg in args):
+            continue
+        options = dict(arg.split('=', 1) for arg in args if arg.startswith('--') and '=' in arg)
+        if '--remote-debugging-port' not in options or '--user-data-dir' not in options:
+            continue
+        try:
+            port = int(options['--remote-debugging-port'])
+        except ValueError:
+            continue
+        owned = [{'port': listeners[inode][1], 'address': listeners[inode][0]}
+                 for inode in sorted(_socket_inodes(entry)) if inode in listeners]
+        sessions.append({'pid': int(entry.name), 'profile': options['--user-data-dir'],
+                         'port': port, 'listeners': owned})
+    return sessions
+
+
+def edge_launch_argv(executable: Path, profile: Path, initial_url: str = 'about:blank', *,
+                     linux: bool) -> list[str]:
+    # A dynamic loopback port avoids collisions and never exposes a fixed CDP port.
+    argv = [str(executable), '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1',
+            f'--user-data-dir={profile}', '--no-first-run', '--no-default-browser-check',
+            '--disable-extensions']
+    if linux:
+        argv.extend(('--no-sandbox', '--disable-dev-shm-usage'))
+    argv.extend(('--new-window', initial_url))
+    return argv
+
+
+def _linux_edge_executable() -> Path | None:
+    for path in (Path('/usr/bin/microsoft-edge'), Path('/usr/bin/microsoft-edge-stable'),
+                 Path('/opt/microsoft/msedge/msedge')):
+        if path.is_file():
+            return path
+    for name in ('microsoft-edge', 'microsoft-edge-stable', 'msedge'):
+        found = shutil.which(name)
+        if found:
+            return Path(found)
+    return None
+
+
 def _edge_sessions() -> list[dict]:
-    """Native Windows process/listener evidence, never cookie or account access."""
-    if os.name != 'nt':
-        raise CdpError('当前自动启动仅支持 Windows Edge')
+    """Native OS process/listener evidence, never cookie or account access."""
+    if os.name == 'nt':
+        return _windows_edge_sessions()
+    if _PLATFORM.startswith('linux'):
+        return linux_edge_sessions()
+    raise CdpError('当前自动启动仅支持 Windows/Linux Edge')
+
+
+def _windows_edge_sessions() -> list[dict]:
     script = r"""
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $edgeListeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue)
@@ -111,19 +267,23 @@ def _owned_endpoint(profile: Path, sessions: list[dict]) -> str | None:
 
 
 def _launch_edge(profile: Path, initial_url: str = 'about:blank') -> int:
-    candidates = [Path(os.environ.get(key, '')) / 'Microsoft/Edge/Application/msedge.exe'
-                  for key in ('ProgramFiles(x86)', 'ProgramFiles')]
-    executable = next((path for path in candidates if path.is_file()), None)
+    linux = _PLATFORM.startswith('linux')
+    if linux:
+        executable = _linux_edge_executable()
+    else:
+        executable = next((path for path in (
+            Path(os.environ.get(key, '')) / 'Microsoft/Edge/Application/msedge.exe'
+            for key in ('ProgramFiles(x86)', 'ProgramFiles')) if path.is_file()), None)
     if executable is None:
         raise CdpError('未找到 Microsoft Edge')
     profile.mkdir(parents=True, exist_ok=True)
-    # Dynamic port avoids fixed-port collisions and excluded Windows port ranges.
-    process = subprocess.Popen([str(executable), '--remote-debugging-port=0',
-        '--remote-debugging-address=127.0.0.1', f'--user-data-dir={profile}',
-        '--no-first-run', '--no-default-browser-check', '--disable-extensions',
-        '--new-window', initial_url],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0))
+    argv = edge_launch_argv(executable, profile, initial_url, linux=linux)
+    if linux:
+        # Keep the worker's process group so the scheduler owns the whole tree.
+        process = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        process = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0))
     return process.pid
 
 

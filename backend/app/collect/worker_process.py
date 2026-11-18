@@ -3,6 +3,10 @@
 The root is suspended until its live process handle belongs to a named Job
 Object. Descendants inherit it, and another backend can reopen it by name;
 termination never trusts a recycled PID. Closing the last handle also stops the tree.
+
+On POSIX the worker starts a new session (pgid == pid) and the group is the
+ownership evidence: stop signals the whole group and refuses to report success
+while it still exists.
 """
 from __future__ import annotations
 
@@ -16,6 +20,71 @@ import time
 import uuid
 
 _JOB_NAME_PREFIX = 'Local\\TalentMind.Collection.'
+_SIGTERM = getattr(signal, 'SIGTERM', 15)
+_SIGKILL = getattr(signal, 'SIGKILL', 9)
+_killpg = getattr(os, 'killpg', None)
+
+
+def _group_probe(killpg=None):
+    probe = killpg or _killpg
+    if probe is None:
+        raise RuntimeError('当前平台不支持采集进程组')
+    return probe
+
+
+def group_alive(pgid: int, *, killpg=None) -> bool:
+    """True only when the whole process group still exists (fail closed on other OSError)."""
+    probe = _group_probe(killpg)
+    if type(pgid) is not int or pgid <= 0:
+        raise ValueError('无效的采集进程组')
+    try:
+        probe(pgid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _signal_group(probe, pgid: int, sig: int) -> None:
+    try:
+        probe(pgid, sig)
+    except ProcessLookupError:
+        pass
+
+
+def _wait_group_exit(probe, pgid: int, deadline: float, clock, sleeper) -> bool:
+    while True:
+        try:
+            probe(pgid, 0)
+        except ProcessLookupError:
+            return True
+        except PermissionError:
+            return False
+        if clock() >= deadline:
+            return False
+        sleeper(0.05)
+
+
+def stop_process_group(process, timeout=10, *, killpg=None, clock=time.monotonic,
+                       sleeper=time.sleep):
+    """SIGTERM the group, then SIGKILL after the deadline; never guess a bare PID."""
+    probe = _group_probe(killpg)
+    pgid = getattr(process, '_collection_pgid', None)
+    if type(pgid) is not int or pgid <= 0:
+        raise RuntimeError('采集子进程缺少可验证的进程组')
+    _signal_group(probe, pgid, _SIGTERM)
+    deadline = clock() + max(float(timeout), 0.0)
+    try:
+        process.wait(timeout=max(0.0, deadline - clock()))
+    except subprocess.TimeoutExpired:
+        pass
+    if _wait_group_exit(probe, pgid, deadline, clock, sleeper):
+        return
+    _signal_group(probe, pgid, _SIGKILL)
+    if _wait_group_exit(probe, pgid, clock() + 1.0, clock, sleeper):
+        return
+    raise TimeoutError('采集子进程树停止超时')
 
 
 def _valid_job_name(name):
@@ -182,7 +251,9 @@ class _WindowsJob:
 
 def spawn(args, *, job_name=None, **kwargs):
     if os.name != 'nt':
-        return subprocess.Popen(args, start_new_session=True, **kwargs)
+        process = subprocess.Popen(args, start_new_session=True, **kwargs)
+        process._collection_pgid = process.pid
+        return process
     job = _WindowsJob(job_name)
     process = None
     try:
@@ -221,10 +292,8 @@ def stop(process, timeout=10):
                 for handle in handles:
                     job.kernel.CloseHandle(handle)
     else:
-        try:
-            os.killpg(process.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
+        stop_process_group(process, timeout=timeout)
+        return
     process.wait(timeout=timeout)
 
 
