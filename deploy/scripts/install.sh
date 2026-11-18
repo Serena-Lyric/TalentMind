@@ -169,7 +169,11 @@ if [[ -d "$seed_backend" ]]; then
     shopt -u dotglob nullglob
     rmdir "$seed_backend" 2>/dev/null || true
     rmdir "$deploy_dir/seed" 2>/dev/null || true
-    chown -R 1000:1000 "$backend_data" 2>/dev/null || true
+    # MSYS chown -R is emulated and extremely slow over large seed trees; Docker
+    # Desktop bind mounts do not need it. Real Ubuntu deployments do.
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        chown -R 1000:1000 "$backend_data" 2>/dev/null || true
+    fi
     tm_log "seeded backend data from package into $backend_data"
 fi
 
