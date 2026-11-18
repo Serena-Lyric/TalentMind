@@ -23,6 +23,7 @@ run() {
 run "syntax" bash -lc 'for f in deploy/scripts/*.sh; do bash -n "$f" || exit 1; done'
 run "install-docker" bash deploy/tests/test-install-docker.sh
 run "backend-image" bash deploy/tests/test-backend-image.sh
+run "m1-linux" bash deploy/tests/test-m1-linux.sh
 run "web-image" bash deploy/tests/test-web-image.sh
 run "compose-stack" bash deploy/tests/test-compose-stack.sh
 run "nginx-auth" bash deploy/tests/test-nginx-auth.sh
