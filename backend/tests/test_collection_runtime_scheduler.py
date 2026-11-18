@@ -16,6 +16,7 @@ class FakeProcess:
         self.terminated = False
         self.killed = False
         self._collection_job = FakeJob(f'Local\\TalentMind.Collection.{self.pid:032x}')
+        self._collection_pgid = self.pid
 
     def poll(self):
         return self.returncode
@@ -37,6 +38,19 @@ class FakeJob:
         self.name = name
         self.handle = None
 
+    def close(self):
+        self.handle = None
+
+
+def _patch_fake_worker_stop(monkeypatch):
+    """Fake processes have no real process group; stop them like the old generic path."""
+    def stop(process, timeout=10):
+        process.terminate()
+        return process.wait(timeout=timeout)
+
+    monkeypatch.setattr(scheduler.worker_process, 'stop', stop)
+    monkeypatch.setattr(scheduler.worker_process, 'group_alive', lambda pgid: False)
+
 
 @pytest.fixture
 def isolated_scheduler(tmp_path, monkeypatch):
@@ -49,6 +63,7 @@ def isolated_scheduler(tmp_path, monkeypatch):
     monkeypatch.setattr(scheduler.readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(frequency, 'legacy_migration_required', lambda platform: False)
     monkeypatch.setattr(lease.worker_process, 'job_has_processes', lambda name: False)
+    _patch_fake_worker_stop(monkeypatch)
     spawned = []
 
     def spawn(platform, config):
@@ -315,6 +330,7 @@ def test_custom_config_stop_start_empty_reuses_stored_plan(tmp_path, monkeypatch
         process.pid == pid and process.poll() is None for process in processes
     ))
     monkeypatch.setattr(scheduler, '_spawn_worker', spawn)
+    _patch_fake_worker_stop(monkeypatch)
     custom = RuntimeConfig(
         keywords=('CustomRole',),
         cities={'boss': (('深圳', '101280600'),), 'zhaopin': (('深圳', '765'),), 'liepin': (('深圳', '深圳'),)},
@@ -392,13 +408,17 @@ def test_new_backend_can_stop_restored_worker_and_release_worker_owned_lease(iso
         job_name = f'Local\\TalentMind.Collection.{process.pid:032x}'
         process._collection_job = FakeJob(job_name)
         held = scheduler._LEASES[platform]
-        lease.rebind(held, process.pid, None, owner=f'worker:{process.pid}:test', job_name=job_name)
+        lease.rebind(held, process.pid, None, owner=f'worker:{process.pid}:test',
+                     job_name=job_name, pgid=process.pid)
     scheduler._write_scheduler({
         'started_at': 1000,
         'config': scheduler._config_dict(RuntimeConfig()),
         'pids': scheduler._process_payload(),
     })
-    monkeypatch.setattr(scheduler, '_pid_process', lambda platform, pid, created_at, job_name=None: by_pid.get(pid))
+    monkeypatch.setattr(
+        scheduler, '_pid_process',
+        lambda platform, pid, created_at, job_name=None, pgid=None: by_pid.get(pid),
+    )
     monkeypatch.setattr(scheduler, '_pid_alive', lambda pid, created_at: pid in alive)
     monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: pid in alive)
     for process in by_pid.values():

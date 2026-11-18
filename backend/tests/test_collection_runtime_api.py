@@ -56,6 +56,8 @@ def test_asgi_empty_start_payload_reaches_real_scheduler_default_validation(monk
     monkeypatch.setattr(scheduler, '_PROCESS_META', {})
     monkeypatch.setattr(scheduler, '_LEASES', {})
     monkeypatch.setattr(scheduler, '_spawn_worker', lambda platform, config: Process())
+    monkeypatch.setattr(scheduler.worker_process, 'stop',
+                        lambda process, timeout=10: process.terminate())
     monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
     monkeypatch.setattr(frequency, 'legacy_migration_required', lambda platform: False)
 

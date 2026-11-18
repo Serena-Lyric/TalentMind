@@ -130,8 +130,7 @@ def test_linux_launch_keeps_worker_session_and_container_flags(tmp_path, monkeyp
     executable = tmp_path / 'microsoft-edge'
     executable.write_text('#!/bin/sh\n', encoding='utf-8')
     monkeypatch.setattr(browser, '_PLATFORM', 'linux')
-    monkeypatch.setattr(browser.shutil, 'which',
-                        lambda name: str(executable) if name == 'microsoft-edge' else None)
+    monkeypatch.setattr(browser, '_linux_edge_executable', lambda: executable)
     captured = {}
 
     class Proc:
