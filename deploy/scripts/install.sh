@@ -37,6 +37,14 @@ fi
 deploy_dir="$(tm_deploy_dir)"
 data_dir="$(tm_data_dir)"
 env_file="$(tm_env_file)"
+
+package_env="$deploy_dir/package.env"
+if [[ -f "$package_env" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    . "$package_env"
+    set +a
+fi
 nginx_dir="${TALENTMIND_NGINX_DIR:-$deploy_dir/nginx}"
 auth_dir="${TALENTMIND_AUTH_DIR:-$deploy_dir/auth}"
 tls_dir="${TALENTMIND_TLS_DIR:-$deploy_dir/tls}"
@@ -44,6 +52,7 @@ tls_dir="${TALENTMIND_TLS_DIR:-$deploy_dir/tls}"
 mkdir -p "$data_dir/mysql" "$data_dir/backend" "$deploy_dir/m2" \
     "$nginx_dir" "$auth_dir" "$tls_dir" "$(dirname "$env_file")"
 chmod 644 "$deploy_dir/mysql/my.cnf" 2>/dev/null || true
+chmod 600 "$deploy_dir/m2/api-key.txt" 2>/dev/null || true
 chown -R 999:999 "$data_dir/mysql" 2>/dev/null || true
 chown -R 1000:1000 "$data_dir/backend" "$deploy_dir/m2" 2>/dev/null || true
 
@@ -56,6 +65,7 @@ neo4j_password="${NEO4J_PASSWORD:-$(openssl rand -hex 24)}"
 
 model_env="${TALENTMIND_MODEL_ENV:-$deploy_dir/model.env}"
 if [[ -f "$model_env" ]]; then
+    chmod 600 "$model_env" 2>/dev/null || true
     set -a
     # shellcheck disable=SC1090
     . "$model_env"
@@ -143,6 +153,24 @@ fi
 if ! bash "$script_dir/import-data.sh"; then
     tm_compose logs --tail=50 mysql || true
     tm_die "first-run data import failed"
+fi
+
+seed_backend="$deploy_dir/seed/backend"
+if [[ -d "$seed_backend" ]]; then
+    backend_data="$data_dir/backend"
+    if [[ -d "$backend_data" && -n "$(find "$backend_data" -mindepth 1 -print -quit)" ]]; then
+        tm_die "package seed data found in $seed_backend but $backend_data is not empty; refusing to overwrite"
+    fi
+    mkdir -p "$backend_data"
+    shopt -s dotglob nullglob
+    for entry in "$seed_backend"/*; do
+        mv "$entry" "$backend_data/"
+    done
+    shopt -u dotglob nullglob
+    rmdir "$seed_backend" 2>/dev/null || true
+    rmdir "$deploy_dir/seed" 2>/dev/null || true
+    chown -R 1000:1000 "$backend_data" 2>/dev/null || true
+    tm_log "seeded backend data from package into $backend_data"
 fi
 
 tm_compose up -d backend web
