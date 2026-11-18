@@ -11,6 +11,7 @@ output_dir="data/local/deploy"
 skip_images=0
 skip_data=0
 split_images=0
+reuse_images=0
 mysql_container="talentmind-mysql-1"
 m2_config="data/local/m2-p1-review3-20261102/deepseek-flash-20261102.json"
 m2_key="data/local/m2-p1-20261029/api-key.txt"
@@ -36,6 +37,8 @@ Options:
   --skip-images           Do not build or save Docker images
   --skip-data             Do not export MySQL/M2 data or private configs
   --split-images          Always emit a separate talentmind-images-<V>.tar.gz
+  --reuse-images          Tag existing talentmind-backend:test/talentmind-web:test
+                          instead of rebuilding (offline/blocked Docker Hub only)
   --mysql-container NAME  MySQL container (default: talentmind-mysql-1)
   --m2-config PATH        M2 processor config JSON
   --m2-key PATH           M2 processor API key file
@@ -55,6 +58,7 @@ parse_args() {
             --skip-images) skip_images=1; shift ;;
             --skip-data) skip_data=1; shift ;;
             --split-images) split_images=1; shift ;;
+            --reuse-images) reuse_images=1; shift ;;
             --mysql-container) [[ "$#" -ge 2 ]] || die "--mysql-container needs a value"; mysql_container="$2"; shift 2 ;;
             --m2-config) [[ "$#" -ge 2 ]] || die "--m2-config needs a value"; m2_config="$2"; shift 2 ;;
             --m2-key) [[ "$#" -ge 2 ]] || die "--m2-key needs a value"; m2_key="$2"; shift 2 ;;
@@ -103,6 +107,9 @@ check_prerequisites() {
     if [[ "$split_images" -eq 1 && "$skip_images" -eq 1 ]]; then
         die "--split-images cannot be combined with --skip-images"
     fi
+    if [[ "$reuse_images" -eq 1 && "$skip_images" -eq 1 ]]; then
+        die "--reuse-images cannot be combined with --skip-images"
+    fi
 }
 
 prepare_output() {
@@ -145,12 +152,22 @@ ensure_base_image() {
 }
 
 stage_images() {
-    log "building talentmind-backend:$version (linux/amd64)"
-    docker build --platform linux/amd64 -f deploy/backend/Dockerfile \
-        -t "talentmind-backend:$version" .
-    log "building talentmind-web:$version (linux/amd64)"
-    docker build --platform linux/amd64 -f deploy/web/Dockerfile \
-        -t "talentmind-web:$version" .
+    if [[ "$reuse_images" -eq 1 ]]; then
+        log "reusing talentmind-backend:test and talentmind-web:test for $version"
+        docker image inspect talentmind-backend:test >/dev/null 2>&1 \
+            || die "talentmind-backend:test is missing; build it with deploy/tests/test-backend-image.sh first"
+        docker image inspect talentmind-web:test >/dev/null 2>&1 \
+            || die "talentmind-web:test is missing; build it with deploy/tests/test-web-image.sh first"
+        docker tag talentmind-backend:test "talentmind-backend:$version"
+        docker tag talentmind-web:test "talentmind-web:$version"
+    else
+        log "building talentmind-backend:$version (linux/amd64)"
+        docker build --platform linux/amd64 -f deploy/backend/Dockerfile \
+            -t "talentmind-backend:$version" .
+        log "building talentmind-web:$version (linux/amd64)"
+        docker build --platform linux/amd64 -f deploy/web/Dockerfile \
+            -t "talentmind-web:$version" .
+    fi
     ensure_base_image mysql:8.0
     ensure_base_image neo4j:5-community
     ensure_base_image redis:7-alpine
