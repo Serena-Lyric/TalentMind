@@ -14,6 +14,17 @@ BOSS/智联/猎聘的真实试采必须走模块入口，不允许临时脚本�
 
 当前证据为真实模块代码配合合成页面/假时钟及临时 SQLite 的离线回归，不是真实招聘网站、扩展实机或正式库验收。实际有界试采仍须在已授权环境通过同一模块和频率执行；登录、验证码或访问限制立即停止。
 
+## 2026-11-18 Linux 运行说明（P2 容器）
+
+Linux 沿用同一 CDP 引擎，不引入 Playwright，也不新增第二套浏览器入口：
+
+- `browser.py`：Linux 依次查找 `/usr/bin/microsoft-edge`、`/usr/bin/microsoft-edge-stable`、`/opt/microsoft/msedge/msedge` 及 PATH 中的 `microsoft-edge`/`microsoft-edge-stable`/`msedge`；启动参数追加 `--no-sandbox --disable-dev-shm-usage`；`~/.config/{microsoft-edge,google-chrome,chromium}` 及其子目录拒绝作为采集 profile。
+- 进程证据：`linux_edge_sessions()` 遍历 `/proc/<pid>/cmdline`，用 fd 的 `socket:[inode]` 与 `/proc/net/tcp`、`tcp6` 的 LISTEN 表匹配，只接受回环监听。`/proc` 或监听表不可读时抛 `CdpError`（fail closed），不把“未知”当作没有 Edge。
+- worker：POSIX 以 `start_new_session=True` 启动（pgid=pid），停止先向进程组发 SIGTERM、超时 SIGKILL，仍无法确认整组退出则 `collection_worker_termination_unknown`，lease 不释放。恢复时用 `/proc/<pid>/stat` 的 starttime 校验，PID 复用视为已退出。
+- 镜像与入口：`deploy/backend/Dockerfile` 内置 Edge for Linux、Xvfb、x11vnc、noVNC/websockify、Noto CJK；`deploy/backend/entrypoint.sh` 在运行 uvicorn 前启动 `Xvfb :99`、仅监听容器内回环的 x11vnc（5900）和 websockify（容器内 6080→127.0.0.1:5900），短命命令直接 exec；compose 仅发布宿主机回环 `127.0.0.1:6080:6080`。
+
+验证边界：`deploy/tests/test-m1-linux.sh` 只做本地 linux/amd64 容器烟测——静态检查 Edge/Xvfb/x11vnc/websockify/noVNC/Noto CJK、`/health`、Xvfb socket、宿主机经映射端口读取 `/vnc.html`、容器内 `about:blank` 的 Edge CDP `/json/version` 与 `/json/list`，以及带子进程 sleep worker 的进程组停止。**未访问 BOSS/智联/猎聘，未在真实服务器运行，未迁移登录态，未执行真实采集**；真实三站可用性仍以负责人服务器证据为准。
+
 ## 2026-11-09 三平台隔离持续运行时（开发分支）
 
 Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动、只读 CDP 附加及 BOSS/智联双独立进程均未出现站点阻断，按固定判断树选择**现有 Edge CDP**，不引入 Playwright、第二套浏览器引擎、请求拦截/重放或网络监听。
