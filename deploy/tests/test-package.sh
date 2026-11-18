@@ -135,9 +135,14 @@ check_code_archive() {
     for path in "${required[@]}"; do
         has_path "$code_list" "$path" || fail "code archive missing $path"
     done
-    local forbidden='^(\./)?(data/|app/data/|app/backend/\.env(/|$)|app/deploy/\.env(/|$)|app/deploy/model\.env(/|$)|app/deploy/(m2|auth|tls|data|seed|backups)/)'
+    local forbidden='^(\./)?(data/|app/backend/\.env(/|$)|app/deploy/\.env(/|$)|app/deploy/model\.env(/|$)|app/deploy/(m2|auth|tls|data|seed|backups)/)'
     if grep -Eq "$forbidden" "$code_list"; then
         fail "code archive contains forbidden path: $(grep -E "$forbidden" "$code_list" | head -n 1)"
+    fi
+    # The repository tracks only data/local/README.md under app/data.
+    if grep -E '^(\./)?app/data/' "$code_list" \
+        | grep -vE '^(\./)?app/data/(local/)?$|^(\./)?app/data/local/README\.md$' | grep -q .; then
+        fail "code archive contains private data under app/data/: $(grep -E '^(\./)?app/data/' "$code_list" | grep -vE '^(\./)?app/data/(local/)?$|^(\./)?app/data/local/README\.md$' | head -n 1)"
     fi
     if grep -Eiq '(^|/)(browser_profiles|Cookies)(/|$)' "$code_list"; then
         fail "code archive contains browser profile or cookie data"
