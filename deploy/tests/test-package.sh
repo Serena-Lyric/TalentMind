@@ -210,10 +210,50 @@ check_data_archive() {
 extract_packages() {
     mkdir -p "$root"
     tar -xzf "$code_tar" -C "$root"
+    # Check before images/data are unpacked so binary archives are not scanned.
+    check_code_line_endings
     if [[ -n "$images_tar" ]]; then
         tar -xzf "$images_tar" -C "$root"
     fi
     tar -xzf "$data_tar" -C "$root"
+}
+
+# Windows core.autocrlf=true made `git archive` emit CRLF into the code package,
+# which broke `set -o pipefail` scripts on Ubuntu. .gitattributes now pins the
+# deploy tree to LF; this guard rejects a regression at package-build time.
+check_code_line_endings() {
+    local offenders
+    offenders="$("$python_cmd" - "$(path_win "$root")" <<'PY'
+import os
+import sys
+
+sys.stdout.reconfigure(newline="\n")
+root = sys.argv[1]
+targets = []
+deploy = os.path.join(root, "app", "deploy")
+for base, _, files in os.walk(deploy):
+    for name in files:
+        targets.append(os.path.join(base, name))
+scripts = os.path.join(root, "app", "scripts")
+if os.path.isdir(scripts):
+    for name in os.listdir(scripts):
+        path = os.path.join(scripts, name)
+        if name.endswith(".sh") and os.path.isfile(path):
+            targets.append(path)
+
+for path in targets:
+    with open(path, "rb") as handle:
+        data = handle.read()
+    if b"\x00" not in data and b"\r" in data:
+        print(os.path.relpath(path, root).replace(os.sep, "/"))
+PY
+)"
+    if [[ -n "$offenders" ]]; then
+        printf 'CRLF (\\r) line endings found in packaged text files:\n' >&2
+        printf '%s\n' "$offenders" | sed 's/^/  /' >&2
+        fail "code archive contains CRLF line endings; app/deploy/** and app/scripts/*.sh must be LF (see .gitattributes)"
+    fi
+    note "code archive line endings are LF"
 }
 
 check_versions() {
