@@ -70,6 +70,10 @@ pwsh -File scripts/stop-local.ps1
 
 以上命令不应自动触发新的真实岗位采集。详细环境、导入和恢复要求见 [部署与导入说明](docs/部署与导入说明.md)；竞赛旧版本有独立的 [V1 恢复手册](docs/V1恢复手册.md)。
 
+## Ubuntu 24.04 生产部署（P1）
+
+服务器部署使用 `deploy/` 下的预构建镜像与脚本：Docker Compose 启动 MySQL、FastAPI 和 Nginx，Nginx 提供 Basic Auth/TLS 与 `/api` 反向代理，数据库端口不发布。安装、TLS、启停、日志、备份恢复和故障排查见 [Ubuntu 生产部署与运行](docs/部署与运行-Ubuntu.md)。P1 不包含 M1 Linux 采集（Edge/Xvfb/noVNC 在 P2）；真实数据、模型 Key 和 Basic Auth 不进入公开代码包。
+
 ## 测试
 
 ```powershell
