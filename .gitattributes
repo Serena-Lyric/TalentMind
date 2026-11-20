@@ -1,3 +1,7 @@
+# Deployment archives are built with `git archive`; Windows core.autocrlf=true
+# would otherwise turn text files into CRLF and break Bash on Ubuntu.
+deploy/** text eol=lf
+scripts/*.sh text eol=lf
 # B3-5 definition provenance hashes must survive checkout on every platform.
 docs/PRODUCT_DECISIONS.md text eol=lf
 backend/app/job_analysis/canonical_catalog/sources/*.txt text eol=lf
