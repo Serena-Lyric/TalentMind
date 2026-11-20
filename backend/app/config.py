@@ -7,9 +7,6 @@ class Settings(BaseSettings):
     neo4j_uri: str
     neo4j_user: str
     neo4j_password: str
-    redis_url: str
-    openai_api_key: str
-    openai_base_url: str = "https://api.openai.com/v1"
     github_token: str = ""
 
 @lru_cache
