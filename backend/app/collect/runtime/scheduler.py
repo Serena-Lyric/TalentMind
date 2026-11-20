@@ -4,7 +4,6 @@ from __future__ import annotations
 import ctypes
 import json
 import os
-import signal
 import subprocess
 import sys
 import threading
@@ -28,6 +27,9 @@ _PROCESS_META: dict[str, dict[str, int | str | None]] = {}
 _LEASES: dict[str, lease.Lease] = {}
 _LOCK = threading.RLock()
 _clock = time.time
+_PLATFORM = sys.platform
+_POSIX = os.name != 'nt'
+_PROC_ROOT = Path('/proc')
 _MANUAL_RECOVERY_STATUSES = frozenset({'blocked', 'needs_login', 'failed'})
 _KERNEL32 = ctypes.windll.kernel32 if os.name == 'nt' else None
 if _KERNEL32 is not None:
@@ -71,7 +73,36 @@ class _FileTime(ctypes.Structure):
     _fields_ = [('dwLowDateTime', wintypes.DWORD), ('dwHighDateTime', wintypes.DWORD)]
 
 
+def parse_proc_stat(text: str) -> tuple[str, int] | None:
+    """State and starttime (field 22) from /proc/<pid>/stat; comm may contain parens."""
+    _, separator, tail = text.rpartition(')')
+    if not separator:
+        return None
+    fields = tail.split()
+    if len(fields) < 20 or len(fields[0]) != 1:
+        return None
+    try:
+        starttime = int(fields[19])
+    except ValueError:
+        return None
+    if starttime < 0:
+        return None
+    return fields[0], starttime
+
+
+def _proc_stat(pid: int, proc_root: Path | str | None = None) -> tuple[str, int] | None:
+    root = Path(proc_root) if proc_root is not None else _PROC_ROOT
+    try:
+        text = (root / str(int(pid)) / 'stat').read_text(encoding='utf-8', errors='replace')
+    except (OSError, TypeError, ValueError):
+        return None
+    return parse_proc_stat(text)
+
+
 def _process_creation_time(pid: int) -> int | None:
+    if _PLATFORM.startswith('linux'):
+        parsed = _proc_stat(pid)
+        return parsed[1] if parsed is not None else None
     if os.name != 'nt':
         return None
     handle = _KERNEL32.OpenProcess(0x1000, False, int(pid))
@@ -92,6 +123,15 @@ def _process_creation_time(pid: int) -> int | None:
 
 
 def _pid_alive(pid: int, created_at: int | None = None) -> bool:
+    if _PLATFORM.startswith('linux'):
+        parsed = _proc_stat(pid)
+        if parsed is None:
+            return False
+        state_name, starttime = parsed
+        if state_name in {'Z', 'X', 'x'}:
+            return False
+        # Without a recorded starttime a recycled PID cannot be distinguished.
+        return created_at is not None and starttime == created_at
     if os.name != 'nt':
         try:
             os.kill(int(pid), 0)
@@ -113,13 +153,20 @@ def _pid_alive(pid: int, created_at: int | None = None) -> bool:
 
 
 class _PidProcess:
-    def __init__(self, pid: int, created_at: int | None, job=None):
+    def __init__(self, pid: int, created_at: int | None, job=None, pgid: int | None = None):
         self.pid = pid
         self.created_at = created_at
         self._collection_job = job
+        if _POSIX and (type(pgid) is not int or pgid <= 0):
+            pgid = pid
+        self.pgid = pgid
+        if pgid is not None and _POSIX:
+            self._collection_pgid = pgid
 
     def poll(self):
         if _pid_alive(self.pid, self.created_at):
+            return None
+        if _POSIX and self.pgid is not None and worker_process.group_alive(self.pgid):
             return None
         job = self._collection_job
         if job is not None and job.handle and job.active_processes():
@@ -135,21 +182,19 @@ class _PidProcess:
         return 0
 
     def terminate(self):
-        if os.name == 'nt':
-            worker_process.stop(self, timeout=5)
-            return
-        os.kill(self.pid, signal.SIGTERM)
+        worker_process.stop(self, timeout=5)
 
     def kill(self):
-        if os.name == 'nt':
-            worker_process.stop(self, timeout=5)
-            return
-        os.kill(self.pid, signal.SIGTERM)
+        worker_process.stop(self, timeout=5)
 
 
-def _pid_process(platform: str, pid: int, created_at: int | None, job_name: str | None = None):
+def _pid_process(platform: str, pid: int, created_at: int | None, job_name: str | None = None,
+                 pgid: int | None = None):
+    if _POSIX:
+        process = _PidProcess(pid, created_at, pgid=pgid)
+        return process if process.poll() is None else None
     job = None
-    if os.name == 'nt' and job_name:
+    if job_name:
         try:
             job = worker_process.open_job(job_name)
         except (OSError, ValueError) as exc:
@@ -174,16 +219,24 @@ def _restore_processes() -> None:
             pid = value.get('pid')
             created_at = value.get('created_at')
             job_name = value.get('job_name')
+            pgid = value.get('pgid')
         else:
             pid, created_at = value, None
             job_name = None
+            pgid = None
         if type(pid) is not int or pid <= 0:
             continue
-        process = (_pid_process(platform, pid, created_at, job_name) if job_name
-                   else _pid_process(platform, pid, created_at))
+        if type(pgid) is not int or pgid <= 0:
+            pgid = None
+        options = {'pgid': pgid} if pgid is not None else {}
+        if job_name:
+            process = _pid_process(platform, pid, created_at, job_name, **options)
+        else:
+            process = _pid_process(platform, pid, created_at, **options)
         if process is not None:
             _PROCESSES[platform] = process
-            _PROCESS_META[platform] = {'pid': pid, 'created_at': created_at, 'job_name': job_name}
+            _PROCESS_META[platform] = {'pid': pid, 'created_at': created_at,
+                                       'job_name': job_name, 'pgid': pgid}
 
 
 def _process_payload() -> dict[str, dict[str, int | str | None]]:
@@ -191,10 +244,15 @@ def _process_payload() -> dict[str, dict[str, int | str | None]]:
     for platform, process in _PROCESSES.items():
         meta = _PROCESS_META.get(platform) or {}
         job_name = getattr(getattr(process, '_collection_job', None), 'name', meta.get('job_name'))
+        pgid = meta.get('pgid')
+        if _POSIX and (type(pgid) is not int or pgid <= 0):
+            pgid = getattr(process, '_collection_pgid', None)
         result[platform] = {
             'pid': int(process.pid),
             'created_at': meta.get('created_at', _process_creation_time(int(process.pid))),
         }
+        if type(pgid) is int and pgid > 0:
+            result[platform]['pgid'] = pgid
         if job_name:
             result[platform]['job_name'] = job_name
     return result
@@ -223,11 +281,13 @@ def _spawn_worker(platform: str, config: RuntimeConfig) -> subprocess.Popen:
 def _bind_worker_lease(platform: str, process, held: lease.Lease) -> None:
     created_at = _process_creation_time(int(process.pid))
     job_name = getattr(getattr(process, '_collection_job', None), 'name', None)
+    pgid = getattr(process, '_collection_pgid', None) if _POSIX else None
     lease.rebind(
         held, int(process.pid), created_at,
-        owner=f'worker:{process.pid}:{uuid.uuid4().hex}', job_name=job_name,
+        owner=f'worker:{process.pid}:{uuid.uuid4().hex}', job_name=job_name, pgid=pgid,
     )
-    _PROCESS_META[platform] = {'pid': int(process.pid), 'created_at': created_at, 'job_name': job_name}
+    _PROCESS_META[platform] = {'pid': int(process.pid), 'created_at': created_at,
+                               'job_name': job_name, 'pgid': pgid}
 
 
 def _alive(process) -> bool:
@@ -236,6 +296,20 @@ def _alive(process) -> bool:
 
 def _stop_process(process) -> None:
     if process is None:
+        return
+    if _POSIX:
+        pgid = getattr(process, '_collection_pgid', None)
+        try:
+            worker_process.stop(process, timeout=5)
+        except BaseException as exc:
+            raise RuntimeError('collection_worker_termination_unknown') from exc
+        if process.poll() is None:
+            raise RuntimeError('collection_worker_termination_unknown')
+        if type(pgid) is not int or pgid <= 0:
+            pgid = getattr(process, 'pgid', None)
+        if type(pgid) is int and pgid > 0 and worker_process.group_alive(pgid):
+            raise RuntimeError('collection_worker_termination_unknown')
+        worker_process.close(process)
         return
     job = getattr(process, '_collection_job', None)
     if (job is not None and hasattr(job, 'member_handles')
@@ -488,6 +562,8 @@ def stop() -> dict[str, Any]:
             process = {'pid': pid, 'created_at': writer.get('created_at')}
             if writer.get('job_name'):
                 process['job_name'] = writer['job_name']
+            if type(writer.get('pgid')) is int and writer['pgid'] > 0:
+                process['pgid'] = writer['pgid']
             pids[platform] = process
         pids.update(_process_payload())
         scheduler_data['pids'] = pids
@@ -552,6 +628,7 @@ def resume(platform: str, confirmed: bool = False) -> dict[str, Any]:
             'pid': process.pid,
             'created_at': _process_creation_time(process.pid),
             'job_name': getattr(getattr(process, '_collection_job', None), 'name', None),
+            'pgid': getattr(process, '_collection_pgid', None) if _POSIX else None,
         }
         scheduler_data['config'] = _config_dict(config)
         scheduler_data['pids'] = _process_payload()
