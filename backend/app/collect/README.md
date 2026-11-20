@@ -1,5 +1,13 @@
 # M1 采集模块（backend/app/collect/）
 
+## 2026-11-20 P3 清理后的当前入口
+
+- 当前采集入口为 `runtime/`（`GET/POST /collection/runtime/*`）；三平台 worker 分派到 `fetch_boss_jobs.py` / `fetch_cn_jobs.py`。
+- 浏览器准备与访问检查仍为 `/collection/prepare`、`/collection/cdp-status`；准备不启动采集。
+- 状态、历史、原文、频率与恢复接口保留：`/collection/status`、`/collection/history`、`/collection/results`、`/collection/raw/{id}`、`/collection/frequency/*`。
+- 已删除旧单轮控制（`control.start_task/stop_task`）、`batch.py`、`bridge.py`、`collection_bridge` 路由、`frontend/bridge-extension/`、`boss_collect_loop.py`、`cn_collect_loop.py`、`collect_loop.py`、`fetch_all.py`、`fetch_hn_jobs.py`、`fetch_signals.py`、`cross_validate.py` 及 HN/信号 fetcher。
+- 历史 `data/local/collection/control-state.json`、`*.events.jsonl` 与旧日志不删除，仍由读取接口按原格式解析；Git 历史保留退役实现。
+
 ## 强制采集频率与有界试采
 
 BOSS/智联/猎聘的真实试采必须走模块入口，不允许临时脚本、直接 API/CDP 或浏览器手动抓取绕开模块频率后回填。既有低速设计成为代码硬下限：页面动作 15–30 秒、切换关键词/城市组合 360–720 秒；页面稳定参数至少 5 秒。请求/CLI/旧配置不能降低下限，NaN/Infinity 和负值拒绝；更慢的合法配置可保留。此规则不盲目扩展到 HN、公开 API 或信号源。
@@ -40,7 +48,7 @@ Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动�
 | `runtime/state.py` | 每平台 SQLite 检查点、计数、最后成功身份和 STOP 标记 |
 | `runtime/sink.py` | 注入现有 pipeline/repository 的数据库 provider，不新建业务表 |
 
-控制 API：`GET /collection/runtime/status`、`POST /collection/runtime/start`、`POST /collection/runtime/stop`、`POST /collection/runtime/resume/{platform}`。现有 `/collection` 页增加三站状态卡、启动/停止和人工处理后恢复入口；旧单轮、批次、桥接接口暂保留兼容。
+控制 API：`GET /collection/runtime/status`、`POST /collection/runtime/start`、`POST /collection/runtime/stop`、`POST /collection/runtime/resume/{platform}`。`/collection` 页保留三站状态卡、启动/停止和人工处理后恢复入口；旧单轮、批次、桥接入口已由 P3 删除。
 
 `POST /collection/runtime/start` 接受显式 JSON 布尔值 `{ "reset_checkpoint": true }` 执行本地计划/游标复位；缺省或 `false` 按普通启动处理，字符串、数字、数组或对象一律拒绝且不改运行态。读取到可信已存计划时沿用，否则保存默认计划；清除三站的关键词/城市/页游标、运行计数、最近保存身份和运行时间记录，但保留每站 `blocked` / `needs_login` / `failed`、原因及 `STOP` 标志。运行中的状态、worker 或任一 writer lease 未停止时拒绝复位。该分支只写本地运行态 SQLite、scheduler 文件及受限站 STOP 标记，不检查业务数据库就绪/频率、不启动 worker，也不访问招聘站。控制台仅在三站均受限时显示复位按钮，并要求二次确认；复位后仍须按各站原人工处理和确认流程逐站恢复。
 
@@ -59,12 +67,12 @@ Issue #79 Gate 0 A–E 已在本机完成：BOSS 普通浏览器、调试启动�
 - 页面动作和组合间隔只约束硬下限及有限值，允许用户配置更慢节奏。
 
 
-兼容/退役清单：
+兼容/退役清单（2026-11-20 P3 更新）：
 
-- 保留复用：`browser.py` 的低层 Edge/CDP 准备、`fetch_boss_jobs.py`、`fetch_cn_jobs.py`、`pipeline.py`、`repository.py`、`identity.py`、`frequency.py`、`frequency_recovery.py`。
-- 暂兼容：`control.py` 单轮控制、`batch.py`、`bridge.py`、`frontend/bridge-extension/`；新三站模拟闭环通过前不删除旧可写入口。
-- 退役候选：`boss_collect_loop.py`、`cn_collect_loop.py`、`collect_loop.py` 及其旧准备/状态入口；只有确认无调用者并完成新链路回归后才可移除。
-- 旧普通浏览器扩展不作为本 Issue 的主引擎；仅保留现有 BOSS 人工路径的兼容与历史证据。
+- 保留复用：`runtime/`、`browser.py` 的低层 Edge/CDP 准备、`fetch_boss_jobs.py`、`fetch_cn_jobs.py`、`pipeline.py`、`repository.py`、`identity.py`、`frequency.py`、`frequency_recovery.py`、`readiness.py`、`worker_process.py`。
+- 保留只读：`control.py` 的 platforms/config/status/history/results/raw/frequency/prepare 函数。
+- 已删除：旧单轮 `start_task/stop_task`、`batch.py`、`bridge.py`、`bridge_access.py`、`bridge_schema.py`、`collection_bridge` 路由、`frontend/bridge-extension/`、`boss_collect_loop.py`、`cn_collect_loop.py`、`collect_loop.py`、`fetch_all.py`、`fetch_hn_jobs.py`、`fetch_signals.py`、`cross_validate.py`、HN/信号 fetcher。
+- 旧普通浏览器扩展不再提供；历史桥接记录与日志只读保留。
 
 验证边界：离线三站模拟已覆盖单条 SQLite 提交、第二轮幂等、停止/重启、BOSS 模拟 blocked 后智联/猎聘继续；真实 BOSS 单次低频实测曾机械写入 1 行，但旧入口身份字段为 `unknown/NULL`，严格契约失败，修复后未获重试授权。真实三站持续采集、正式库迁移、历史身份升级和 PR 合并仍未完成。
 
@@ -125,7 +133,7 @@ worker接收父进程实际解析的Settings并固定UTF-8输出，与watcher编
 
 `browser.py` 统一独立 Edge 启动、动态端口发现、目标页面准备与访问检查。控制台和直接 CLI 共用；不改清洗、去重和持久化。默认 profile 为本工作树忽略的 `data/local/edge-boss-cdp-profile`，不使用日常 Edge。启动使用动态端口和 `127.0.0.1`；仅复用可核实 profile、主进程及回环监听的 Edge，过期端口文件或无关 CDP 不作为身份凭据。受控采集锁定准备返回的 endpoint/target_id，不再使用 profile 二次回退。
 
-**准备不采集：** `/collection/prepare` 永不启动采集，旧 `auto_start` 参数仍接受但忽略。`/collection/cdp-status` 只检查，不启动浏览器。只有显式 `/collection/start` 或不带 `--prepare-only` 的采集 CLI 才可能写原始层。旧 `check_cdp_before_start=false` 不再跳过访问门禁。
+**准备不采集：** `/collection/prepare` 永不启动采集，旧 `auto_start` 参数仍接受但忽略。`/collection/cdp-status` 只检查，不启动浏览器。只有显式 `/collection/runtime/start` 或不带 `--prepare-only` 的采集 CLI 才可能写原始层。旧 `check_cdp_before_start=false` 不再跳过访问门禁。
 
 ```powershell
 # backend/ 下；也可以指定已有、依赖齐全的 Python 完整路径
@@ -149,26 +157,19 @@ python -m app.collect.browser --platform boss --browser-timeout 20 --login-timeo
 | 来源 | 类型 | 产出表 | 实现 | 状态 |
 |---|---|---|---|---|
 | LinkedIn postings.csv（本地数据集） | 岗位 JD | jd_pool（source=linkedin） | `fetchers/dataset.py` + `import_csv.py` | ✅ archive 全量导入（断点续导） |
-| HN "Who is hiring"（Algolia 公开 API） | 技术岗 JD | jd_pool（source=hn） | `fetchers/hn_hiring.py` + `fetch_hn_jobs.py` | ✅ 1796 行（2026-08-19） |
-| GitHub Trending（公开页面） | 信号 | signal（source=github） | `fetchers/trending.py` | ✅ 语言热度 |
-| 技术博客 RSS（InfoQ/掘金；OSCHINA 403 待换源） | 信号 | signal（source=blog） | `fetchers/blog_rss.py` | ✅ 技能提及 |
-| GitHub Trending 贡献者 → 人才线索 | 人才 | talent_raw（source=github） | `fetchers/github.py`（保留） | 按需 |
-| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` / `boss_collect_loop.py` | 2026-09-04 复核：主库 boss=1133 cleaned，采集已暂停（历史 703/488/967 等数字见下，均为快照） |
-| 智联招聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=zhaopin） | `fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py` | ✅ 已冒烟：3 条落库 |
-| 猎聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=liepin） | `fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py` | ✅ 已冒烟：6 条落库 |
+| HN "Who is hiring"（Algolia 公开 API） | 技术岗 JD | jd_pool（source=hn） | 入口已删除（P3）；历史 1796 行保留 | 历史数据 |
+| GitHub Trending（公开页面） | 信号 | signal（source=github） | 入口已删除（P3） | 历史数据 |
+| 技术博客 RSS（InfoQ/掘金；OSCHINA 403 待换源） | 信号 | signal（source=blog） | 入口已删除（P3） | 历史数据 |
+| GitHub Trending 贡献者 → 人才线索 | 人才 | talent_raw（source=github） | 入口已删除（P3） | 历史数据 |
+| BOSS 直聘（人工登录 Edge + CDP） | 岗位 JD | jd_pool（source=boss） | `runtime/` → `fetch_boss_jobs.py` + `fetchers/boss.py` / `fetchers/cdp.py` | 2026-09-04 复核：主库 boss=1133 cleaned，采集已暂停（历史 703/488/967 等数字见下，均为快照） |
+| 智联招聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=zhaopin） | `runtime/` → `fetch_cn_jobs.py` + `fetchers/job_sites.py` | ✅ 已冒烟：3 条落库 |
+| 猎聘（用户已登录 Edge + CDP，页面可见 DOM） | 岗位 JD | jd_pool（source=liepin） | `runtime/` → `fetch_cn_jobs.py` + `fetchers/job_sites.py` | ✅ 已冒烟：6 条落库 |
 
 ## 二、常用命令（均在 `backend/` 下，需 venv）
 
+`fetch_all`、`fetch_signals`、`fetch_hn_jobs`、`collect_loop` 已由 P3 删除；当前三站采集使用 `/collection/runtime/*`。以下保留的 CLI 仅用于受控单次验证与历史数据导入。
+
 ```powershell
-# 全部采集（信号 + HN 岗位）——推荐入口
-.\.venv\Scripts\python.exe -m app.collect.fetch_all
-
-# 单独采集信号（GitHub Trending + 博客 RSS）
-.\.venv\Scripts\python.exe -m app.collect.fetch_signals --sources github,blog
-
-# 单独采集 HN 岗位
-.\.venv\Scripts\python.exe -m app.collect.fetch_hn_jobs --limit 50
-
 # LinkedIn CSV 导入（本地数据集）
 .\.venv\Scripts\python.exe -m app.collect.import_csv --csv ..\docs\originalfile\archive\postings.csv --offset 0 --limit 0 --batch-size 5000
 
@@ -187,34 +188,18 @@ python -m app.collect.browser --platform boss --browser-timeout 20 --login-timeo
 
 ## 三、幂等与增量（D44 更新）
 
-- `fetch_signals`：**追加式时间序列**——每次运行在 signal 表追加一份快照（captured_at 不同），不再当日覆盖；同一天多次跑会积累多个时间点（M2 evolution 需要）；
-- `fetch_hn_jobs`：**按帖清理**——本次抓取的帖子先删旧行再插入（历史帖保留），当月帖刷新、历史月份不误删；
+- HN/信号采集入口已删除；既有 `signal` 与 `jd_pool(source=hn)` 历史数据保留，不随清理删除。
 - LinkedIn CSV 导入支持**流式追加和断点续导**：`--offset` 跳过已导入的有效岗位，`--batch-size` 控制分批提交，`--limit 0` 表示剩余全量。由于 `jd_pool` 契约没有 `job_id` 唯一列，续导必须记录并复用准确 offset，禁止重复执行同一范围。2026-08-20 已核对既有 5000 行并从 `offset=5000` 追加 118849 行，数据库 LinkedIn 总量为 123849。
 
-## 三·五、持续采集循环（D44，不依赖计划任务）
+## 三·五、持续采集循环（D44，已退役）
 
-- `python -m app.collect.collect_loop --hours 6 --forever`：每 6 小时跑一轮 fetch_all，无限循环（后台可用隐藏窗口启动）；
-- 已启动实例（2026-08-18）：PID 见 `collect_loop.out.log`；停止：`Stop-Process -Id <PID>`；
-- signal 时间序列由此自动积累；计划任务（SYSTEM 02:00）保留为尽力触发。
-- `fetch_all` 与循环每轮末尾**自动执行交叉验证**（cross_validate），保证 hn 刷新后 `cross_source` 标记与当前 jd_pool 一致。
+`collect_loop.py`、`fetch_all.py` 与 `cross_validate.py` 已由 P3 删除；历史日志与 `cross_source` 数据保留。当前持续采集入口为 runtime 调度器。
 
-## 三·六、BOSS 低速持续采集（2026-08-20）
+## 三·六、BOSS 低速持续采集（2026-08-20，已退役）
 
-BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loop.py`。默认每轮只采一个关键词/城市组合、最多 1 页/12 条岗位/8 条详情；列表与详情之间等待 15–30 秒，页面稳定等待 5–10 秒，切换下一个组合前等待 6–12 分钟。随机范围是低负载节奏控制，不是验证码或反爬绕过。
+`boss_collect_loop.py` 已由 P3 删除；以下历史参数与运行记录仅用于追溯，不再是可用命令。当前 BOSS 采集由 `runtime/` 调度 `fetch_boss_jobs.py`。历史节奏约束（页面 15–30 秒、组合 6–12 分钟）仍由 `frequency.py` 下限与 runtime 配置执行。
 
-```powershell
-# 独立 Edge 已人工登录 BOSS 后，在 backend/ 下启动；默认不间断运行
-.\.venv\Scripts\python.exe -m app.collect.boss_collect_loop `
-  --cdp http://127.0.0.1:9333 `
-  --user-data-dir "C:\Users\<用户>\AppData\Local\Temp\TalentMind-BOSS-Edge-9222" `
-  --forever *> ..\data\local\logs\boss_collect_loop.out.log
-
-# 连通性验证：只跑一轮
-.\.venv\Scripts\python.exe -m app.collect.boss_collect_loop `
-  --cdp http://127.0.0.1:9333 --once
-```
-
-- 日志：`data/local/logs/boss_collect_loop.out.log`；停止：`Get-Process -Name python` 后按命令行确认 PID，再 `Stop-Process -Id <PID>`。
+- 历史日志：`data/local/logs/boss_collect_loop.out.log`，只读保留。
 - 检测到登录页/验证页时循环停止；普通单轮异常记录后继续低速运行。
 - 采集不会自动退出 BOSS；完成后必须由用户在同一 Edge 窗口手动注销。
 - 2026-08-23 运行核验：BOSS 低速循环已重新启动，当前 PID `20560`；第 1 轮于 19:15:46 +08:00 完成，`listed=12/details=8/new=3/skipped=9`，随后等待 541.0 秒切换；当前进程仍存活，错误日志为空。最新快照见 `exchange/m1/collection-status-20260823.md`，M2 数据库完整导出说明见 `exchange/m2/m1-database-handover-20260823.md`。
@@ -233,7 +218,7 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 
 ## 三·七、智联/猎聘低速页面采集
 
-已实现共享的页面可见 DOM 适配器：`fetch_cn_jobs.py` + `fetchers/job_sites.py` + `cn_collect_loop.py`。采集器只连接用户已人工登录的 Edge CDP 页面，读取当前渲染 DOM；不读取密码/Cookie，不拦截网络请求，不调用未公开接口，不处理验证码或其他验证。
+共享页面可见 DOM 适配器保留为 `fetch_cn_jobs.py` + `fetchers/job_sites.py`；`cn_collect_loop.py` 已由 P3 删除，持续运行由 `runtime/` 调度。采集器只连接用户已人工登录的 Edge CDP 页面，读取当前渲染 DOM；不读取密码/Cookie，不拦截网络请求，不调用未公开接口，不处理验证码或其他验证。
 
 ```powershell
 # 单轮冒烟：先人工登录对应平台，再执行；城市值必须按当前平台页面确认
@@ -244,16 +229,9 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
   --keywords "Python,后端工程师" `
   --cities "北京=530" `
   --pages 1 --detail-limit 5 --max-jobs 8 --delay 15 --settle 6
-
-# 低速持续循环：每轮一个关键词/城市，默认 15–30 秒页面间隔、6–12 分钟切换间隔
-.\.venv\Scripts\python.exe -m app.collect.cn_collect_loop `
-  --platform liepin `
-  --cdp http://127.0.0.1:9333 `
-  --user-data-dir "C:\Users\<用户>\AppData\Local\Temp\TalentMind-CN-Edge" `
-  --keywords "Python,数据工程师" `
-  --cities "北京=北京" `
-  --forever
 ```
+
+低速持续循环命令已随 `cn_collect_loop.py` 删除；当前使用 `POST /collection/runtime/start`。
 
 `--search-url-template` 可覆盖平台当前搜索 URL，支持 `{keyword}`、`{city}`、`{page}`。默认 URL 仅作为启动模板；若页面结构或搜索 URL 变化，应先用 `--once` 做小批量验证。检测到登录页、验证码、安全验证或页面异常时，循环安全停止，不尝试绕过。
 
@@ -264,17 +242,16 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 - `signal.source`：github / blog / …（D39 新增列）；
 - 技能匹配严格限定 `backend/app/skills/skill_dict_seed.json`（285 canonical + aliases），不自由命名（反幻觉）。
 
-## 四·五、多源交叉验证（D42）
+## 四·五、多源交叉验证（D42，已退役）
 
-- `cross_validate.py`：当前跨来源（linkedin/hn）同岗位比对 → 命中行 `cross_source=1` + `quality=MAX(原, 0.85)`；BOSS 已可入库，但尚未纳入该匹配规则；报告输出 `exchange/m1/cross_validate_report.md`；
-- 运行：`python -m app.collect.cross_validate`（`--dry-run` 只分析）；
-- 规则：normalize_title + hn 段（≥2 词、≥6 字符）↔ linkedin 双向包含 + 长度比 ≥0.6；0.85 为多源一致置信下界（明确定义）。
+- `cross_validate.py` 已由 P3 删除；既有 `jd_pool.cross_source` 与 `quality` 数据保留，不做回溯改写。
+- 历史规则：normalize_title + hn 段（≥2 词、≥6 字符）↔ linkedin 双向包含 + 长度比 ≥0.6；0.85 为多源一致置信下界。
 
 ## 四·六、监控采集情况
 
-- **一键查看**：`powershell -ExecutionPolicy Bypass -File scripts\check_collect_status.ps1` —— 显示 ①定时任务状态 ②最近采集日志 ③数据库采集量（jd_pool/signal 按 source、cross_source、最近时间）；
-- **日志文件**：`data/local/logs/collect_daily-YYYYMMDD.log`（每日 02:00 定时任务自动落盘，gitignore）；
-- **定时任务**：`schtasks /Query /TN TalentMindCollect /V`（状态/上次运行/结果）。
+- **一键查看**：`powershell -ExecutionPolicy Bypass -File scripts\check_collect_status.ps1` —— 显示最近历史日志与数据库采集量；仅作历史观测。
+- **日志文件**：`data/local/logs/collect_daily-YYYYMMDD.log`（旧每日任务日志，保留只读）。
+- **定时任务**：旧的 `TalentMindCollect` 计划任务与 `scripts/collect_daily.ps1` 已随 HN/信号入口删除；不由本仓库自动重建。
 
 ## 四·七、三平台有效 JD 判定（2026-10-15）
 
@@ -297,7 +274,6 @@ BOSS 不再混入通用 `collect_loop.py`，使用独立循环 `boss_collect_loo
 
 离线验证：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_boss_interruption.py -q`。仅用合成卡片和临时 SQLite，fixture 自动关闭并删除测试文件；不连接正式 MySQL。
 
-- `backend/tests/test_signal_fetchers.py`、`test_hn_hiring.py`：纯函数单测（mock，不联网不写库）；
 - `test_collect_integration.py` / `test_talent_pipeline_integration.py`：管道集成（D37 精确清理）；
 - 三平台有效 JD 离线回归：`cd backend; .\.venv\Scripts\python.exe -m pytest tests/test_pipeline.py tests/test_cleaner.py tests/test_boss_fetcher.py tests/test_cn_job_fetchers.py tests/test_collect_repo.py -q`（内存数据库替身，不联网、不写真实数据库）；
 - 全量：`cd backend; .\.venv\Scripts\python.exe -m pytest -q`（历史记录 221 passed；2026-09-04 collect-only=237：unit 214 / integration 23，实际通过数以全量运行为准）。

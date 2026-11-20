@@ -1,51 +1,29 @@
-"""Product controller boundaries; no browser, network or production database."""
+"""Retained M1 read/prepare boundaries; no browser, network or production database."""
 import json
-import threading
 
 import pytest
 
-from app.collect import control, frequency, readiness
-from app.collect.runtime import lease
+from app.collect import control
 
 
 @pytest.fixture(autouse=True)
 def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'state.json')
-    monkeypatch.setattr(control, '_PROCESS', None)
-    monkeypatch.setattr(control, '_LEASE_ROOT', tmp_path / 'runtime')
-    monkeypatch.setattr(frequency, '_STATE_PATH', tmp_path / 'frequency.sqlite3')
-    monkeypatch.setattr(control, '_LEASE', None)
-    monkeypatch.setattr(readiness, 'require_database_ready', lambda: None)
+
+
+def write_events(run_id: str, events: list[dict]) -> None:
+    control._STATE_DIR.mkdir(parents=True, exist_ok=True)
+    path = control._STATE_DIR / f'{run_id}.events.jsonl'
+    with path.open('a', encoding='utf-8') as stream:
+        for event in events:
+            stream.write(json.dumps(event, ensure_ascii=False) + '\n')
 
 
 def test_platform_switch_uses_own_city_codes():
     result = control.update_config({'platform': 'zhaopin'})
     assert result['cities'] == [{'name': '北京', 'code': '530'}]
     assert control.get_platforms()[1]['cities'][0]['code'] == '530'
-
-
-@pytest.mark.parametrize('target_id', ['chosen', None])
-def test_zhaopin_worker_receives_prepared_target_or_fails_closed(monkeypatch, target_id):
-    config = control._validated_config(control._DEFAULT_CONFIG, {'platform': 'zhaopin'})
-    state = control._default_state()
-    state['current_task'] = control._empty_task('zhaopin-binding-test', config)
-    control._save_state(state)
-    access = dict(can_collect=True, access_state='public_accessible', target_id=target_id)
-    monkeypatch.setattr(control, '_ensure_browser', lambda *a: {
-        'endpoint': 'http://127.0.0.1:9333', 'user_data_dir': 'synthetic-profile',
-        'platform_access': {'zhaopin': access},
-    })
-    monkeypatch.setattr(control, '_worker_environment', lambda: {})
-    spawned = []
-    monkeypatch.setattr(control, '_spawn_worker', lambda run_id, config, task, state, env: spawned.append(env))
-    control._launch_task('zhaopin-binding-test', config)
-    if target_id:
-        assert spawned[0]['TALENTMIND_COLLECTION_TARGET_ID'] == 'chosen'
-        assert spawned[0]['TALENTMIND_COLLECTION_TARGET_URL'] == 'https://www.zhaopin.com/jobs?jl=530&kw=Python&page=1'
-    else:
-        assert spawned == []
-        assert control._load_state()['current_task']['last_error'] == 'prepared_target_missing'
 
 
 @pytest.mark.parametrize('platform,city,url', [
@@ -56,7 +34,7 @@ def test_zhaopin_worker_receives_prepared_target_or_fails_closed(monkeypatch, ta
     ('liepin', {'name': '上海', 'code': '上海'},
      'https://www.liepin.com/zhaopin/?key=Java&dqs=%E4%B8%8A%E6%B5%B7&currentPage=1'),
 ])
-def test_prepare_uses_unsaved_search_config_and_start_checks_same_target(monkeypatch, platform, city, url):
+def test_prepare_uses_unsaved_search_config_without_saving(monkeypatch, platform, city, url):
     urls = []
     config_before = control.get_config()
     def prepare(platform, endpoint, profile, **kwargs):
@@ -73,9 +51,7 @@ def test_prepare_uses_unsaved_search_config_and_start_checks_same_target(monkeyp
     assert '未检测到职位内容' in result['message']
     assert control.get_config() == config_before
     assert not control._STATE_PATH.exists()
-    control.start_task(payload)
-    control._START_THREAD.join(3)
-    assert urls == [url, url]
+    assert urls == [url]
 
 
 def test_prepare_route_forwards_current_search_and_validation(monkeypatch):
@@ -90,16 +66,6 @@ def test_prepare_route_forwards_current_search_and_validation(monkeypatch):
     collection.collection_prepare(payload)
     assert seen == [dict(auto_start=True, platform='zhaopin', config_payload={
         key: value for key, value in payload.items() if key != 'auto_start'})]
-
-
-def test_database_readiness_failure_blocks_before_state_or_browser(monkeypatch):
-    def blocked():
-        raise RuntimeError('identity_schema_migration_required')
-    monkeypatch.setattr(readiness, 'require_database_ready', blocked)
-    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
-    with pytest.raises(RuntimeError, match='identity_schema_migration_required'):
-        control.start_task({})
-    assert not control._STATE_PATH.exists()
 
 
 def test_prepare_rejects_invalid_temporary_config_before_browser(monkeypatch):
@@ -160,102 +126,6 @@ def test_config_rejects_unsafe_or_invalid_input(payload):
         control.update_config(payload)
 
 
-def test_start_returns_before_browser_and_archives_block(monkeypatch):
-    entered, release = threading.Event(), threading.Event()
-    def browser(*args):
-        entered.set()
-        release.wait(3)
-        return {'platform_access': {'boss': {'can_collect': False, 'access_state': 'verification_required'}}}
-    monkeypatch.setattr(control, '_ensure_browser', browser)
-    result = control.start_task({})
-    assert entered.wait(1)
-    task = control._load_state()['current_task']
-    assert task['run_id'] == result['run_id']
-    assert task['status'] == 'preparing'
-    assert task['complete'] is None
-    release.set()
-    control._START_THREAD.join(3)
-    history = control.get_history()['items']
-    assert history[0]['status'] == 'waiting_for_browser'
-    assert history[0]['stop_reason'] == 'verification_required'
-
-
-def test_stop_during_browser_preparation_never_launches_worker(monkeypatch):
-    entered, release = threading.Event(), threading.Event()
-    def browser(*args):
-        entered.set()
-        release.wait(3)
-        return {'platform_access': {'boss': {'can_collect': True}}}
-    monkeypatch.setattr(control, '_ensure_browser', browser)
-    def forbidden(*a, **kw):
-        pytest.fail('stopped task must never spawn')
-    monkeypatch.setattr(control, '_spawn_worker', forbidden)
-    run = control.start_task({})
-    assert entered.wait(1)
-    control.stop_task(run['run_id'])
-    release.set()
-    control._START_THREAD.join(3)
-    assert control.get_history()['items'][0]['stop_reason'] == 'user_stopped'
-
-
-def test_slow_preparation_stop_reports_pending_until_thread_finishes(monkeypatch):
-    entered, release = threading.Event(), threading.Event()
-    def browser(*args):
-        entered.set()
-        release.wait(20)
-        return {'platform_access': {'boss': {'can_collect': True}}}
-    monkeypatch.setattr(control, '_ensure_browser', browser)
-    run = control.start_task({})
-    assert entered.wait(1)
-    try:
-        result = control.stop_task(run['run_id'])
-        assert result == {'stopped': False, 'status': 'stopping', 'run_id': run['run_id']}
-        assert control._load_state()['current_task']['finished_at'] is None
-        with pytest.raises(RuntimeError):
-            control.start_task({})
-    finally:
-        release.set()
-        control._START_THREAD.join(3)
-    assert control.get_history()['items'][0]['status'] == 'stopped'
-
-
-def test_late_prepare_error_preserves_explicit_stop(monkeypatch):
-    entered, release = threading.Event(), threading.Event()
-    def browser(*args):
-        entered.set()
-        release.wait(3)
-        raise OSError('synthetic late failure')
-    monkeypatch.setattr(control, '_ensure_browser', browser)
-    run = control.start_task({})
-    assert entered.wait(1)
-    control.stop_task(run['run_id'])
-    release.set()
-    control._START_THREAD.join(3)
-    assert control.get_history()['items'][0]['status'] == 'stopped'
-
-
-def test_stop_does_not_relabel_completed_task():
-    state = control._default_state()
-    task = control._empty_task('done', state['config'])
-    task.update(status='completed', finished_at=control._now())
-    state.update(current_task=task, history=[dict(task)])
-    control._save_state(state)
-    assert control.stop_task('done')['stopped'] is False
-    assert control._load_state()['current_task']['status'] == 'completed'
-
-
-def test_browser_exception_creates_error_history(monkeypatch):
-    def broken(*a):
-        raise OSError('synthetic browser failure')
-    monkeypatch.setattr(control, '_ensure_browser', broken)
-    run = control.start_task({})
-    control._START_THREAD.join(3)
-    task = control.get_history()['items'][0]
-    assert task['run_id'] == run['run_id']
-    assert task['status'] == 'error'
-    assert task['stop_reason'] == 'OSError'
-
-
 def test_restarted_controller_does_not_reuse_old_pid(monkeypatch):
     state = control._default_state()
     state['current_task'] = control._empty_task('old-run', state['config'])
@@ -267,25 +137,6 @@ def test_restarted_controller_does_not_reuse_old_pid(monkeypatch):
     assert result['pid'] is None
     assert result['stop_reason'] == 'controller_restarted'
     assert control.get_history()['items'][0]['run_id'] == 'old-run'
-
-
-def test_stopped_watcher_drains_events_without_overwriting_stop():
-    from io import StringIO
-    state = control._default_state()
-    state['current_task'] = control._empty_task('stopped', state['config'])
-    state['current_task'].update(status='stopped', stop_reason='user_stopped')
-    control._save_state(state)
-    event = {'event': 'listed', 'platform': 'boss', 'jobs': [{'url': 'u', 'title': 'current'}]}
-    class Worker:
-        stdout = StringIO('TM_EVENT ' + json.dumps(event) + '\nBOSS 第 1 轮开始: 北京/Python;\n')
-        def wait(self):
-            return -1
-    control._watch_process('stopped', Worker())
-    task = control.get_history()['items'][0]
-    assert task['status'] == 'stopped'
-    assert task['stop_reason'] == 'user_stopped'
-    assert task['listed'] == 1
-    assert len(control.get_results('stopped')) == 1
 
 
 def test_database_failure_is_unknown(monkeypatch):
@@ -307,13 +158,16 @@ def test_unrecognized_legacy_log_has_unknown_counts(tmp_path):
 
 
 def test_results_only_include_run_events_and_preserve_current_detail():
-    for run, event in [('one', {'event': 'listed', 'platform': 'boss', 'jobs': [{'url': 'u', 'title': '本轮'}]}),
-                       ('two', {'event': 'listed', 'platform': 'boss', 'jobs': [{'url': 'old', 'title': '旧轮'}]}),
-                       ('one', {'event': 'detail', 'platform': 'boss', 'job': {'url': 'u', 'title': '本轮'},
-                                'detail': {'description': '负责 Python 开发'}, 'rejection': None}),
-                       ('one', {'event': 'persisted', 'platform': 'boss', 'items': [
-                           {'source_detail': 'u', 'outcome': 'skipped', 'jd_pool_id': 42} ]})]:
-        control._parse_log_line(run, 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+    write_events('one', [
+        {'event': 'listed', 'platform': 'boss', 'jobs': [{'url': 'u', 'title': '本轮'}]},
+        {'event': 'detail', 'platform': 'boss', 'job': {'url': 'u', 'title': '本轮'},
+         'detail': {'description': '负责 Python 开发'}, 'rejection': None},
+        {'event': 'persisted', 'platform': 'boss', 'items': [
+            {'source_detail': 'u', 'outcome': 'skipped', 'jd_pool_id': 42}]},
+    ])
+    write_events('two', [
+        {'event': 'listed', 'platform': 'boss', 'jobs': [{'url': 'old', 'title': '旧轮'}]},
+    ])
     result = control.get_results('one')
     assert len(result) == 1
     assert result[0]['job_title'] == '本轮'
@@ -399,12 +253,14 @@ def test_raw_route_applies_gate_before_reading_private_body(monkeypatch, enabled
 
 def test_private_json_events_never_enter_public_status_or_history_tail():
     state = control._default_state()
-    state['current_task'] = control._empty_task('private', state['config'])
+    task = control._empty_task('private', state['config'])
+    task.update(status='completed', finished_at=control._now())
+    state.update(current_task=task, history=[dict(task)])
     control._save_state(state)
-    event = {'event': 'detail', 'platform': 'boss', 'job': {'url': 'u', 'title': 'role'},
-             'detail': {'description': 'PRIVATE_DETAIL_SENTINEL'}, 'rejection': None}
-    control._parse_log_line('private', 'TM_EVENT ' + json.dumps(event))
-    control._archive_task('private', status='completed')
+    write_events('private', [
+        {'event': 'detail', 'platform': 'boss', 'job': {'url': 'u', 'title': 'role'},
+         'detail': {'description': 'PRIVATE_DETAIL_SENTINEL'}, 'rejection': None},
+    ])
     assert 'PRIVATE_DETAIL_SENTINEL' not in json.dumps(control._load_state())
     assert 'PRIVATE_DETAIL_SENTINEL' not in json.dumps(control.get_history())
     assert control.get_results('private')[0]['raw_text'] == 'PRIVATE_DETAIL_SENTINEL'
@@ -471,9 +327,10 @@ def test_source_sections_preserve_explicit_original_text(raw, duties, requiremen
 
 def test_results_include_explicit_requirements_and_original_body():
     body = '岗位职责：开发接口\n任职要求：Python\n福利待遇：五险'
-    event = {'event': 'detail', 'platform': 'boss', 'job': {'url': 'u', 'title': 'role'},
-             'detail': {'description': body}, 'rejection': None}
-    control._parse_log_line('requirements', 'TM_EVENT ' + json.dumps(event))
+    write_events('requirements', [
+        {'event': 'detail', 'platform': 'boss', 'job': {'url': 'u', 'title': 'role'},
+         'detail': {'description': body}, 'rejection': None},
+    ])
     result = control.get_results('requirements')[0]
     assert result['raw_text'] == body
     assert result['duties'] == '开发接口'
@@ -482,11 +339,8 @@ def test_results_include_explicit_requirements_and_original_body():
 
 
 def test_results_and_task_keep_pending_identity_separate_from_complete():
-    state = control._default_state()
-    state['current_task'] = control._empty_task('pending', state['config'])
-    control._save_state(state)
     evidence = {'binding_policy': 'zhaopin-dom-panel-v1', 'stable_samples': 2}
-    events = [
+    write_events('pending', [
         {'event': 'listed', 'platform': 'zhaopin', 'jobs': [{
             'url': 'dom://zhaopin/provisional', 'title': 'Python 工程师',
             '_observation_key': 'zhaopin:card-0',
@@ -503,16 +357,7 @@ def test_results_and_task_keep_pending_identity_separate_from_complete():
             'outcome': 'inserted', 'identity_status': 'pending',
             'content_eligible': True, 'identity_evidence': evidence,
         }]},
-        {'event': 'finished', 'platform': 'zhaopin', 'stats': {
-            'listed': 1, 'details': 1, 'detail_attempted': 1,
-            'detail_obtained': 1, 'content_eligible': 1,
-            'identity_pending': 1, 'identity_verified': 0,
-            'complete': 0, 'inserted': 1, 'updated': 0, 'rejected': 0,
-            'failed': 0, 'unattempted': 0, 'rejection_reasons': {}, 'stop_reason': None,
-        }},
-    ]
-    for event in events:
-        control._parse_log_line('pending', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+    ])
 
     result = control.get_results('pending')[0]
     assert result['source_detail'] == 'dom://zhaopin/' + 'a' * 64
@@ -521,15 +366,10 @@ def test_results_and_task_keep_pending_identity_separate_from_complete():
     assert result['identity_evidence'] == evidence
     assert result['outcome'] == 'inserted'
     assert result['jd_pool_id'] == 9
-    task = control._load_state()['current_task']
-    assert task['content_eligible'] == 1
-    assert task['identity_pending'] == 1
-    assert task['identity_verified'] == 0
-    assert task['complete'] == 0
 
 
 def test_rejected_dom_event_keeps_temporary_source_identity():
-    event = {
+    write_events('rejected', [{
         'event': 'detail', 'platform': 'zhaopin',
         'job': {
             'url': 'dom://zhaopin/provisional',
@@ -540,19 +380,17 @@ def test_rejected_dom_event_keeps_temporary_source_identity():
         'rejection': 'panel_not_updated',
         'identity_status': 'unknown',
         'content_eligible': True,
-    }
-    control._parse_log_line('rejected', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+    }])
     result = control.get_results('rejected')[0]
     assert result['source_detail'] == 'dom://zhaopin/provisional'
     assert result['observation_key'] == 'zhaopin:card-0'
 
 
 def test_missing_list_title_displays_detail_evidence_without_changing_rejection():
-    event = dict(event='detail', platform='zhaopin',
+    write_events('title-test', [dict(event='detail', platform='zhaopin',
                  job={'url': 'dom://zhaopin/title-test', 'title': ''},
                  detail={'title': '合成开发岗位', 'description': '负责合成服务开发'},
-                 rejection='missing_list_title', identity_status='unknown', content_eligible=True)
-    control._parse_log_line('title-test', 'TM_EVENT ' + json.dumps(event, ensure_ascii=False))
+                 rejection='missing_list_title', identity_status='unknown', content_eligible=True)])
     result = control.get_results('title-test')[0]
     assert result['job_title'] == '合成开发岗位'
     assert result['list_title'] == ''
@@ -609,43 +447,3 @@ def test_raw_reads_identity_metadata_from_migrated_schema(tmp_path, monkeypatch)
     finally:
         engine.dispose()
         path.unlink(missing_ok=True)
-
-
-def test_status_poll_lets_owned_exited_worker_finish_watcher_archive(monkeypatch):
-    from io import StringIO
-    state = control._default_state()
-    state['current_task'] = control._empty_task('owned-exit', state['config'])
-    state['current_task'].update(status='running', pid=123)
-    control._save_state(state)
-    class Worker:
-        stdout = StringIO('')
-        def poll(self): return 0
-        def wait(self): return 0
-    worker = Worker()
-    monkeypatch.setattr(control, '_PROCESS', worker)
-    monkeypatch.setattr(control, 'get_database_stats', lambda: {'database_total': None, 'database_boss_total': None})
-    assert control.get_status()['status'] == 'running'
-    assert control._load_state()['current_task']['finished_at'] is None
-    control._watch_process('owned-exit', worker)
-    task = control.get_history()['items'][0]
-    assert task['status'] == 'completed'
-    assert task['stop_reason'] is None
-
-
-def test_old_single_start_blocks_legacy_ledger_before_browser(monkeypatch):
-    def blocked(platform):
-        raise frequency.FrequencyStateError('collection_legacy_migration_required')
-    monkeypatch.setattr(frequency, 'assert_legacy_migrated', blocked)
-    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
-    with pytest.raises(frequency.FrequencyStateError, match='legacy_migration_required'):
-        control.start_task({})
-
-
-def test_old_single_start_is_blocked_by_runtime_writer_lease(tmp_path, monkeypatch):
-    monkeypatch.setattr(frequency, 'assert_legacy_migrated', lambda platform: None)
-    monkeypatch.setattr(lease, '_pid_alive', lambda pid, created_at: True)
-    held = lease.acquire('boss', 'scheduler:test', 'runtime', root=tmp_path / 'runtime', pid=900, created_at=1)
-    monkeypatch.setattr(control, '_ensure_browser', lambda *args: pytest.fail('browser must not start'))
-    with pytest.raises(lease.WriterBusy, match='collection_writer_busy:boss:runtime'):
-        control.start_task({})
-    held.release()

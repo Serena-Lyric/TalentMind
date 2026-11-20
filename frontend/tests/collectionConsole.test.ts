@@ -5,7 +5,6 @@ import { resolve } from 'node:path'
 import { nextTick } from 'vue'
 import { parse } from 'vue/compiler-sfc'
 import { collectionComponent } from './helpers/collectionComponent.ts'
-import type { CollectionTask } from '../src/api/collection.ts'
 
 test('任务失败提示合并重复原因并解释数据库结构阻塞', () => {
   const page = collectionComponent()
@@ -15,42 +14,6 @@ test('任务失败提示合并重复原因并解释数据库结构阻塞', () =>
     assert.equal(message.split('identity_schema_migration_required').length, 2)
     assert.equal(page.state.taskIssue({ stop_reason: 'first', last_error: 'second' }), 'first · second')
     assert.equal(page.state.taskIssue({}), '')
-  } finally { page.stop() }
-})
-
-test('准备后调整数量保留就绪状态并按最新数量启动', async () => {
-  const page = collectionComponent()
-  try {
-    await page.mounted()
-    await page.state.prepareBrowser()
-    page.state.configForm.max_jobs = 3
-    page.state.configForm.detail_limit = 2
-    assert.equal(page.state.canStart.value, true)
-    await page.state.startTask()
-    const payload = page.calls.find(call => call.method === 'startCollection')!.args[0]
-    assert.equal(payload.max_jobs, 3)
-    assert.equal(payload.detail_limit, 2)
-    assert.equal(page.calls.filter(call => call.method === 'prepareCollection').length, 1)
-  } finally { page.stop() }
-})
-
-test('准备中改数量不丢弃同目标响应，非法数量仍禁止启动', async () => {
-  let finish!: (value: any) => void
-  const page = collectionComponent({ prepareCollection: () => new Promise(resolve => { finish = resolve }) })
-  try {
-    await page.mounted()
-    const pending = page.state.prepareBrowser()
-    page.state.configForm.max_jobs = 2
-    finish({ access_state: 'public_accessible', can_collect: true, cdp: { reachable: true } })
-    await pending
-    assert.equal(page.state.canStart.value, true)
-    page.state.configForm.detail_limit = 0
-    await page.state.startTask()
-    assert.equal(page.calls.some(call => call.method === 'startCollection'), false)
-    page.state.configForm.detail_limit = 1
-    assert.equal(page.state.canStart.value, true)
-    page.state.configForm.keywords = ['Java']
-    assert.equal(page.state.canStart.value, false)
   } finally { page.stop() }
 })
 
@@ -88,7 +51,7 @@ test('进入采集页只刷新，不准备浏览器或启动任务', async () =>
   try {
     await page.mounted()
     assert.ok(page.calls.some(call => call.method === 'getCollectionPlatforms'))
-    assert.equal(page.calls.some(call => /^(prepareCollection|startCollection|getCollectionRecent)$/.test(call.method)), false)
+    assert.equal(page.calls.some(call => /^(prepareCollection|getCollectionRecent)$/.test(call.method)), false)
   } finally { page.stop() }
 })
 
@@ -97,99 +60,35 @@ test('切换平台丢弃旧城市与准备凭据，城市使用目标平台代�
   try {
     await page.mounted()
     await page.state.prepareBrowser()
+    assert.equal(page.state.preparedFor.value, 'boss')
     page.state.configForm.platform = 'zhaopin'
     await nextTick()
     assert.deepEqual(page.state.configForm.cities, [])
     assert.equal(page.state.availableCities.value[0].code, '530')
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
   } finally { page.stop() }
 })
 
-test('准备公开页面后单独启动，启动不会再次自动准备，载荷限制一轮', async () => {
-  const page = collectionComponent()
-  try {
-    await page.mounted()
-    assert.equal(page.state.canStart.value, false)
-    await page.state.prepareBrowser()
-    assert.equal(page.state.canStart.value, true)
-    await page.state.startTask()
-    assert.equal(page.calls.filter(call => call.method === 'prepareCollection').length, 1)
-    const payload = page.calls.find(call => call.method === 'startCollection')!.args[0]
-    assert.equal(payload.mode, 'once')
-    assert.equal(payload.keywords.length, 1)
-    assert.equal(payload.cities.length, 1)
-    assert.equal('cdp_endpoint' in payload, false)
-  } finally { page.stop() }
-})
-
-test('已归档的浏览器等待任务允许重新准备和启动新任务，历史限制原因保留', async () => {
-  const blocked: CollectionTask = {
-    run_id: 'blocked-run', platform: 'boss', status: 'waiting_for_browser', mode: 'once',
-    started_at: '2026-10-20T10:00:00', finished_at: '2026-10-20T10:00:01',
-    stop_reason: 'verification_required', last_error: '请人工完成浏览器准备后重新启动',
-    listed: null, detail_attempted: null, detail_obtained: null, complete: null,
-    inserted: null, updated: null, skipped: null, rejected: null, failed: null,
-  }
-  let current = blocked
-  const page = collectionComponent({
-    getCollectionStatus: () => current,
-    getCollectionHistory: { items: [blocked], total: 1 },
-    startCollection: () => {
-      current = { ...blocked, run_id: 'retry-run', status: 'preparing', finished_at: null, stop_reason: null, last_error: null }
-      return { run_id: 'retry-run', status: 'preparing' }
-    },
-  })
-  try {
-    await page.mounted()
-    assert.equal(page.state.busy.value, false)
-    assert.equal(page.state.canStop.value, false)
-    await page.state.prepareBrowser()
-    assert.equal(page.state.canStart.value, true)
-    await page.state.startTask()
-    assert.equal(page.state.currentTask.value.run_id, 'retry-run')
-    assert.equal(page.state.busy.value, true)
-    assert.equal(page.calls.filter(call => call.method === 'prepareCollection').length, 1)
-    assert.equal(page.calls.filter(call => call.method === 'startCollection').length, 1)
-    assert.equal(page.calls.some(call => call.method === 'stopCollection'), false)
-    assert.equal(page.state.history.value[0].status, 'waiting_for_browser')
-    assert.equal(page.state.history.value[0].stop_reason, 'verification_required')
-  } finally { page.stop() }
-})
-
-test('尚未归档的浏览器等待任务仍阻止重准备和新任务，允许停止', async () => {
-  const page = collectionComponent({ getCollectionStatus: { run_id: 'waiting-run', status: 'waiting_for_browser', finished_at: null } })
-  try {
-    await page.mounted()
-    assert.equal(page.state.busy.value, true)
-    assert.equal(page.state.canStop.value, true)
-    await page.state.prepareBrowser()
-    await page.state.startTask()
-    assert.equal(page.calls.some(call => /^(prepareCollection|startCollection)$/.test(call.method)), false)
-  } finally { page.stop() }
-})
-
-test('需要人工登录、验证或正文受限时不能启动', async () => {
+test('需要人工登录、验证或正文受限时不授予准备就绪', async () => {
   for (const access_state of ['login_required', 'verification_required', 'content_limited', 'authenticated']) {
     const page = collectionComponent({ prepareCollection: { access_state, can_collect: false, message: access_state } })
     try {
       await page.mounted()
       await page.state.prepareBrowser()
-      assert.equal(page.state.canStart.value, false)
-      await page.state.startTask()
-      assert.equal(page.calls.some(call => call.method === 'startCollection'), false)
+      assert.equal(page.state.preparedFor.value, null)
+      assert.equal(page.state.accessReady.value, false)
     } finally { page.stop() }
   }
 })
 
-test('准备响应内标记正文受限时，即使顶层可采集也不能启动', async () => {
+test('准备响应内标记正文受限时，即使顶层可采集也不显示就绪', async () => {
   const page = collectionComponent({ prepareCollection: { access_state: 'public_accessible', can_collect: true, cdp: { reachable: true, platform_access: { boss: { access_state: 'public_accessible', can_collect: true, content_limited: true } } } } })
   try {
     await page.mounted()
     await page.state.prepareBrowser()
     assert.equal(page.state.accessState.value, 'content_limited')
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.accessReady.value, false)
     assert.match(page.state.accessMessage.value, /正文.*受限/)
-    assert.match(page.state.startHint.value, /正文.*受限/)
   } finally { page.stop() }
 })
 
@@ -199,14 +98,14 @@ test('显式刷新状态发现验证门禁时撤销旧准备结果，恢复后�
   try {
     await page.mounted()
     await page.state.prepareBrowser()
-    assert.equal(page.state.canStart.value, true)
+    assert.equal(page.state.preparedFor.value, 'boss')
     access_state = 'verification_required'
     await page.state.refreshAll(true)
     assert.equal(page.state.accessState.value, 'verification_required')
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     access_state = 'public_accessible'
     await page.state.refreshAll(true)
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
   } finally { page.stop() }
 })
 
@@ -222,10 +121,9 @@ test('检测到安全验证后暂停自动浏览器检查，手动重新检查�
     const checksAfterPrepare = page.calls.filter(call => call.method === 'getCDPStatus').length
     await page.state.refreshAll(true)
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checksAfterPrepare)
-    assert.equal(page.state.canStart.value, false)
     preparation = { access_state: 'public_accessible', can_collect: true, message: '搜索页可访问', cdp: { reachable: true, platform_access: { boss: { access_state: 'public_accessible', can_collect: true } } } }
     await page.state.prepareBrowser()
-    assert.equal(page.state.canStart.value, true)
+    assert.equal(page.state.preparedFor.value, 'boss')
     const checksAfterRecovery = page.calls.filter(call => call.method === 'getCDPStatus').length
     await page.state.refreshAll(true)
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checksAfterRecovery + 1)
@@ -260,18 +158,18 @@ test('自动安全校验不伪装成需要人工验证', async () => {
     await page.state.prepareBrowser()
     assert.equal(page.state.accessLabel.value, 'BOSS 自动安全校验')
     assert.match(page.state.accessMessage.value, /当前未发现可人工操作的验证内容/)
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
   } finally { page.stop() }
 })
 
-test('不可启动平台与错误城市代码不能提交任务', async () => {
+test('不可准备平台与错误城市代码不请求浏览器准备', async () => {
   const page = collectionComponent()
   try {
     await page.mounted()
     await page.state.prepareBrowser()
     page.state.configForm.cities = [{ name: '北京', code: '530' }]
-    await page.state.startTask()
-    assert.equal(page.calls.some(call => call.method === 'startCollection'), false)
+    await page.state.prepareBrowser()
+    assert.equal(page.calls.filter(call => call.method === 'prepareCollection').length, 1)
     page.state.configForm.platform = 'hn'
     await nextTick()
     await page.state.prepareBrowser()
@@ -330,15 +228,15 @@ test('数据库不可用时展示真实错误，平台统计不制造历史回�
   } finally { page.stop() }
 })
 
-test('本轮结果只按run_id读取，切换任务读取失败会清空旧结果并显示错误', async () => {
+test('最近任务结果只按run_id读取，切换任务读取失败会清空旧结果并显示错误', async () => {
   let run = 'one'
   const page = collectionComponent({ getCollectionStatus: () => ({ run_id: run, status: 'completed' }), getCollectionResults: (id: string) => {
     if (id === 'two') throw new Error('result unavailable')
-    return [{ job_title: '本轮岗位', raw_text: '正文', outcome: 'inserted', jd_pool_id: 7 }]
+    return [{ job_title: '最近岗位', raw_text: '正文', outcome: 'inserted', jd_pool_id: 7 }]
   } })
   try {
     await page.mounted()
-    assert.equal(page.state.results.value[0].job_title, '本轮岗位')
+    assert.equal(page.state.results.value[0].job_title, '最近岗位')
     run = 'two'
     await page.state.refreshAll()
     assert.equal(page.state.results.value.length, 0)
@@ -358,7 +256,7 @@ test('数据库正文按id显式读取，授权失败不把事件摘要冒充完
   } finally { page.stop() }
 })
 
-test('查看历史结果不替换当前任务，本轮与历史分别读取', async () => {
+test('查看历史结果不替换最近任务，任务与历史分别读取', async () => {
   const page = collectionComponent({ getCollectionStatus: { run_id: 'current', status: 'completed' }, getCollectionResults: (id: string) => [{ job_title: id }] })
   try {
     await page.mounted()
@@ -369,7 +267,7 @@ test('查看历史结果不替换当前任务，本轮与历史分别读取', as
   } finally { page.stop() }
 })
 
-test('准备使用当前完整有界搜索配置，不提交采集或保存配置', async () => {
+test('准备使用当前完整有界搜索配置，不保存配置', async () => {
   const page = collectionComponent()
   try {
     await page.mounted()
@@ -378,7 +276,7 @@ test('准备使用当前完整有界搜索配置，不提交采集或保存配�
     await page.state.prepareBrowser()
     const call = page.calls.find(call => call.method === 'prepareCollection')!
     assert.deepEqual(call.args, [false, 'boss', { keywords: ['Java'], cities: [{ name: '北京', code: '101010100' }], pages: 1, detail_limit: 3, max_jobs: 5 }])
-    assert.equal(page.calls.some(call => /^(startCollection|updateCollectionConfig)$/.test(call.method)), false)
+    assert.equal(page.calls.some(call => call.method === 'updateCollectionConfig'), false)
   } finally { page.stop() }
 })
 
@@ -400,14 +298,15 @@ test('关键词或城市变化立即撤销准备凭据，切回旧配置也不�
   try {
     await page.mounted()
     await page.state.prepareBrowser()
+    assert.equal(page.state.preparedFor.value, 'boss')
     page.state.configForm.keywords[0] = 'Java'
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     page.state.configForm.keywords[0] = 'Python'
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     await page.state.prepareBrowser()
     page.state.configForm.cities[0].code = '530'
     page.state.configForm.cities[0].code = '101010100'
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
   } finally { page.stop() }
 })
 
@@ -426,7 +325,7 @@ test('准备前发出的延迟状态响应不能覆盖新准备结果', async ()
       if (fails) reject(new Error('stale connection error'))
       else respond({ reachable: true, platform_access: { boss: { access_state: 'page_error', can_collect: false, reason: 'no_access_evidence' } } })
       await refresh
-      assert.equal(page.state.canStart.value, true)
+      assert.equal(page.state.preparedFor.value, 'boss')
       assert.equal(page.state.accessState.value, 'public_accessible')
       assert.equal(page.state.refreshErrors.value.length, 0)
     } finally { page.stop() }
@@ -450,28 +349,27 @@ test('准备过程中只读刷新不发浏览器状态请求，准备完成后�
   } finally { page.stop() }
 })
 
-test('本次准备提示优先于CDP诊断，限制原因也显示在启动提示', async () => {
+test('本次准备提示优先于CDP诊断', async () => {
   const page = collectionComponent({ prepareCollection: { access_state: 'page_error', can_collect: false, message: '搜索页尚未出现职位内容，请稍后重新检查', cdp: { reachable: true, platform_access: { boss: { access_state: 'page_error', can_collect: false, reason: 'no_access_evidence' } } } } })
   try {
     await page.mounted()
     await page.state.prepareBrowser()
     assert.match(page.state.accessMessage.value, /搜索页尚未出现职位内容/)
-    assert.match(page.state.startHint.value, /搜索页尚未出现职位内容/)
   } finally { page.stop() }
 })
 
-test('后端明确无搜索结果可启动验证，正文受限仍禁止', async () => {
+test('后端明确无搜索结果可视为已准备，正文受限仍不授予就绪', async () => {
   for (const content_limited of [false, true]) {
     const page = collectionComponent({ prepareCollection: { access_state: 'empty_results', can_collect: true, content_limited, message: '当前搜索没有结果', cdp: { reachable: true } } })
     try {
       await page.mounted()
       await page.state.prepareBrowser()
-      assert.equal(page.state.canStart.value, !content_limited)
+      assert.equal(page.state.preparedFor.value, content_limited ? null : 'boss')
     } finally { page.stop() }
   }
 })
 
-test('准备超时清除loading与旧CDP证据，可刷新并重新准备但不自动启动', async () => {
+test('准备超时清除loading与旧CDP证据，可刷新并重新准备', async () => {
   let fail = false
   const page = collectionComponent({
     prepareCollection: () => {
@@ -486,15 +384,13 @@ test('准备超时清除loading与旧CDP证据，可刷新并重新准备但不�
     fail = true
     await page.state.prepareBrowser()
     assert.equal(page.state.preparing.value, false)
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     assert.match(page.state.accessMessage.value, /超时/)
-    assert.match(page.state.startHint.value, /超时/)
     await page.state.refreshAll()
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     fail = false
     await page.state.prepareBrowser()
-    assert.equal(page.state.canStart.value, true)
-    assert.equal(page.calls.some(call => call.method === 'startCollection'), false)
+    assert.equal(page.state.preparedFor.value, 'boss')
   } finally { page.stop() }
 })
 
@@ -516,7 +412,7 @@ test('准备请求未完成时改变搜索配置，旧成功响应不能绑定�
     page.state.keyword.value = 'Java'
     finish({ access_state: 'public_accessible', can_collect: true, message: 'Python页面可访问', cdp: { reachable: true } })
     await prepare
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     assert.equal(page.state.preparation.value, null)
     assert.equal(page.state.preparing.value, false)
   } finally { page.stop() }
@@ -532,9 +428,8 @@ test('后台受限轮询不抹去最近准备失败的具体提示和搜索目�
     await page.state.prepareBrowser()
     await page.state.refreshAll()
     assert.match(page.state.accessMessage.value, /已打开Python北京搜索页/)
-    assert.match(page.state.startHint.value, /已打开Python北京搜索页/)
     assert.equal(page.state.preparation.value.target_url, 'https://www.zhipin.com/web/geek/job?query=Python&city=101010100')
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
   } finally { page.stop() }
 })
 
@@ -547,13 +442,12 @@ test('准备成功后新门禁撤销凭据并暂停自动检查，保留验证�
     await page.mounted()
     await page.state.prepareBrowser()
     await page.state.refreshAll(true)
-    assert.equal(page.state.canStart.value, false)
+    assert.equal(page.state.preparedFor.value, null)
     assert.match(page.state.accessMessage.value, /人工验证/)
     assert.ok(page.state.preparation.value?.target_url)
     const checks = page.calls.filter(call => call.method === 'getCDPStatus').length
     await page.state.refreshAll()
     assert.equal(page.calls.filter(call => call.method === 'getCDPStatus').length, checks)
-    assert.equal(page.state.canStart.value, false)
     assert.match(page.state.accessMessage.value, /人工验证/)
     assert.ok(page.state.preparation.value?.target_url)
   } finally { page.stop() }

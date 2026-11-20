@@ -108,10 +108,16 @@ def test_only_attempted_valid_details_persist_and_duplicate_counts_are_precise(o
 def test_run_events_map_exact_rows_and_never_replace_current_body_with_history(offline, monkeypatch, tmp_path):
     from app.collect import control
     _, details, rows, run = offline
-    monkeypatch.setattr(control, '_STATE_DIR', tmp_path / 'events')
-    monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'events/state.json')
+    event_dir = tmp_path / 'events'
+    monkeypatch.setattr(control, '_STATE_DIR', event_dir)
+    monkeypatch.setattr(control, '_STATE_PATH', event_dir / 'state.json')
     def capture(run_id):
-        return lambda value: control._parse_log_line(run_id, 'TM_EVENT ' + json.dumps(value, ensure_ascii=False, default=str))
+        path = event_dir / f'{run_id}.events.jsonl'
+        def write(value):
+            event_dir.mkdir(parents=True, exist_ok=True)
+            with path.open('a', encoding='utf-8') as stream:
+                stream.write(json.dumps(value, ensure_ascii=False, default=str) + '\n')
+        return write
     run(on_event=capture('first'))
     inserted = control.get_results('first')[0]
     assert inserted['outcome'] == 'inserted'

@@ -7,22 +7,16 @@ from __future__ import annotations
 
 import ast
 import json
-import os
 import re
-import subprocess
-import sys
 import threading
-import uuid
 from urllib.parse import urlsplit
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from app.collect.boss_collect_loop import DEFAULT_CITIES, DEFAULT_KEYWORDS
 from app.collect.fetch_boss_jobs import _search_url as boss_search_url
 from app.collect.fetchers.job_sites import SITES, SiteSpec
-from app.collect import browser, frequency, frequency_recovery, readiness, worker_process
-from app.collect.runtime import lease
+from app.collect import browser, frequency_recovery
 from app.collect.cleaner import source_sections
 from app.collect.timing_validation import validate_collection_ranges
 
@@ -30,14 +24,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _STATE_DIR = _REPO_ROOT / "data" / "local" / "collection"
 _STATE_PATH = _STATE_DIR / "control-state.json"
 _LOCK = threading.RLock()
-_PROCESS: subprocess.Popen[str] | None = None
-_START_THREAD: threading.Thread | None = None
-_STARTING_RUN: str | None = None
-_DONE_EVENTS: dict[str, threading.Event] = {}
 _RESERVATION: object | None = None
-_LEASE_ROOT: Path | None = None
-_LEASE: lease.Lease | None = None
-_spawn_process = worker_process.spawn
 _ACTIVE_STATUSES = {"preparing", "waiting_for_browser", "running", "waiting_next_round", "stopping"}
 _QUALITY_COUNTERS = ('detail_attempted', 'detail_obtained', 'complete', 'inserted',
                      'updated', 'rejected', 'failed', 'unattempted')
@@ -65,7 +52,8 @@ _DEFAULT_CONFIG: dict[str, Any] = {
 
 _PLATFORMS = [
     {"platform": "boss", "label": "BOSS直聘", "supported": True,
-     "cities": [{"name": n, "code": c} for n, c in DEFAULT_CITIES]},
+     "cities": [{"name": "北京", "code": "101010100"}, {"name": "上海", "code": "101020100"},
+                {"name": "深圳", "code": "101280600"}]},
     {"platform": "zhaopin", "label": "智联招聘", "supported": True,
      "cities": [{"name": "北京", "code": "530"}, {"name": "上海", "code": "538"}, {"name": "深圳", "code": "765"}]},
     {"platform": "liepin", "label": "猎聘", "supported": True,
@@ -196,169 +184,6 @@ def _save_state(state: dict[str, Any]) -> None:
     temp_path = _STATE_PATH.with_suffix(".tmp")
     temp_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     temp_path.replace(_STATE_PATH)
-
-
-def _update_task(run_id: str, **changes: Any) -> None:
-    with _LOCK:
-        state = _load_state()
-        task = state.get("current_task")
-        if not task or task.get("run_id") != run_id:
-            return
-        if task.get('status') in {'stopped', 'stopping'}:
-            changes.pop('status', None)
-            changes.pop('stop_reason', None)
-        if "raw_log_line" in changes:
-            line = str(changes.pop("raw_log_line"))
-            tail = list(task.get("raw_log_tail") or [])
-            tail.append(line)
-            changes["raw_log_tail"] = tail[-30:]
-        task.update(changes)
-        _save_state(state)
-
-
-def _parse_log_line(run_id: str, line: str) -> None:
-    """兼容 BOSS、智联、猎聘循环输出，并把可识别字段写入当前任务。"""
-    clean = line.strip()
-    if clean.startswith('TM_EVENT '):
-        try:
-            event = json.loads(clean[len('TM_EVENT '):])
-            path = _event_path(run_id)
-            with _LOCK:
-                with path.open('a', encoding='utf-8') as stream:
-                    stream.write(json.dumps(event, ensure_ascii=False) + '\n')
-                state = _load_state()
-                task = state.get('current_task') or {}
-                if task.get('run_id') == run_id:
-                    kind = event.get('event')
-                    if kind == 'listed':
-                        if task.get('listed') is None:
-                            task.update(dict.fromkeys((
-                                'details', 'new', 'skipped', *_QUALITY_COUNTERS, *_IDENTITY_COUNTERS
-                            ), 0))
-                        task['listed'] = len(event.get('jobs', []))
-                        task['unattempted'] = max(0, task['listed'] - (task.get('detail_attempted') or 0))
-                    elif kind == 'detail_attempt':
-                        task['detail_attempted'] = task['details'] = (task.get('detail_attempted') or 0) + 1
-                        task['unattempted'] = max(0, (task.get('listed') or 0) - task['details'])
-                    elif kind == 'detail':
-                        detail = event.get('detail') or {}
-                        if detail.get('description'):
-                            task['detail_obtained'] = (task.get('detail_obtained') or 0) + 1
-                        if event.get('content_eligible') is True:
-                            task['content_eligible'] = (task.get('content_eligible') or 0) + 1
-                        identity_status = event.get('identity_status')
-                        if not event.get('rejection') and identity_status == 'pending':
-                            task['identity_pending'] = (task.get('identity_pending') or 0) + 1
-                        if not event.get('rejection') and identity_status == 'verified':
-                            task['identity_verified'] = (task.get('identity_verified') or 0) + 1
-                        counter = 'rejected' if event.get('rejection') else (
-                            'complete' if identity_status in (None, 'verified') else None
-                        )
-                        if counter:
-                            task[counter] = (task.get(counter) or 0) + 1
-                    elif kind == 'failure':
-                        task['failed'] = (task.get('failed') or 0) + 1
-                    elif kind == 'persisted':
-                        for item in event.get('items', []):
-                            counter = item.get('outcome')
-                            if counter in {'inserted', 'updated', 'skipped'}:
-                                task[counter] = (task.get(counter) or 0) + 1
-                        task['new'] = task.get('inserted')
-                    _save_state(state)
-            if event.get('event') == 'finished':
-                stats = event['stats']
-                changes = {key: stats.get(key) for key in (
-                    'listed', 'details', 'new', 'skipped', *_QUALITY_COUNTERS, *_IDENTITY_COUNTERS
-                )}
-                changes.update(
-                    quality_metrics_available=all(key in stats for key in _QUALITY_COUNTERS),
-                    identity_metrics_available=all(key in stats for key in _IDENTITY_COUNTERS),
-                    stop_reason=stats.get('stop_reason'),
-                )
-                if stats.get('stop_reason'):
-                    changes.update(status='error', last_error=stats['stop_reason'])
-                _update_task(run_id, **changes)
-        except (ValueError, TypeError, KeyError):
-            _update_task(run_id, last_error='任务事件格式错误')
-        return
-    start_match = re.search(r"(?:BOSS|zhaopin|liepin) 第 (\d+) 轮开始: ([^/]+)/([^;]+);", clean, re.I)
-    if start_match:
-        _update_task(run_id, status="running", current_round=int(start_match.group(1)),
-                     current_city=start_match.group(2).strip(), current_keyword=start_match.group(3).strip(),
-                     raw_log_line=clean)
-        return
-    if "等待" in clean and "后切换" in clean:
-        _update_task(run_id, status="waiting_next_round", raw_log_line=clean)
-        return
-    complete_match = re.search(r"完成: (\{.*\})", clean)
-    if complete_match:
-        try:
-            payload = ast.literal_eval(complete_match.group(1))
-        except (ValueError, SyntaxError):
-            payload = {}
-        if isinstance(payload, dict):
-            changes = {key: int(payload.get(key, 0) or 0) for key in ('listed', 'details', 'new', 'skipped', 'errors')}
-            changes.update({key: int(payload[key] or 0) for key in _QUALITY_COUNTERS if key in payload})
-            changes.update({key: int(payload[key] or 0) for key in _IDENTITY_COUNTERS if key in payload})
-            changes['quality_metrics_available'] = all(key in payload for key in _QUALITY_COUNTERS)
-            if payload.get('stop_reason'):
-                reason = str(payload['stop_reason'])
-                changes.update(status='error', last_error=reason, stop_reason=reason,
-                               errors=max(changes['errors'], changes.get('failed', 0), 1),
-                               browser_page_status=next((s for s in ('verification_required', 'login_required', 'page_error') if s in reason), 'blocked'))
-            _update_task(run_id, **changes, log_summary=payload, raw_log_line=clean)
-            return
-    if "CDP/登录状态异常" in clean or "需要人工登录" in clean or ("验证" in clean and "异常" in clean):
-        _update_task(run_id, status="error", last_error=clean, raw_log_line=clean)
-        return
-    _update_task(run_id, raw_log_line=clean)
-
-
-def _watch_process(run_id: str, process: subprocess.Popen[str]) -> None:
-    global _PROCESS
-    state = _load_state()
-    task = state.get("current_task") or {}
-    log_path = Path(task.get("log_path") or (_STATE_DIR / f"{run_id}.log"))
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    _update_task(run_id, log_path=str(log_path))
-    try:
-        with log_path.open("a", encoding="utf-8") as log_file:
-            if process.stdout:
-                for line in process.stdout:
-                    log_file.write(line)
-                    log_file.flush()
-                    _parse_log_line(run_id, line)
-    finally:
-        return_code = process.wait()
-        with _LOCK:
-            state = _load_state()
-            task = state.get("current_task")
-            if task and task.get("run_id") == run_id:
-                stopped = task.get("status") in {"stopped", "stopping"}
-                if stopped:
-                    task['status'] = 'stopped'
-                if not stopped:
-                    task["status"] = "completed" if return_code == 0 and task.get('status') != 'error' else "error"
-                    if return_code != 0 and not task.get("last_error"):
-                        task["last_error"] = f"采集进程退出码: {return_code}"
-                    if return_code != 0 and not task.get('stop_reason'):
-                        task['stop_reason'] = f'worker_exit_{return_code}'
-                task["finished_at"] = _now()
-                task["next_run_at"] = None
-                task["pid"] = None
-                task["database_new_count"] = task.get("new", 0)
-                task["log_path"] = str(log_path)
-                history = state.setdefault("history", [])
-                history[:] = [h for h in history if h.get('run_id') != run_id]
-                history.insert(0, dict(task))
-                state["history"] = history[:100]
-                _save_state(state)
-            if _PROCESS is process:
-                _PROCESS = None
-        worker_process.close(process)
-        _release_lease()
-        if run_id in _DONE_EVENTS:
-            _DONE_EVENTS[run_id].set()
 
 
 def _event_path(run_id: str) -> Path:
@@ -501,13 +326,10 @@ def prepare_browser(auto_start: bool = False, platform: str | None = None,
 def get_frequency_status(platform: str) -> dict[str, Any]:
     with _LOCK:
         status = frequency_recovery.get_status(platform)
-        try:
-            _ensure_no_external_task(_load_state())
-            if _RESERVATION is not None or _PROCESS is not None or _STARTING_RUN is not None:
-                raise RuntimeError('已有采集任务、批次或浏览器准备正在运行')
-        except RuntimeError as exc:
+        if _RESERVATION is not None:
             status.update(state='busy', can_recover=False, recovery_token=None,
-                          reason='collection_controller_busy', message=str(exc))
+                          reason='collection_controller_busy',
+                          message='已有浏览器准备或频率恢复正在运行')
         return status
 
 
@@ -651,9 +473,8 @@ def get_status() -> dict[str, Any]:
     with _LOCK:
         state = _load_state()
         task = dict(state.get("current_task") or {**_empty_task(None, state["config"]), "status": "idle", "started_at": None})
-        if _PROCESS is not None and _PROCESS.poll() is None:
-            task["status"] = task.get("status") if task.get("status") in _ACTIVE_STATUSES else "running"
-        elif _PROCESS is None and task.get("run_id") and task.get("status") in _ACTIVE_STATUSES and not task.get('finished_at') and task.get('run_id') != _STARTING_RUN:
+        # 旧单轮控制器已退役；遗留的活动状态视为控制器重启后的中断记录。
+        if task.get("run_id") and task.get("status") in _ACTIVE_STATUSES and not task.get('finished_at'):
             task["status"] = "error"
             task["last_error"] = task.get("last_error") or "采集进程已退出"
             task['stop_reason'] = task.get('stop_reason') or 'controller_restarted'
@@ -798,57 +619,11 @@ def get_history(page: int = 1, page_size: int = 20, status: str = "", mode: str 
     return {"items": history[start:start + page_size], "total": len(history)}
 
 
-def _worker_environment() -> dict[str, str]:
-    from app.config import get_settings
-
-    # Settings may come from .env without populating os.environ; workers need the same resolved target.
-    env = os.environ.copy()
-    env.update({key.upper(): str(value) for key, value in get_settings().model_dump().items() if value is not None})
-    env['PYTHONUNBUFFERED'] = '1'
-    env['PYTHONIOENCODING'] = 'utf-8'
-    env['PYTHONUTF8'] = '1'
-    return env
-
-
-def _archive_task(run_id: str, **changes) -> None:
-    with _LOCK:
-        state = _load_state()
-        task = state.get('current_task')
-        if not task or task.get('run_id') != run_id:
-            return
-        if task.get('status') in {'stopped', 'stopping'} and changes.get('status') != 'stopped':
-            return
-        task.update(changes, finished_at=_now(), pid=None, next_run_at=None)
-        state['history'] = [dict(task)] + [h for h in state.get('history', []) if h.get('run_id') != run_id]
-        state['history'] = state['history'][:100]
-        _save_state(state)
-
-
-def upsert_external_task(task: dict[str, Any]) -> None:
-    """Archive a non-subprocess task without pretending it owns the worker process."""
-    run_id = str(task.get("run_id") or "")
-    if not run_id:
-        raise ValueError("外部任务缺少 run_id")
-    with _LOCK:
-        state = _load_state()
-        history = [dict(item) for item in state.get("history", []) if item.get("run_id") != run_id]
-        history.insert(0, dict(task))
-        state["history"] = history[:100]
-        _save_state(state)
-
-
-def _ensure_no_external_task(state: dict) -> None:
-    if any(item.get('mode') == 'bridge' and not item.get('finished_at')
-           for item in state.get('history', [])):
-        raise RuntimeError('已有普通浏览器桥接任务未结束')
-
-
 def _reserve_tasks() -> object:
     global _RESERVATION
     with _LOCK:
-        if _RESERVATION is not None or _PROCESS is not None or _STARTING_RUN is not None:
-            raise RuntimeError('已有采集任务、批次或浏览器准备正在运行')
-        _ensure_no_external_task(_load_state())
+        if _RESERVATION is not None:
+            raise RuntimeError('已有浏览器准备或频率恢复正在运行')
         _RESERVATION = object()
         return _RESERVATION
 
@@ -857,214 +632,5 @@ def _release_tasks(reservation: object) -> None:
     global _RESERVATION
     with _LOCK:
         if _RESERVATION is not reservation:
-            raise RuntimeError('批次占用已失效')
-        if _PROCESS is not None or _STARTING_RUN is not None:
-            raise RuntimeError('采集尚未停止归档，不能释放批次占用')
+            raise RuntimeError('浏览器准备占用已失效')
         _RESERVATION = None
-
-
-def _task_snapshot(run_id: str) -> dict[str, Any]:
-    with _LOCK:
-        state = _load_state()
-        task = state.get('current_task') or {}
-        if task.get('run_id') != run_id:
-            task = next((h for h in state['history'] if h.get('run_id') == run_id), {})
-        return dict(task)
-
-
-def _wait_task_done(run_id: str, timeout: float) -> bool:
-    with _LOCK:
-        event = _DONE_EVENTS.get(run_id)
-    return bool(event and event.wait(timeout))
-
-
-def _release_lease() -> None:
-    global _LEASE
-    with _LOCK:
-        value = _LEASE
-        _LEASE = None
-    if value is not None:
-        value.release()
-
-
-def start_task(payload: dict[str, Any], *, _reservation: object | None = None) -> dict[str, Any]:
-    global _START_THREAD, _STARTING_RUN
-    with _LOCK:
-        if _RESERVATION is not _reservation:
-            raise RuntimeError('已有采集批次正在运行')
-        if _PROCESS is not None or _STARTING_RUN is not None:
-            raise RuntimeError('已有采集任务正在运行')
-        state = _load_state()
-        _ensure_no_external_task(state)
-        config = _validated_config(get_config(), payload)
-        frequency.assert_legacy_migrated(config['platform'])
-        run_id = f"{config['platform']}-{uuid.uuid4().hex}"
-        kind = 'batch' if _reservation is not None else 'single'
-        acquired = lease.acquire(
-            config['platform'], f'control:{os.getpid()}:{run_id}', kind, root=_LEASE_ROOT,
-        )
-        global _LEASE
-        _LEASE = acquired
-        try:
-            readiness.require_database_ready()
-            task = _empty_task(run_id, config)
-            task['log_path'] = str(_STATE_DIR / f'{run_id}.out.log')
-            state['current_task'] = task
-            if _reservation is None:
-                state['config'] = config
-            _save_state(state)
-            for previous in list(_DONE_EVENTS):
-                if _DONE_EVENTS[previous].is_set():
-                    del _DONE_EVENTS[previous]
-            _DONE_EVENTS[run_id] = threading.Event()
-            _STARTING_RUN = run_id
-            _START_THREAD = threading.Thread(target=_launch_task, args=(run_id, config), daemon=True)
-            _START_THREAD.start()
-            return {'run_id': run_id}
-        except BaseException:
-            _release_lease()
-            raise
-
-
-def _launch_task(run_id: str, config: dict[str, Any]) -> None:
-    global _PROCESS, _STARTING_RUN
-    spawned = False
-    try:
-        platform = config['platform']
-        cdp = _ensure_browser(config['cdp_endpoint'], config['user_data_dir'], platform, _search_target(config))
-        access = cdp['platform_access'][platform]
-        with _LOCK:
-            state = _load_state()
-            task = state.get('current_task') or {}
-            if task.get('run_id') != run_id or task.get('status') in {'stopped', 'stopping'}:
-                return
-            if not access['can_collect']:
-                _archive_task(run_id, status='waiting_for_browser', stop_reason=access['access_state'],
-                              browser_page_status=access['access_state'], last_error='请人工完成浏览器准备后重新启动')
-                return
-            endpoint = cdp['endpoint']
-            config = {**config, 'cdp_endpoint': endpoint, 'user_data_dir': cdp['user_data_dir']}
-            task['cdp_status'] = 'page_available'
-            task['browser_page_status'] = access['access_state']
-            env = _worker_environment()
-            env['TALENTMIND_COLLECTION_EVENTS'] = '1'
-            if platform == 'zhaopin':
-                if not access.get('target_id'):
-                    raise RuntimeError('prepared_target_missing')
-                env['TALENTMIND_COLLECTION_TARGET_ID'] = access['target_id']
-                env['TALENTMIND_COLLECTION_TARGET_URL'] = _search_target(config)
-            _spawn_worker(run_id, config, task, state, env)
-            if _LEASE is not None and _PROCESS is not None:
-                try:
-                    lease.rebind(
-                        _LEASE, _PROCESS.pid, lease._created_at(_PROCESS.pid),
-                        owner=f'worker:{_PROCESS.pid}:{uuid.uuid4().hex}',
-                        job_name=getattr(getattr(_PROCESS, '_collection_job', None), 'name', None),
-                    )
-                except BaseException:
-                    worker_process.stop(_PROCESS, timeout=5)
-                    _release_lease()
-                    raise
-            spawned = True
-    except Exception as exc:
-        _archive_task(run_id, status='error', stop_reason=type(exc).__name__, last_error=str(exc))
-    finally:
-        with _LOCK:
-            if _STARTING_RUN == run_id:
-                _STARTING_RUN = None
-            if not spawned:
-                state = _load_state()
-                task = state.get('current_task') or {}
-                if task.get('run_id') == run_id and task.get('status') == 'stopping':
-                    _archive_task(run_id, status='stopped', stop_reason='user_stopped')
-                if run_id in _DONE_EVENTS:
-                    _DONE_EVENTS[run_id].set()
-                _release_lease()
-
-
-def _spawn_worker(run_id: str, config: dict, task: dict, state: dict, env: dict) -> None:
-    global _PROCESS
-    platform = config['platform']
-    endpoint = config['cdp_endpoint']
-    keywords = config.get("keywords") or list(DEFAULT_KEYWORDS)
-    cities = config.get("cities") or [{"name": name, "code": code} for name, code in DEFAULT_CITIES]
-    city_arg = ",".join(
-        f"{item.get('name', '')}={item.get('code', '')}" if isinstance(item, dict) else str(item)
-        for item in cities
-    )
-    module = "app.collect.boss_collect_loop" if platform == "boss" else "app.collect.cn_collect_loop"
-    args = [
-        sys.executable, "-m", module,
-        "--platform", platform,
-        "--cdp", endpoint,
-        "--keywords", ",".join(str(item) for item in keywords),
-        "--cities", city_arg,
-        "--pages", str(int(config.get("pages", 1))),
-        "--detail-limit", str(int(config.get("detail_limit", 8))),
-        "--max-jobs", str(int(config.get("max_jobs", 12))),
-        "--page-delay-min", str(float(config.get("page_delay_min", 15))),
-        "--page-delay-max", str(float(config.get("page_delay_max", 30))),
-        "--settle-min", str(float(config.get("settle_min", 5))),
-        "--settle-max", str(float(config.get("settle_max", 10))),
-        "--switch-interval-min", str(float(config.get("switch_interval_min", 360))),
-        "--switch-interval-max", str(float(config.get("switch_interval_max", 720))),
-    ]
-    if platform == "boss":
-        args.remove("--platform")
-        args.remove(platform)
-    if config.get("user_data_dir"):
-        args.extend(["--user-data-dir", str(config["user_data_dir"])])
-    if platform != 'boss' and config.get('search_url_template'):
-        args.extend(['--search-url-template', str(config['search_url_template'])])
-    if config["mode"] == "once":
-        args.append("--once")
-    elif config["mode"] == "limited":
-        args.extend(["--rounds", str(int(config["rounds"]))])
-    else:
-        args.append("--forever")
-    _PROCESS = _spawn_process(
-        args,
-        cwd=str(_REPO_ROOT / "backend"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        env=env,
-    )
-    task["status"] = "running"
-    task["pid"] = _PROCESS.pid
-    state["current_task"] = task
-    _save_state(state)
-    threading.Thread(target=_watch_process, args=(run_id, _PROCESS), daemon=True).start()
-
-
-def stop_task(run_id: str | None = None) -> dict[str, Any]:
-    with _LOCK:
-        state = _load_state()
-        task = state.get("current_task")
-        if not task or (run_id and task.get("run_id") != run_id):
-            raise ValueError("没有可停止的当前采集任务")
-        if task.get('finished_at') and _PROCESS is None and task.get('run_id') != _STARTING_RUN:
-            return {'stopped': False, 'run_id': task['run_id']}
-        process = _PROCESS
-        selected_run = task['run_id']
-        done = _DONE_EVENTS.get(selected_run)
-        task["status"] = "stopping"
-        task['stop_reason'] = 'user_stopped'
-        task["next_run_at"] = None
-        state["current_task"] = task
-        _save_state(state)
-    if process is not None:
-        worker_process.stop(process, timeout=10)
-    if done is not None and not done.wait(timeout=5):
-        if process is None:
-            return {'stopped': False, 'status': 'stopping', 'run_id': selected_run}
-        raise RuntimeError('采集进程已停止，任务归档尚未完成；请保留后端并重试')
-    with _LOCK:
-        state = _load_state()
-        archived = next((h for h in state.get('history', []) if h.get('run_id') == selected_run), None)
-        if archived is None:
-            raise RuntimeError('无法确认停止任务已归档，请保留后端')
-    return {'stopped': True, 'status': 'stopped', 'run_id': selected_run}
-

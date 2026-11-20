@@ -29,7 +29,6 @@ RUN install -d -m 0755 /etc/apt/keyrings \
 WORKDIR /app/backend
 COPY backend/requirements.txt ./requirements.txt
 COPY backend/app ./app
-COPY frontend/bridge-extension/manifest.json /app/frontend/bridge-extension/manifest.json
 ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_DEFAULT_TIMEOUT=120 \

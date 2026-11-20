@@ -222,13 +222,11 @@ def controller(ledger, monkeypatch, tmp_path):
     from app.collect import control
     monkeypatch.setattr(control, '_STATE_DIR', tmp_path)
     monkeypatch.setattr(control, '_STATE_PATH', tmp_path / 'control.json')
-    monkeypatch.setattr(control, '_PROCESS', None)
-    monkeypatch.setattr(control, '_STARTING_RUN', None)
     monkeypatch.setattr(control, '_RESERVATION', None)
     return control
 
 
-@pytest.mark.parametrize('activity', ['_RESERVATION', '_PROCESS', '_STARTING_RUN'])
+@pytest.mark.parametrize('activity', ['_RESERVATION'])
 def test_controller_activity_blocks_diagnosis_and_recovery(controller, monkeypatch, activity):
     frequency._reserve_action('zhaopin', 'Python', '530', kind='page', flight='owner')
     monkeypatch.setattr(controller, activity, object())

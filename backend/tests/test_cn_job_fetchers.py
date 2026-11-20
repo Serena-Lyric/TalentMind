@@ -11,7 +11,6 @@ from app.collect.fetchers.job_sites import (
     normalize_job,
     normalize_url,
 )
-from app.collect.cn_collect_loop import QueryTarget, build_targets
 
 
 def test_normalize_url_strips_tracking_query():
@@ -48,15 +47,6 @@ def test_normalize_job_returns_platform_source_and_raw_text():
     assert raw.experience == ""
     assert "负责数据平台建设" in raw.raw_html
     assert raw.source_detail.endswith("/job/abc")
-
-
-def test_build_targets_stable_order():
-    assert build_targets(["Python", "Java"], [("北京", "530"), ("上海", "538")]) == [
-        QueryTarget("Python", "北京", "530"),
-        QueryTarget("Python", "上海", "538"),
-        QueryTarget("Java", "北京", "530"),
-        QueryTarget("Java", "上海", "538"),
-    ]
 
 
 def test_zhaopin_dom_identity_is_stable_and_kept_over_detail_url():

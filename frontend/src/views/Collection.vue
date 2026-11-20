@@ -5,7 +5,7 @@
         <div class="module-mark collection-mark"><el-icon><Connection /></el-icon></div>
         <div>
           <h1>采集工作台</h1>
-          <p>统一管理三平台持续采集与单轮验证；每站独立进程/Profile，登录或验证由你在浏览器中完成。</p>
+          <p>统一管理三平台隔离采集、浏览器准备与历史记录；每站独立进程/Profile，登录或验证由你在浏览器中完成。</p>
         </div>
       </div>
       <div class="collection-guide-stage">
@@ -15,7 +15,7 @@
           <span class="collector-spark spark-two">✧</span>
           <aside class="collector-skill-bubble" aria-label="采集功能概述">
             <div class="collector-bubble-title"><span>✦</span><b>采集功能概述</b></div>
-            <p>可创建单轮与批量任务计划，先手动准备浏览器，再显式开始或统一停止；逐项查看进度、原文、停止原因和历史结果。</p>
+            <p>先准备浏览器并检查访问状态，再由统一入口启动或停止三平台采集；逐项查看进度、原文、停止原因和历史结果。</p>
           </aside>
         </div>
       </div>
@@ -34,23 +34,16 @@
         <p v-if="item.next_combination_at" class="hint">新组合最早可用时间 {{ formatTimestamp(item.next_combination_at) }}</p>
         <template v-if="item.state === 'unfinished'">
           <p class="hint">恢复会保留此前记录，重新等待页面间隔 30 秒与组合间隔 12 分钟。恢复后请重新准备，再显式启动。</p>
-          <el-button :data-testid="`recover-${item.platform}`" :disabled="!item.can_recover || !!recoveringPlatform || busy || batchBusy || bridgeBusy || preparing || starting" :loading="recoveringPlatform === item.platform" @click="recoverFrequency(item.platform)">确认恢复未完成动作</el-button>
+          <el-button :data-testid="`recover-${item.platform}`" :disabled="!item.can_recover || !!recoveringPlatform || busy || preparing" :loading="recoveringPlatform === item.platform" @click="recoverFrequency(item.platform)">确认恢复未完成动作</el-button>
         </template>
       </div>
     </section>
 
     <CollectionRuntime />
 
-    <el-radio-group v-model="workspaceMode" aria-label="采集模式"><el-radio-button value="single">单轮采集</el-radio-button><el-radio-button value="bridge">普通浏览器</el-radio-button><el-radio-button value="batch">批量任务</el-radio-button></el-radio-group>
-    <p class="hint">{{ modeHint }}</p>
-    <CollectionBatch v-show="workspaceMode === 'batch'" :platforms="platforms" :start-blocked="readiness?.ready !== true || !!recoveringPlatform" :blocked-platforms="blockedPlatforms" :single-busy="(busy && !batchBusy) || preparing || starting || bridgeBusy" @busy="batchBusy = $event" @inspect="openHistory" />
-    <CollectionBridge v-show="workspaceMode === 'bridge'" :platforms="platforms" :single-busy="(busy && !batchBusy) || preparing || starting || batchBusy || !!recoveringPlatform" @busy="bridgeBusy = $event" @inspect="openHistory" @changed="refreshAll()" />
-    <div v-show="workspaceMode === 'single'">
-    <el-alert v-if="batchBusy || bridgeBusy" :title="batchBusy ? '批次正在执行或停止；单轮与批次互斥，请到批量任务面板统一停止。' : '普通浏览器桥接任务尚未归档；请先在桥接面板完成或停止，之后才能准备或启动 CDP 单轮。'" type="warning" :closable="false" show-icon />
-
     <section class="panel setup-panel">
-      <div class="section-heading"><div><h2><span class="step">1</span>配置本轮采集</h2><p>单个平台、单关键词、单城市；本轮最多一页、5 条列表与 5 条详情。</p></div><el-tag effect="plain">单轮验证</el-tag></div>
-      <el-form label-position="top" class="config-grid" :disabled="busy || preparing || starting || batchBusy || bridgeBusy || !!recoveringPlatform">
+      <div class="section-heading"><div><h2><span class="step">1</span>配置准备目标</h2><p>单个平台、单关键词、单城市；准备动作只检查对应搜索页，不启动采集。</p></div><el-tag effect="plain">浏览器准备</el-tag></div>
+      <el-form label-position="top" class="config-grid" :disabled="busy || preparing || !!recoveringPlatform">
         <el-form-item label="招聘平台">
           <el-select v-model="configForm.platform" placeholder="选择平台" aria-label="招聘平台">
             <el-option v-for="item in platforms" :key="item.platform" :label="item.supported ? item.label : `${item.label}（暂未接入）`" :value="item.platform" :disabled="!item.supported" />
@@ -66,8 +59,7 @@
         <el-form-item label="详情尝试上限"><el-input-number v-model="configForm.detail_limit" :min="1" :max="5" :precision="0" /></el-form-item>
         <el-form-item label="列表岗位上限"><el-input-number v-model="configForm.max_jobs" :min="1" :max="5" :precision="0" /></el-form-item>
       </el-form>
-      <p v-if="!selectedPlatform?.supported" class="hint">{{ platforms.length ? '当前来源未接入可启动采集，请选择受支持的平台。' : '正在等待平台配置；配置不可用时无法启动。' }}</p>
-      <div class="gate-note"><el-radio-group model-value="once"><el-radio-button value="once">单轮</el-radio-button><el-radio-button value="continuous" disabled>持续采集</el-radio-button></el-radio-group><span>持续能力保留：Gate 1 尚未验收，暂不可启用。</span></div>
+      <p v-if="!selectedPlatform?.supported" class="hint">{{ platforms.length ? '当前来源未接入浏览器准备，请选择受支持的平台。' : '正在等待平台配置；配置不可用时无法准备。' }}</p>
     </section>
 
     <div class="action-grid">
@@ -77,21 +69,13 @@
         <div class="access-row"><el-tag :type="accessReady ? 'success' : 'warning'">{{ accessLabel }}</el-tag><span>{{ accessMessage }}</span></div>
         <p v-if="preparation?.target_url" class="source-detail">采集目标：<span class="mono" :title="preparation.target_url">{{ preparation.target_url }}</span><small>此地址只读展示；准备完成后请在独立采集浏览器中操作，避免重复打开搜索页。</small></p>
         <p v-if="access?.reason === 'security_check_redirect'" class="hint">BOSS 自动安全校验后跳回首页，当前没有可人工处理的验证页面。系统已停止自动重试，请在浏览器中正常操作后再显式重新检查。</p>
-        <el-button v-if="configForm.platform === 'boss'" link type="primary" @click="workspaceMode = 'bridge'">改用普通浏览器人工采集</el-button>
         <p v-else-if="['login_required', 'verification_required', 'content_limited'].includes(accessState)" class="hint">请在浏览器人工处理；完成后再次点击“准备 / 重新检查”。受限时采集会停止。</p>
         <el-button data-testid="prepare-browser" :loading="preparing" :disabled="!canPrepare" @click="prepareBrowser">{{ preparing ? '浏览器准备中，请稍候' : '准备 / 重新检查' }}</el-button>
-      </section>
-      <section class="panel launch-panel">
-        <h2><span class="step">3</span>启动单轮</h2>
-        <p class="launch-summary">{{ selectedPlatform?.label || '未选平台' }} · {{ keyword.trim() || '待填关键词' }} · {{ configForm.cities[0]?.name || '待选城市' }}</p>
-        <p>{{ configForm.pages }} 页 / 列表 ≤ {{ configForm.max_jobs }} / 详情尝试 ≤ {{ configForm.detail_limit }}</p>
-        <div class="button-row"><el-button data-testid="start-collection" type="primary" :disabled="!canStart" :loading="starting" @click="startTask">启动本轮采集</el-button><el-button type="danger" plain :disabled="!canStop" :loading="stopping" @click="stopTask">停止任务</el-button></div>
-        <p class="hint">{{ startHint }}</p>
       </section>
     </div>
 
     <section class="panel progress-panel">
-      <div class="section-heading"><div><h2>本轮进度</h2><p class="mono">任务 ID：{{ currentTask.run_id || '暂无任务' }}</p></div><el-tag>{{ statusText(currentTask.status) }}</el-tag></div>
+      <div class="section-heading"><div><h2>最近任务</h2><p class="mono">任务 ID：{{ currentTask.run_id || '暂无任务' }}</p></div><el-tag>{{ statusText(currentTask.status) }}</el-tag></div>
       <p v-if="currentTask.run_id" class="outcome-summary" role="status">{{ taskOutcome(currentTask) }}</p>
       <el-button v-if="currentTask.run_id" data-testid="inspect-current" link type="primary" @click="openHistory(currentTask)">查看本轮逐条结果与原因</el-button>
       <template v-if="currentTask.run_id && !busy">
@@ -105,7 +89,7 @@
     </section>
 
     <section class="panel results-panel">
-      <div class="section-heading"><div><h2>本轮真实结果</h2><p>仅展示任务 {{ currentTask.run_id || '—' }} 的实际事件；拒绝和失败也保留，不补入历史 JD。</p></div><el-tag effect="plain">{{ results.length }} 条事件</el-tag></div>
+      <div class="section-heading"><div><h2>最近任务真实结果</h2><p>仅展示任务 {{ currentTask.run_id || '—' }} 的实际事件；拒绝和失败也保留，不补入历史 JD。</p></div><el-tag effect="plain">{{ results.length }} 条事件</el-tag></div>
       <el-alert v-if="resultsError" :title="resultsError" type="error" :closable="false" />
       <el-table v-loading="resultsLoading" :data="results" stripe empty-text="本轮暂无结果事件" style="width:100%">
         <el-table-column prop="job_title" label="岗位" min-width="180" show-overflow-tooltip />
@@ -142,7 +126,6 @@
       <el-pagination v-if="historyTotal > 20" v-model:current-page="historyPage" :page-size="20" :total="historyTotal" layout="prev, pager, next" @current-change="loadHistory" />
     </section>
 
-    </div>
     <el-drawer v-model="showHistory" title="历史任务日志与结果" size="min(900px, 95vw)">
       <template v-if="selectedTask">
         <p class="mono">{{ selectedTask.run_id }}</p><p>{{ platformText(selectedTask.platform) }} · {{ statusText(selectedTask.status) }} · {{ selectedTask.stop_reason || '无停止原因记录' }}</p>
@@ -180,15 +163,10 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Connection, Refresh } from '@element-plus/icons-vue'
-import CollectionBatch from '../components/CollectionBatch.vue'
-import CollectionBridge from '../components/CollectionBridge.vue'
 import CollectionRuntime from '../components/CollectionRuntime.vue'
-import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionPlatforms, getCollectionRaw, getCollectionResults, getCollectionStatus, getDatabaseStats, getCollectionReadiness, getCollectionFrequency, recoverCollectionFrequency, prepareCollection, startCollection, stopCollection, type CDPStatus, type CollectionAccess, type CollectionConfig, type CollectionPlatform, type CollectionPreparation, type CollectionRaw, type CollectionResult, type CollectionStats, type CollectionTask, type CollectionReadiness, type CollectionFrequency } from '../api/collection'
+import { getCDPStatus, getCollectionConfig, getCollectionHistory, getCollectionPlatforms, getCollectionRaw, getCollectionResults, getCollectionStatus, getDatabaseStats, getCollectionReadiness, getCollectionFrequency, recoverCollectionFrequency, prepareCollection, type CDPStatus, type CollectionAccess, type CollectionConfig, type CollectionPlatform, type CollectionPreparation, type CollectionRaw, type CollectionResult, type CollectionStats, type CollectionTask, type CollectionReadiness, type CollectionFrequency } from '../api/collection'
 
 const platforms = ref<CollectionPlatform[]>([])
-const workspaceMode = ref<'single' | 'bridge' | 'batch'>('single')
-const batchBusy = ref(false)
-const bridgeBusy = ref(false)
 const readiness = ref<CollectionReadiness | null>(null)
 const readinessError = ref('')
 const frequencies = ref<Record<string, CollectionFrequency>>({})
@@ -202,7 +180,6 @@ const readinessMessage = computed(() => readinessError.value || (readiness.value
   : '数据库写入条件尚未检查，请刷新状态。'))
 const blockedPlatforms = computed(() => platforms.value.filter(item => item.supported && frequencies.value[item.platform]?.state !== 'clear').map(item => item.platform))
 const frequencyNotices = computed(() => Object.values(frequencies.value).filter(item => item.state !== 'clear' || (item.next_action_at || 0) * 1000 > Date.now() || (item.next_combination_at || 0) * 1000 > Date.now()))
-const modeHint = computed(() => ({ single: '单轮使用独立采集浏览器，按配置准备后启动。任务结果与历史记录在本页下方。', bridge: '普通浏览器模式使用 BOSS Edge 扩展，由你逐次读取可见页面。任务归档后可切回单轮。', batch: '批量模式先保存关键词与城市组合计划，再显式启动。每项沿用单轮上限与频率。' })[workspaceMode.value])
 const configForm = reactive<CollectionConfig>({ platform: 'boss', mode: 'once', keywords: [], cities: [], pages: 1, detail_limit: 5, max_jobs: 5 })
 const currentTask = ref<CollectionTask>({ run_id: null, status: 'idle' })
 const stats = ref<CollectionStats>({ database_total: null, platform_counts: [] })
@@ -211,8 +188,6 @@ const preparation = ref<CollectionPreparation | null>(null)
 const preparedFor = ref<string | null>(null)
 const refreshing = ref(false)
 const preparing = ref(false)
-const starting = ref(false)
-const stopping = ref(false)
 const refreshErrors = ref<string[]>([])
 const results = ref<CollectionResult[]>([])
 const resultsError = ref('')
@@ -244,23 +219,8 @@ watch(() => JSON.stringify([configForm.platform, configForm.keywords.map(value =
   preparation.value = null
   cdpStatus.value = null
 }, { flush: 'sync' })
-watch(batchBusy, value => {
-  if (!value) return
-  browserRequest++
-  preparedFor.value = null
-  preparation.value = null
-  cdpStatus.value = null
-}, { flush: 'sync' })
-watch(bridgeBusy, value => {
-  if (!value) return
-  browserRequest++
-  preparedFor.value = null
-  preparation.value = null
-  cdpStatus.value = null
-}, { flush: 'sync' })
 const busy = computed(() => !currentTask.value.finished_at && ['preparing', 'waiting_for_browser', 'running', 'waiting_next_round', 'stopping'].includes(currentTask.value.status))
-const canPrepare = computed(() => !!selectedPlatform.value?.supported && !blockedPlatforms.value.includes(configForm.platform || '') && !recoveringPlatform.value && !preparing.value && !busy.value && !starting.value && !batchBusy.value && !bridgeBusy.value)
-const canStop = computed(() => busy.value && !!currentTask.value.run_id && !stopping.value && !batchBusy.value && !bridgeBusy.value)
+const canPrepare = computed(() => !!selectedPlatform.value?.supported && !blockedPlatforms.value.includes(configForm.platform || '') && !recoveringPlatform.value && !preparing.value && !busy.value)
 const access = computed<CollectionAccess | null>(() => cdpStatus.value && !cdpStatus.value.reachable ? { access_state: 'cdp_unavailable', can_collect: false } : cdpStatus.value?.platform_access?.[configForm.platform || ''] || preparation.value)
 const accessState = computed(() => preparing.value ? 'preparing' : access.value?.content_limited || preparation.value?.content_limited || preparation.value?.access_state === 'content_limited' ? 'content_limited' : access.value?.access_state || 'unready')
 const accessLabel = computed(() => access.value?.reason === 'security_check_redirect' ? 'BOSS 自动安全校验' : accessText(accessState.value))
@@ -273,8 +233,6 @@ const accessMessage = computed(() => {
   return cdpStatus.value?.error ? `浏览器检查失败：${cdpStatus.value.error}` : access.value?.message || (access.value?.reason ? accessReasonText(access.value.reason) : '请显式准备浏览器；系统不会自动登录或绕过验证。')
 })
 const configValid = computed(() => !!selectedPlatform.value?.supported && configForm.keywords.length === 1 && !!keyword.value.trim() && keyword.value.trim().length <= 80 && configForm.cities.length === 1 && availableCities.value.some(city => city.code === configForm.cities[0]?.code && city.name === configForm.cities[0]?.name) && configForm.pages === 1 && Number.isInteger(configForm.detail_limit) && configForm.detail_limit >= 1 && configForm.detail_limit <= 5 && Number.isInteger(configForm.max_jobs) && configForm.max_jobs >= 1 && configForm.max_jobs <= 5)
-const canStart = computed(() => readiness.value?.ready === true && canPrepare.value && configValid.value && preparedFor.value === configForm.platform && accessReady.value && !stopping.value)
-const startHint = computed(() => busy.value ? '任务处理中；可停止后查看已取得结果。' : readiness.value?.ready !== true ? readinessMessage.value : blockedPlatforms.value.includes(configForm.platform || '') ? '平台采集动作受阻，请查看上方诊断与恢复。' : !configValid.value ? '请完成有效的平台、关键词与城市配置，页数为 1，列表和详情上限为 1–5。' : preparing.value ? '浏览器准备中，请稍候。' : !accessReady.value && (preparation.value || access.value || cdpStatus.value?.error) ? `${accessMessage.value}；请处理后点击“准备 / 重新检查”。` : preparedFor.value !== configForm.platform ? '先点击左侧准备浏览器，再启动单轮。' : '已准备就绪，点击后仅提交当前单轮任务。')
 const databaseError = computed(() => stats.value.error || (stats.value.available === false ? '数据库统计暂不可用' : ''))
 const platformStats = computed(() => platforms.value.map(item => ({ platform: item.platform, label: item.label, count: stats.value.available === false ? null : stats.value.platform_counts?.find(row => row.platform === item.platform)?.count ?? null })))
 const qualityItems = computed(() => [
@@ -369,7 +327,7 @@ async function loadFrequencies() {
 }
 async function recoverFrequency(platform: string) {
   const diagnosis = frequencies.value[platform]
-  if (disposed || recoveringPlatform.value || busy.value || batchBusy.value || bridgeBusy.value || preparing.value || starting.value || diagnosis?.state !== 'unfinished' || !diagnosis.can_recover || !diagnosis.recovery_token) return
+  if (disposed || recoveringPlatform.value || busy.value || preparing.value || diagnosis?.state !== 'unfinished' || !diagnosis.can_recover || !diagnosis.recovery_token) return
   recoveringPlatform.value = platform
   diagnosticRequest++
   browserRequest++
@@ -456,7 +414,12 @@ async function prepareBrowser() {
   cdpStatus.value = null
   try {
     const result = await prepareCollection(false, platform, { keywords: [keyword.value.trim()], cities: configForm.cities.map(city => ({ ...city })), pages: configForm.pages, detail_limit: configForm.detail_limit, max_jobs: configForm.max_jobs })
-    if (request === browserRequest) { preparation.value = result; cdpStatus.value = result.cdp; preparedFor.value = result.can_collect ? platform : null }
+    if (request === browserRequest) {
+      const contentLimited = result.content_limited === true || result.cdp?.platform_access?.[platform]?.content_limited === true
+      preparation.value = result
+      cdpStatus.value = result.cdp
+      preparedFor.value = result.can_collect && !contentLimited ? platform : null
+    }
   } catch (error) {
     if (request === browserRequest) {
       const detail = errorText(error)
@@ -464,28 +427,6 @@ async function prepareBrowser() {
     }
   }
   finally { preparing.value = false; if (!disposed) await loadFrequencies() }
-}
-async function startTask() {
-  if (!canStart.value || disposed) return
-  starting.value = true
-  statusRequest++
-  try {
-    const task = await startCollection({ platform: configForm.platform, mode: 'once', keywords: [keyword.value.trim()], cities: configForm.cities.map(city => ({ ...city })), pages: configForm.pages, detail_limit: configForm.detail_limit, max_jobs: configForm.max_jobs, rounds: 1, check_cdp_before_start: true })
-    if (disposed) return
-    statusRequest++
-    currentTask.value = { run_id: task.run_id, platform: configForm.platform, status: task.status || 'preparing' }
-    preparedFor.value = null
-    ElMessage.info(task.message || '本轮任务已提交，请查看进度与停止原因。')
-    await refreshAll()
-  } catch (error) { ElMessage.error(`任务提交失败：${errorText(error)}`); await Promise.allSettled([loadReadiness(), loadFrequencies()]) }
-  finally { starting.value = false }
-}
-async function stopTask() {
-  if (!canStop.value) return
-  stopping.value = true
-  try { await stopCollection(currentTask.value.run_id); preparedFor.value = null; await refreshAll() }
-  catch (error) { ElMessage.error(`停止失败：${errorText(error)}`) }
-  finally { stopping.value = false }
 }
 let historyRequest = 0
 async function openHistory(task: CollectionTask) {

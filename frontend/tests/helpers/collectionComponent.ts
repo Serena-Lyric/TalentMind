@@ -5,8 +5,8 @@ import ts from 'typescript'
 import * as vue from 'vue'
 
 // 执行真实采集页 setup，外部 API 与计时器隔离；不连接浏览器或数据库。
-export function collectionComponent(overrides: Record<string, any> = {}, options: { batch?: boolean; component?: string; props?: Record<string, any> } = {}) {
-  const filename = resolve(import.meta.dirname, options.component || (options.batch ? '../../src/components/CollectionBatch.vue' : '../../src/views/Collection.vue'))
+export function collectionComponent(overrides: Record<string, any> = {}, options: { component?: string; props?: Record<string, any> } = {}) {
+  const filename = resolve(import.meta.dirname, options.component || '../../src/views/Collection.vue')
   const mounted: (() => any)[] = []
   const unmounted: (() => any)[] = []
   const intervals: (() => any)[] = []
@@ -26,31 +26,7 @@ export function collectionComponent(overrides: Record<string, any> = {}, options
     getCollectionHistory: { items: [], total: 0 },
     getCollectionResults: [],
     getCollectionRecent: [],
-    getCollectionBatches: { items: [], total: 0 },
-    getBridgePairing: { token: 'pair-token', extension_id: 'extension-id', extension_path: 'frontend/bridge-extension', sessions: [] },
-    createBridgeSession: {
-      run_id: 'bridge-11111111111111111111111111111111',
-      session: {
-        run_id: 'bridge-11111111111111111111111111111111', platform: 'boss', status: 'waiting_for_capture',
-        listed: 0, detail_attempted: 0, detail_obtained: 0, content_eligible: 0,
-        identity_verified: 0, identity_pending: 0, complete: 0, inserted: 0, updated: 0,
-        skipped: 0, rejected: 0, failed: 0, finished_at: null,
-      },
-    },
-    getBridgeSession: {
-      run_id: 'bridge-11111111111111111111111111111111', platform: 'boss', status: 'waiting_for_capture',
-      listed: 0, detail_attempted: 0, detail_obtained: 0, content_eligible: 0,
-      identity_verified: 0, identity_pending: 0, complete: 0, inserted: 0, updated: 0,
-      skipped: 0, rejected: 0, failed: 0, finished_at: null,
-    },
-    finishBridgeSession: {
-      run_id: 'bridge-11111111111111111111111111111111', platform: 'boss', status: 'completed',
-      listed: 0, detail_attempted: 0, detail_obtained: 0, content_eligible: 0,
-      identity_verified: 0, identity_pending: 0, complete: 0, inserted: 0, updated: 0,
-      skipped: 0, rejected: 0, failed: 0, finished_at: '2026-10-22T00:00:00Z',
-    },
     prepareCollection: { access_state: 'public_accessible', can_collect: true, message: '公开可访问', cdp: { reachable: true } },
-    startCollection: { run_id: 'new-run', status: 'preparing' },
     getCollectionRaw: { jd_pool_id: 7, raw_text: '完整正文\n第二行' },
   }
   const api = new Proxy({}, {
