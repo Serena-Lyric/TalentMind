@@ -1,8 +1,9 @@
 # Ubuntu 24.04 生产部署与运行
 
 > 适用：腾讯云轻量应用服务器（Ubuntu 24.04 x86_64）首次部署 TalentMind。
-> 当前范围：P1 部署基座（MySQL + FastAPI + Nginx + Basic Auth/TLS + 安装/运维脚本）与 P2 M1 Linux 采集（Edge/Xvfb/noVNC + Linux 进程组归属）。
-> P2 已在本地 linux/amd64 容器完成烟测；**尚未在真实服务器执行，也未访问真实招聘站或执行真实采集**。
+> 当前范围：P1 部署基座（MySQL + FastAPI + Nginx + Basic Auth/TLS + 安装/运维脚本）、P2 M1 Linux 运行基础（Edge/Xvfb/noVNC + Linux 进程组归属）与 P6 打包交付。
+> `20261118-1` 已完成腾讯云 Ubuntu 24.04 首次部署与七页线上检查；M1 真实浏览器采集暂缓，后续转为具备合法授权的 API 采集方案。公网 IP 当前使用自签证书，ICP 备案审核中。
+> P2 的 Linux 运行逻辑只在本地容器和服务器浏览器启动层面验证；**真实三站采集尚未执行**。
 
 ## 1. 前提
 
@@ -21,6 +22,14 @@
 | `talentmind-images-<version>.tar.gz` | 仅在拆分时生成：`app/deploy/images/{backend,web,mysql,neo4j,redis}.tar` | 可公开 |
 | `talentmind-data-<version>.tar.gz` | MySQL dump、M2 seed、模型配置 | **只私下交付，不发布** |
 | `SHA256SUMS` | 实际生成归档的 SHA256 | 随包提供 |
+
+### 公开 Release 与私有数据边界
+
+- 公开 Release 只发布代码包、拆分时的镜像包和对应 `SHA256SUMS`；数据包、模型配置和真实数据只私下交付，不上传 GitHub。Release 说明见 [v20261120 Release 说明](release-notes-v20261120.md)。
+- 仓库 `.gitattributes` 已将 `deploy/**` 和 `scripts/*.sh` 固定为 `text eol=lf`。Windows 本机即使 `core.autocrlf=true`，`git archive` 生成的发布包也是 LF；不要用 `git add --renormalize` 改写全仓库历史文件，也不要移除该规则。
+- `deploy/tests/test-package.sh` 会扫描代码包 `app/deploy/**` 与 `app/scripts/*.sh`，发现 CR 即失败并明确指出 CRLF；发布前必须通过。
+- 发布前在资产目录执行 `sha256sum -c SHA256SUMS`；只上传公开资产及其校验值，私有数据包的校验值随私有交付单独提供。
+- `20261118-1` 已用于首次服务器部署；后续 Release 以最终合并代码重新构建，不复用未合并阶段的包。
 
 打包命令：
 
@@ -183,9 +192,9 @@ backend 镜像内置 Microsoft Edge for Linux、Xvfb、x11vnc、noVNC（websocki
 
 ## 10. 验证边界
 
-P1 的自动化验证只覆盖：镜像构建、隔离 Compose 栈、Basic Auth、可信代理门禁、TLS 模式、启停/重启数据、安装导入、备份恢复。**尚未在真实腾讯云服务器执行**；Docker 安装/镜像加速/固网 DNS 以服务器实际执行为准。
+P1 的自动化验证只覆盖：镜像构建、隔离 Compose 栈、Basic Auth、可信代理门禁、TLS 模式、启停/重启数据、安装导入、备份恢复。`20261118-1` 随后已在真实腾讯云服务器完成首次部署与七页检查；自动化结果仍只代表隔离环境，Docker 安装/镜像加速/固网 DNS 以服务器实际执行为准。
 
-P2 新增验证只在本地 linux/amd64 容器执行：`deploy/tests/test-m1-linux.sh` 检查 Edge/Xvfb/x11vnc/websockify/noVNC/Noto CJK、`/health`、Xvfb socket、经回环映射端口读取 `/vnc.html`、容器内 `about:blank` Edge CDP 和 worker 进程组停止。**未访问 BOSS/智联/猎聘、未在真实服务器运行、未执行真实采集、未迁移登录态**；M1 真实三站与全链路业务验收仍以负责人服务器反馈为准。
+P2 新增验证只在本地 linux/amd64 容器执行：`deploy/tests/test-m1-linux.sh` 检查 Edge/Xvfb/x11vnc/websockify/noVNC/Noto CJK、`/health`、Xvfb socket、经回环映射端口读取 `/vnc.html`、容器内 `about:blank` Edge CDP 和 worker 进程组停止。服务器上三站浏览器可启动，但 BOSS 进入用户页、智联游客内容受限、猎聘搜索页内容不足，**均未开始真实采集；未迁移登录态**。M1 真实三站与全链路业务验收仍以负责人后续反馈为准。
 
 P6 打包验证由 `deploy/tests/test-package.sh` 执行：
 
@@ -197,5 +206,5 @@ bash deploy/tests/test-package.sh <code.tar.gz> <data.tar.gz> [images.tar.gz]
 TALENTMIND_PACKAGE_INSTALL=0 bash deploy/tests/test-package.sh <code.tar.gz> <data.tar.gz>
 ```
 
-无参数时自动选择 `data/local/deploy/` 最新代码包及同版本 data/images 包；找不到则打印 `SKIP` 退出 0。测试会校验 `SHA256SUMS`、代码包禁止路径、数据包禁止 `*.lock/*-wal/*-shm`、浏览器档案/Cookie/旧频率账本、MANIFEST 行数和 SQLite 完整性；完整烟测还会核对安装后 MySQL 行数、seed 后的 SQLite integrity 及 `/healthz`、`/`、`/api/collection/platforms`、`/api/jobs`、`/api/m2/delivery/inputs`。该烟测运行在宿主机 Docker（非全新 Ubuntu 云主机），**最终以负责人服务器部署为准；真实采集与 release 发布均未执行**。
+无参数时自动选择 `data/local/deploy/` 最新代码包及同版本 data/images 包；找不到则打印 `SKIP` 退出 0。测试会校验 `SHA256SUMS`、代码包禁止路径、数据包禁止 `*.lock/*-wal/*-shm`、浏览器档案/Cookie/旧频率账本、MANIFEST 行数和 SQLite 完整性；完整烟测还会核对安装后 MySQL 行数、seed 后的 SQLite integrity 及 `/healthz`、`/`、`/api/collection/platforms`、`/api/jobs`、`/api/m2/delivery/inputs`。代码包换行检查会拒绝 `app/deploy/**` 与 `app/scripts/*.sh` 中的 CRLF。该烟测运行在宿主机 Docker（非全新 Ubuntu 云主机）；首次服务器部署已完成，公开 Release 发布由负责人执行，真实采集未执行。
 
