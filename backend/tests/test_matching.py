@@ -1,6 +1,6 @@
-"""M4 简历匹配模块测试：技能提取、canonical 化（D31）、匹配输出。"""
+"""M4 简历匹配模块测试：技能提取、canonical 化（D31）、加权匹配输出。"""
 from app.matching.skill_extractor import extract_skills, normalize_skill
-from app.matching.matcher import ResumeJobMatcher, quick_match, match_resume_job
+from app.matching.matcher import quick_match_weighted
 from app.matching.canonical import to_canonical
 
 
@@ -24,18 +24,16 @@ def test_to_canonical():
     assert to_canonical("SpringBoot") == "spring boot"
 
 
-def test_quick_match_canonical_output():
-    result = quick_match(["Python", "Docker"], ["Python", "Kubernetes"])
+def test_quick_match_weighted_canonical_output():
+    result = quick_match_weighted(["Python", "Docker"], ["Python", "Kubernetes"])
     assert result["matched_skills"] == ["python"]
     assert result["unmatched_job_skills"] == ["kubernetes"]
     assert result["resume_extra_skills"] == ["docker"]
 
 
-def test_matcher_full_flow():
-    resume = "姓名：张三\n技能：Python、Django、MySQL"
-    job = "【后端工程师】要求：Python、Django、MySQL、Redis"
-    result = match_resume_job(resume, job)
-    assert result["success"]
-    assert result["skills_match"]["matched_count"] >= 3
-    for s in result["skills_match"]["matched_skills"]:
-        assert s == s.lower(), f"技能未 canonical: {s!r}"
+def test_quick_match_weighted_keeps_required_and_bonus_separate():
+    # 必备/加分重叠只计必备；加分缺口不计入必备数量。
+    result = quick_match_weighted(["K8s"], ["Kubernetes", "k8s"], ["K8S", "Docker"])
+    assert result["matched_skills"] == ["kubernetes"]
+    assert result["unmatched_job_skills"] == ["docker"]
+    assert result["job_required_count"] == 1

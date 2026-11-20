@@ -33,7 +33,7 @@ pnpm run build
 
 默认`/#/graph`读取已核验历史`exchange/m3/graph.json`及布局，历史身份明确；三维星体、相机、Worker和宽线交互保留。来源数据与视觉布局分开，空间距离不代表语义距离。
 
-新版M2点击图谱时URL绑定`m2DeliveryRun`与`m2Graph`，每个artifact请求携带同一`snapshot`摘要。运行进行中也能冻结当前已提交部分结果；停止/恢复后旧快照仍可读。旧M2图只读取已保存bundle，不再通过旧引擎生成。私有离线图预览继续使用`M3_REAL_PREVIEW_DIR`和`?graphDataset=real`，普通构建不复制私有源文件。
+新版M2点击图谱时URL绑定`m2DeliveryRun`与`m2Graph`，每个artifact请求携带同一`snapshot`摘要。运行进行中也能冻结当前已提交部分结果；停止/恢复后旧快照仍可读。旧M2图只读取已保存bundle，不再通过旧引擎生成。私有离线图预览保留既有bundle的只读入口（`M3_REAL_PREVIEW_DIR`、`?graphDataset=real`），仓库内`real_pipeline`生成器已于P5退役，不再提供新的预览产物生成；普通构建不复制私有源文件。
 
 错误、未知、未执行与真实零值分开；机器结果与研究候选不成为正式职业或学习目标。岗位分页/搜索使用后端总数；请求倒序、选择切换及卸载不允许旧数据覆盖新选择。历史视觉参数用于已保留的三维对照；旧Canvas旁路已移除。
 

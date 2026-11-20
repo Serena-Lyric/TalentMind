@@ -1,9 +1,10 @@
 # M4 交接 — 简历解析与岗位匹配
 
 ## 正式实现（2026-08-13 迁入，MVP）
-- 代码：`backend/app/matching/`（skill_extractor / resume_parser / job_parser / matcher / file_parser / generate_test_data / canonical / main / resume_matcher_app）
+- 代码：`backend/app/matching/`（skill_extractor / resume_parser / file_parser / matcher.quick_match_weighted / requirements / canonical）
 - 技能归一：`canonical.py` 对齐 `backend/app/skills/skill_dict_seed.json`（D31）；matcher 输出技能为 canonical（小写）
-- 文本解析入口：`ResumeParser`；匹配入口：`ResumeJobMatcher.match` / `quick_match`
+- 文本解析入口：`parse_resume` / `ResumeParser`；匹配入口：`routers/mvp.py` 与 `routers/learning.py` 调用 `quick_match_weighted`
+- 旧 `resume_matcher_app.py`、`main.py`、`generate_test_data.py` 与 `job_parser.py` 已于 Issue #81 P5 退役，原实现保留在 Git 历史
 
 ## MVP API（A 集成层 routers/mvp.py）
 
@@ -16,6 +17,6 @@
 
 ## 已知限制
 - 中文紧邻英文、C++/C# 符号边界已有合成回归；复杂语义与真实解析准确率仍待专项验证。
-- PDF/DOCX 解析依赖已安装（requirements.txt 含 pdfplumber/python-docx/mammoth，2026-08-15）；`backend/tests/fixtures/matching/samples/` 含 5 份合成 DOCX/PDF 样本（file_parser 实测可解析）
+- PDF/DOCX 解析依赖已安装（requirements.txt 含 pdfplumber/python-docx/mammoth，2026-08-15）；P5 已删除旧 CLI 的 `backend/tests/fixtures/matching/` 生成样例，`file_parser` 保留内联合成回归。
 - 匹配为加权规则（编程语言 1.5x / 后端框架 1.3x / 数据库 1.2x），非 embedding
 - 真实简历样例未入库（D36），测试用 fixtures 文本样例

@@ -1,8 +1,16 @@
 # graph
 
+## 当前保留边界（P5 清理后，2026-11-20）
+
+- 默认 `/#/graph` 继续读取 `exchange/m3/graph.json`（7845 节点 / 11412 边）与 `exchange/m3/overlays/p2-1-layout.json`；历史图层和既有交互不变。
+- 新 M2 图由 `delivery_bundle.py` 按运行快照生成；历史 M2 product 图由 `product_bundle.py` 只读读取。
+- `candidate_layout.py` 与 `research/algorithms.py` 仍服务上述 bundle；`requirements-offline.txt` 继续由 `backend/requirements.txt` 引入。
+- 只读诊断入口 `diagnose_snapshot.py` 与 `integration/rebuild_m2_graph.build_graph_data` 保留；`rebuild()` 仍为禁用入口。
+- P5 已退役：`builder.py`、`real_pipeline.py`、`real_quality.py`、`exchange/m3/mock_job_data.json`、`integration/rebuild_chinese_graph.py` 及其测试。原实现保留在 Git 历史；下方历史说明不随清理改写。
+
 ## 真实 JD 首轮贯通（2026-10-20，隔离候选）
 
-`real_pipeline.py` 复用已合并 M2 B1/B2/B22，显式文件输入生成独立的原文陈述事实图、来源索引、派生相似/社区与布局；`verify` 核对冻结 M1/M2 并重算产物。所有完整数据放 `data/local/`，不调用被禁用的生产重建。离线算法固定依赖见 `requirements-offline.txt`；正式 Vue 通过显式预览开关加载，默认历史图不变。
+`real_pipeline.py`（已退役，见上）复用已合并 M2 B1/B2/B22，显式文件输入生成独立的原文陈述事实图、来源索引、派生相似/社区与布局；`verify` 核对冻结 M1/M2 并重算产物。所有完整数据放 `data/local/`，不调用被禁用的生产重建。离线算法固定依赖见 `requirements-offline.txt`；正式 Vue 通过显式预览开关加载，默认历史图不变。
 
 真实 120 条首轮得到 22 条进入分析、71 节点/417 条规则陈述，416 uncertain/1 mentioned，相似边为零；不是开放域完成或可信需求图。输入、命令、版本/哈希、浏览器截图与既有测试失败见[完整交付](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M1-M5-real-jd-e2e.md)。
 
@@ -12,7 +20,7 @@
 
 复现、依赖与输入/源码摘要见 [候选产物说明](../../../exchange/m3/overlays/README.md)；正式Vue接入与实际验证见 [集成报告](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/review/M3-M5-P2-1.md)，相关问题记录见 [图层与密集命中陷阱](https://github.com/Serena-Lyric/TalentMind/blob/298b94a7b952822ffd9b1201b6c221c85d987424/docs/superpowers/traps/2026-10-19-galaxy-layer-and-dense-picking.md)。未加入生产requirements、未依赖GDS、未恢复重建入口、未覆盖正式graph.json。
 
-M3 图谱正式目录。`builder.py` 从 M2 交接产出构建 Job/Skill 节点和 `REQUIRES`/`RELATED_TO` 边，输出 `exchange/m3/graph.json`；A 通过 `integration/import_graph.py` 导入 Neo4j。
+M3 图谱正式目录。旧 `builder.py`（P5 已退役）曾从 M2 交接产出构建 Job/Skill 节点和 `REQUIRES`/`RELATED_TO` 边；A 通过 `integration/import_graph.py` 导入 Neo4j。
 
 - Job 节点 id/name 使用英文 `job_name`，可选 `name_zh` 用于中文展示；
 - Skill 节点使用 `skill_dict` canonical；
@@ -23,11 +31,11 @@ M3 图谱正式目录。`builder.py` 从 M2 交接产出构建 Job/Skill 节点�
 
 根目录 `exchange/m3/graph.json` 实际为 **7845 节点 / 11412 边**：Job 717 / Skill 4671 / Industry 2457；REQUIRES 8866 / APPLIES_TO 2539 / RELATED_TO 7。岗位/技能/行业使用带前缀的稳定交接 ID；这是本轮文件计数，不是 Neo4j 实时查询。
 
-上述 `job_name` / canonical 的裸 ID 描述适用于旧 `builder.py`。该构建器只产出 Job/Skill 和 REQUIRES/Job–Job RELATED_TO（Jaccard 阈值 0.25），不构建 Industry/APPLIES_TO；当前交接不能用它直接复现。不要运行默认 builder 覆盖正式 graph.json；统一构建流程留待 M3 专项处理，本轮只修说明。
+上述 `job_name` / canonical 的裸 ID 描述适用于已退役的旧 `builder.py`。该构建器只产出 Job/Skill 和 REQUIRES/Job–Job RELATED_TO（Jaccard 阈值 0.25），不构建 Industry/APPLIES_TO；当前交接不能用它直接复现。历史版本也不得运行默认输出覆盖正式 graph.json；统一构建流程留待 M3 专项处理。
 
 ## Issue #20：完整图纯函数离线修复（2026-10-17，待 PR 复审）
 
-完整图算法是 `app.integration.rebuild_m2_graph.build_graph_data(rows, skill_rows)`；历史 `builder.py` 保留。该纯函数只投影传入数据和版本化只读 canonical 名称，不初始化数据库客户端，不写文件。
+完整图算法是 `app.integration.rebuild_m2_graph.build_graph_data(rows, skill_rows)`；旧 `builder.py` 已于 P5 退役。该纯函数只投影传入数据和版本化只读 canonical 名称，不初始化数据库客户端，不写文件。
 
 - 技能采用精确 canonical 名称（忽略大小写）或保留区分的原名，不自动采纳未核实别名、版本归并或输入 canonical_name 主张。技能/场景键是 `skill:` / `industry:` 加 UTF-8 百分号编码；例如 c++ → `skill:c%2B%2B`、c# → `skill:c%23`。首尾空白不参与身份；原技能名称仍保留。场景维持既有每岗位最多 8 项投影。
 - Job ID 保留旧规则；若旧规则产生重复 ID，报错而不覆盖。实体 `audit.entity_mappings` 给出岗位、原名、身份、新旧 ID 和规范化状态；旧 ID 仅在审计中复现旧算法的逐岗位别名与最后写入行为。`legacy_id_collisions` 显式列出一对多映射。未知名称允许分开，不能据此声称已审核为不同技术或同义词。
@@ -40,7 +48,7 @@ M3 图谱正式目录。`builder.py` 从 M2 交接产出构建 Job/Skill 节点�
 
 ```powershell
 python -m app.graph.diagnose_snapshot ../exchange/m3/graph.json
-python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnostic.py tests/test_graph.py -q
+python -m pytest tests/test_m3_graph_integrity.py tests/test_m3_snapshot_diagnostic.py -q
 ```
 
 诊断只读显式快照并向 stdout 输出 JSON（包括完整映射和关系差异），在内存中分别比较旧 ID 的完整候选与修复身份后的候选，以独立全对穷举校验无漏算。岗位节点的历史技能数组与已有行业边不能恢复丢失的原始明细或被覆盖的场景名称；不代表生产重建的最终结果。

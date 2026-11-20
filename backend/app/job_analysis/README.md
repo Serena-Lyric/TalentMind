@@ -20,6 +20,8 @@
 
 顶层旧`main/pipeline`及专属LLM/清洗/提取/聚合/导出链已退役，不能再运行旧`--reset`清表入口。交接导入仍由`app/integration/`维护，具有单独破坏性许可边界；SQL原件解析工具移到`integration/sql_values.py`，不保留旧分析DB模块。
 
+M3 离线来源图链已退役：`graph/real_pipeline.py`、`graph/real_quality.py` 及仅被其消费的 `screening/`、`governance/`、`semantics` 运行器（rules/runner/store/validation）删除，`semantics/models.py` 继续供现行 M2 链使用。历史实现保留在 Git 历史；线上 M3 历史图与 M2 delivery/product 图读取不依赖该离线链。
+
 ## 必要支撑保留
 
 | 模块 | 现行消费者/用途 |
@@ -27,7 +29,6 @@
 | `foundation.inputs/store` | 新输入规范、摘要、路径边界与只追加存储共用。 |
 | `foundation.runner.publish/dictionary` | delivery CLI原子导出及DEV基线对照。 |
 | `semantics.models.Evidence`、`baseline.contract` | 新语义契约及研究比较直接复用的证据/候选结构。 |
-| `foundation/screening/semantics/governance`的离线运行器 | `graph/real_pipeline.py`历史来源图的离线构建/质量再现及回归；不是网页第二套分析链。 |
 | `product/source.py` | 新网页只读连接与来源身份归一化。 |
 
 B3 旧角色层（`role_classification/`）与 `canonical_catalog/` 草案目录已退役：没有路由、前端、脚本或现行 M2 链消费者，原实现与草案资产保留在 Git 历史。重复模型路由 `app/llm/`、无调用者的 `app/db/redis.py` 及 `OPENAI_*`/`REDIS_URL` 配置已删除；M2 模型仍只走 `understanding.cloud` 的显式配置与密钥文件。

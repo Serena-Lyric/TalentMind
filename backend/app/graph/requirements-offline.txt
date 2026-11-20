@@ -1,4 +1,4 @@
-# Shared by offline graph builds and the explicit local M2 candidate projection.
+# Shared by candidate_layout/research and the M2 delivery/product graph projection.
 networkx==3.6.1
 igraph==1.0.0
 leidenalg==0.11.0
