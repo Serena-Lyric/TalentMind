@@ -1,6 +1,6 @@
 # matching
 
-M4 简历解析与岗位匹配正式目录（已迁入实现：resume_parser / matcher / skill_extractor / canonical 等，详见 `exchange/m4/README.md`）。`input/人岗匹配/` 原版目录按用户要求暂缓迁移（只读对照，不入库）。
+M4 简历解析与岗位匹配保留目录：`resume_parser`、`file_parser`、`skill_extractor`、`canonical`、`requirements` 与 `matcher.quick_match_weighted`，详见 `exchange/m4/README.md`。旧命令行入口 `main.py`、`resume_matcher_app.py`、`generate_test_data.py` 及仅服务旧全文匹配的 `job_parser.py` 已于 P5 退役，原实现保留在 Git 历史。`input/人岗匹配/` 原版目录按用户要求暂缓迁移（只读对照，不入库）。
 
 上面的 `exchange/`、`input/` 均相对仓库根目录。正式 API 位于 `backend/app/routers/mvp.py`，支持可复制文字的 PDF、DOCX、UTF-8 TXT，最大 10MB；旧版 DOC 需先另存为 DOCX/PDF，扫描件需先转文字。上传内容不写 resume 表，也不发送模型服务。DOCX 按段落/表格顺序读取，合并单元格只提取一次。
 
