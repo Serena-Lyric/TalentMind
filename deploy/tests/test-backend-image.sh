@@ -16,9 +16,6 @@ run \
     -e NEO4J_URI="bolt://127.0.0.1:7687" \
     -e NEO4J_USER="neo4j" \
     -e NEO4J_PASSWORD="pass" \
-    -e REDIS_URL="redis://127.0.0.1:6379/0" \
-    -e OPENAI_API_KEY="x" \
-    -e OPENAI_BASE_URL="https://example.com/v1" \
     "$image" python -c "import app.main"
 
 test "$(run "$image" id -u)" = "1000"

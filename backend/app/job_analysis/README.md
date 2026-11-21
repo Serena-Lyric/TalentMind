@@ -26,9 +26,10 @@
 |---|---|
 | `foundation.inputs/store` | 新输入规范、摘要、路径边界与只追加存储共用。 |
 | `foundation.runner.publish/dictionary` | delivery CLI原子导出及DEV基线对照。 |
-| `semantics.models.Evidence`、`role_classification/proposals.models` | 新语义契约及研究比较直接复用的证据/候选结构。 |
+| `semantics.models.Evidence`、`baseline.contract` | 新语义契约及研究比较直接复用的证据/候选结构。 |
 | `foundation/screening/semantics/governance`的离线运行器 | `graph/real_pipeline.py`历史来源图的离线构建/质量再现及回归；不是网页第二套分析链。 |
-| `canonical_catalog`与旧角色层 | 历史草案来源/审核约束及离线图/语义回归；不自动进入正式职业目录。 |
 | `product/source.py` | 新网页只读连接与来源身份归一化。 |
+
+B3 旧角色层（`role_classification/`）与 `canonical_catalog/` 草案目录已退役：没有路由、前端、脚本或现行 M2 链消费者，原实现与草案资产保留在 Git 历史。重复模型路由 `app/llm/`、无调用者的 `app/db/redis.py` 及 `OPENAI_*`/`REDIS_URL` 配置已删除；M2 模型仍只走 `understanding.cloud` 的显式配置与密钥文件。
 
 所有测试只使用合成输入和隔离存储。正式库迁移、真实数据删除、外部采集和新收费模型运行须对应许可。私有原文、数据库与报告不提交。

@@ -294,7 +294,7 @@ write_model_env() {
     if [[ ! -f "$model_env_source" ]]; then
         log "WARNING: model env source not found: $model_env_source; deploy/model.env is empty"
     else
-        for key in OPENAI_API_KEY OPENAI_BASE_URL LLM_API_KEY LLM_BASE_URL; do
+        for key in LLM_API_KEY LLM_BASE_URL; do
             value="$(grep -E "^${key}=" "$model_env_source" | tail -n 1 | cut -d= -f2- || true)"
             if [[ -n "$value" ]]; then
                 printf '%s=%s\n' "$key" "$value" >> "$destination"
