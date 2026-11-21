@@ -22,7 +22,7 @@ TalentMind 将招聘岗位的原始需求整理为可追溯的能力事实，支
 
 - **前端：** Vue；正式入口 `frontend/`。
 - **后端：** FastAPI；采集 `backend/app/collect/`、分析 `backend/app/job_analysis/`、图谱 `backend/app/graph/`、匹配 `backend/app/matching/`。
-- **数据：** MySQL、Neo4j、Redis；数据库及跨模块约束以 [DDL/契约](backend/app/contracts/ddl.sql) 和实际代码为准。
+- **数据：** MySQL 为运行必需；Neo4j/Redis 仅保留可选 compose profile，当前后端无运行时消费者。数据库及跨模块约束以 [DDL/契约](backend/app/contracts/ddl.sql) 和实际代码为准。
 - **交接：** `exchange/` 保存模块间可审核的交付内容，不用作运行时代码源。
 - **私有资产：** `data/local/`、`input/`、`output/` 等只保存在获授权的本地环境，不上传真实 JD 原文、简历、凭据和数据库文件。
 
