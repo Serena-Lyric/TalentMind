@@ -5,9 +5,8 @@ import types
 
 import pytest
 
-from app.collect import (batch, boss_collect_loop, browser, cn_collect_loop,
-                         control, fetch_boss_jobs as boss, fetch_cn_jobs as cn,
-                         frequency)
+from app.collect import (browser, control, fetch_boss_jobs as boss,
+                         fetch_cn_jobs as cn, frequency)
 from app.collect.timing_validation import validate_collection_ranges
 
 
@@ -31,18 +30,6 @@ def test_direct_fetch_rejects_fast_or_invalid_before_browser(module, bad, monkey
         args = ('zhaopin', *args)
     with pytest.raises(ValueError):
         module.run_fetch(*args, cdp_endpoint='http://127.0.0.1:9333', delay=bad)
-
-
-@pytest.mark.parametrize('module', [boss_collect_loop, cn_collect_loop])
-@pytest.mark.parametrize('field,value', [('page_delay_min', 0), ('switch_interval_min', 359.99),
-                                         ('settle_min', float('nan')), ('settle_min', 4.999), ('page_delay_max', float('inf'))])
-def test_loop_rejects_before_fetch(module, field, value):
-    args = ([module.QueryTarget('Java', '北京', '530')],)
-    if module is cn_collect_loop:
-        args = ('zhaopin', *args)
-    with pytest.raises(ValueError):
-        module.run_loop(*args, cdp_endpoint='http://127.0.0.1:9333', user_data_dir=None,
-                        rounds=1, fetcher=lambda *a, **k: pytest.fail('fetch touched'), **{field: value})
 
 
 @pytest.mark.parametrize('field,value', [('page_delay_min', 0), ('switch_interval_min', 0),
@@ -158,19 +145,6 @@ def test_cn_current_page_read_is_rate_limited(clock, monkeypatch):
     assert reads[1] - reads[0] >= 15
 
 
-@pytest.mark.parametrize('module', [boss_collect_loop, cn_collect_loop])
-def test_state_failure_stops_loop_without_retry(module):
-    def fetch(*a, **k):
-        raise frequency.FrequencyStateError('broken ledger')
-    args = ([module.QueryTarget('Java', '北京', '530')],)
-    if module is cn_collect_loop:
-        args = ('zhaopin', *args)
-    result = module.run_loop(*args, cdp_endpoint='http://127.0.0.1:9333', user_data_dir=None,
-                             rounds=2, fetcher=fetch,
-                             sleeper=lambda _: pytest.fail('must not retry state failure'))
-    assert result == 2
-
-
 def test_prepare_loads_use_gate_and_claim_actual_default_query(clock, monkeypatch, tmp_path):
     profile = tmp_path / 'browser'
     actions = []
@@ -190,21 +164,6 @@ def test_prepare_loads_use_gate_and_claim_actual_default_query(clock, monkeypatc
     # Default preparation really loaded Python; Java is a new combination.
     frequency.wait_for_action('boss', 'Java', '101010100', sleeper=time.sleep)
     assert clock[0] - actions[-1] >= 360
-
-
-def test_batch_revalidates_before_thread_or_browser(monkeypatch):
-    record = {'batch': {'status': 'queued'}}
-    marker = object()
-    released = []
-    monkeypatch.setattr(batch, '_ACTIVE_ID', None)
-    monkeypatch.setattr(batch, '_load', lambda _: record)
-    monkeypatch.setattr(control, '_reserve_tasks', lambda: marker)
-    monkeypatch.setattr(control, '_release_tasks', lambda value: released.append(value))
-    monkeypatch.setattr(control, 'get_config', lambda: {**control._DEFAULT_CONFIG, 'switch_interval_min': 0})
-    monkeypatch.setattr(batch, '_save', lambda _: pytest.fail('unsafe batch started'))
-    with pytest.raises(ValueError):
-        batch.start_batch('batch-test')
-    assert released == [marker]
 
 
 @pytest.mark.parametrize('module', [boss, cn])
@@ -254,20 +213,6 @@ def test_cn_details_keep_original_combination_scope(clock, monkeypatch):
                  cdp_endpoint='http://127.0.0.1:9333', pages=1, max_jobs=0, detail_limit=2)
     assert len(actions) == 4
     assert all(b[1] - a[1] >= 360 for a, b in zip(actions, actions[1:]))
-
-
-@pytest.mark.parametrize('module', [boss_collect_loop, cn_collect_loop])
-def test_once_skips_switch_sleep_but_two_rounds_wait(module):
-    args = ([module.QueryTarget('Java', '北京', '530')],)
-    if module is cn_collect_loop:
-        args = ('zhaopin', *args)
-    waits = []
-    assert module.run_loop(*args, cdp_endpoint='http://127.0.0.1:9333', user_data_dir=None,
-                           rounds=1, fetcher=lambda *a, **k: {}, sleeper=waits.append) == 0
-    assert waits == []
-    assert module.run_loop(*args, cdp_endpoint='http://127.0.0.1:9333', user_data_dir=None,
-                           rounds=2, fetcher=lambda *a, **k: {}, sleeper=waits.append) == 0
-    assert len(waits) == 1 and 360 <= waits[0] <= 720
 
 
 @pytest.mark.parametrize('platform,first,second', [

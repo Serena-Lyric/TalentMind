@@ -29,13 +29,6 @@ def test_runtime_status_start_stop_and_resume_forward_to_scheduler(monkeypatch):
     ]
 
 
-def test_old_single_start_route_remains_compatible(monkeypatch):
-    from app.collect import control
-    monkeypatch.setattr(control, 'start_task', lambda payload: {'run_id': 'legacy', 'status': 'preparing'})
-    result = collection.collection_start({'platform': 'boss'})
-    assert result['data']['run_id'] == 'legacy'
-
-
 def test_asgi_empty_start_payload_reaches_real_scheduler_default_validation(monkeypatch, tmp_path):
     class Process:
         pid = 43210

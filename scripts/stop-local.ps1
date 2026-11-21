@@ -8,38 +8,27 @@ if ($services.root -ne $repoRoot) { throw '服务记录不属于本工作区，�
 if ($services.backend) {
     $backendProcess = Get-Process -Id $services.backend.pid -ErrorAction SilentlyContinue
     if ($backendProcess -and $backendProcess.StartTime.ToUniversalTime().Ticks -eq ([datetime]$services.backend.started).ToUniversalTime().Ticks) {
-        $activeStatuses = @('preparing','waiting_for_browser','running','stopping','waiting_next_round')
-        # 批次可能正在组合间等待；此时单项已结束，仍须先停止并归档批次。
-        $batches = $null
-        try { $batches = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/batches' -TimeoutSec 10 }
+        # M1 已收敛为 runtime 单一入口；停止覆盖三站 worker 并等待进程树退出。
+        $runtime = $null
+        try { $runtime = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/runtime/status' -TimeoutSec 10 }
         catch { if ([int]$_.Exception.Response.StatusCode -ne 404) { throw } }
-        if ($batches) {
-            if ($batches.code -ne 0) { throw '无法核查批次状态，保留后端。' }
-            foreach ($batch in @($batches.data.items | Where-Object { -not $_.finished_at -and $_.status -in @('running','waiting_next_round','stopping') })) {
-                $batchUrl = "http://127.0.0.1:18000/api/collection/batches/$($batch.batch_id)"
-                $reply = Invoke-RestMethod -Uri "$batchUrl/stop" -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 20
-                if ($reply.code -ne 0) { throw '批次停止失败，保留后端。' }
-                for ($attempt = 0; $attempt -lt 60; $attempt++) {
-                    $batchState = Invoke-RestMethod -Uri $batchUrl -TimeoutSec 5
-                    if ($batchState.code -ne 0) { throw '批次停止状态读取失败，保留后端。' }
-                    if ($batchState.data.finished_at) { break }
+        if ($runtime) {
+            if ($runtime.code -ne 0) { throw '无法核查持续采集状态，保留后端。' }
+            $active = @($runtime.data.platforms.PSObject.Properties.Value | Where-Object { $_.status -in @('running','waiting') })
+            if ($active.Count -gt 0) {
+                $stop = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/runtime/stop' -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 30
+                if ($stop.code -ne 0) { throw '持续采集停止失败，保留后端。' }
+                for ($attempt = 0; $attempt -lt 120; $attempt++) {
+                    $runtime = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/runtime/status' -TimeoutSec 5
+                    if ($runtime.code -ne 0) { throw '停止状态读取失败，保留后端。' }
+                    $active = @($runtime.data.platforms.PSObject.Properties.Value | Where-Object { $_.status -in @('running','waiting') })
+                    if ($active.Count -eq 0) { break }
                     Start-Sleep -Milliseconds 500
                 }
-                if (-not $batchState.data.finished_at) { throw '批次尚在停止或归档，保留后端；稍后重试。' }
+                if ($active.Count -gt 0) { throw '采集子树尚在停止，保留后端；稍后重试。' }
             }
-        }
-        $status = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/status' -TimeoutSec 10
-        if ($status.code -ne 0) { throw '无法核查任务状态，保留后端以便继续停止采集。' }
-        if (-not $status.data.finished_at -and $status.data.status -in $activeStatuses) {
-            $stop = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/stop' -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 15
-            if ($stop.code -ne 0) { throw '控制器拒绝停止任务，保留后端以便处理。' }
-            for ($attempt = 0; $attempt -lt 60; $attempt++) {
-                $status = Invoke-RestMethod -Uri 'http://127.0.0.1:18000/api/collection/status' -TimeoutSec 5
-                if ($status.code -ne 0) { throw '停止状态读取失败，保留后端。' }
-                if ($status.data.finished_at -or $status.data.status -notin $activeStatuses) { break }
-                Start-Sleep -Milliseconds 500
-            }
-            if (-not $status.data.finished_at -and $status.data.status -in $activeStatuses) { throw '采集尚在停止/归档，保留后端；稍后重试。' }
+            $unresolved = @($runtime.data.platforms.PSObject.Properties.Value | Where-Object { $_.status -eq 'failed' -and $_.stop_reason -eq 'worker_termination_unconfirmed' })
+            if ($unresolved.Count -gt 0) { throw '无法确认采集进程树退出，保留后端以便处理。' }
         }
     }
 }
